@@ -72,35 +72,24 @@ if (res.data[0].default === 1) {
 
 
 const onSubmit = async () => {
-  // if (!setcategoryInfo.value.name || !setcategoryInfo.value.alias || !setcategoryInfo.value.description || !setcategoryInfo.value.url) {
-  //   msg('请填写内容', 'error')
-  //   return false
-  // }
+  if (!setcategoryInfo.value.name || !setcategoryInfo.value.alias) {
+    msg('请填写内容', 'error')
+    return false
+  }
 
-  // const bodyValue = new URLSearchParams()
-  // bodyValue.append('id', setcategoryInfo.value.id)
-  // bodyValue.append('name', setcategoryInfo.value.name)
-  // bodyValue.append('alias', setcategoryInfo.value.alias)
-  // bodyValue.append('description', setcategoryInfo.value.description)
-  // bodyValue.append('url', setcategoryInfo.value.url)
+  const bodyValue = new URLSearchParams()
+  bodyValue.append('id', route.params.id)
+  bodyValue.append('name', setcategoryInfo.value.name)
+  bodyValue.append('alias', setcategoryInfo.value.alias)
+  bodyValue.append('default', setcategoryInfo.value.default)
 
-
-  // if (setcategoryInfo.value.example) {
-  //   bodyValue.append('example', setcategoryInfo.value.example)
-  // }
-
-  // if (!setcategoryInfo.value.state) {
-  //   bodyValue.append('state', setcategoryInfo.value.state)
-  // }
-
-  // const { data: res } = await axios.post('api/addapi?type=update&token=' + token.value, bodyValue)
-  // if (res.code === '200') {
-  //   msg(res.msg, 'success')
-  //   navigateTo('/admin/apilist')
-  // } else {
-  //   msg(res.msg, 'error')
-  // }
-
+  const { data: res } = await axios.post('api/updateCategory?token=' + token.value, bodyValue)
+  if (res.code === '200') {
+    msg(res.msg, 'success')
+    navigateTo('/admin/manage-categories')
+  } else {
+    msg(res.msg, 'error')
+  }
 }
 </script>
 
