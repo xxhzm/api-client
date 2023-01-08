@@ -109,7 +109,7 @@ const apiSetInfo = ref({
   state: true
 })
 
-const { data: res } = await axios.get('api/apiList', {
+const { data: res } = await axios.get('api/api', {
   params: {
     id: route.params.id
   }
