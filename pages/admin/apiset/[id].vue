@@ -36,6 +36,18 @@
                 show-word-limit
               />
             </el-form-item>
+
+            <el-form-item label="分类">
+              <client-only>
+                <el-autocomplete
+                  v-model="apiSetInfo.category"
+                  :fetch-suggestions="querySearch"
+                  placeholder="请选择分类"
+                  @select="handleSelect"
+                />
+              </client-only>
+            </el-form-item>
+
             <el-form-item label="返回示例">
               <el-input v-model="apiSetInfo.example" type="textarea" />
             </el-form-item>
@@ -106,6 +118,8 @@ const apiSetInfo = ref({
   description: '',
   url: '',
   example: '',
+  category: '',
+  categoryId: '',
   state: true
 })
 
@@ -119,6 +133,11 @@ apiSetInfo.value = res.data[0]
 
 
 const onSubmit = async () => {
+  if (apiSetInfo.value.category === '' || apiSetInfo.value.categoryId === '') {
+    msg('请选择分类', 'error')
+    return false
+  }
+
   if (!apiSetInfo.value.name || !apiSetInfo.value.alias || !apiSetInfo.value.description || !apiSetInfo.value.url) {
     msg('请填写内容', 'error')
     return false
@@ -130,6 +149,7 @@ const onSubmit = async () => {
   bodyValue.append('alias', apiSetInfo.value.alias)
   bodyValue.append('description', apiSetInfo.value.description)
   bodyValue.append('url', apiSetInfo.value.url)
+  bodyValue.append('categoryId', apiSetInfo.value.categoryId)
 
 
   if (apiSetInfo.value.example) {
@@ -150,9 +170,7 @@ const onSubmit = async () => {
 
 }
 
-
 const handleDelete = async (index, row) => {
-
   const bodyValue = new URLSearchParams()
   bodyValue.append('id', row.id)
 
@@ -165,6 +183,37 @@ const handleDelete = async (index, row) => {
     msg(res.msg, 'error')
   }
 }
+
+// 分类的数据
+const categoryData = ref([])
+
+const querySearch = async (queryString, cb) => {
+  // 如果没有数据则从服务端获取分类内容
+  if (categoryData.value.length === 0) {
+    const { data: res } = await axios.get('api/categoriesList?name=true')
+    categoryData.value = res.data
+  }
+
+  const results = queryString
+    ? categoryData.value.filter(createFilter(queryString))
+    : categoryData.value
+
+  // call callback function to return suggestions
+  cb(results)
+}
+
+const createFilter = (queryString) => {
+  return (restaurant) => {
+    return (
+      restaurant.value.toLowerCase().indexOf(queryString.toLowerCase()) === 0
+    )
+  }
+}
+
+const handleSelect = (item) => {
+  apiSetInfo.value.categoryId = item.id
+}
+
 
 </script>
 
