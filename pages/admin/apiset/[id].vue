@@ -37,7 +37,7 @@
               />
             </el-form-item>
 
-            <el-form-item label="分类">
+            <el-form-item label="接口分类">
               <client-only>
                 <el-autocomplete
                   v-model="apiSetInfo.category"
@@ -118,6 +118,7 @@ const apiSetInfo = ref({
   description: '',
   url: '',
   example: '',
+  oldCategoryId: '',
   category: '',
   categoryId: '',
   state: true
@@ -127,10 +128,11 @@ const { data: res } = await axios.get('api/api', {
   params: {
     id: route.params.id
   }
+
 })
 
 apiSetInfo.value = res.data[0]
-
+apiSetInfo.value.oldCategoryId = res.data[0].categoryId
 
 const onSubmit = async () => {
   if (apiSetInfo.value.category === '' || apiSetInfo.value.categoryId === '') {
@@ -150,6 +152,7 @@ const onSubmit = async () => {
   bodyValue.append('description', apiSetInfo.value.description)
   bodyValue.append('url', apiSetInfo.value.url)
   bodyValue.append('categoryId', apiSetInfo.value.categoryId)
+  bodyValue.append('oldCategoryId', apiSetInfo.value.oldCategoryId)
 
 
   if (apiSetInfo.value.example) {

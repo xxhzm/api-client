@@ -29,6 +29,18 @@
               show-word-limit
             />
           </el-form-item>
+
+          <el-form-item label="接口分类">
+            <client-only>
+              <el-autocomplete
+                v-model="addapiInfo.category"
+                :fetch-suggestions="querySearch"
+                placeholder="请选择分类"
+                @select="handleSelect"
+              />
+            </client-only>
+          </el-form-item>
+
           <el-form-item label="返回示例">
             <el-input v-model="addapiInfo.example" type="textarea" />
           </el-form-item>
@@ -67,6 +79,8 @@ const addapiInfo = reactive({
   alias: '',
   description: '',
   url: '',
+  oldCategoryId: '',
+  categoryId: '',
   example: '',
   state: true
 })
@@ -77,11 +91,17 @@ const onSubmit = async () => {
     return false
   }
 
+  if (!addapiInfo.categoryId) {
+    msg('请选择分类', 'error')
+    return false
+  }
+
   const bodyValue = new URLSearchParams()
   bodyValue.append('name', addapiInfo.name)
   bodyValue.append('alias', addapiInfo.alias)
   bodyValue.append('description', addapiInfo.description)
   bodyValue.append('url', addapiInfo.url)
+  bodyValue.append('categoryId', addapiInfo.categoryId)
 
   if (addapiInfo.example) {
     bodyValue.append('example', addapiInfo.example)
@@ -98,6 +118,36 @@ const onSubmit = async () => {
   } else {
     msg(res.msg, 'error')
   }
+}
+
+// 分类的数据
+const categoryData = ref([])
+
+const querySearch = async (queryString, cb) => {
+  // 如果没有数据则从服务端获取分类内容
+  if (categoryData.value.length === 0) {
+    const { data: res } = await axios.get('api/categoriesList?name=true')
+    categoryData.value = res.data
+  }
+
+  const results = queryString
+    ? categoryData.value.filter(createFilter(queryString))
+    : categoryData.value
+
+  // call callback function to return suggestions
+  cb(results)
+}
+
+const createFilter = (queryString) => {
+  return (restaurant) => {
+    return (
+      restaurant.value.toLowerCase().indexOf(queryString.toLowerCase()) === 0
+    )
+  }
+}
+
+const handleSelect = (item) => {
+  addapiInfo.categoryId = item.id
 }
 </script>
 
