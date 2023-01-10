@@ -6,7 +6,7 @@
 import axios from 'axios'
 import { ElNotification } from 'element-plus'
 
-axios.defaults.baseURL = 'http://10.6.6.114:8000/admin/'
+axios.defaults.baseURL = 'http://10.6.6.6:8000/admin/'
 
 // 响应拦截器
 axios.interceptors.response.use(response => {
