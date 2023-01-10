@@ -111,7 +111,7 @@ const onSubmit = async () => {
     bodyValue.append('state', addapiInfo.state)
   }
 
-  const { data: res } = await axios.post('api/addapi?type=insert&token=' + token.value, bodyValue)
+  const { data: res } = await axios.post('api?type=insertApi&token=' + token.value, bodyValue)
   if (res.code === '200') {
     msg(res.msg, 'success')
     navigateTo('/admin/apilist')

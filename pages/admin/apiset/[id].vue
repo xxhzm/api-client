@@ -124,8 +124,9 @@ const apiSetInfo = ref({
   state: true
 })
 
-const { data: res } = await axios.get('api/api', {
+const { data: res } = await axios.get('api', {
   params: {
+    type: 'apiId',
     id: route.params.id
   }
 
@@ -163,7 +164,7 @@ const onSubmit = async () => {
     bodyValue.append('state', apiSetInfo.value.state)
   }
 
-  const { data: res } = await axios.post('api/addapi?type=update&token=' + token.value, bodyValue)
+  const { data: res } = await axios.post('api?type=updateApi&token=' + token.value, bodyValue)
   if (res.code === '200') {
     msg(res.msg, 'success')
     navigateTo('/admin/apilist')

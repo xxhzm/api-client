@@ -9,10 +9,16 @@
             <el-input v-model="addparameter.id" />
           </el-form-item>
           <el-form-item label="参数名称">
-            <el-input v-model="addparameter.name" />
+            <el-input v-model="addparameter.name" placeholder="return" />
+          </el-form-item>
+          <el-form-item label="可传参数">
+            <el-input v-model="addparameter.param" placeholder="json | 302" />
           </el-form-item>
           <el-form-item label="参数描述">
-            <el-input v-model="addparameter.docs" />
+            <el-input
+              v-model="addparameter.docs"
+              placeholder="返回json数据 | 重定义到图片"
+            />
           </el-form-item>
           <el-form-item label="是否必传">
             <el-switch v-model="addparameter.required" />
@@ -47,6 +53,7 @@ const msg = (message, type) => {
 const addparameter = reactive({
   id: 0,
   name: '',
+  param: '',
   docs: '',
   required: true,
 })
@@ -57,7 +64,7 @@ watch(() => addparameter.id, (newValue) => {
 
 
 const onSubmit = async () => {
-  if (!addparameter.id || !addparameter.name || !addparameter.docs) {
+  if (!addparameter.id || !addparameter.name || !addparameter.param || !addparameter.docs) {
     msg('请填写内容', 'error')
     return false
   }
@@ -65,6 +72,7 @@ const onSubmit = async () => {
   const bodyValue = new URLSearchParams()
   bodyValue.append('aid', addparameter.id)
   bodyValue.append('name', addparameter.name)
+  bodyValue.append('param', addparameter.param)
   bodyValue.append('docs', addparameter.docs)
 
   if (!addparameter.required) {
