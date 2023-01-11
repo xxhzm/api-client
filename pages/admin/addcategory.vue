@@ -61,7 +61,7 @@ const onSubmit = async () => {
   bodyValue.append('name', addcategoryInfo.name)
   bodyValue.append('alias', addcategoryInfo.alias)
 
-  const { data: res } = await axios.post('api/addcategory?type=insert&token=' + token.value, bodyValue)
+  const { data: res } = await axios.post('api/category?type=insertCategory&token=' + token.value, bodyValue)
   if (res.code === '200') {
     msg(res.msg, 'success')
     navigateTo('/admin/manage-categories')

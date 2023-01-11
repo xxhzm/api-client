@@ -76,10 +76,10 @@ const onSubmit = async () => {
   bodyValue.append('docs', addparameter.docs)
 
   if (!addparameter.required) {
-    bodyValue.append('required', 0)
+    bodyValue.append('required', '关闭')
   }
 
-  const { data: res } = await axios.post('api/addparameter?token=' + token.value, bodyValue)
+  const { data: res } = await axios.post('api/parameter?type=insertParameter&token=' + token.value, bodyValue)
 
   if (res.code === '200') {
     msg(res.msg, 'success')

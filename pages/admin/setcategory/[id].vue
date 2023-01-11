@@ -56,7 +56,7 @@ const setcategoryInfo = ref({
   default: true
 })
 
-const { data: res } = await axios.get('api/categoryId', {
+const { data: res } = await axios.get('api/category?type=categoryId', {
   params: {
     id: route.params.id
   }
@@ -81,9 +81,12 @@ const onSubmit = async () => {
   bodyValue.append('id', route.params.id)
   bodyValue.append('name', setcategoryInfo.value.name)
   bodyValue.append('alias', setcategoryInfo.value.alias)
-  bodyValue.append('default', setcategoryInfo.value.default)
 
-  const { data: res } = await axios.post('api/updateCategory?token=' + token.value, bodyValue)
+  if (setcategoryInfo.value.default === true) {
+    bodyValue.append('default', 1)
+  }
+
+  const { data: res } = await axios.post('api/category?type=updateCategory&token=' + token.value, bodyValue)
   if (res.code === '200') {
     msg(res.msg, 'success')
     navigateTo('/admin/manage-categories')

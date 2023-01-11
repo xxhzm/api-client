@@ -80,8 +80,9 @@
               </template>
             </el-table-column>
             <el-table-column prop="id" label="id" width="60" />
-            <el-table-column prop="name" label="Name" width="100" />
-            <el-table-column prop="docs" label="docs" width="300" />
+            <el-table-column prop="name" label="接口名称" width="100" />
+            <el-table-column prop="param" label="传递参数" width="100" />
+            <el-table-column prop="docs" label="参数描述" width="300" />
             <el-table-column prop="required" label="是否必传" width="100" />
             <el-table-column prop="create_time" label="创建时间" width="165" />
           </el-table>
@@ -177,8 +178,9 @@ const onSubmit = async () => {
 const handleDelete = async (index, row) => {
   const bodyValue = new URLSearchParams()
   bodyValue.append('id', row.id)
+  bodyValue.append('aid', apiSetInfo.value.id)
 
-  const { data: res } = await axios.post('api/deleteParams?token=' + token.value, bodyValue)
+  const { data: res } = await axios.post('api/parameter?type=deleteParameter&token=' + token.value, bodyValue)
 
   if (res.code === '200') {
     msg(res.msg, 'success')
@@ -194,7 +196,7 @@ const categoryData = ref([])
 const querySearch = async (queryString, cb) => {
   // 如果没有数据则从服务端获取分类内容
   if (categoryData.value.length === 0) {
-    const { data: res } = await axios.get('api/categoriesList?name=true')
+    const { data: res } = await axios.get('api/category?type=categoriesList&name=true')
     categoryData.value = res.data
   }
 

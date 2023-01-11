@@ -73,7 +73,7 @@ const tableData = ref([
 const search = ref('')
 
 const getData = async () => {
-  const { data: res } = await axios.get('api/categoriesList')
+  const { data: res } = await axios.get('api/category?type=categoriesList')
 
   if (res.code !== '200') {
     msg(res.msg, 'error')
@@ -102,7 +102,7 @@ const handleDelete = async (index, row) => {
   const bodyValue = new URLSearchParams()
   bodyValue.append('id', row.id)
 
-  const { data: res } = await axios.post('api/deleteCategory?token=' + token.value, bodyValue)
+  const { data: res } = await axios.post('api/category?deleteCategory&type=token=' + token.value, bodyValue)
 
   if (res.code === '200') {
     msg(res.msg, 'success')

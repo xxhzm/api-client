@@ -126,7 +126,7 @@ const categoryData = ref([])
 const querySearch = async (queryString, cb) => {
   // 如果没有数据则从服务端获取分类内容
   if (categoryData.value.length === 0) {
-    const { data: res } = await axios.get('api/categoriesList?name=true')
+    const { data: res } = await axios.get('api/category?type=categoriesList&name=true')
     categoryData.value = res.data
   }
 
