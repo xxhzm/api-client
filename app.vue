@@ -11,7 +11,7 @@ axios.defaults.baseURL = 'http://10.6.6.6:8000/admin/'
 // 响应拦截器
 axios.interceptors.response.use(response => {
   const { data: res } = response
-  if (res.code === '-3') {
+  if (res.code === '-3' || res.code === '-5' || res.code === '-6') {
     ElNotification({
       type: 'error',
       message: res.msg

@@ -96,7 +96,9 @@
           <el-input v-model="info.email" placeholder="电子邮箱" />
         </el-form-item>
       </el-form>
-      <el-button @click="getVerifyCode">获取验证码</el-button>
+      <el-button @click="getVerifyCode" :loading="getVerifyCodeButtonState"
+        >获取验证码</el-button
+      >
       <el-form-item style="margin-top: 20px">
         <el-input v-model="info.code" placeholder="验证码" type="number" />
       </el-form-item>
@@ -124,6 +126,8 @@ const router = useRouter()
 
 const username = useCookie('username')
 const token = useCookie('token')
+
+const getVerifyCodeButtonState = ref(false)
 
 // delete username and token
 username.value = undefined
@@ -223,6 +227,10 @@ const getVerifyCode = async () => {
     msg(res.msg, 'error')
     return false
   }
+
+  setTimeout(() => {
+    getVerifyCodeButtonState.value = true
+  }, 60000)
 
   msg(res.msg, 'success')
 }
