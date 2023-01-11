@@ -28,10 +28,9 @@
       <div class="ad-box">广告位招租</div>
       <div class="ad-box">广告位招租</div>
     </div>
-    <div class="text">
+    <!-- <div class="text">
       <p>CDN使用<a href="https://cdn.kdun.com/">酷盾安全</a></p>
-    </div>
-
+    </div> -->
     <div class="text">
       <p>
         小小API(https://xxapi.cn)以下简称本平台,所提供的各项服务的所有权和运作权归
