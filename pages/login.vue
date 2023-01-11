@@ -126,12 +126,14 @@ const router = useRouter()
 
 const username = useCookie('username')
 const token = useCookie('token')
+const grade = useCookie('grade')
 
 const getVerifyCodeButtonState = ref(false)
 
 // delete username and token
 username.value = undefined
 token.value = undefined
+grade.value = undefined
 
 const info = reactive({
   username: '',
@@ -175,6 +177,7 @@ const login = async () => {
     // 设置cookie
     username.value = res.data.username
     token.value = res.data.token
+    grade.value = res.data.grade
 
     navigateTo('/admin')
   }

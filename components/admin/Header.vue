@@ -26,6 +26,7 @@
 <script setup>
 const username = useCookie('username')
 const token = useCookie('token')
+const grade = useCookie('grade')
 
 const handleSelect = (key) => {
   // 更改密码
@@ -37,6 +38,7 @@ const handleSelect = (key) => {
   if (key === '0-2') {
     username.value = undefined
     token.value = undefined
+    grade.value = undefined
 
     navigateTo('/login')
   }
