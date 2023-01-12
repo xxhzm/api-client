@@ -3,7 +3,7 @@
     <el-input v-model="filterText" placeholder="搜索" />
     <el-tree
       ref="treeRef"
-      :data="data"
+      :data="sidebayData"
       :props="defaultProps"
       @node-click="handleNodeClick"
       default-expand-all
@@ -13,6 +13,7 @@
 </template>
 
 <script setup>
+import axios from 'axios'
 import { ref, watch } from 'vue'
 
 const filterText = ref('')
@@ -23,20 +24,7 @@ const defaultProps = {
   label: 'label',
 }
 
-watch(filterText, (val) => {
-  treeRef.value?.filter(val)
-})
-
-const filterNode = (value, data) => {
-  if (!value) return true
-  return data.label.includes(value)
-}
-
-const data = [
-  {
-    label: '首页',
-    alias: '/'
-  },
+const sidebayData = ref([
   {
     label: '默认分类',
     children: [
@@ -47,7 +35,36 @@ const data = [
       }
     ]
   }
-]
+])
+
+const getData = async () => {
+  const { data: res } = await axios.get('api?type=categoryApiList')
+
+  sidebayData.value = res.data
+
+  sidebayData.value.unshift({
+    label: '后台',
+    alias: '/admin'
+  })
+
+  sidebayData.value.unshift({
+    label: '首页',
+    alias: '/'
+  })
+
+
+}
+
+await getData()
+
+watch(filterText, (val) => {
+  treeRef.value?.filter(val)
+})
+
+const filterNode = (value, data) => {
+  if (!value) return true
+  return data.label.includes(value)
+}
 
 const handleNodeClick = (data) => {
   if (data.alias === undefined) {
@@ -56,6 +73,11 @@ const handleNodeClick = (data) => {
 
   if (data.alias === '/') {
     navigateTo('/')
+    return false
+  }
+
+  if (data.alias === '/admin') {
+    navigateTo('/admin')
     return false
   }
 
