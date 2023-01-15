@@ -8,7 +8,11 @@
       @select="handleSelect"
     >
       <el-menu-item index="0"
-        ><img src="https://cdn.xxhzm.cn/img/title.png" alt="logo" class="logo"
+        ><img
+          src="https://cdn.xxhzm.cn/img/title.png"
+          alt="logo"
+          class="logo"
+          style="width: 180px; height: 60px"
       /></el-menu-item>
       <div class="flex-grow" />
       <ClientOnly>
@@ -55,8 +59,6 @@ const handleSelect = (key) => {
   .logo {
     margin-left: 15px;
     margin-right: 15px;
-    width: 180px;
-    height: 60px;
   }
 }
 </style>

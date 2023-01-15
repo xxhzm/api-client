@@ -39,7 +39,9 @@
         <el-table-column prop="name" label="接口名称" width="150" />
         <el-table-column prop="alias" label="别名" width="100" />
         <el-table-column prop="description" label="描述" width="250" />
+        <el-table-column prop="keywords" label="接口关键词" width="300" />
         <el-table-column prop="url" label="地址" width="280" />
+        <el-table-column prop="method" label="请求方法" width="100" />
         <el-table-column prop="state" label="状态" width="80" />
         <el-table-column prop="category" label="分类" width="100" />
         <el-table-column prop="create_time" label="创建时间" width="165" />

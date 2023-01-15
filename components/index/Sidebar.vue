@@ -51,8 +51,6 @@ const getData = async () => {
     label: '首页',
     alias: '/'
   })
-
-
 }
 
 await getData()
@@ -81,7 +79,6 @@ const handleNodeClick = (data) => {
     return false
   }
 
-  console.log(data.alias)
   navigateTo('/doc/' + data.alias)
 }
 </script>

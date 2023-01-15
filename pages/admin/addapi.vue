@@ -22,11 +22,27 @@
           <el-form-item label="接口描述">
             <el-input v-model="addapiInfo.description" />
           </el-form-item>
+          <el-form-item label="接口关键词">
+            <el-input
+              v-model="addapiInfo.keywords"
+              maxlength="128"
+              show-word-limit
+              placeholder="英文逗号隔开"
+            />
+          </el-form-item>
           <el-form-item label="接口地址">
             <el-input
               v-model="addapiInfo.url"
               maxlength="128"
               show-word-limit
+            />
+          </el-form-item>
+          <el-form-item label="请求类型">
+            <el-input
+              v-model="addapiInfo.method"
+              maxlength="12"
+              show-word-limit
+              placeholder="GET 建议使用大写"
             />
           </el-form-item>
 
@@ -78,7 +94,9 @@ const addapiInfo = reactive({
   name: '',
   alias: '',
   description: '',
+  keywords: '',
   url: '',
+  method: '',
   oldCategoryId: '',
   categoryId: '',
   example: '',
@@ -86,7 +104,7 @@ const addapiInfo = reactive({
 })
 
 const onSubmit = async () => {
-  if (!addapiInfo.name || !addapiInfo.alias || !addapiInfo.description || !addapiInfo.url) {
+  if (!addapiInfo.name || !addapiInfo.alias || !addapiInfo.description || !addapiInfo.keywords || !addapiInfo.url || !addapiInfo.method) {
     msg('请填写内容', 'error')
     return false
   }
@@ -100,7 +118,9 @@ const onSubmit = async () => {
   bodyValue.append('name', addapiInfo.name)
   bodyValue.append('alias', addapiInfo.alias)
   bodyValue.append('description', addapiInfo.description)
+  bodyValue.append('keywords', addapiInfo.keywords)
   bodyValue.append('url', addapiInfo.url)
+  bodyValue.append('method', addapiInfo.method)
   bodyValue.append('categoryId', addapiInfo.categoryId)
 
   if (addapiInfo.example) {

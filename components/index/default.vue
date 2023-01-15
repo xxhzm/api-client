@@ -5,13 +5,17 @@
     <div class="text">
       <p>
         小小 API 是 小小孩子们 支持并维护的 API
-        接口项目，致力于为用户提供稳定、快速的免费 API 接口服务平台。
+        接口项目，致力于为用户提供稳定、快速的 API 接口服务平台。
       </p>
       <p>反馈或建议请发送邮件至：admin@xxhzm.cn</p>
       <p>
         <a href="https://jq.qq.com/?_wv=1027&k=92BF8Ndr" target="_blank"
           >点击加入QQ群</a
         >
+      </p>
+      <p>
+        可提供独享域名接口（无限频），具体请联系微信
+        xiaoxiaohaizimen（备注需求）
       </p>
     </div>
     <h2>服务地址</h2>
@@ -28,13 +32,12 @@
       <div class="ad-box">广告位招租</div>
       <div class="ad-box">广告位招租</div>
     </div>
-    <!-- <div class="text">
-      <p>CDN使用<a href="https://cdn.kdun.com/">酷盾安全</a></p>
-    </div> -->
+    <div class="text">
+      <p>CDN使用</p>
+    </div>
     <div class="text">
       <p>
-        小小API(https://xxapi.cn)以下简称本平台,所提供的各项服务的所有权和运作权归
-        小小孩子们 所有
+        小小API以下简称本平台,所提供的各项服务的所有权和运作权归 小小孩子们 所有
       </p>
     </div>
     <h2>API服务说明</h2>

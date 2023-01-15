@@ -16,6 +16,8 @@
     "@element-plus/icons-vue": "^2.0.10",
     "axios": "^1.2.0",
     "echarts": "^5.4.1",
-    "element-plus": "^2.2.28"
+    "element-plus": "^2.2.28",
+    "highlight.js": "^11.7.0",
+    "lxgw-wenkai-screen-webfont": "^1.6.0"
   }
 }

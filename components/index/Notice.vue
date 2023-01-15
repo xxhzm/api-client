@@ -2,7 +2,7 @@
   <div class="notice-container" v-if="NoticeShow">
     <div class="notice__text">
       <p>
-        小小API是一个稳定 快速 免费的 API 接口服务 &nbsp;
+        小小API是一个稳定 快速 的 API 接口服务 &nbsp;
         <a href="https://jq.qq.com/?_wv=1027&k=92BF8Ndr" target="_blank"
           >点击加入QQ群</a
         >

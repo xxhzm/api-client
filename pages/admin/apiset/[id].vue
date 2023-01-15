@@ -29,12 +29,14 @@
             <el-form-item label="接口描述">
               <el-input v-model="apiSetInfo.description" />
             </el-form-item>
+            <el-form-item label="接口描述">
+              <el-input v-model="apiSetInfo.keywords" />
+            </el-form-item>
             <el-form-item label="接口地址">
-              <el-input
-                v-model="apiSetInfo.url"
-                maxlength="128"
-                show-word-limit
-              />
+              <el-input v-model="apiSetInfo.url" />
+            </el-form-item>
+            <el-form-item label="请求类型">
+              <el-input v-model="apiSetInfo.method" />
             </el-form-item>
 
             <el-form-item label="接口分类">
@@ -117,7 +119,9 @@ const apiSetInfo = ref({
   name: '',
   alias: '',
   description: '',
+  keywords: '',
   url: '',
+  method: '',
   example: '',
   oldCategoryId: '',
   category: '',
@@ -142,7 +146,7 @@ const onSubmit = async () => {
     return false
   }
 
-  if (!apiSetInfo.value.name || !apiSetInfo.value.alias || !apiSetInfo.value.description || !apiSetInfo.value.url) {
+  if (!apiSetInfo.value.name || !apiSetInfo.value.alias || !apiSetInfo.value.description || !apiSetInfo.value.url || !apiSetInfo.value.keywords || !apiSetInfo.value.method) {
     msg('请填写内容', 'error')
     return false
   }
@@ -152,7 +156,9 @@ const onSubmit = async () => {
   bodyValue.append('name', apiSetInfo.value.name)
   bodyValue.append('alias', apiSetInfo.value.alias)
   bodyValue.append('description', apiSetInfo.value.description)
+  bodyValue.append('keywords', apiSetInfo.value.keywords)
   bodyValue.append('url', apiSetInfo.value.url)
+  bodyValue.append('method', apiSetInfo.value.method)
   bodyValue.append('categoryId', apiSetInfo.value.categoryId)
   bodyValue.append('oldCategoryId', apiSetInfo.value.oldCategoryId)
 
