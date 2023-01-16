@@ -24,6 +24,7 @@
       <h2>请求参数</h2>
       <el-table :data="apiInfo.params" border style="width: 70%">
         <el-table-column prop="name" label="参数名" width="180" />
+        <el-table-column prop="param" label="传递参数" width="100" />
         <el-table-column prop="position" label="传入位置" width="100" />
         <el-table-column prop="required" label="类型" width="80" />
         <el-table-column prop="docs" label="参数说明" />
