@@ -35,6 +35,11 @@
     <div class="text">
       <p>CDN使用</p>
     </div>
+    <img
+      src="@/assets/images/banner.jpg"
+      alt=""
+      style="width: 70%; height: 250px"
+    />
     <div class="text">
       <p>
         小小API以下简称本平台,所提供的各项服务的所有权和运作权归 小小孩子们 所有

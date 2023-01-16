@@ -84,6 +84,7 @@
             <el-table-column prop="id" label="id" width="60" />
             <el-table-column prop="name" label="接口名称" width="100" />
             <el-table-column prop="param" label="传递参数" width="100" />
+            <el-table-column prop="position" label="传入位置" width="100" />
             <el-table-column prop="docs" label="参数描述" width="300" />
             <el-table-column prop="required" label="是否必传" width="100" />
             <el-table-column prop="create_time" label="创建时间" width="165" />

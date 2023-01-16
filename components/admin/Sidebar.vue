@@ -48,7 +48,7 @@
         </el-sub-menu>
         <el-menu-item index="4" @click="navigateTo('/')">
           <el-icon><Promotion /></el-icon>
-          <template #title>访问前端</template>
+          <template #title>访问前台</template>
         </el-menu-item>
         <el-menu-item index="5" @click="deleteCache()">
           <el-icon><Coin /></el-icon>

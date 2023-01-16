@@ -14,6 +14,18 @@
           <el-form-item label="可传参数">
             <el-input v-model="addparameter.param" placeholder="json | 302" />
           </el-form-item>
+          <client-only>
+            <el-form-item label="传入位置">
+              <el-select v-model="addparameter.position" placeholder="传入位置">
+                <el-option
+                  v-for="item in position"
+                  :key="item.value"
+                  :label="item.label"
+                  :value="item.value"
+                />
+              </el-select>
+            </el-form-item>
+          </client-only>
           <el-form-item label="参数描述">
             <el-input
               v-model="addparameter.docs"
@@ -54,9 +66,21 @@ const addparameter = reactive({
   id: 0,
   name: '',
   param: '',
+  position: '',
   docs: '',
   required: true,
 })
+
+const position = [
+  {
+    value: 'query',
+    label: 'query',
+  },
+  {
+    value: 'body',
+    label: 'body',
+  }
+]
 
 watch(() => addparameter.id, (newValue) => {
   addparameter.id = newValue.replace(/[^\d]/g, "")
@@ -64,7 +88,7 @@ watch(() => addparameter.id, (newValue) => {
 
 
 const onSubmit = async () => {
-  if (!addparameter.id || !addparameter.name || !addparameter.param || !addparameter.docs) {
+  if (!addparameter.id || !addparameter.name || !addparameter.param || !addparameter.docs || !addparameter.position) {
     msg('请填写内容', 'error')
     return false
   }
@@ -73,6 +97,7 @@ const onSubmit = async () => {
   bodyValue.append('aid', addparameter.id)
   bodyValue.append('name', addparameter.name)
   bodyValue.append('param', addparameter.param)
+  bodyValue.append('position', addparameter.position)
   bodyValue.append('docs', addparameter.docs)
 
   if (!addparameter.required) {
