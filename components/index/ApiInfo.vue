@@ -29,20 +29,16 @@
 
     <div class="box">
       <h2>请求参数</h2>
-      <el-table :data="apiInfo.params" border style="width: 70%">
+      <el-table :data="apiInfo.params" border style="width: 100%">
         <el-table-column prop="name" label="参数名" width="180" />
-        <el-table-column prop="param" label="传递参数" width="150" />
+        <el-table-column prop="param" label="传递参数" width="180" />
         <el-table-column prop="position" label="传入位置" width="100" />
-        <el-table-column prop="required" label="类型" width="80" />
+        <el-table-column prop="required" label="类型" width="100" />
         <el-table-column prop="docs" label="参数说明" />
       </el-table>
     </div>
 
-    <img
-      src="@/assets/images/banner.jpg"
-      alt=""
-      style="width: 70%; height: 250px"
-    />
+    <img src="@/assets/images/banner.jpg" class="adPic" />
 
     <div class="box">
       <h2>返回示例</h2>
@@ -96,8 +92,8 @@ const copy = (value) => {
 .apiinfo-container {
   flex: 1;
   margin-top: 20px;
-  margin-left: 40px;
-
+  padding-left: 40px;
+  padding-right: 40px;
   .box {
     margin-bottom: 30px;
   }
@@ -180,6 +176,26 @@ const copy = (value) => {
     -webkit-box-shadow: 20px 0 #fdbc40, 40px 0 #35cd4b;
     box-shadow: 20px 0 #fdbc40, 40px 0 #35cd4b;
     z-index: 3;
+  }
+
+  .adPic {
+    width: 70%;
+    height: 250px;
+    margin-bottom: 20px;
+  }
+}
+
+@media screen and (max-width: 750px) {
+  .apiinfo-container {
+    width: 100%;
+    .adPic {
+      width: 100%;
+      height: 150px;
+    }
+
+    .example {
+      width: 100%;
+    }
   }
 }
 </style>

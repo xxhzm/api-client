@@ -9,7 +9,8 @@
       <IndexDefault :options="options"></IndexDefault>
     </div>
   </div>
-  <IndexFooter :options="options"></IndexFooter>
+
+  <IndexFooter></IndexFooter>
 </template>
 
 <script setup>
@@ -40,6 +41,7 @@ useHead({
 .index-container {
   width: 100%;
   height: 100%;
+  margin-bottom: 60px;
   .container {
     display: flex;
     overflow-x: hidden;

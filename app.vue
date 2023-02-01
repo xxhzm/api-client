@@ -1,5 +1,6 @@
 <template>
   <NuxtPage></NuxtPage>
+  <el-backtop :right="100" :bottom="100" />
 </template>
 
 <script setup>
@@ -39,12 +40,6 @@ axios.interceptors.response.use(response => {
   }
   return response
 })
-
-// onMounted(() => {
-//   if (document.body.clientWidth < 1100) {
-//     alert('为了更好的体验，请您使用电脑端访问本网站')
-//   }
-// })
 
 useHead({
   meta: [

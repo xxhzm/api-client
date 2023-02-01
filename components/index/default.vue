@@ -24,7 +24,7 @@
       <p>备域名：xxapi.cn</p>
     </div>
 
-    <img src="@/assets/images/banner.jpg" alt="" class="adPic" />
+    <img src="@/assets/images/banner.jpg" class="adPic" />
     <div class="text">
       <p>
         小小API以下简称本平台,所提供的各项服务的所有权和运作权归 小小孩子们 所有
@@ -91,6 +91,13 @@
         则代表您同意本政策.
       </p>
     </div>
+
+    <div style="margin-top: 40px">
+      <p style="text-align: center">
+        <span>{{ props.options.icp }}</span
+        ><span>{{ props.options.gongan }}</span>
+      </p>
+    </div>
   </div>
 </template>
 
@@ -145,6 +152,7 @@ const props = defineProps(['options'])
   .adPic {
     width: 70%;
     height: 250px;
+    margin-bottom: 20px;
   }
 }
 

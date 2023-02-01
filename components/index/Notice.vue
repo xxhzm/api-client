@@ -12,13 +12,21 @@
       <el-icon :size="23" @click="closeNotice"><Close /></el-icon>
     </div>
   </div>
+  <div class="wap-notice">
+    <van-notice-bar
+      color="#ffffff"
+      background="#409eff"
+      scrollable
+      text="小小API是一个稳定 快速 的 API 接口服务"
+      mode="closeable"
+      speed="70"
+    />
+  </div>
 </template>
 
 <script setup>
 import { ref } from 'vue'
-import {
-  Close
-} from '@element-plus/icons-vue'
+import { Close } from '@element-plus/icons-vue'
 
 const NoticeShow = useCookie('NoticeShow')
 
@@ -57,12 +65,17 @@ const closeNotice = () => {
   }
 }
 
+.wap-notice {
+  display: none;
+}
+
 @media screen and (max-width: 750px) {
   .notice-container {
-    font-size: 10px;
-    .notice__text {
-      transform: scale(0.8);
-    }
+    display: none;
+  }
+
+  .wap-notice {
+    display: block;
   }
 }
 </style>

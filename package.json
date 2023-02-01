@@ -18,6 +18,7 @@
     "echarts": "^5.4.1",
     "element-plus": "^2.2.28",
     "highlight.js": "^11.7.0",
-    "lxgw-wenkai-screen-webfont": "^1.6.0"
+    "lxgw-wenkai-screen-webfont": "^1.6.0",
+    "vant": "^4.0.9"
   }
 }

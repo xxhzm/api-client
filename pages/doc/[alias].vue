@@ -8,6 +8,8 @@
       <IndexSidebar></IndexSidebar>
       <IndexApiInfo :apiInfo="apiInfo.value"></IndexApiInfo>
     </div>
+
+    <IndexFooter></IndexFooter>
   </div>
 </template>
 
@@ -51,6 +53,7 @@ useHead({
 .index-container {
   width: 100%;
   height: 100%;
+  margin-bottom: 60px;
   .container {
     display: flex;
     width: 100%;

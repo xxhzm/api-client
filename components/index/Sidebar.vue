@@ -53,7 +53,12 @@ const getData = async () => {
   })
 }
 
-await getData()
+onMounted(async () => {
+  if (document.body.clientWidth > 750) {
+    await getData()
+  }
+})
+
 
 watch(filterText, (val) => {
   treeRef.value?.filter(val)
