@@ -16,7 +16,7 @@
       /></el-menu-item>
       <div class="flex-grow" />
       <ClientOnly>
-        <el-sub-menu index="1">
+        <el-sub-menu index="1" style="position: absolute; right: 40px">
           <template #title>{{ username }}</template>
           <el-menu-item @click="navigateTo('/')">首页</el-menu-item>
           <el-menu-item index="0-1">更改密码</el-menu-item>

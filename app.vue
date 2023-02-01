@@ -47,4 +47,15 @@ onMounted(() => {
     alert('为了更好的体验，请您使用电脑端访问本网站')
   }
 })
+
+useHead({
+  meta: [
+    { name: 'baidu-site-verification', content: 'codeva-hVOy3sFFbL' },
+  ],
+  script: [
+    {
+      src: 'https://hm.baidu.com/hm.js?63349d1ce979779b58d4fbcfb881cc41',
+    }
+  ],
+})
 </script>
