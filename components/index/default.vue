@@ -23,23 +23,8 @@
       <p>主域名：api-m.com</p>
       <p>备域名：xxapi.cn</p>
     </div>
-    <h2>赞助商</h2>
-    <div class="ad">
-      <div class="ad-box">广告位招租</div>
-      <div class="ad-box">广告位招租</div>
-      <div class="ad-box">广告位招租</div>
-      <div class="ad-box">广告位招租</div>
-      <div class="ad-box">广告位招租</div>
-      <div class="ad-box">广告位招租</div>
-    </div>
-    <div class="text">
-      <p>CDN使用</p>
-    </div>
-    <img
-      src="@/assets/images/banner.jpg"
-      alt=""
-      style="width: 70%; height: 250px"
-    />
+
+    <img src="@/assets/images/banner.jpg" alt="" class="adPic" />
     <div class="text">
       <p>
         小小API以下简称本平台,所提供的各项服务的所有权和运作权归 小小孩子们 所有
@@ -118,24 +103,30 @@ const props = defineProps(['options'])
   width: calc(100% - 270px);
   padding-right: 50px;
   margin-top: 20px;
+  margin-left: 40px;
   color: var(--title--color);
+
   h1 {
     font-size: 24px;
   }
+
   h2 {
     font-size: 16px;
     margin-top: 25px;
   }
+
   .text {
     margin-top: 15px;
     p {
       margin-bottom: 15px;
     }
   }
+
   a {
     text-decoration: navajowhite;
     color: #9999ff;
   }
+
   .ad {
     width: 90%;
     display: flex;
@@ -148,6 +139,21 @@ const props = defineProps(['options'])
       color: var(--font--color);
       text-align: center;
       line-height: 30px;
+    }
+  }
+
+  .adPic {
+    width: 70%;
+    height: 250px;
+  }
+}
+
+@media screen and (max-width: 750px) {
+  .default-container {
+    width: 100%;
+    .adPic {
+      width: 100%;
+      height: 150px;
     }
   }
 }

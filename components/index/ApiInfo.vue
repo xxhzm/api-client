@@ -96,6 +96,7 @@ const copy = (value) => {
 .apiinfo-container {
   flex: 1;
   margin-top: 20px;
+  margin-left: 40px;
 
   .box {
     margin-bottom: 30px;

@@ -40,13 +40,11 @@ axios.interceptors.response.use(response => {
   return response
 })
 
-const show = ref(true)
-
-onMounted(() => {
-  if (document.body.clientWidth < 1100) {
-    alert('为了更好的体验，请您使用电脑端访问本网站')
-  }
-})
+// onMounted(() => {
+//   if (document.body.clientWidth < 1100) {
+//     alert('为了更好的体验，请您使用电脑端访问本网站')
+//   }
+// })
 
 useHead({
   meta: [

@@ -92,7 +92,7 @@ const handleNodeClick = (data) => {
   overflow-anchor: none;
   padding-top: 10px;
   border-right: 1px #ccc solid;
-  margin-right: 40px;
+
   padding-right: 30px;
   .el-input {
     width: 235px;
@@ -106,6 +106,12 @@ const handleNodeClick = (data) => {
     :deep(.el-tree-node__content) {
       height: 32px;
     }
+  }
+}
+
+@media screen and (max-width: 750px) {
+  .sidebar-container {
+    display: none;
   }
 }
 </style>
