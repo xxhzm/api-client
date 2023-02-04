@@ -60,6 +60,26 @@
           <el-form-item label="返回示例">
             <el-input v-model="addapiInfo.example" type="textarea" />
           </el-form-item>
+
+          <el-form-item label="ajax">
+            <el-input v-model="addapiInfo.ajax" type="textarea" />
+          </el-form-item>
+          <el-form-item label="axios">
+            <el-input v-model="addapiInfo.axios" type="textarea" />
+          </el-form-item>
+          <el-form-item label="fetch">
+            <el-input v-model="addapiInfo.fetch" type="textarea" />
+          </el-form-item>
+          <el-form-item label="xhr">
+            <el-input v-model="addapiInfo.xhr" type="textarea" />
+          </el-form-item>
+          <el-form-item label="php">
+            <el-input v-model="addapiInfo.php" type="textarea" />
+          </el-form-item>
+          <el-form-item label="python">
+            <el-input v-model="addapiInfo.python" type="textarea" />
+          </el-form-item>
+
           <el-form-item label="是否启用">
             <el-switch v-model="addapiInfo.state" />
           </el-form-item>
@@ -100,7 +120,13 @@ const addapiInfo = reactive({
   oldCategoryId: '',
   categoryId: '',
   example: '',
-  state: true
+  state: true,
+  ajax: '',
+  axios: '',
+  fetch: '',
+  xhr: '',
+  php: '',
+  python: '',
 })
 
 const onSubmit = async () => {
@@ -122,6 +148,12 @@ const onSubmit = async () => {
   bodyValue.append('url', addapiInfo.url)
   bodyValue.append('method', addapiInfo.method)
   bodyValue.append('categoryId', addapiInfo.categoryId)
+  bodyValue.append('ajax', addapiInfo.ajax)
+  bodyValue.append('axios', addapiInfo.axios)
+  bodyValue.append('fetch', addapiInfo.fetch)
+  bodyValue.append('xhr', addapiInfo.xhr)
+  bodyValue.append('php', addapiInfo.php)
+  bodyValue.append('python', addapiInfo.python)
 
   if (addapiInfo.example) {
     bodyValue.append('example', addapiInfo.example)
@@ -173,6 +205,7 @@ const handleSelect = (item) => {
 
 <style  lang="less" scoped>
 .addapi-container {
+  overflow-y: hidden;
   width: 100%;
   height: calc(100vh - 65px);
   padding: 20px 40px;
@@ -180,6 +213,7 @@ const handleSelect = (item) => {
   .addapi-form {
     width: 100%;
     height: 100%;
+    overflow-y: scroll;
     padding: 40px 50px;
     background: #fff;
     box-shadow: 0 2px 2px rgb(0 0 0 / 10%);

@@ -29,7 +29,7 @@
             <el-form-item label="接口描述">
               <el-input v-model="apiSetInfo.description" />
             </el-form-item>
-            <el-form-item label="接口描述">
+            <el-form-item label="接口关键词">
               <el-input v-model="apiSetInfo.keywords" />
             </el-form-item>
             <el-form-item label="接口地址">
@@ -53,6 +53,26 @@
             <el-form-item label="返回示例">
               <el-input v-model="apiSetInfo.example" type="textarea" />
             </el-form-item>
+
+            <el-form-item label="ajax">
+              <el-input v-model="apiSetInfo.ajax" type="textarea" />
+            </el-form-item>
+            <el-form-item label="axios">
+              <el-input v-model="apiSetInfo.axios" type="textarea" />
+            </el-form-item>
+            <el-form-item label="fetch">
+              <el-input v-model="apiSetInfo.fetch" type="textarea" />
+            </el-form-item>
+            <el-form-item label="xhr">
+              <el-input v-model="apiSetInfo.xhr" type="textarea" />
+            </el-form-item>
+            <el-form-item label="php">
+              <el-input v-model="apiSetInfo.php" type="textarea" />
+            </el-form-item>
+            <el-form-item label="python">
+              <el-input v-model="apiSetInfo.python" type="textarea" />
+            </el-form-item>
+
             <el-form-item label="是否启用">
               <el-switch v-model="apiSetInfo.state" />
             </el-form-item>
@@ -127,7 +147,13 @@ const apiSetInfo = ref({
   oldCategoryId: '',
   category: '',
   categoryId: '',
-  state: true
+  state: true,
+  ajax: '',
+  axios: '',
+  fetch: '',
+  xhr: '',
+  php: '',
+  python: '',
 })
 
 const { data: res } = await axios.get('api', {
@@ -162,6 +188,12 @@ const onSubmit = async () => {
   bodyValue.append('method', apiSetInfo.value.method)
   bodyValue.append('categoryId', apiSetInfo.value.categoryId)
   bodyValue.append('oldCategoryId', apiSetInfo.value.oldCategoryId)
+  bodyValue.append('ajax', apiSetInfo.value.ajax)
+  bodyValue.append('axios', apiSetInfo.value.axios)
+  bodyValue.append('fetch', apiSetInfo.value.fetch)
+  bodyValue.append('xhr', apiSetInfo.value.xhr)
+  bodyValue.append('php', apiSetInfo.value.php)
+  bodyValue.append('python', apiSetInfo.value.python)
 
 
   if (apiSetInfo.value.example) {

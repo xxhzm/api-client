@@ -48,7 +48,72 @@
         content="复制"
         placement="left"
       ><div class="copy" @click="copy(apiInfo.example)"><el-icon size="14"><CopyDocument /></el-icon></div
-      ></el-tooltip></client-only><code class="json" v-html="apiInfo.example"></code></pre>
+      ></el-tooltip></client-only><code class="json" v-text="apiInfo.example"></code></pre>
+    </div>
+
+    <div class="box">
+      <h2>请求示例</h2>
+      <el-tabs v-model="activeName" type="card">
+        <el-tab-pane label="ajax" name="first">
+          <pre class="example mac_light mac_pre"><client-only><el-tooltip
+            class="box-item"
+            effect="dark"
+            content="复制"
+            placement="left"
+          ><div class="copy" @click="copy(apiInfo.exajaxample)"><el-icon size="14"><CopyDocument /></el-icon></div
+          ></el-tooltip></client-only><code class="javascript.js" v-text="apiInfo.ajax"></code></pre>
+        </el-tab-pane>
+
+        <el-tab-pane label="axios" name="axios">
+          <pre class="example mac_light mac_pre"><client-only><el-tooltip
+            class="box-item"
+            effect="dark"
+            content="复制"
+            placement="left"
+          ><div class="copy" @click="copy(apiInfo.axios)"><el-icon size="14"><CopyDocument /></el-icon></div
+          ></el-tooltip></client-only><code class="javascript.js" v-text="apiInfo.axios"></code></pre>
+        </el-tab-pane>
+
+        <el-tab-pane label="fetch" name="fetch">
+          <pre class="example mac_light mac_pre"><client-only><el-tooltip
+            class="box-item"
+            effect="dark"
+            content="复制"
+            placement="left"
+          ><div class="copy" @click="copy(apiInfo.fetch)"><el-icon size="14"><CopyDocument /></el-icon></div
+          ></el-tooltip></client-only><code class="javascript.js" v-text="apiInfo.fetch"></code></pre>
+        </el-tab-pane>
+
+        <el-tab-pane label="xhr" name="xhr">
+          <pre class="example mac_light mac_pre"><client-only><el-tooltip
+            class="box-item"
+            effect="dark"
+            content="复制"
+            placement="left"
+          ><div class="copy" @click="copy(apiInfo.xhr)"><el-icon size="14"><CopyDocument /></el-icon></div
+          ></el-tooltip></client-only><code class="javascript.js" v-text="apiInfo.xhr"></code></pre>
+        </el-tab-pane>
+
+        <el-tab-pane label="php" name="php">
+          <pre class="example mac_light mac_pre"><client-only><el-tooltip
+            class="box-item"
+            effect="dark"
+            content="复制"
+            placement="left"
+          ><div class="copy" @click="copy(apiInfo.php)"><el-icon size="14"><CopyDocument /></el-icon></div
+          ></el-tooltip></client-only><code class="php" v-text="apiInfo.php"></code></pre>
+        </el-tab-pane>
+
+        <el-tab-pane label="python" name="python">
+          <pre class="example mac_light mac_pre"><client-only><el-tooltip
+            class="box-item"
+            effect="dark"
+            content="复制"
+            placement="left"
+          ><div class="copy" @click="copy(apiInfo.python)"><el-icon size="14"><CopyDocument /></el-icon></div
+          ></el-tooltip></client-only><code class="python" v-text="apiInfo.python"></code></pre>
+        </el-tab-pane>
+      </el-tabs>
     </div>
   </div>
 </template>
@@ -62,9 +127,15 @@ import {
 import 'highlight.js/styles/github.css'
 import hljs from 'highlight.js/lib/core'
 import json from 'highlight.js/lib/languages/json'
+import javascript from 'highlight.js/lib/languages/javascript.js'
+import php from 'highlight.js/lib/languages/php'
+import python from 'highlight.js/lib/languages/python'
 
 onMounted(() => {
   hljs.registerLanguage('json', json)
+  hljs.registerLanguage('javascript.js', javascript)
+  hljs.registerLanguage('php', php)
+  hljs.registerLanguage('python', python)
   hljs.highlightAll()
 })
 
@@ -86,6 +157,9 @@ const copy = (value) => {
     })
   })
 }
+
+const activeName = ref('first')
+
 </script>
 
 <style lang="less" scoped>
