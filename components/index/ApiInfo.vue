@@ -41,17 +41,6 @@
     <img src="@/assets/images/banner.jpg" class="adPic" />
 
     <div class="box">
-      <h2>返回示例</h2>
-      <pre class="example mac_light mac_pre"><client-only><el-tooltip
-        class="box-item"
-        effect="dark"
-        content="复制"
-        placement="left"
-      ><div class="copy" @click="copy(apiInfo.example)"><el-icon size="14"><CopyDocument /></el-icon></div
-      ></el-tooltip></client-only><code class="json" v-text="apiInfo.example"></code></pre>
-    </div>
-
-    <div class="box">
       <h2>请求示例</h2>
       <el-tabs v-model="activeName" type="card">
         <el-tab-pane label="ajax" name="first">
@@ -115,6 +104,17 @@
         </el-tab-pane>
       </el-tabs>
     </div>
+
+    <div class="box">
+      <h2>返回示例</h2>
+      <pre class="example mac_light mac_pre"><client-only><el-tooltip
+        class="box-item"
+        effect="dark"
+        content="复制"
+        placement="left"
+      ><div class="copy" @click="copy(apiInfo.example)"><el-icon size="14"><CopyDocument /></el-icon></div
+      ></el-tooltip></client-only><code class="json" v-text="apiInfo.example"></code></pre>
+    </div>
   </div>
 </template>
 
@@ -127,7 +127,7 @@ import {
 import 'highlight.js/styles/github.css'
 import hljs from 'highlight.js/lib/core'
 import json from 'highlight.js/lib/languages/json'
-import javascript from 'highlight.js/lib/languages/javascript.js'
+import javascript from 'highlight.js/lib/languages/javascript'
 import php from 'highlight.js/lib/languages/php'
 import python from 'highlight.js/lib/languages/python'
 
@@ -164,6 +164,7 @@ const activeName = ref('first')
 
 <style lang="less" scoped>
 .apiinfo-container {
+  width: 70%;
   flex: 1;
   margin-top: 20px;
   padding-left: 40px;

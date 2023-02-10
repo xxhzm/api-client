@@ -24,18 +24,7 @@ const defaultProps = {
   label: 'label',
 }
 
-const sidebayData = ref([
-  {
-    label: '默认分类',
-    children: [
-      {
-        id: 1,
-        label: '一言',
-        alias: 'yiyan'
-      }
-    ]
-  }
-])
+const sidebayData = ref([])
 
 const getData = async () => {
   const { data: res } = await axios.get('api?type=categoryApiList')
@@ -53,11 +42,9 @@ const getData = async () => {
   })
 }
 
-onMounted(async () => {
-  if (document.body.clientWidth > 750) {
-    await getData()
-  }
-})
+
+await getData()
+
 
 
 watch(filterText, (val) => {
