@@ -38,7 +38,12 @@
       </el-table>
     </div>
 
-    <img src="@/assets/images/banner.jpg" class="adPic" />
+    <a href="https://www.kdun.cn/">
+      <img
+        src="https://www.kdun.cn/ask/wp-content/uploads/2022/04/456.jpg"
+        class="adPic"
+      />
+    </a>
 
     <div class="box">
       <h2>请求示例</h2>
@@ -255,7 +260,7 @@ const activeName = ref('first')
 
   .adPic {
     width: 70%;
-    height: 250px;
+    height: 120px;
     margin-bottom: 20px;
   }
 }
@@ -265,7 +270,7 @@ const activeName = ref('first')
     width: 100%;
     .adPic {
       width: 100%;
-      height: 150px;
+      height: 40px;
     }
 
     .example {

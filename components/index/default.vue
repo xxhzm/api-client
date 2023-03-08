@@ -24,7 +24,13 @@
       <p>备域名：xxapi.cn</p>
     </div>
 
-    <img src="@/assets/images/banner.jpg" class="adPic" />
+    <a href="https://www.kdun.cn/">
+      <img
+        src="https://www.kdun.cn/ask/wp-content/uploads/2022/04/456.jpg"
+        class="adPic"
+      />
+    </a>
+
     <div class="text">
       <p>
         小小API以下简称本平台,所提供的各项服务的所有权和运作权归 小小孩子们 所有
@@ -151,7 +157,7 @@ const props = defineProps(['options'])
 
   .adPic {
     width: 70%;
-    height: 250px;
+    height: 120px;
     margin-bottom: 20px;
   }
 }
@@ -161,7 +167,7 @@ const props = defineProps(['options'])
     width: 100%;
     .adPic {
       width: 100%;
-      height: 150px;
+      height: 40px;
     }
   }
 }
