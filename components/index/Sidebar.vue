@@ -32,6 +32,11 @@ const getData = async () => {
   sidebayData.value = res.data
 
   sidebayData.value.unshift({
+    label: '更新日志',
+    alias: '/update'
+  })
+
+  sidebayData.value.unshift({
     label: '后台',
     alias: '/admin'
   })
@@ -68,6 +73,11 @@ const handleNodeClick = (data) => {
 
   if (data.alias === '/admin') {
     navigateTo('/admin')
+    return false
+  }
+
+  if (data.alias === '/update') {
+    navigateTo('/update')
     return false
   }
 
