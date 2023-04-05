@@ -1,30 +1,40 @@
 <template>
   <div class="sidebar-container">
-    <el-input v-model="filterText" placeholder="搜索" />
-    <el-tree
+    <el-input v-model="filterText" placeholder="搜索" @input="onQueryChanged" />
+    <el-tree-v2
       ref="treeRef"
       :data="sidebayData"
       :props="defaultProps"
       @node-click="handleNodeClick"
-      default-expand-all
-      :filter-node-method="filterNode"
-    />
+      :item-size="30"
+      :height="1000"
+      :default-expanded-keys="defaultExpandedKeys"
+      :filter-method="filterMethod"
+      empty-text="加载中…………"
+    >
+      <template #default="{ node }">
+        <span>
+          {{ node.label }}
+        </span>
+      </template>
+    </el-tree-v2>
   </div>
 </template>
 
 <script setup>
 import axios from 'axios'
-import { ref, watch } from 'vue'
 
 const filterText = ref('')
 const treeRef = ref()
 
 const defaultProps = {
   children: 'children',
+  value: 'label',
   label: 'label',
 }
 
 const sidebayData = ref([])
+const expanedKeys = []
 
 const getData = async () => {
   const { data: res } = await axios.get('api?type=categoryApiList')
@@ -45,20 +55,21 @@ const getData = async () => {
     label: '首页',
     alias: '/'
   })
+
+  sidebayData.value.forEach(element => {
+    expanedKeys.push(element.label)
+  })
 }
 
 
 await getData()
 
-
-
-watch(filterText, (val) => {
-  treeRef.value?.filter(val)
-})
-
-const filterNode = (value, data) => {
-  if (!value) return true
-  return data.label.includes(value)
+const defaultExpandedKeys = ref(expanedKeys)
+const onQueryChanged = (query) => {
+  treeRef.value?.filter(query)
+}
+const filterMethod = (query, node) => {
+  return node.label?.includes(query)
 }
 
 const handleNodeClick = (data) => {
@@ -105,9 +116,6 @@ const handleNodeClick = (data) => {
   .el-tree {
     padding-top: 15px;
     padding-left: 25px;
-    :deep(.el-tree-node__content) {
-      height: 32px;
-    }
   }
 }
 
