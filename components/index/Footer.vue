@@ -7,14 +7,18 @@
       <van-tabbar-item icon="search" @click="show = true"
         >API列表</van-tabbar-item
       >
-      <van-tabbar-item name="qq" icon="friends-o" @click="qq"
-        >加入群聊</van-tabbar-item
+      <van-tabbar-item icon="friends-o" @click="navigateTo('/links')"
+        >友情链接</van-tabbar-item
       >
+
       <van-tabbar-item
         name="setting"
         icon="setting-o"
         @click="navigateTo('/login')"
         >后台</van-tabbar-item
+      >
+      <van-tabbar-item name="qq" icon="more-o" @click="qq"
+        >加入群聊</van-tabbar-item
       >
       <van-action-sheet
         v-model:show="show"

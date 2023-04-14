@@ -1,12 +1,12 @@
 <template>
-  <div class="update-container">
+  <div class="links-container">
     <!-- 公告 -->
     <IndexNotice></IndexNotice>
     <!-- header -->
     <!-- <IndexHeader></IndexHeader> -->
     <div class="container">
       <IndexSidebar></IndexSidebar>
-      <IndexUpdate :options="options"></IndexUpdate>
+      <IndexLinks :options="options"></IndexLinks>
     </div>
   </div>
 
@@ -27,7 +27,7 @@ const getData = async () => {
 await getData()
 
 useHead({
-  title: "更新日志" + ' - ' + options.value.subheading,
+  title: "友情链接" + ' - ' + options.value.subheading,
   viewport: "width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0",
   charset: "utf-8",
   meta: [
@@ -38,7 +38,7 @@ useHead({
 </script>
 
 <style lang="less" scoped>
-.update-container {
+.links-container {
   width: 100%;
   height: 100%;
   margin-bottom: 60px;

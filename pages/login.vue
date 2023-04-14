@@ -75,12 +75,7 @@
       >
       <h4 class="title">注册</h4>
       <p class="text">请输入账号密码进行注册</p>
-      <el-form
-        label-position="top"
-        label-width="100px"
-        :model="info"
-        size="large"
-      >
+      <el-form label-position="top" label-width="100px" :model="info">
         <el-form-item>
           <el-input v-model="info.username" placeholder="用户名" />
         </el-form-item>
