@@ -130,50 +130,53 @@ onMounted(async () => {
   chartShow.value = false
   chartShow.value = true
 
-  const { data: res } = await axios.get('statistics/recentRequest?token=' + token.value)
-  recentRequest.value = res
+  // const { data: res } = await axios.get('statistics/recentRequest?token=' + token.value)
+  // recentRequest.value = res
 
-  const dom = document.getElementById('chart')
+  // const dom = document.getElementById('chart')
 
-  const myChart = echarts.init(dom)
-  let option
+  // const myChart = echarts.init(dom)
+  // let option
 
-  option = {
-    tooltip: {
-      trigger: "axis"
-    },
-    xAxis: {
-      type: 'category',
-      data: recentRequest.value.data.xAxis
-    },
-    yAxis: {
-      type: 'value'
-    },
-    dataZoom: [{}],
-    series: [
-      {
-        data: recentRequest.value.data.series,
-        type: 'line',
-        smooth: true
-      }
-    ]
-  }
+  // option = {
+  //   tooltip: {
+  //     trigger: "axis"
+  //   },
+  //   xAxis: {
+  //     type: 'category',
+  //     data: recentRequest.value.data.xAxis
+  //   },
+  //   yAxis: {
+  //     type: 'value'
+  //   },
+  //   dataZoom: [{}],
+  //   series: [
+  //     {
+  //       data: recentRequest.value.data.series,
+  //       type: 'line',
+  //       smooth: true
+  //     }
+  //   ]
+  // }
 
-  option && myChart.setOption(option)
+  // option && myChart.setOption(option)
 })
 
 onMounted(async () => {
-  const { data: res1 } = await axios.get('statistics/totaluser?token=' + token.value)
+  // 平台所有用户
+  const { data: res1 } = await axios.get('TotalUser?token=' + token.value)
   totaluser.value = res1
 
-  const { data: res2 } = await axios.get('statistics/todayRegisterUserTotal?token=' + token.value)
+  // 今日注册用户
+  const { data: res2 } = await axios.get('TodayRegisterUserTotal?token=' + token.value)
   todayRegisterUserTotal.value = res2
 
-  const { data: res3 } = await axios.get('statistics/apiTotal?token=' + token.value)
+  // 接口总数
+  const { data: res3 } = await axios.get('ApiTotal?token=' + token.value)
   apiTotal.value = res3
 
-  const { data: res4 } = await axios.get('statistics/todayRequestTotal?token=' + token.value)
-  requestTotal.value = res4
+  // const { data: res4 } = await axios.get('statistics/todayRequestTotal?token=' + token.value)
+  // requestTotal.value = res4
 })
 
 </script>

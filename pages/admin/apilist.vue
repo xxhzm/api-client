@@ -74,13 +74,9 @@ const tableData = ref([
 const search = ref('')
 
 const getData = async () => {
-  const { data: res } = await axios.get('api', {
-    params: {
-      type: 'apiList'
-    }
-  })
+  const { data: res } = await axios.get('ApiList')
 
-  if (res.code !== '200') {
+  if (res.code !== 200) {
     msg(res.msg, 'error')
   }
 

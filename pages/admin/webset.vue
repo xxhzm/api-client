@@ -59,7 +59,7 @@ const websetInfo = ref({
 })
 
 const getData = async () => {
-  const { data: res } = await axios.get('options/optionsList')
+  const { data: res } = await axios.get('Options')
   websetInfo.value = res.data
 }
 

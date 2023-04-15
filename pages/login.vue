@@ -118,7 +118,7 @@ definePageMeta({
 })
 
 // 引入加密算法
-const { $enCode } = useNuxtApp()
+const { $enCode, $msg } = useNuxtApp()
 
 const router = useRouter()
 
@@ -144,7 +144,6 @@ const LoginIsRegister = ref(true)
 const loginAndRegisterButtonStatus = ref(false)
 const rule = /^[A-Za-z\d]+[A-Za-z\d\-_\.]*@([A-Za-z\d]+[A-Za-z\d\-]*\.)+[A-Za-z]{2,4}$/
 
-const { $msg } = useNuxtApp()
 const msg = $msg
 
 const login = async () => {

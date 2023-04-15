@@ -20,7 +20,7 @@ import axios from 'axios'
 const options = ref({})
 
 const getData = async () => {
-  const { data: res } = await axios.get('options/optionsList')
+  const { data: res } = await axios.get('Options')
   options.value = res.data
 }
 

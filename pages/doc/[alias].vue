@@ -31,7 +31,7 @@ const GetData = async () => {
 
   apiInfo.value = res.data[0]
 
-  const { data: res1 } = await axios.get('options/optionsList')
+  const { data: res1 } = await axios.get('Options')
   options.value = res1.data
 }
 
