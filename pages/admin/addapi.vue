@@ -103,12 +103,8 @@ definePageMeta({
 })
 
 
-const msg = (message, type) => {
-  ElNotification({
-    message,
-    type,
-  })
-}
+const { $msg } = useNuxtApp()
+const msg = $msg
 
 const addapiInfo = reactive({
   name: '',

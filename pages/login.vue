@@ -117,6 +117,9 @@ definePageMeta({
   middleware: ["admin"]
 })
 
+// 引入加密算法
+const { $enCode } = useNuxtApp()
+
 const router = useRouter()
 
 const username = useCookie('username')
@@ -141,12 +144,8 @@ const LoginIsRegister = ref(true)
 const loginAndRegisterButtonStatus = ref(false)
 const rule = /^[A-Za-z\d]+[A-Za-z\d\-_\.]*@([A-Za-z\d]+[A-Za-z\d\-]*\.)+[A-Za-z]{2,4}$/
 
-const msg = (message, type) => {
-  ElNotification({
-    message,
-    type,
-  })
-}
+const { $msg } = useNuxtApp()
+const msg = $msg
 
 const login = async () => {
   if (info.username === '' || info.password === '') {
@@ -160,20 +159,21 @@ const login = async () => {
 
   const bodyValue = new URLSearchParams()
   bodyValue.append('username', info.username)
-  bodyValue.append('password', info.password)
 
-  const { data: res } = await axios.post('user/login', bodyValue)
-  if (res.code !== '200' && res.msg !== '登录成功') {
+  // 使用加密算法对数据进行加密
+  bodyValue.append('password', $enCode(info.password))
+
+  const { data: res } = await axios.post('Login', bodyValue)
+  if (res.code !== 200 || res.msg !== '数据请求成功' || res.data === "") {
     msg(res.msg, 'error')
     return false
-  } else if (res.code === '200' && res.msg === '登录成功' && res.data.username === info.username && res.data.token.length === 32) {
-    msg(res.msg + '正在跳转', 'success')
-
+  } else if (res.code === 200 && res.msg === '数据请求成功' && res.data.username === info.username) {
     // 设置cookie
     username.value = res.data.username
     token.value = res.data.token
     grade.value = res.data.grade
 
+    msg('登录成功', 'success')
     navigateTo('/admin')
   }
 }

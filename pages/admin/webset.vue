@@ -45,12 +45,8 @@ definePageMeta({
 
 const token = useCookie('token')
 
-const msg = (message, type) => {
-  ElNotification({
-    message,
-    type,
-  })
-}
+const { $msg } = useNuxtApp()
+const msg = $msg
 
 const websetInfo = ref({
   title: '',

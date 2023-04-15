@@ -62,12 +62,8 @@ definePageMeta({
   middleware: ["admin"],
 })
 
-const msg = (message, type) => {
-  ElNotification({
-    message,
-    type,
-  })
-}
+const { $msg } = useNuxtApp()
+const msg = $msg
 
 const loading = ref(false)
 

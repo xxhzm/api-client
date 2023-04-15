@@ -78,12 +78,8 @@ const isCollapse = ref(false)
 const token = useCookie('token')
 const grade = useCookie('grade')
 
-const msg = (message, type) => {
-  ElNotification({
-    message,
-    type,
-  })
-}
+const { $msg } = useNuxtApp()
+const msg = $msg
 
 const collapseChange = () => {
   isCollapse.value = !isCollapse.value
