@@ -5,10 +5,10 @@ export default defineNuxtPlugin((/* nuxtApp */) => {
     provide: {
       // 向服务器发送请求判断 token 是否正确
       token: async (token, username) => {
-        // axios初始化
+        // axiosUrl 初始化
         if (axios.defaults.baseURL === undefined) {
-          const { $axiosInit } = useNuxtApp()
-          $axiosInit()
+          const { $axiosDefault } = useNuxtApp()
+          $axiosDefault()
         }
 
         const { data: res } = await axios.get('Token', {

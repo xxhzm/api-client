@@ -67,9 +67,7 @@ const msg = $msg
 
 const loading = ref(false)
 
-const tableData = ref([
-
-])
+const tableData = ref([])
 
 const search = ref('')
 

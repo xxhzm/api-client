@@ -173,6 +173,7 @@ const login = async () => {
     grade.value = res.data.grade
 
     msg('登录成功', 'success')
+
     navigateTo('/admin')
   }
 }

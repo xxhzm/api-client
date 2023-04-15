@@ -98,8 +98,6 @@ definePageMeta({
   middleware: ["admin"],
 })
 
-const token = useCookie('token')
-
 const chartShow = ref(true)
 
 const totaluser = ref({
@@ -164,15 +162,15 @@ onMounted(async () => {
 
 onMounted(async () => {
   // 平台所有用户
-  const { data: res1 } = await axios.get('TotalUser?token=' + token.value)
+  const { data: res1 } = await axios.get('TotalUser')
   totaluser.value = res1
 
   // 今日注册用户
-  const { data: res2 } = await axios.get('TodayRegisterUserTotal?token=' + token.value)
+  const { data: res2 } = await axios.get('TodayRegisterUserTotal')
   todayRegisterUserTotal.value = res2
 
   // 接口总数
-  const { data: res3 } = await axios.get('ApiTotal?token=' + token.value)
+  const { data: res3 } = await axios.get('ApiTotal')
   apiTotal.value = res3
 
   // const { data: res4 } = await axios.get('statistics/todayRequestTotal?token=' + token.value)

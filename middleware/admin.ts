@@ -1,3 +1,5 @@
+import axios from 'axios'
+
 export default defineNuxtRouteMiddleware(async (to, from) => {
   const { $token } = useNuxtApp()
 
@@ -11,6 +13,19 @@ export default defineNuxtRouteMiddleware(async (to, from) => {
       abortNavigation()
       return navigateTo('/login')
     }
+
+    // 设置请求拦截器，给 url 中添加 token
+    axios.interceptors.request.use(
+      (config) => {
+        if (token.value !== undefined && config.url !== 'Token') {
+          config.url += '?token=' + token.value
+        }
+        return config
+      },
+      (error) => {
+        return Promise.reject(error)
+      }
+    )
   }
   if (to.path === '/login') {
     if (token.value !== undefined && username.value !== undefined) {

@@ -8,8 +8,8 @@ import axios from 'axios'
 import { ElNotification } from 'element-plus'
 
 // axios初始化
-const { $axiosInit } = useNuxtApp()
-$axiosInit()
+const { $axiosDefault } = useNuxtApp()
+$axiosDefault()
 
 useHead({
   meta: [
