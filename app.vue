@@ -7,9 +7,25 @@
 import axios from 'axios'
 import { ElNotification } from 'element-plus'
 
+const username = useCookie('username')
+const token = useCookie('token')
+const grade = useCookie('grade')
+
 // axios初始化
 const { $axiosDefault } = useNuxtApp()
 $axiosDefault()
+
+axios.interceptors.response.use(response => {
+  if (response.data?.code === -3) {
+    // delete username and token
+    username.value = undefined
+    token.value = undefined
+    grade.value = undefined
+
+    navigateTo('/login')
+  }
+  return response
+})
 
 useHead({
   meta: [

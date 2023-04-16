@@ -76,6 +76,7 @@ const getData = async () => {
 
   if (res.code !== 200) {
     msg(res.msg, 'error')
+    return false
   }
 
   tableData.value = res.data
