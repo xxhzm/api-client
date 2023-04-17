@@ -37,9 +37,49 @@ const sidebayData = ref([])
 const expanedKeys = []
 
 const getData = async () => {
-  const { data: res } = await axios.get('api?type=categoryApiList')
+  const { data: res } = await axios.get('List')
 
-  sidebayData.value = res.data
+  res.data = res.data.map(item => {
+    return {
+      id: item.id,
+      label: item.name,
+      alias: item.alias,
+      category: item.category,
+      categoryId: item.categoryId
+    }
+  })
+
+  const categoryArr = ref([])
+
+  // 获取到所有的分类列表，将其 push 到 categoryArr
+  // 然后对其进行去重处理
+  res.data.forEach(element => {
+    categoryArr.value.push(element.category)
+  })
+
+  categoryArr.value = [...new Set(categoryArr.value)]
+
+
+  // 对分类列表进行循环过滤
+  categoryArr.value.forEach(element => {
+    var children = ref([])
+    res.data.forEach(ele => {
+      if (element === ele.category) {
+        // 删除多余字段
+        delete ele.category
+        delete ele.categoryId
+        children.value.push(ele)
+      }
+    })
+
+    // 创建对象
+    const tmpObj = {
+      label: element,
+      children: children.value
+    }
+
+    sidebayData.value.push(tmpObj)
+  })
 
   sidebayData.value.unshift({
     label: '友情链接',

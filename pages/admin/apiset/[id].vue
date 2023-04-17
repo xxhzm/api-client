@@ -152,16 +152,20 @@ const apiSetInfo = ref({
   python: '',
 })
 
-const { data: res } = await axios.get('api', {
+const { data: res } = await axios.get('Api', {
   params: {
-    type: 'apiId',
     id: route.params.id
   }
-
 })
 
-apiSetInfo.value = res.data[0]
-apiSetInfo.value.oldCategoryId = res.data[0].categoryId
+apiSetInfo.value = res.data
+apiSetInfo.value.oldCategoryId = res.data.categoryId
+
+if (res.data.state === '启用') {
+  apiSetInfo.value.state = true
+} else {
+  apiSetInfo.value.state = false
+}
 
 const onSubmit = async () => {
   if (apiSetInfo.value.category === '' || apiSetInfo.value.categoryId === '') {
@@ -190,18 +194,17 @@ const onSubmit = async () => {
   bodyValue.append('xhr', apiSetInfo.value.xhr)
   bodyValue.append('php', apiSetInfo.value.php)
   bodyValue.append('python', apiSetInfo.value.python)
+  bodyValue.append('example', apiSetInfo.value.example)
 
 
-  if (apiSetInfo.value.example) {
-    bodyValue.append('example', apiSetInfo.value.example)
+  if (apiSetInfo.value.state) {
+    bodyValue.append('state', '启用')
+  } else {
+    bodyValue.append('state', '关闭')
   }
 
-  if (!apiSetInfo.value.state) {
-    bodyValue.append('state', apiSetInfo.value.state)
-  }
-
-  const { data: res } = await axios.post('api?type=updateApi&token=' + token.value, bodyValue)
-  if (res.code === '200') {
+  const { data: res } = await axios.post('ApiUpdate', bodyValue)
+  if (res.code === 200) {
     msg(res.msg, 'success')
     navigateTo('/admin/apilist')
   } else {

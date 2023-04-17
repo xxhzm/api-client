@@ -32,9 +32,9 @@ useHead({
     { name: 'baidu-site-verification', content: 'codeva-hVOy3sFFbL' },
   ],
   script: [
-    {
-      src: 'https://hm.baidu.com/hm.js?63349d1ce979779b58d4fbcfb881cc41',
-    }
+    // {
+    //   src: 'https://hm.baidu.com/hm.js?63349d1ce979779b58d4fbcfb881cc41',
+    // }
   ],
 })
 </script>

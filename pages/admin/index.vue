@@ -173,8 +173,8 @@ onMounted(async () => {
   const { data: res3 } = await axios.get('ApiTotal')
   apiTotal.value = res3
 
-  // const { data: res4 } = await axios.get('statistics/todayRequestTotal?token=' + token.value)
-  // requestTotal.value = res4
+  const { data: res4 } = await axios.get('RequestTotal')
+  requestTotal.value = res4
 })
 
 </script>
