@@ -1,8 +1,6 @@
 import axios from 'axios'
 
 export default defineNuxtRouteMiddleware(async (to, from) => {
-  const { $token } = useNuxtApp()
-
   const rule = /admin/
 
   const username = useCookie('username')

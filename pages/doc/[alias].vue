@@ -22,14 +22,13 @@ const apiInfo = reactive({})
 const options = reactive({})
 
 const GetData = async () => {
-  const { data: res } = await axios.get('api', {
+  const { data: res } = await axios.get('Api', {
     params: {
-      type: 'apiAlias',
       alias: route.params.alias
     }
   })
 
-  apiInfo.value = res.data[0]
+  apiInfo.value = res.data
 
   const { data: res1 } = await axios.get('Options')
   options.value = res1.data

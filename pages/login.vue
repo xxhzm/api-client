@@ -175,6 +175,7 @@ const login = async () => {
     msg('登录成功', 'success')
 
     navigateTo('/admin')
+
   }
 }
 
