@@ -1,11 +1,7 @@
 import axios from 'axios'
 
-export default defineNuxtRouteMiddleware(async (to, from) => {
+export default defineNuxtRouteMiddleware((to, from) => {
   const rule = /admin/
-
-  const username = useCookie('username')
-  const token = useCookie('token')
-  const grade = useCookie('grade')
 
   let myInterceptor = 0
 
@@ -13,6 +9,7 @@ export default defineNuxtRouteMiddleware(async (to, from) => {
     // 设置请求拦截器，给 url 中添加 token
     myInterceptor = axios.interceptors.request.use(
       (config) => {
+        const token = useCookie('token')
         if (token.value !== '' && config.url !== 'Token') {
           config.url += '?token=' + token.value
         }
@@ -23,6 +20,10 @@ export default defineNuxtRouteMiddleware(async (to, from) => {
         return Promise.reject(error)
       }
     )
+  }
+
+  if (to.fullPath === '/login?logout') {
+    window.location.href = '/login'
   }
 
   if (myInterceptor !== 0) {

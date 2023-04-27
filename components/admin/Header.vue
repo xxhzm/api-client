@@ -44,7 +44,7 @@ const handleSelect = (key) => {
     token.value = undefined
     grade.value = undefined
 
-    navigateTo('/login')
+    navigateTo('/login?logout')
   }
 
 }
