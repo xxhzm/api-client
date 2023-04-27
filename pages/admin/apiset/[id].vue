@@ -82,7 +82,7 @@
           </el-form>
 
           <el-table
-            :data="res.data[0].params"
+            :data="res.data.params"
             border
             style="width: 825px; margin-left: 50px"
             v-if="formOrTable"
@@ -101,7 +101,7 @@
                 </el-popconfirm>
               </template>
             </el-table-column>
-            <el-table-column prop="id" label="id" width="60" />
+            <el-table-column prop="aid" label="id" width="60" />
             <el-table-column prop="name" label="接口名称" width="100" />
             <el-table-column prop="param" label="传递参数" width="100" />
             <el-table-column prop="position" label="传入位置" width="100" />
@@ -218,13 +218,17 @@ const handleDelete = async (index, row) => {
   bodyValue.append('id', row.id)
   bodyValue.append('aid', apiSetInfo.value.id)
 
-  const { data: res } = await axios.post('api/parameter?type=deleteParameter&token=' + token.value, bodyValue)
+  const { data: res } = await axios.get('ParamDelete', {
+    params: {
+      pid: row.id,
+      aid: apiSetInfo.value.id,
+      alias: apiSetInfo.value.alias
+    }
+  })
 
-  if (res.code === '200') {
+  if (res.code === 200) {
     msg(res.msg, 'success')
     navigateTo('/admin/apilist')
-  } else {
-    msg(res.msg, 'error')
   }
 }
 

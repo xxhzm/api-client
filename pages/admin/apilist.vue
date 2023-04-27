@@ -99,15 +99,14 @@ const handleEdit = (index, row) => {
 const handleDelete = async (index, row) => {
   loading.value = true
 
-  const bodyValue = new URLSearchParams()
-  bodyValue.append('id', row.id)
+  const { data: res } = await axios.get('ApiDelete', {
+    params: {
+      id: row.id
+    }
+  })
 
-  const { data: res } = await axios.post('api?type=deleteApi&token=' + token.value, bodyValue)
-
-  if (res.code === '200') {
+  if (res.code === 200) {
     msg(res.msg, 'success')
-  } else {
-    msg(res.msg, 'error')
   }
 
   await getData()
