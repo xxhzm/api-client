@@ -39,7 +39,7 @@
         <el-table-column prop="name" label="分类名称" width="180" />
         <el-table-column prop="alias" label="别名" width="100" />
         <el-table-column prop="count" label="接口数" width="100" />
-        <el-table-column prop="create_time" label="创建时间" width="250" />
+        <el-table-column prop="createTime" label="创建时间" width="250" />
         <el-table-column prop="default" label="默认分类" width="250" />
         <el-table-column width="225" />
       </el-table>
@@ -69,11 +69,18 @@ const tableData = ref([
 const search = ref('')
 
 const getData = async () => {
-  const { data: res } = await axios.get('api/category?type=categoriesList')
+  const { data: res } = await axios.get('CategoryList')
 
-  if (res.code !== '200') {
-    msg(res.msg, 'error')
-  }
+  res.data = res.data.map(item => {
+    return {
+      id: item.id,
+      alias: item.alias,
+      name: item.name,
+      default: item.default === 1 ? '是' : '否',
+      count: item.count,
+      createTime: item.createTime
+    }
+  })
 
   tableData.value = res.data
 }

@@ -21,7 +21,7 @@
         >返回首页</span
       >
       <h4 class="title">登录</h4>
-      <p class="text">请输入账号密码进行登录</p>
+      <p class="text">请输入账号密码进行登录<br />无法登录请刷新此页面</p>
       <el-form
         label-position="top"
         label-width="100px"

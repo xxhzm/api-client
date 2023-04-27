@@ -150,21 +150,20 @@ const onSubmit = async () => {
   bodyValue.append('xhr', addapiInfo.xhr)
   bodyValue.append('php', addapiInfo.php)
   bodyValue.append('python', addapiInfo.python)
+  bodyValue.append('example', addapiInfo.example)
 
-  if (addapiInfo.example) {
-    bodyValue.append('example', addapiInfo.example)
+  if (addapiInfo.state === true) {
+    bodyValue.append('state', '启用')
+  } else {
+    bodyValue.append('state', '禁用')
   }
 
-  if (!addapiInfo.state) {
-    bodyValue.append('state', addapiInfo.state)
-  }
-
-  const { data: res } = await axios.post('api?type=insertApi&token=' + token.value, bodyValue)
-  if (res.code === '200') {
+  const { data: res } = await axios.post('ApiCreate', bodyValue)
+  if (res.code === 200) {
     msg(res.msg, 'success')
     navigateTo('/admin/apilist')
   } else {
-    msg(res.msg, 'error')
+    return false
   }
 }
 
@@ -174,7 +173,15 @@ const categoryData = ref([])
 const querySearch = async (queryString, cb) => {
   // 如果没有数据则从服务端获取分类内容
   if (categoryData.value.length === 0) {
-    const { data: res } = await axios.get('api/category?type=categoriesList&name=true')
+    const { data: res } = await axios.get('CategoryList')
+
+    res.data = res.data.map(item => {
+      return {
+        id: item.id,
+        value: item.name,
+      }
+    })
+
     categoryData.value = res.data
   }
 
