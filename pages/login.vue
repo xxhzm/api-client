@@ -163,10 +163,7 @@ const login = async () => {
   bodyValue.append('password', $enCode(info.password))
 
   const { data: res } = await axios.post('Login', bodyValue)
-  if (res.code !== 200 || res.msg !== '数据请求成功' || res.data === "") {
-    msg(res.msg, 'error')
-    return false
-  } else if (res.code === 200 && res.msg === '数据请求成功' && res.data.username === info.username) {
+  if (res.code === 200 && res.data.username === info.username) {
     // 设置cookie
     username.value = res.data.username
     token.value = res.data.token

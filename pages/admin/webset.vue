@@ -37,16 +37,12 @@
 
 <script setup>
 import axios from 'axios'
-import { ElNotification } from 'element-plus'
 
 definePageMeta({
   middleware: ["admin"],
 })
 
-const token = useCookie('token')
-
 const { $msg } = useNuxtApp()
-const msg = $msg
 
 const websetInfo = ref({
   title: '',
@@ -63,11 +59,13 @@ const getData = async () => {
   websetInfo.value = res.data
 }
 
-await getData()
+onMounted(() => {
+  getData()
+})
 
 const onSubmit = async () => {
   if (!websetInfo.value.title || !websetInfo.value.subheading || !websetInfo.value.keywords || !websetInfo.value.description || !websetInfo.value.create_time) {
-    msg('请填写内容', 'error')
+    $msg('请填写内容', 'error')
     return false
   }
 
@@ -76,25 +74,16 @@ const onSubmit = async () => {
   bodyValue.append('subheading', websetInfo.value.subheading)
   bodyValue.append('keywords', websetInfo.value.keywords)
   bodyValue.append('description', websetInfo.value.description)
-  bodyValue.append('create_time', websetInfo.value.create_time)
+  bodyValue.append('createTime', websetInfo.value.create_time)
+  bodyValue.append('icp', websetInfo.value.icp)
+  bodyValue.append('gongAn', websetInfo.value.gongan)
 
-  if (websetInfo.value.icp !== '') {
-    bodyValue.append('icp', websetInfo.value.icp)
+  const { data: res } = await axios.post('OptionsUpdate', bodyValue)
+  if (res.code === 200) {
+    $msg(res.msg, 'success')
+
+    getData()
   }
-
-  if (websetInfo.value.gongan !== '') {
-    bodyValue.append('gongan', websetInfo.value.gongan)
-  }
-
-  const { data: res } = await axios.post('options/updateOptions?token=' + token.value, bodyValue)
-  if (res.code !== '200') {
-    msg(res.msg, 'error')
-    return false
-  }
-
-  msg(res.msg, 'success')
-
-  await getData()
 }
 
 </script>
