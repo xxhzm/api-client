@@ -85,6 +85,7 @@ const onSubmit = async () => {
 
 <style  lang="less" scoped>
 .password-container {
+  overflow-y: hidden;
   width: 100%;
   height: calc(100vh - 65px);
   padding: 20px 40px;
@@ -92,6 +93,7 @@ const onSubmit = async () => {
   .password-form {
     width: 100%;
     height: 100%;
+    overflow-y: scroll;
     padding: 40px 50px;
     background: #fff;
     box-shadow: 0 2px 2px rgb(0 0 0 / 10%);
