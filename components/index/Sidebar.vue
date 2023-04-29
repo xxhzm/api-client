@@ -35,6 +35,7 @@ const defaultProps = {
 
 const sidebayData = ref([])
 const expanedKeys = []
+const categoryArr = ref([])
 
 const getData = async () => {
   const { data: res } = await axios.get('List')
@@ -48,8 +49,6 @@ const getData = async () => {
       categoryId: item.categoryId
     }
   })
-
-  const categoryArr = ref([])
 
   // 获取到所有的分类列表，将其 push 到 categoryArr
   // 然后对其进行去重处理
@@ -99,8 +98,8 @@ const getData = async () => {
   sidebayData.value.forEach(element => {
     expanedKeys.push(element.label)
   })
-}
 
+}
 
 await getData()
 

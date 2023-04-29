@@ -28,10 +28,12 @@ definePageMeta({
   middleware: ["admin"],
 })
 
-const { $msg } = useNuxtApp()
+const { $enCode, $msg } = useNuxtApp()
 const msg = $msg
 
+const username = useCookie('username')
 const token = useCookie('token')
+const grade = useCookie('grade')
 
 const passwordInfo = reactive({
   oldPassword: '',
@@ -49,37 +51,32 @@ const onSubmit = async () => {
     return false
   }
 
-  const max = 35
-  const min = 15
-
-  const random = Math.floor(Math.random() * (max - min + 1) + min)
-  const oldPasswordCode = window.btoa(new Date().getTime() + passwordInfo.oldPassword + new Date().getTime())
-  const newPasswordCode = window.btoa(new Date().getTime() + passwordInfo.newPassword + new Date().getTime())
-
-  // 通过随机数打乱顺序，进行数据加密
-  const oldPasswordEncryptionCode = oldPasswordCode.substring(random) + oldPasswordCode.slice(0, random)
-  const newPasswordEncryptionCode = newPasswordCode.substring(random) + newPasswordCode.slice(0, random)
-
   const bodyValue = new URLSearchParams()
-  bodyValue.append('oldPassword', oldPasswordEncryptionCode)
-  bodyValue.append('newPassword', newPasswordEncryptionCode)
-  bodyValue.append('random', random)
+  bodyValue.append('oldPassword', $enCode(passwordInfo.oldPassword))
+  bodyValue.append('newPassword', $enCode(passwordInfo.newPassword))
   bodyValue.append('token', token.value)
+  bodyValue.append('username', username.value)
 
-  const { data: res } = await axios.post('user/changepasssword', bodyValue)
+  const { data: res } = await axios.post('ChangePassword', bodyValue)
 
-  if (res.code !== '200') {
-    msg(res.msg, 'error')
-
+  if (res.code !== 200) {
+    username.value = undefined
     token.value = undefined
-    navigateTo('/login')
+    grade.value = undefined
+    navigateTo('/login?logout')
 
     return false
   }
 
-  msg(res.msg, 'success')
+  username.value = undefined
   token.value = undefined
-  navigateTo('/login')
+  grade.value = undefined
+
+  msg(res.msg, 'success')
+  setTimeout(() => {
+    navigateTo('/login?logout')
+  }, 1500)
+
 }
 </script>
 
