@@ -94,9 +94,7 @@
 import * as echarts from 'echarts'
 import axios from 'axios'
 
-definePageMeta({
-  middleware: ["admin"],
-})
+
 
 const chartShow = ref(true)
 

@@ -123,9 +123,7 @@ const route = useRoute()
 
 const token = useCookie('token')
 
-definePageMeta({
-  middleware: ["admin"],
-})
+
 
 const { $msg } = useNuxtApp()
 const msg = $msg

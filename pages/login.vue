@@ -113,10 +113,6 @@
 import axios from 'axios'
 import { ElNotification } from 'element-plus'
 
-definePageMeta({
-  middleware: ["admin"]
-})
-
 // 引入加密算法
 const { $enCode, $msg } = useNuxtApp()
 
@@ -171,7 +167,8 @@ const login = async () => {
 
     msg('登录成功', 'success')
 
-    navigateTo('/admin')
+    window.location.href = '/admin'
+    // navigateTo('/admin')
 
   }
 }

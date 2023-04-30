@@ -98,9 +98,7 @@ import { ElNotification } from 'element-plus'
 
 const token = useCookie('token')
 
-definePageMeta({
-  middleware: ["admin"],
-})
+
 
 
 const { $msg } = useNuxtApp()

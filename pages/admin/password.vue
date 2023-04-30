@@ -24,9 +24,7 @@
 import axios from "axios"
 import { ElNotification } from 'element-plus'
 
-definePageMeta({
-  middleware: ["admin"],
-})
+
 
 const { $enCode, $msg } = useNuxtApp()
 const msg = $msg
@@ -63,7 +61,7 @@ const onSubmit = async () => {
     username.value = undefined
     token.value = undefined
     grade.value = undefined
-    navigateTo('/login?logout')
+    window.location.href = '/login'
 
     return false
   }
@@ -74,7 +72,7 @@ const onSubmit = async () => {
 
   msg(res.msg, 'success')
   setTimeout(() => {
-    navigateTo('/login?logout')
+    window.location.href = '/login'
   }, 1500)
 
 }

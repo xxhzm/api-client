@@ -38,9 +38,7 @@
 <script setup>
 import axios from 'axios'
 
-definePageMeta({
-  middleware: ["admin"],
-})
+
 
 const { $msg } = useNuxtApp()
 

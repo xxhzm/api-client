@@ -15,6 +15,22 @@ const grade = useCookie('grade')
 const { $axiosDefault } = useNuxtApp()
 $axiosDefault()
 
+axios.interceptors.request.use(
+  (config) => {
+    if (token.value !== '' && config.url !== 'Token') {
+      config.headers.Authorization = token.value
+    }
+    return config
+  },
+  (error) => {
+    return Promise.reject(error)
+  }
+)
+
+watch(token, () => {
+  console.log(1)
+})
+
 axios.interceptors.response.use(response => {
   if (response.data?.code === -3) {
     // delete username and token
