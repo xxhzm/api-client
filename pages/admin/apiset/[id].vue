@@ -156,6 +156,20 @@ const { data: res } = await axios.get('Api', {
   }
 })
 
+// 判断参数是否必传
+res.data.params = res.data.params.map(item => {
+  return {
+    id: item.id,
+    aid: item.aid,
+    name: item.name,
+    param: item.param,
+    position: item.position,
+    docs: item.docs,
+    create_time: item.create_time,
+    required: item.required === 1 ? '必传' : '可选'
+  }
+})
+
 apiSetInfo.value = res.data
 apiSetInfo.value.oldCategoryId = res.data.categoryId
 

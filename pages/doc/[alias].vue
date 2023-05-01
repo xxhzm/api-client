@@ -28,6 +28,18 @@ const GetData = async () => {
     }
   })
 
+  // 判断参数是否必传
+  res.data.params = res.data.params.map(item => {
+    return {
+      id: item.id,
+      aid: item.aid,
+      name: item.name,
+      param: item.param,
+      position: item.position,
+      docs: item.docs,
+      required: item.required === 1 ? '必传' : '可选'
+    }
+  })
   apiInfo.value = res.data
 
   const { data: res1 } = await axios.get('Options')

@@ -36,7 +36,7 @@
             <el-menu-item index="3-2" @click="navigateTo('/admin/addapi')"
               >新增接口</el-menu-item
             >
-            <el-menu-item index="3-2" @click="navigateTo('/admin/addparameter')"
+            <el-menu-item index="3-2" @click="navigateTo('/admin/addparam')"
               >添加参数</el-menu-item
             >
             <el-menu-item

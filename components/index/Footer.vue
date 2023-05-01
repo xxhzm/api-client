@@ -44,7 +44,7 @@ const actions = ref([{ name: '加载选项', loading: true }])
 
 const onOpen = async () => {
   if (request.value === false) {
-    const { data: res } = await axios.get('api/list')
+    const { data: res } = await axios.get('List')
     actions.value = res.data
     request.value = true
   }

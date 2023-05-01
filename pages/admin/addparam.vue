@@ -50,9 +50,6 @@ import { ElNotification } from 'element-plus'
 
 const token = useCookie('token')
 
-
-
-
 const { $msg } = useNuxtApp()
 const msg = $msg
 
@@ -94,17 +91,17 @@ const onSubmit = async () => {
   bodyValue.append('position', addparameter.position)
   bodyValue.append('docs', addparameter.docs)
 
-  if (!addparameter.required) {
-    bodyValue.append('required', '关闭')
+  if (addparameter.required) {
+    bodyValue.append('required', 1)
+  } else {
+    bodyValue.append('required', 2)
   }
 
-  const { data: res } = await axios.post('api/parameter?type=insertParameter&token=' + token.value, bodyValue)
+  const { data: res } = await axios.post('ParamCreate', bodyValue)
 
-  if (res.code === '200') {
+  if (res.code === 200) {
     msg(res.msg, 'success')
     navigateTo('/admin/apilist')
-  } else {
-    msg(res.msg, 'error')
   }
 }
 </script>
