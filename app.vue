@@ -27,10 +27,6 @@ axios.interceptors.request.use(
   }
 )
 
-watch(token, () => {
-  console.log(1)
-})
-
 axios.interceptors.response.use(response => {
   if (response.data?.code === -3) {
     // delete username and token

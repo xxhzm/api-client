@@ -20,9 +20,6 @@
             />
           </template>
           <template #default="scope">
-            <el-button size="small" @click="handleEdit(scope.$index, scope.row)"
-              >Edit</el-button
-            >
             <el-popconfirm
               confirm-button-text="Yes"
               cancel-button-text="No"
@@ -91,24 +88,17 @@ const filterTableData = computed(() =>
     data.name.toLowerCase().includes(search.value.toLowerCase())
   )
 )
-
-
-const handleEdit = (index, row) => {
-  navigateTo('/admin/setcategory/' + row.id)
-}
-
 const handleDelete = async (index, row) => {
   loading.value = true
 
-  const bodyValue = new URLSearchParams()
-  bodyValue.append('id', row.id)
+  const { data: res } = await axios.get('CategoryDelete', {
+    params: {
+      id: row.id
+    }
+  })
 
-  const { data: res } = await axios.post('api/category?type=deleteCategory&token=' + token.value, bodyValue)
-
-  if (res.code === '200') {
+  if (res.code === 200) {
     msg(res.msg, 'success')
-  } else {
-    msg(res.msg, 'error')
   }
 
   await getData()
