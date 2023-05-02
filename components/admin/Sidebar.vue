@@ -95,13 +95,14 @@ const handleClose = (key, keyPath) => {
 
 // 清空缓存
 const deleteCache = async () => {
-  const { data: res } = await axios.get('index/deleteCache?token=' + token.value)
-  msg(res.msg + '，3秒后会自动刷新页面', 'success')
+  const { data: res } = await axios.get('ClearCache')
+  if (res.code === 200) {
+    msg(res.data + '，3秒后会自动刷新页面', 'success')
 
-  setTimeout(() => {
-    window.location.reload()
-
-  }, 3000)
+    setTimeout(() => {
+      window.location.reload()
+    }, 3000)
+  }
 }
 </script>
 

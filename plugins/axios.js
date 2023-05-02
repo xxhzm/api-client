@@ -7,7 +7,7 @@ export default defineNuxtPlugin((/* nuxtApp */) => {
       axiosDefault: () => {
         const { $msg } = useNuxtApp()
         // axios.defaults.baseURL = 'https://www.api-m.com/'
-        axios.defaults.baseURL = 'http://127.0.0.1:3005/api/'
+        axios.defaults.baseURL = 'http://10.6.6.6:3005/api/'
 
         axios.interceptors.response.use(response => {
 

@@ -79,6 +79,7 @@
         <el-form-item>
           <el-input v-model="info.username" placeholder="用户名" />
         </el-form-item>
+
         <el-form-item>
           <el-input
             v-model="info.password"
@@ -87,19 +88,41 @@
             show-password
           />
         </el-form-item>
+
         <el-form-item>
-          <el-input v-model="info.email" placeholder="电子邮箱" />
+          <el-input v-model="info.mail" placeholder="电子邮箱" />
         </el-form-item>
       </el-form>
-      <el-button @click="getVerifyCode" :loading="getVerifyCodeButtonState"
+
+      <el-form-item style="margin-top: 20px">
+        <el-input
+          v-model="info.captcha"
+          placeholder="图片验证码"
+          type="number"
+        />
+      </el-form-item>
+
+      <el-form-item style="margin-top: 20px">
+        <img
+          :src="captchaInfo.url"
+          alt="验证码"
+          style="width: 100%; height: 40px; cursor: pointer"
+          @click="getCaptchaInfo()"
+        />
+      </el-form-item>
+
+      <el-button @click="getMailCode" :loading="getVerifyCodeButtonState"
         >获取验证码</el-button
       >
+
       <el-form-item style="margin-top: 20px">
-        <el-input v-model="info.code" placeholder="验证码" type="number" />
+        <el-input v-model="info.mailCode" placeholder="邮件验证码" />
       </el-form-item>
+
       <el-button type="primary" style="display: block" @click="register"
         >点击注册</el-button
       >
+
       <p class="text" style="margin-top: 15px">
         已有账号?<span style="margin-left: 5px" @click="LoginIsRegisterChange"
           >登录</span
@@ -122,8 +145,6 @@ const username = useCookie('username')
 const token = useCookie('token')
 const grade = useCookie('grade')
 
-const getVerifyCodeButtonState = ref(false)
-
 // delete username and token
 username.value = undefined
 token.value = undefined
@@ -132,15 +153,20 @@ grade.value = undefined
 const info = reactive({
   username: '',
   password: '',
-  email: '',
-  code: '',
+  mail: '',
+  captcha: '',
+  mailCode: '',
+  sign: ''
 })
 
-const LoginIsRegister = ref(true)
+const LoginIsRegister = ref(false)
 const loginAndRegisterButtonStatus = ref(false)
-const rule = /^[A-Za-z\d]+[A-Za-z\d\-_\.]*@([A-Za-z\d]+[A-Za-z\d\-]*\.)+[A-Za-z]{2,4}$/
 
 const msg = $msg
+
+const goBack = () => {
+  navigateTo('/')
+}
 
 const login = async () => {
   if (info.username === '' || info.password === '') {
@@ -168,13 +194,76 @@ const login = async () => {
     msg('登录成功', 'success')
 
     window.location.href = '/admin'
-    // navigateTo('/admin')
-
   }
 }
 
+// 登录注册切换
+const LoginIsRegisterChange = () => {
+  LoginIsRegister.value = !LoginIsRegister.value
+}
+
+// 以下全部为注册
+
+// 获取验证码按钮的状态
+const getVerifyCodeButtonState = ref(false)
+
+// 图片验证码信息
+const captchaInfo = ref({
+  id: '',
+  url: ''
+})
+
+// 获取图片验证码
+const getCaptchaInfo = async () => {
+  // 接口文档 https://api-m.com/doc/captcha
+  const { data: res } = await axios.get('https://v2.api-m.com/api/captcha?type=digit')
+  captchaInfo.value = res.data
+}
+
+// 监听用户是否切换了显示
+watch(LoginIsRegister, newValue => {
+  if (newValue === false) {
+    info.captcha = ''
+    getCaptchaInfo()
+  }
+}, {
+  immediate: true
+})
+
+// 获取邮箱验证码
+const rule = /^[A-Za-z\d]+[A-Za-z\d\-_\.]*@([A-Za-z\d]+[A-Za-z\d\-]*\.)+[A-Za-z]{2,4}$/
+
+const getMailCode = async () => {
+  getVerifyCodeButtonState.value = true
+
+  if (rule.test(info.mail) === false) {
+    msg('请填写正确的信息', 'error')
+    return false
+  }
+
+  const bodyValue = new URLSearchParams()
+  bodyValue.append('id', captchaInfo.value.id)
+  bodyValue.append('key', info.captcha)
+  bodyValue.append('mail', info.mail)
+
+  const { data: res } = await axios.post('MailCode', bodyValue)
+
+  if (res.code != 200) {
+    info.captcha = ''
+    getCaptchaInfo()
+
+    getVerifyCodeButtonState.value = false
+    return false
+  }
+
+  info.sign = res.data
+  getVerifyCodeButtonState.value = false
+
+  msg(res.msg, 'success')
+}
+
 const register = async () => {
-  if (info.username === '' || info.password === '' || info.email === '' || rule.test(info.email) === false) {
+  if (info.username === '' || info.password === '' || info.mail === '' || rule.test(info.mail) === false || info.mailCode === '') {
     msg('请正确填写账号信息', 'error')
     return false
   }
@@ -187,52 +276,24 @@ const register = async () => {
   const bodyValue = new URLSearchParams()
   bodyValue.append('username', info.username)
   bodyValue.append('password', info.password)
-  bodyValue.append('email', info.email)
-  bodyValue.append('code', info.code)
+  bodyValue.append('mail', info.mail)
+  bodyValue.append('mailCode', info.mailCode)
+  bodyValue.append('sign', info.sign)
 
-  const { data: res } = await axios.post('user/register', bodyValue)
+  // const { data: res } = await axios.post('user/register', bodyValue)
 
-  // 注册失败
-  if (res.code !== '200' && res.msg !== '注册成功，请前往登录') {
-    msg(res.msg, 'error')
-    return false
-  } else if (res.code === '200' && res.msg === '注册成功，3秒后将自动跳转，如未自动跳转请手动前往登录') {
-    // 注册成功
-    msg(res.msg, 'success')
-    setTimeout(() => {
-      router.go(0)
-    }, 3000)
-  }
+  // // 注册失败
+  // if (res.code !== '200' && res.msg !== '注册成功，请前往登录') {
+  //   msg(res.msg, 'error')
+  //   return false
+  // } else if (res.code === '200' && res.msg === '注册成功，3秒后将自动跳转，如未自动跳转请手动前往登录') {
+  //   // 注册成功
+  //   msg(res.msg, 'success')
+  //   setTimeout(() => {
+  //     router.go(0)
+  //   }, 3000)
+  // }
 
-}
-
-const getVerifyCode = async () => {
-  if (rule.test(info.email) === false) {
-    msg('请填写正确的信息', 'error')
-    return false
-  }
-
-  const bodyValue = new URLSearchParams()
-  bodyValue.append('email', info.email)
-
-  const { data: res } = await axios.post('user/verifycode', bodyValue)
-  if (res.code !== '200') {
-    msg(res.msg, 'error')
-    return false
-  }
-
-  setTimeout(() => {
-    getVerifyCodeButtonState.value = true
-  }, 60000)
-
-  msg(res.msg, 'success')
-}
-const goBack = () => {
-  navigateTo('/')
-}
-
-const LoginIsRegisterChange = () => {
-  LoginIsRegister.value = !LoginIsRegister.value
 }
 </script>
 
