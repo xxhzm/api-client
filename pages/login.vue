@@ -159,7 +159,7 @@ const info = reactive({
   sign: ''
 })
 
-const LoginIsRegister = ref(false)
+const LoginIsRegister = ref(true)
 const loginAndRegisterButtonStatus = ref(false)
 
 const msg = $msg
@@ -249,7 +249,6 @@ const getMailCode = async () => {
   const { data: res } = await axios.post('MailCode', bodyValue)
 
   if (res.code != 200) {
-    info.captcha = ''
     getCaptchaInfo()
 
     getVerifyCodeButtonState.value = false
@@ -280,20 +279,13 @@ const register = async () => {
   bodyValue.append('mailCode', info.mailCode)
   bodyValue.append('sign', info.sign)
 
-  // const { data: res } = await axios.post('user/register', bodyValue)
-
-  // // 注册失败
-  // if (res.code !== '200' && res.msg !== '注册成功，请前往登录') {
-  //   msg(res.msg, 'error')
-  //   return false
-  // } else if (res.code === '200' && res.msg === '注册成功，3秒后将自动跳转，如未自动跳转请手动前往登录') {
-  //   // 注册成功
-  //   msg(res.msg, 'success')
-  //   setTimeout(() => {
-  //     router.go(0)
-  //   }, 3000)
-  // }
-
+  const { data: res } = await axios.post('Register', bodyValue)
+  if (res.code === 200) {
+    msg(res.data, 'success')
+    setTimeout(() => {
+      router.go(0)
+    }, 1000)
+  }
 }
 </script>
 

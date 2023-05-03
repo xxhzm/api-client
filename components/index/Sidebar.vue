@@ -3,7 +3,7 @@
     <el-input v-model="filterText" placeholder="搜索" @input="onQueryChanged" />
     <el-tree-v2
       ref="treeRef"
-      :data="sidebayData"
+      :data="sidebarData"
       :props="defaultProps"
       @node-click="handleNodeClick"
       :item-size="30"
@@ -33,7 +33,7 @@ const defaultProps = {
   label: 'label',
 }
 
-const sidebayData = ref([])
+const sidebarData = ref([])
 const expanedKeys = []
 const categoryArr = ref([])
 
@@ -77,28 +77,32 @@ const getData = async () => {
       children: children.value
     }
 
-    sidebayData.value.push(tmpObj)
+    sidebarData.value.push(tmpObj)
   })
 
-  sidebayData.value.unshift({
+  // 打乱顺序
+  // sidebarData.value.sort(() => {
+  //   return Math.random() - 0.5
+  // })
+
+  sidebarData.value.unshift({
     label: '友情链接',
     alias: '/links'
   })
 
-  sidebayData.value.unshift({
+  sidebarData.value.unshift({
     label: '后台',
     alias: '/admin'
   })
 
-  sidebayData.value.unshift({
+  sidebarData.value.unshift({
     label: '首页',
     alias: '/'
   })
 
-  sidebayData.value.forEach(element => {
+  sidebarData.value.forEach(element => {
     expanedKeys.push(element.label)
   })
-
 }
 
 await getData()
