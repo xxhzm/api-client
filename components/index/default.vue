@@ -165,6 +165,7 @@ const props = defineProps(['options'])
 @media screen and (max-width: 750px) {
   .default-container {
     width: 100%;
+    display: none;
     .adPic {
       width: 100%;
       height: 40px;

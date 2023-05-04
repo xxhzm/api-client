@@ -7,6 +7,7 @@
     <div class="container">
       <IndexSidebar></IndexSidebar>
       <IndexDefault :options="options"></IndexDefault>
+      <IndexWapDefault :options="options"></IndexWapDefault>
     </div>
   </div>
 
