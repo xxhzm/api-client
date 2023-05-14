@@ -6,7 +6,6 @@
       :ellipsis="false"
       @select="handleSelect"
     >
-      <el-menu-item index="0"></el-menu-item>
       <div class="flex-grow" />
       <ClientOnly>
         <el-sub-menu index="1" style="position: absolute; right: 40px">
