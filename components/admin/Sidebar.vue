@@ -1,21 +1,20 @@
 <template>
   <div class="sidebar-container">
-    <el-icon
-      size="1.5rem"
-      color="#000"
-      @click="collapseChange"
-      class="collapse"
-    >
-      <Operation />
-    </el-icon>
-    <el-menu
-      class="sidebar-menu"
-      :collapse="isCollapse"
-      @open="handleOpen"
-      @close="handleClose"
-    >
+    <el-menu class="sidebar-menu" @open="handleOpen" @close="handleClose">
+      <el-menu-item index="1" @click="navigateTo('/admin')">
+        <img
+          src="https://cdn.xxhzm.cn/img/title.png"
+          alt="logo"
+          class="logo"
+          style="width: 140px; height: 60px"
+        />
+      </el-menu-item>
       <div v-if="grade === 0">
-        <el-menu-item index="1" @click="navigateTo('/admin')">
+        <el-menu-item
+          index="1"
+          @click="navigateTo('/admin')"
+          style="margin-top: 10px"
+        >
           <el-icon><Odometer /></el-icon>
           <template #title>控制台</template>
         </el-menu-item>
@@ -64,7 +63,6 @@ import { ref } from 'vue'
 import { ElNotification } from 'element-plus'
 import {
   List,
-  Operation,
   Menu as IconMenu,
   Setting,
   Odometer,
@@ -74,17 +72,11 @@ import {
 } from '@element-plus/icons-vue'
 import axios from 'axios'
 
-const isCollapse = ref(false)
 const token = useCookie('token')
 const grade = useCookie('grade')
 
 const { $msg } = useNuxtApp()
 const msg = $msg
-
-const collapseChange = () => {
-  isCollapse.value = !isCollapse.value
-}
-
 
 const handleOpen = (key, keyPath) => {
   // console.log(key, keyPath)
@@ -107,16 +99,13 @@ const deleteCache = async () => {
 </script>
 
 <style lang="less" scoped>
-.sidebar-menu {
-  height: calc(100vh - 65px);
-}
-.sidebar-menu:not(.el-menu--collapse) {
-  width: 200px;
-}
-.collapse {
-  position: absolute;
-  top: 18px;
-  left: 240px;
-  cursor: pointer;
+.sidebar-container {
+  .sidebar-menu {
+    height: 100%;
+  }
+
+  .sidebar-menu:not(.el-menu--collapse) {
+    width: 200px;
+  }
 }
 </style>

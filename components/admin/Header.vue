@@ -1,5 +1,4 @@
 <template>
-  <!-- <ClientOnly> -->
   <div class="header-container">
     <el-menu
       class="el-menu-demo"
@@ -7,13 +6,7 @@
       :ellipsis="false"
       @select="handleSelect"
     >
-      <el-menu-item index="0"
-        ><img
-          src="https://cdn.xxhzm.cn/img/title.png"
-          alt="logo"
-          class="logo"
-          style="width: 180px; height: 60px"
-      /></el-menu-item>
+      <el-menu-item index="0"></el-menu-item>
       <div class="flex-grow" />
       <ClientOnly>
         <el-sub-menu index="1" style="position: absolute; right: 40px">
@@ -56,9 +49,6 @@ const handleSelect = (key) => {
 }
 
 .header-container {
-  .logo {
-    margin-left: 15px;
-    margin-right: 15px;
-  }
+  height: 60px;
 }
 </style>
