@@ -34,7 +34,7 @@ axios.interceptors.response.use(response => {
     token.value = undefined
     grade.value = undefined
 
-    navigateTo('/login')
+    navigateTo('/error/403')
   }
   return response
 })
