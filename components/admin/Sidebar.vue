@@ -20,7 +20,7 @@
         </el-menu-item>
         <el-menu-item index="2" @click="navigateTo('/admin/webset')">
           <el-icon><Setting /></el-icon>
-          <template #title>网站设置</template>
+          <template #title>系统设置</template>
         </el-menu-item>
 
         <el-sub-menu index="3">
