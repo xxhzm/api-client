@@ -20,9 +20,9 @@
 </template>
 
 <script setup>
+const { $logout } = useNuxtApp()
+
 const username = useCookie('username')
-const token = useCookie('token')
-const grade = useCookie('grade')
 
 const handleSelect = (key) => {
   // 更改密码
@@ -32,11 +32,7 @@ const handleSelect = (key) => {
 
   // 退出登录
   if (key === '0-2') {
-    username.value = undefined
-    token.value = undefined
-    grade.value = undefined
-
-    window.location.href = '/login'
+    $logout()
   }
 
 }

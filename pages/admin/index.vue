@@ -2,6 +2,8 @@
 import * as echarts from 'echarts'
 import axios from 'axios'
 
+const { $logout } = useNuxtApp()
+
 const chartShow = ref(true)
 
 const totaluser = ref({
@@ -243,7 +245,11 @@ onMounted(async () => {
             </el-col>
 
             <el-col :xs="24" :sm="12" :md="12" :lg="6" :xl="6">
-              <el-card style="padding: 5px 0" shadow="hover">
+              <el-card
+                style="padding: 5px 0"
+                shadow="hover"
+                @click="navigateTo('/')"
+              >
                 <svg
                   viewBox="0 0 1024 1024"
                   xmlns="http://www.w3.org/2000/svg"
@@ -275,7 +281,14 @@ onMounted(async () => {
               >
             </el-col>
 
-            <el-col :xs="24" :sm="12" :md="12" :lg="6" :xl="6">
+            <el-col
+              :xs="24"
+              :sm="12"
+              :md="12"
+              :lg="6"
+              :xl="6"
+              @click="$logout()"
+            >
               <el-card style="padding: 5px 0" shadow="hover">
                 <svg
                   viewBox="0 0 1024 1024"
@@ -323,6 +336,9 @@ onMounted(async () => {
         margin-top: 30px;
         box-shadow: 0 2px 2px rgb(0 0 0 / 10%);
         background: #fff;
+      }
+      .el-card {
+        cursor: pointer;
       }
     }
   }
