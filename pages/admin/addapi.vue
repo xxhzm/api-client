@@ -1,92 +1,211 @@
 <template>
-  <AdminHeader></AdminHeader>
-  <div style="display: flex">
+  <div class="container">
     <AdminSidebar></AdminSidebar>
-    <div class="addapi-container">
-      <div class="addapi-form">
-        <el-form :model="addapiInfo" label-width="120px">
-          <el-form-item label="接口名称">
-            <el-input
-              v-model="addapiInfo.name"
-              maxlength="32"
-              show-word-limit
-            />
-          </el-form-item>
-          <el-form-item label="接口别名">
-            <el-input
-              v-model="addapiInfo.alias"
-              maxlength="32"
-              show-word-limit
-            />
-          </el-form-item>
-          <el-form-item label="接口描述">
-            <el-input v-model="addapiInfo.description" />
-          </el-form-item>
-          <el-form-item label="接口关键词">
-            <el-input
-              v-model="addapiInfo.keywords"
-              maxlength="128"
-              show-word-limit
-              placeholder="英文逗号隔开"
-            />
-          </el-form-item>
-          <el-form-item label="接口地址">
-            <el-input
-              v-model="addapiInfo.url"
-              maxlength="128"
-              show-word-limit
-            />
-          </el-form-item>
-          <el-form-item label="请求类型">
-            <el-input
-              v-model="addapiInfo.method"
-              maxlength="12"
-              show-word-limit
-              placeholder="GET 建议使用大写"
-            />
-          </el-form-item>
+    <div class="right">
+      <AdminHeader></AdminHeader>
+      <div class="addapi-container">
+        <div class="addapi-cont">
+          <h1 class="title">接口信息</h1>
+          <el-divider />
+          <el-form :model="addapiInfo" label-width="100px">
+            <el-row :gutter="12">
+              <el-col :xs="24" :sm="12" :md="12" :lg="8" :xl="8">
+                <el-form-item label="接口名称">
+                  <el-input
+                    v-model="addapiInfo.name"
+                    maxlength="32"
+                    show-word-limit
+                  /> </el-form-item
+              ></el-col>
 
-          <el-form-item label="接口分类">
+              <el-col :xs="24" :sm="12" :md="12" :lg="8" :xl="8">
+                <el-form-item label="接口别名">
+                  <el-input
+                    v-model="addapiInfo.alias"
+                    maxlength="32"
+                    show-word-limit
+                  /> </el-form-item
+              ></el-col>
+
+              <el-col :xs="24" :sm="12" :md="12" :lg="8" :xl="8">
+                <el-form-item label="接口描述">
+                  <el-input v-model="addapiInfo.description" /> </el-form-item
+              ></el-col>
+
+              <el-col :xs="24" :sm="12" :md="12" :lg="8" :xl="8">
+                <el-form-item label="接口关键词">
+                  <el-input
+                    v-model="addapiInfo.keywords"
+                    maxlength="128"
+                    show-word-limit
+                    placeholder="英文逗号隔开"
+                  /> </el-form-item
+              ></el-col>
+
+              <el-col :xs="24" :sm="12" :md="12" :lg="8" :xl="8">
+                <el-form-item label="接口地址">
+                  <el-input
+                    v-model="addapiInfo.url"
+                    maxlength="128"
+                    show-word-limit
+                  />
+                </el-form-item>
+              </el-col>
+
+              <el-col :xs="24" :sm="12" :md="12" :lg="8" :xl="8">
+                <el-form-item label="请求类型">
+                  <el-input
+                    v-model="addapiInfo.method"
+                    maxlength="12"
+                    show-word-limit
+                    placeholder="GET 建议使用大写"
+                  />
+                </el-form-item>
+              </el-col>
+
+              <el-col :xs="24" :sm="12" :md="12" :lg="8" :xl="8">
+                <el-form-item label="ajax">
+                  <el-input
+                    v-model="addapiInfo.ajax"
+                    type="textarea"
+                    :rows="1"
+                  /> </el-form-item
+              ></el-col>
+
+              <el-col :xs="24" :sm="12" :md="12" :lg="8" :xl="8">
+                <el-form-item label="axios">
+                  <el-input
+                    v-model="addapiInfo.axios"
+                    type="textarea"
+                    :rows="1"
+                  />
+                </el-form-item>
+              </el-col>
+
+              <el-col :xs="24" :sm="12" :md="12" :lg="8" :xl="8">
+                <el-form-item label="fetch">
+                  <el-input
+                    v-model="addapiInfo.fetch"
+                    type="textarea"
+                    :rows="1"
+                  />
+                </el-form-item>
+              </el-col>
+
+              <el-col :xs="24" :sm="12" :md="12" :lg="8" :xl="8">
+                <el-form-item label="xhr">
+                  <el-input
+                    v-model="addapiInfo.xhr"
+                    type="textarea"
+                    :rows="1"
+                  /> </el-form-item
+              ></el-col>
+
+              <el-col :xs="24" :sm="12" :md="12" :lg="8" :xl="8">
+                <el-form-item label="php">
+                  <el-input
+                    v-model="addapiInfo.php"
+                    type="textarea"
+                    :rows="1"
+                  /> </el-form-item
+              ></el-col>
+
+              <el-col :xs="24" :sm="12" :md="12" :lg="8" :xl="8">
+                <el-form-item label="python">
+                  <el-input
+                    v-model="addapiInfo.python"
+                    type="textarea"
+                    :rows="1"
+                  /> </el-form-item
+              ></el-col>
+
+              <el-col :xs="24" :sm="8" :md="8" :lg="8" :xl="8">
+                <el-form-item label="接口分类">
+                  <client-only>
+                    <el-autocomplete
+                      v-model="addapiInfo.category"
+                      :fetch-suggestions="querySearch"
+                      placeholder="请选择分类"
+                      @select="handleSelect"
+                    />
+                  </client-only>
+                </el-form-item>
+              </el-col>
+
+              <el-col :xs="24" :sm="16" :md="16" :lg="16" :xl="16">
+                <el-form-item label="返回示例">
+                  <el-input
+                    v-model="addapiInfo.example"
+                    type="textarea"
+                    :rows="1"
+                  /> </el-form-item
+              ></el-col>
+            </el-row>
+
+            <el-form-item label="是否启用">
+              <el-switch v-model="addapiInfo.state" />
+            </el-form-item>
+          </el-form>
+        </div>
+
+        <div class="addapi-cont">
+          <h1 class="title" style="margin-top: 20px">参数信息</h1>
+          <el-divider />
+
+          <el-form :model="addparameter" label-width="120px">
+            <el-form-item label="参数名称">
+              <el-input v-model="addparameter.name" placeholder="return" />
+            </el-form-item>
+            <el-form-item label="可传参数">
+              <el-input v-model="addparameter.param" placeholder="json | 302" />
+            </el-form-item>
             <client-only>
-              <el-autocomplete
-                v-model="addapiInfo.category"
-                :fetch-suggestions="querySearch"
-                placeholder="请选择分类"
-                @select="handleSelect"
-              />
+              <el-form-item label="传入位置">
+                <el-select
+                  v-model="addparameter.position"
+                  placeholder="传入位置"
+                >
+                  <el-option
+                    v-for="item in position"
+                    :key="item.value"
+                    :label="item.label"
+                    :value="item.value"
+                  />
+                </el-select>
+              </el-form-item>
             </client-only>
-          </el-form-item>
+            <el-form-item label="参数描述">
+              <el-input
+                v-model="addparameter.docs"
+                placeholder="返回json数据 | 重定义到图片"
+              />
+            </el-form-item>
+            <el-form-item label="是否必传">
+              <el-switch v-model="addparameter.required" />
+            </el-form-item>
+          </el-form>
+        </div>
 
-          <el-form-item label="返回示例">
-            <el-input v-model="addapiInfo.example" type="textarea" />
-          </el-form-item>
+        <div class="addapi-footer">
+          <div class="button">
+            <el-button
+              size="large"
+              color="#626aef"
+              type="primary"
+              @click="create"
+              >提交</el-button
+            >
 
-          <el-form-item label="ajax">
-            <el-input v-model="addapiInfo.ajax" type="textarea" />
-          </el-form-item>
-          <el-form-item label="axios">
-            <el-input v-model="addapiInfo.axios" type="textarea" />
-          </el-form-item>
-          <el-form-item label="fetch">
-            <el-input v-model="addapiInfo.fetch" type="textarea" />
-          </el-form-item>
-          <el-form-item label="xhr">
-            <el-input v-model="addapiInfo.xhr" type="textarea" />
-          </el-form-item>
-          <el-form-item label="php">
-            <el-input v-model="addapiInfo.php" type="textarea" />
-          </el-form-item>
-          <el-form-item label="python">
-            <el-input v-model="addapiInfo.python" type="textarea" />
-          </el-form-item>
-
-          <el-form-item label="是否启用">
-            <el-switch v-model="addapiInfo.state" />
-          </el-form-item>
-          <el-form-item>
-            <el-button type="primary" @click="onSubmit">提交</el-button>
-          </el-form-item>
-        </el-form>
+            <el-button
+              size="large"
+              color="#ff9e08"
+              style="color: #fff"
+              type="primary"
+              @click="navigateTo('/admin')"
+              >返回</el-button
+            >
+          </div>
+        </div>
       </div>
     </div>
   </div>
@@ -97,10 +216,6 @@ import axios from 'axios'
 import { ElNotification } from 'element-plus'
 
 const token = useCookie('token')
-
-
-
-
 const { $msg } = useNuxtApp()
 const msg = $msg
 
@@ -123,7 +238,32 @@ const addapiInfo = reactive({
   python: '',
 })
 
-const onSubmit = async () => {
+// 参数信息
+const addparameter = reactive({
+  id: 0,
+  name: '',
+  param: '',
+  position: '',
+  docs: '',
+  required: true,
+})
+
+const position = [
+  {
+    value: 'query',
+    label: 'query',
+  },
+  {
+    value: 'body',
+    label: 'body',
+  }
+]
+
+watch(() => addparameter.id, (newValue) => {
+  addparameter.id = newValue.replace(/[^\d]/g, "")
+})
+
+const create = async () => {
   if (!addapiInfo.name || !addapiInfo.alias || !addapiInfo.description || !addapiInfo.keywords || !addapiInfo.url || !addapiInfo.method) {
     msg('请填写内容', 'error')
     return false
@@ -134,34 +274,58 @@ const onSubmit = async () => {
     return false
   }
 
-  const bodyValue = new URLSearchParams()
-  bodyValue.append('name', addapiInfo.name)
-  bodyValue.append('alias', addapiInfo.alias)
-  bodyValue.append('description', addapiInfo.description)
-  bodyValue.append('keywords', addapiInfo.keywords)
-  bodyValue.append('url', addapiInfo.url)
-  bodyValue.append('method', addapiInfo.method)
-  bodyValue.append('categoryId', addapiInfo.categoryId)
-  bodyValue.append('ajax', addapiInfo.ajax)
-  bodyValue.append('axios', addapiInfo.axios)
-  bodyValue.append('fetch', addapiInfo.fetch)
-  bodyValue.append('xhr', addapiInfo.xhr)
-  bodyValue.append('php', addapiInfo.php)
-  bodyValue.append('python', addapiInfo.python)
-  bodyValue.append('example', addapiInfo.example)
+  const apiBodyValue = new URLSearchParams()
+  apiBodyValue.append('name', addapiInfo.name)
+  apiBodyValue.append('alias', addapiInfo.alias)
+  apiBodyValue.append('description', addapiInfo.description)
+  apiBodyValue.append('keywords', addapiInfo.keywords)
+  apiBodyValue.append('url', addapiInfo.url)
+  apiBodyValue.append('method', addapiInfo.method)
+  apiBodyValue.append('categoryId', addapiInfo.categoryId)
+  apiBodyValue.append('ajax', addapiInfo.ajax)
+  apiBodyValue.append('axios', addapiInfo.axios)
+  apiBodyValue.append('fetch', addapiInfo.fetch)
+  apiBodyValue.append('xhr', addapiInfo.xhr)
+  apiBodyValue.append('php', addapiInfo.php)
+  apiBodyValue.append('python', addapiInfo.python)
+  apiBodyValue.append('example', addapiInfo.example)
 
   if (addapiInfo.state === true) {
-    bodyValue.append('state', '启用')
+    apiBodyValue.append('state', '启用')
   } else {
-    bodyValue.append('state', '禁用')
+    apiBodyValue.append('state', '禁用')
   }
 
-  const { data: res } = await axios.post('ApiCreate', bodyValue)
-  if (res.code === 200) {
+  const { data: res } = await axios.post('ApiCreate', apiBodyValue)
+  if (res.code !== 200) {
+    return false
+  }
+
+  // 接口添加成功后添加参数
+  addparameter.id = res.data
+  if (!addparameter.id || !addparameter.name || !addparameter.param || !addparameter.docs || !addparameter.position) {
     msg(res.msg, 'success')
     navigateTo('/admin/apilist')
-  } else {
     return false
+  }
+
+  const paramBodyValue = new URLSearchParams()
+  paramBodyValue.append('aid', addparameter.id)
+  paramBodyValue.append('name', addparameter.name)
+  paramBodyValue.append('param', addparameter.param)
+  paramBodyValue.append('position', addparameter.position)
+  paramBodyValue.append('docs', addparameter.docs)
+
+  if (addparameter.required) {
+    paramBodyValue.append('required', 1)
+  } else {
+    paramBodyValue.append('required', 2)
+  }
+
+  const { data: res1 } = await axios.post('ParamCreate', paramBodyValue)
+
+  if (res1.code === 200) {
+    msg(res1.msg, 'success')
   }
 }
 
@@ -205,19 +369,48 @@ const handleSelect = (item) => {
 </script>
 
 <style  lang="less" scoped>
-.addapi-container {
-  overflow-y: hidden;
-  width: 100%;
-  height: calc(100vh - 65px);
-  padding: 20px 40px;
-  background-color: #f7f7f7;
-  .addapi-form {
+.container {
+  display: flex;
+  .right {
     width: 100%;
-    height: 100%;
-    overflow-y: scroll;
-    padding: 40px 50px;
-    background: #fff;
-    box-shadow: 0 2px 2px rgb(0 0 0 / 10%);
+    .addapi-container {
+      position: relative;
+      width: 100%;
+      height: 100%;
+      padding: 10px;
+      background-color: #f7f7f7;
+      .addapi-cont {
+        width: 100%;
+        padding: 20px 20px;
+        background: #fff;
+        box-shadow: 0 2px 2px rgb(0 0 0 / 10%);
+        margin-top: 20px;
+        .title {
+          font-size: 17px;
+          font-weight: 500;
+          color: rgb(31, 34, 37);
+        }
+      }
+
+      .addapi-cont:nth-last-child(2) {
+        margin-bottom: 40px;
+      }
+
+      .addapi-footer {
+        position: fixed;
+        bottom: 0;
+        width: calc(100% - 200px);
+        height: 80px;
+        background: #fff;
+        box-shadow: 2px 2px 2px rgb(0 0 0 / 10%);
+        .button {
+          position: absolute;
+          right: 50px;
+          top: 50%;
+          transform: translateY(-50%);
+        }
+      }
+    }
   }
 }
 </style>

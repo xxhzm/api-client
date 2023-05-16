@@ -91,7 +91,6 @@ const filterTableData = computed(() =>
   )
 )
 
-
 const handleEdit = (index, row) => {
   navigateTo('/admin/apiset/' + row.id)
 }
@@ -113,7 +112,6 @@ const handleDelete = async (index, row) => {
 
   loading.value = false
 }
-
 
 </script>
 
