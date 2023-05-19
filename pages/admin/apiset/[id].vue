@@ -117,13 +117,10 @@
 
 <script setup>
 import axios from "axios"
-import { ElNotification } from 'element-plus'
 
 const route = useRoute()
 
 const token = useCookie('token')
-
-
 
 const { $msg } = useNuxtApp()
 const msg = $msg

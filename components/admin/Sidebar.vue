@@ -60,7 +60,7 @@
 
 <script setup>
 import { ref } from 'vue'
-import { ElNotification } from 'element-plus'
+
 import {
   List,
   Menu as IconMenu,

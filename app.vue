@@ -5,7 +5,7 @@
 
 <script setup>
 import axios from 'axios'
-import { ElNotification } from 'element-plus'
+
 
 const username = useCookie('username')
 const token = useCookie('token')

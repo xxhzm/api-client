@@ -22,9 +22,6 @@
 
 <script setup>
 import axios from "axios"
-import { ElNotification } from 'element-plus'
-
-
 
 const { $enCode, $msg } = useNuxtApp()
 const msg = $msg

@@ -134,7 +134,7 @@
 
 <script setup>
 import axios from 'axios'
-import { ElNotification } from 'element-plus'
+
 
 // 引入加密算法
 const { $enCode, $msg } = useNuxtApp()
