@@ -113,10 +113,6 @@ const handleDelete = async (index, row) => {
     }
   })
 
-  if (res.code === 200) {
-    msg(res.msg, 'success')
-  }
-
   await getData()
 
   loading.value = false
@@ -138,9 +134,6 @@ const onSubmit = async () => {
   bodyValue.append('alias', addcategoryInfo.alias)
 
   const { data: res } = await axios.post('CategoryCreate', bodyValue)
-  if (res.code === 200) {
-    msg(res.msg, 'success')
-  }
 
   getData()
 }

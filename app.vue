@@ -6,6 +6,7 @@
 <script setup>
 import axios from 'axios'
 
+const { $msg } = useNuxtApp()
 
 const username = useCookie('username')
 const token = useCookie('token')
@@ -35,6 +36,12 @@ axios.interceptors.response.use(response => {
     grade.value = undefined
 
     navigateTo('/error/403')
+  }
+
+  if (response.data?.code === 200) {
+    $msg(response.data?.msg, 'success')
+  } else {
+    $msg(response.data?.msg, 'error')
   }
   return response
 })

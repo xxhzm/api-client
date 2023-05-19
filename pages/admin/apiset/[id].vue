@@ -213,13 +213,8 @@ const onSubmit = async () => {
   }
 
   const { data: res } = await axios.post('ApiUpdate', bodyValue)
-  if (res.code === 200) {
-    msg(res.msg, 'success')
-    navigateTo('/admin/apilist')
-  } else {
-    msg(res.msg, 'error')
-  }
 
+  navigateTo('/admin/apilist')
 }
 
 const handleDelete = async (index, row) => {
@@ -235,10 +230,8 @@ const handleDelete = async (index, row) => {
     }
   })
 
-  if (res.code === 200) {
-    msg(res.msg, 'success')
-    navigateTo('/admin/apilist')
-  }
+  navigateTo('/admin/apilist')
+
 }
 
 // 分类的数据

@@ -99,10 +99,8 @@ const onSubmit = async () => {
 
   const { data: res } = await axios.post('ParamCreate', bodyValue)
 
-  if (res.code === 200) {
-    msg(res.msg, 'success')
-    navigateTo('/admin/apilist')
-  }
+  navigateTo('/admin/apilist')
+
 }
 </script>
 

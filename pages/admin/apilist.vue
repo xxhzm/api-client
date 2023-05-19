@@ -73,7 +73,6 @@ const getData = async () => {
   const { data: res } = await axios.get('ApiList')
 
   if (res.code !== 200) {
-    msg(res.msg, 'error')
     return false
   }
 
@@ -101,10 +100,6 @@ const handleDelete = async (index, row) => {
       id: row.id
     }
   })
-
-  if (res.code === 200) {
-    msg(res.msg, 'success')
-  }
 
   await getData()
 

@@ -123,8 +123,6 @@ const onSubmit = async () => {
 
   const { data: res } = await axios.post('OptionsUpdate', bodyValue)
   if (res.code === 200) {
-    $msg(res.msg, 'success')
-
     getData()
   }
 }

@@ -303,7 +303,6 @@ const create = async () => {
   // 接口添加成功后添加参数
   addparameter.id = res.data
   if (!addparameter.id || !addparameter.name || !addparameter.param || !addparameter.docs || !addparameter.position) {
-    msg(res.msg, 'success')
     navigateTo('/admin/apilist')
     return false
   }

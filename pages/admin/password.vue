@@ -67,7 +67,6 @@ const onSubmit = async () => {
   token.value = undefined
   grade.value = undefined
 
-  msg(res.msg, 'success')
   setTimeout(() => {
     window.location.href = '/login'
   }, 1500)

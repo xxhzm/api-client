@@ -75,9 +75,6 @@ import axios from 'axios'
 const token = useCookie('token')
 const grade = useCookie('grade')
 
-const { $msg } = useNuxtApp()
-const msg = $msg
-
 const handleOpen = (key, keyPath) => {
   // console.log(key, keyPath)
 }
@@ -89,8 +86,6 @@ const handleClose = (key, keyPath) => {
 const deleteCache = async () => {
   const { data: res } = await axios.get('ClearCache')
   if (res.code === 200) {
-    msg(res.data + '，3秒后会自动刷新页面', 'success')
-
     setTimeout(() => {
       window.location.reload()
     }, 3000)

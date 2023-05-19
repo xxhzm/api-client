@@ -257,8 +257,6 @@ const getMailCode = async () => {
 
   info.sign = res.data
   getVerifyCodeButtonState.value = false
-
-  msg(res.msg, 'success')
 }
 
 const register = async () => {
@@ -281,7 +279,6 @@ const register = async () => {
 
   const { data: res } = await axios.post('Register', bodyValue)
   if (res.code === 200) {
-    msg(res.data, 'success')
     setTimeout(() => {
       router.go(0)
     }, 1000)
