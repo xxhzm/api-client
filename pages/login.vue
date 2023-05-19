@@ -191,8 +191,6 @@ const login = async () => {
     token.value = res.data.token
     grade.value = res.data.grade
 
-    msg('登录成功', 'success')
-
     window.location.href = '/admin'
   }
 }

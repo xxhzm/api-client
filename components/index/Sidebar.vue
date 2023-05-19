@@ -24,6 +24,10 @@
 <script setup>
 import axios from 'axios'
 
+const props = defineProps(['list'])
+
+const list = ref({})
+
 const filterText = ref('')
 const treeRef = ref()
 
@@ -38,9 +42,9 @@ const expanedKeys = []
 const categoryArr = ref([])
 
 const getData = async () => {
-  const { data: res } = await axios.get('List')
+  list.value = props.list
 
-  res.data = res.data.map(item => {
+  list.value = list.value.map(item => {
     return {
       id: item.id,
       label: item.name,
@@ -52,7 +56,7 @@ const getData = async () => {
 
   // 获取到所有的分类列表，将其 push 到 categoryArr
   // 然后对其进行去重处理
-  res.data.forEach(element => {
+  list.value.forEach(element => {
     categoryArr.value.push(element.category)
   })
 
@@ -62,7 +66,7 @@ const getData = async () => {
   // 对分类列表进行循环过滤
   categoryArr.value.forEach(element => {
     var children = ref([])
-    res.data.forEach(ele => {
+    list.value.forEach(ele => {
       if (element === ele.category) {
         // 删除多余字段
         delete ele.category

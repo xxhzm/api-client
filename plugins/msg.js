@@ -9,6 +9,7 @@ export default defineNuxtPlugin((/* nuxtApp */) => {
         ElNotification({
           message,
           type,
+          duration: 1000,
         })
       }
     }

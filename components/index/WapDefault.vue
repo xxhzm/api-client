@@ -1,7 +1,7 @@
 <template>
   <div class="wapdefault-container">
     <div class="wapdefault-cont">
-      <div class="wapdefault-box" v-for="item in list" :key="item.id">
+      <div class="wapdefault-box" v-for="item in props.list" :key="item.id">
         <nuxt-link :to="'/doc/' + item.alias">
           <div>
             <h1 class="api_title">{{ item.name }}</h1>
@@ -22,17 +22,10 @@
 
 <script setup>
 import axios from 'axios'
-const props = defineProps(['options'])
-
-const list = ref()
-
-const getData = async () => {
-  const { data: res } = await axios.get('List')
-
-  list.value = res.data
-}
-
-await getData()
+const props = defineProps({
+  list: Object,
+  options: Object
+})
 </script>
 
 <style lang="less" scoped>

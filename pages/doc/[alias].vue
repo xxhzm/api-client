@@ -5,7 +5,7 @@
     <!-- header -->
     <!-- <IndexHeader></IndexHeader> -->
     <div class="container">
-      <IndexSidebar></IndexSidebar>
+      <IndexSidebar :list="list"></IndexSidebar>
       <IndexApiInfo :apiInfo="apiInfo.value"></IndexApiInfo>
     </div>
 
@@ -20,6 +20,8 @@ const route = useRoute()
 
 const apiInfo = reactive({})
 const options = reactive({})
+const list = ref({})
+
 
 const GetData = async () => {
   const { data: res } = await axios.get('Api', {
@@ -44,6 +46,9 @@ const GetData = async () => {
 
   const { data: res1 } = await axios.get('Options')
   options.value = res1.data
+
+  const { data: res2 } = await axios.get('List')
+  list.value = res2.data
 }
 
 await GetData()
