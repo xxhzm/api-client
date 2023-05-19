@@ -49,7 +49,6 @@
           <el-table-column prop="category" label="分类" width="100" />
           <el-table-column prop="create_time" label="创建时间" width="165" />
           <el-table-column prop="count" label="调用次数" width="100" />
-          <el-table-column width="225" />
         </el-table>
       </div>
     </div>

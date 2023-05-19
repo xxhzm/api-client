@@ -33,7 +33,6 @@
             <el-table-column prop="count" label="接口数" width="100" />
             <el-table-column prop="createTime" label="创建时间" width="250" />
             <el-table-column prop="default" label="默认分类" width="250" />
-            <el-table-column width="225" />
           </el-table>
         </div>
       </div>
@@ -76,9 +75,7 @@ const { $msg } = useNuxtApp()
 const msg = $msg
 
 const loading = ref(false)
-
 const tableData = ref([])
-
 const search = ref('')
 
 const getData = async () => {
@@ -140,13 +137,12 @@ const onSubmit = async () => {
   bodyValue.append('name', addcategoryInfo.name)
   bodyValue.append('alias', addcategoryInfo.alias)
 
-  const { data: res } = await axios.post('api/category?type=insertCategory&token=' + token.value, bodyValue)
-  if (res.code === '200') {
+  const { data: res } = await axios.post('CategoryCreate', bodyValue)
+  if (res.code === 200) {
     msg(res.msg, 'success')
-    navigateTo('/admin/manage-categories')
-  } else {
-    msg(res.msg, 'error')
   }
+
+  getData()
 }
 </script>
 
