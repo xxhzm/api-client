@@ -22,7 +22,6 @@ axios.interceptors.request.use(
       config.headers.Authorization = token.value
     }
 
-    // console.log(config)
     return config
   },
   (error) => {
@@ -40,11 +39,13 @@ axios.interceptors.response.use(response => {
     navigateTo('/error/403')
   }
 
+  if (response.data?.code === -2) {
+    $msg(response.data?.msg, 'error')
+  }
+
   if (response.config.method === 'post') {
     if (response.data?.code === 200) {
       $msg(response.data?.msg, 'success')
-    } else {
-      $msg(response.data?.msg, 'error')
     }
   }
   return response

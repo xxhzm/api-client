@@ -71,15 +71,12 @@ const search = ref('')
 
 const getData = async () => {
   const { data: res } = await axios.get('ApiList')
-
-  if (res.code !== 200) {
-    return false
-  }
-
   tableData.value = res.data
 }
 
-getData()
+onMounted(() => {
+  getData()
+})
 
 const filterTableData = computed(() =>
   tableData.value.filter((data) =>

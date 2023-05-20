@@ -9,7 +9,7 @@
           style="width: 140px; height: 60px"
         />
       </el-menu-item>
-      <div v-if="grade === 0">
+      <div v-if="grade === 2">
         <el-menu-item
           index="1"
           @click="navigateTo('/admin')"

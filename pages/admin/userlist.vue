@@ -4,51 +4,103 @@
     <div class="right">
       <AdminHeader></AdminHeader>
       <div class="userlist-container" v-loading="loading">
-        <el-button
-          type="primary"
-          style="margin-bottom: 20px"
-          size="small"
-          @click="navigateTo('/admin/addapi')"
-          >新增接口</el-button
-        >
-        <el-table :data="filterTableData" style="width: 100%" height="96%">
-          <el-table-column width="150">
+        <client-only>
+          <el-button
+            type="primary"
+            style="margin-bottom: 20px"
+            size="small"
+            @click="createUserStatus = true"
+            >新增用户</el-button
+          >
+          <el-button
+            type="success"
+            style="margin-bottom: 20px"
+            size="small"
+            @click="getAddress"
+            >显示用户归属地</el-button
+          >
+
+          <el-table :data="filterTableData" style="width: 100%" height="96%">
+            <el-table-column width="120">
+              <template #header>
+                <el-input
+                  v-model="search"
+                  size="small"
+                  placeholder="Type to search"
+                />
+              </template>
+              <template #default="scope">
+                <el-popconfirm
+                  confirm-button-text="Yes"
+                  cancel-button-text="No"
+                  title="你确定要删除吗?"
+                  @confirm="handleDelete(scope.$index, scope.row)"
+                >
+                  <template #reference>
+                    <el-button size="small" type="danger">Delete</el-button>
+                  </template>
+                </el-popconfirm>
+              </template>
+            </el-table-column>
+            <el-table-column prop="id" label="id" width="100" />
+            <el-table-column prop="username" label="用户名称" width="130" />
+            <el-table-column prop="grade" label="权限" width="60" />
+            <el-table-column prop="mail" label="邮箱地址" width="200" />
+            <el-table-column prop="create_time" label="注册时间" width="180" />
+            <el-table-column
+              prop="login_time"
+              label="上次登录时间"
+              width="180"
+            />
+            <el-table-column prop="address" label="归属地" width="200" />
+            <el-table-column prop="ip" label="ip" width="130" />
+            <el-table-column prop="token" label="token" width="200" />
+            <el-table-column prop="password" label="密码" width="200" />
+          </el-table>
+
+          <el-drawer v-model="createUserStatus" direction="rtl">
             <template #header>
-              <el-input
-                v-model="search"
-                size="small"
-                placeholder="Type to search"
-              />
+              <h2>添加用户</h2>
             </template>
-            <template #default="scope">
-              <el-button
-                size="small"
-                @click="handleEdit(scope.$index, scope.row)"
-                >Edit</el-button
+            <template #default>
+              <el-form
+                :model="userInfo"
+                label-position="top"
+                label-width="120px"
               >
-              <el-popconfirm
-                confirm-button-text="Yes"
-                cancel-button-text="No"
-                title="你确定要删除吗?"
-                @confirm="handleDelete(scope.$index, scope.row)"
-              >
-                <template #reference>
-                  <el-button size="small" type="danger">Delete</el-button>
-                </template>
-              </el-popconfirm>
+                <el-form-item label="用户名称">
+                  <el-input v-model="userInfo.username" />
+                </el-form-item>
+
+                <el-form-item label="密码">
+                  <el-input
+                    type="password"
+                    v-model="userInfo.password"
+                    show-password
+                  />
+                </el-form-item>
+
+                <el-form-item label="邮箱地址">
+                  <el-input v-model="userInfo.mail" />
+                </el-form-item>
+
+                <el-form-item label="用户等级">
+                  <el-select v-model="userInfo.grade" placeholder="请选择">
+                    <el-option label="管理员" :value="2" />
+                    <el-option label="高级用户" :value="3" />
+                    <el-option label="普通用户" :value="4" />
+                  </el-select>
+                </el-form-item>
+              </el-form>
             </template>
-          </el-table-column>
-          <el-table-column prop="id" label="id" width="100" />
-          <el-table-column prop="username" label="用户名称" width="130" />
-          <el-table-column prop="grade" label="权限" width="60" />
-          <el-table-column prop="mail" label="邮箱地址" width="200" />
-          <el-table-column prop="create_time" label="注册时间" width="180" />
-          <el-table-column prop="login_time" label="上次登录时间" width="180" />
-          <el-table-column prop="address" label="归属地" width="200" />
-          <el-table-column prop="ip" label="ip" width="130" />
-          <el-table-column prop="token" label="token" width="200" />
-          <el-table-column prop="password" label="密码" width="200" />
-        </el-table>
+            <template #footer>
+              <div style="flex: auto">
+                <el-button @click="createUserStatus = false">取消</el-button>
+                <el-button type="primary" @click="createUser">创建</el-button>
+              </div>
+            </template>
+          </el-drawer>
+        </client-only>
       </div>
     </div>
   </div>
@@ -63,35 +115,23 @@ const { $msg } = useNuxtApp()
 const msg = $msg
 
 const loading = ref(false)
-
 const tableData = ref([])
-
 const search = ref('')
 
 const getData = async () => {
   const { data: res } = await axios.get('UserList')
 
-  if (res.code !== 200) {
-    return false
-  }
-
-  res.data.forEach(async (element, key) => {
+  res.data.forEach((element, key) => {
     res.data[key].login_time = new Date(element.login_time).toLocaleString()
     res.data[key].create_time = new Date(element.create_time).toLocaleString()
-
-    const { data: ip } = await axios.get('https://v2.api-m.com/api/ip', {
-      params: {
-        ip: element.ip
-      }
-    })
-
-    tableData.value[key].address = ip.data.address
   })
 
   tableData.value = res.data
 }
 
-getData()
+onMounted(() => {
+  getData()
+})
 
 const filterTableData = computed(() =>
   tableData.value.filter((data) =>
@@ -99,10 +139,6 @@ const filterTableData = computed(() =>
     data.username.toLowerCase().includes(search.value.toLowerCase()) || data.mail.toLowerCase().includes(search.value.toLowerCase())
   )
 )
-
-const handleEdit = (index, row) => {
-  navigateTo('/admin/apiset/' + row.id)
-}
 
 const handleDelete = async (index, row) => {
   loading.value = true
@@ -116,6 +152,50 @@ const handleDelete = async (index, row) => {
   await getData()
 
   loading.value = false
+}
+
+const getAddress = async () => {
+  tableData.value.forEach(async (element, key) => {
+    const { data: ip } = await axios.get('https://v2.api-m.com/api/ip', {
+      params: {
+        ip: element.ip
+      }
+    })
+
+    tableData.value[key].address = ip.data.address
+  })
+}
+
+const createUserStatus = ref(false)
+
+const userInfo = ref({
+  username: '',
+  password: '',
+  mail: '',
+  grade: '',
+})
+
+const createUser = async () => {
+  if (!userInfo.value.username || !userInfo.value.password || !userInfo.value.mail || userInfo.value.grade === '') {
+    msg('请填写内容', 'error')
+    return false
+  }
+
+  const apiBodyValue = new URLSearchParams()
+  apiBodyValue.append('username', userInfo.value.username)
+  apiBodyValue.append('password', userInfo.value.password)
+  apiBodyValue.append('mail', userInfo.value.mail)
+  apiBodyValue.append('grade', userInfo.value.grade)
+
+  const { data: res } = await axios.post('CreateUser', apiBodyValue)
+
+  createUserStatus.value = false
+  userInfo.value.username = ''
+  userInfo.value.password = ''
+  userInfo.value.mail = ''
+  userInfo.value.grade = ''
+
+  getData()
 }
 
 </script>
