@@ -3,9 +3,9 @@
     <AdminSidebar></AdminSidebar>
     <div class="right">
       <AdminHeader></AdminHeader>
-      <div class="webset-container">
-        <div class="webset-cont">
-          <div class="webset-form">
+      <div class="webset_container">
+        <div class="cont">
+          <div class="form">
             <el-tabs v-model="activeName">
               <el-tab-pane label="基础设置" name="first">
                 <el-form
@@ -133,17 +133,17 @@ const onSubmit = async () => {
   display: flex;
   .right {
     width: 100%;
-    .webset-container {
+    .webset_container {
       height: 100%;
       padding: 10px;
       background-color: #f7f7f7;
-      .webset-cont {
+      .cont {
         width: 100%;
         height: 100%;
         padding: 20px 20px;
         background: #fff;
         box-shadow: 0 2px 2px rgb(0 0 0 / 10%);
-        .webset-form {
+        .form {
           width: 60%;
         }
       }
@@ -154,9 +154,9 @@ const onSubmit = async () => {
 @media screen and (max-width: 1200px) {
   .container {
     .right {
-      .webset-container {
-        .webset-cont {
-          .webset-form {
+      .webset_container {
+        .cont {
+          .form {
             width: 100%;
           }
         }

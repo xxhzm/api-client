@@ -1,44 +1,58 @@
 <template>
-  <AdminHeader></AdminHeader>
-  <div style="display: flex">
+  <div class="container">
     <AdminSidebar></AdminSidebar>
-    <div class="addapi-container">
-      <div class="addapi-form">
-        <el-form :model="addparameter" label-width="120px">
-          <el-form-item label="接口id">
-            <el-input v-model="addparameter.id" />
-          </el-form-item>
-          <el-form-item label="参数名称">
-            <el-input v-model="addparameter.name" placeholder="return" />
-          </el-form-item>
-          <el-form-item label="可传参数">
-            <el-input v-model="addparameter.param" placeholder="json | 302" />
-          </el-form-item>
-          <client-only>
-            <el-form-item label="传入位置">
-              <el-select v-model="addparameter.position" placeholder="传入位置">
-                <el-option
-                  v-for="item in position"
-                  :key="item.value"
-                  :label="item.label"
-                  :value="item.value"
+    <div class="right">
+      <AdminHeader></AdminHeader>
+      <div class="addparam_container">
+        <div class="cont">
+          <div class="form">
+            <el-form
+              :model="addparameter"
+              label-position="top"
+              label-width="120px"
+            >
+              <el-form-item label="接口id">
+                <el-input v-model="addparameter.id" />
+              </el-form-item>
+              <el-form-item label="参数名称">
+                <el-input v-model="addparameter.name" placeholder="return" />
+              </el-form-item>
+              <el-form-item label="可传参数">
+                <el-input
+                  v-model="addparameter.param"
+                  placeholder="json | 302"
                 />
-              </el-select>
-            </el-form-item>
-          </client-only>
-          <el-form-item label="参数描述">
-            <el-input
-              v-model="addparameter.docs"
-              placeholder="返回json数据 | 重定义到图片"
-            />
-          </el-form-item>
-          <el-form-item label="是否必传">
-            <el-switch v-model="addparameter.required" />
-          </el-form-item>
-          <el-form-item>
-            <el-button type="primary" @click="onSubmit">提交</el-button>
-          </el-form-item>
-        </el-form>
+              </el-form-item>
+              <client-only>
+                <el-form-item label="传入位置">
+                  <el-select
+                    v-model="addparameter.position"
+                    placeholder="传入位置"
+                  >
+                    <el-option
+                      v-for="item in position"
+                      :key="item.value"
+                      :label="item.label"
+                      :value="item.value"
+                    />
+                  </el-select>
+                </el-form-item>
+              </client-only>
+              <el-form-item label="参数描述">
+                <el-input
+                  v-model="addparameter.docs"
+                  placeholder="返回json数据 | 重定义到图片"
+                />
+              </el-form-item>
+              <el-form-item label="是否必传">
+                <el-switch v-model="addparameter.required" />
+              </el-form-item>
+              <el-form-item>
+                <el-button type="primary" @click="onSubmit">提交</el-button>
+              </el-form-item>
+            </el-form>
+          </div>
+        </div>
       </div>
     </div>
   </div>
@@ -105,19 +119,40 @@ const onSubmit = async () => {
 </script>
 
 <style  lang="less" scoped>
-.addapi-container {
-  overflow-y: hidden;
-  width: 100%;
-  height: calc(100vh - 65px);
-  padding: 20px 40px;
-  background-color: #f7f7f7;
-  .addapi-form {
+.container {
+  display: flex;
+  height: 100%;
+  .right {
     width: 100%;
-    height: 100%;
-    overflow-y: scroll;
-    padding: 40px 50px;
-    background: #fff;
-    box-shadow: 0 2px 2px rgb(0 0 0 / 10%);
+    .addparam_container {
+      height: 100%;
+      padding: 10px;
+      background-color: #f7f7f7;
+      .cont {
+        width: 100%;
+        height: 100%;
+        padding: 20px 20px;
+        background: #fff;
+        box-shadow: 0 2px 2px rgb(0 0 0 / 10%);
+        .form {
+          width: 60%;
+        }
+      }
+    }
+  }
+}
+
+@media screen and (max-width: 1200px) {
+  .container {
+    .right {
+      .addparam_container {
+        .cont {
+          .form {
+            width: 100%;
+          }
+        }
+      }
+    }
   }
 }
 </style>
