@@ -5,7 +5,7 @@
     <!-- header -->
     <!-- <IndexHeader></IndexHeader> -->
     <div class="container">
-      <IndexSidebar></IndexSidebar>
+      <IndexSidebar :list="list"></IndexSidebar>
       <IndexLinks :options="options"></IndexLinks>
     </div>
   </div>
@@ -18,10 +18,14 @@ import axios from 'axios'
 
 // 配置项
 const options = ref({})
+const list = ref({})
 
 const getData = async () => {
   const { data: res } = await axios.get('Options')
   options.value = res.data
+
+  const { data: res2 } = await axios.get('List')
+  list.value = res2.data
 }
 
 await getData()
