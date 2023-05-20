@@ -7,7 +7,6 @@ export default defineNuxtPlugin((/* nuxtApp */) => {
       axiosDefault: () => {
         // axios.defaults.baseURL = 'https://admin.api-m.com/api/'
         axios.defaults.baseURL = 'http://127.0.0.1:3005/api/'
-
       }
     }
   }

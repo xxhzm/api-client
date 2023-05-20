@@ -45,11 +45,25 @@
             >
           </el-menu-item-group>
         </el-sub-menu>
-        <el-menu-item index="4" @click="navigateTo('/')">
+        <el-sub-menu index="4">
+          <template #title>
+            <el-icon><Avatar /></el-icon>
+            <span>用户管理</span>
+          </template>
+          <el-menu-item-group title="用户列表">
+            <el-menu-item index="4-1" @click="navigateTo('/admin/userlist')"
+              >用户列表</el-menu-item
+            >
+            <!-- <el-menu-item index="4-2" @click="navigateTo('/admin/addapi')"
+              >新增接口</el-menu-item
+            > -->
+          </el-menu-item-group>
+        </el-sub-menu>
+        <el-menu-item index="5" @click="navigateTo('/')">
           <el-icon><Promotion /></el-icon>
           <template #title>访问前台</template>
         </el-menu-item>
-        <el-menu-item index="5" @click="deleteCache()">
+        <el-menu-item index="6" @click="deleteCache()">
           <el-icon><Coin /></el-icon>
           <template #title>清空缓存</template>
         </el-menu-item>
@@ -68,7 +82,8 @@ import {
   Odometer,
   UserFilled,
   Promotion,
-  Coin
+  Coin,
+  Avatar
 } from '@element-plus/icons-vue'
 import axios from 'axios'
 
