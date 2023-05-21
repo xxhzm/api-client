@@ -21,7 +21,7 @@
           >
 
           <el-table :data="filterTableData" style="width: 100%" height="96%">
-            <el-table-column width="120">
+            <el-table-column width="150">
               <template #header>
                 <el-input
                   v-model="search"
@@ -30,6 +30,11 @@
                 />
               </template>
               <template #default="scope">
+                <el-button
+                  size="small"
+                  @click="handleEdit(scope.$index, scope.row)"
+                  >Edit</el-button
+                >
                 <el-popconfirm
                   confirm-button-text="Yes"
                   cancel-button-text="No"
@@ -60,7 +65,7 @@
 
           <el-drawer v-model="createUserStatus" direction="rtl">
             <template #header>
-              <h2>添加用户</h2>
+              <h2>{{ disabled ? "修改用户" : "添加用户" }}</h2>
             </template>
             <template #default>
               <el-form
@@ -69,7 +74,7 @@
                 label-width="120px"
               >
                 <el-form-item label="用户名称">
-                  <el-input v-model="userInfo.username" />
+                  <el-input v-model="userInfo.username" :disabled="disabled" />
                 </el-form-item>
 
                 <el-form-item label="密码">
@@ -77,11 +82,12 @@
                     type="password"
                     v-model="userInfo.password"
                     show-password
+                    :disabled="disabled"
                   />
                 </el-form-item>
 
                 <el-form-item label="邮箱地址">
-                  <el-input v-model="userInfo.mail" />
+                  <el-input v-model="userInfo.mail" :disabled="disabled" />
                 </el-form-item>
 
                 <el-form-item label="用户等级">
@@ -96,7 +102,9 @@
             <template #footer>
               <div style="flex: auto">
                 <el-button @click="createUserStatus = false">取消</el-button>
-                <el-button type="primary" @click="createUser">创建</el-button>
+                <el-button type="primary" @click="submit">{{
+                  disabled ? "修改" : "创建"
+                }}</el-button>
               </div>
             </template>
           </el-drawer>
@@ -116,6 +124,18 @@ const { $msg } = useNuxtApp()
 const loading = ref(false)
 const tableData = ref([])
 const search = ref('')
+// 抽屉显示状态
+const createUserStatus = ref(false)
+const disabled = ref(false)
+
+const userInfo = ref({
+  id: 0,
+  username: '',
+  password: '',
+  mail: '',
+  group: '',
+})
+
 
 const getData = async () => {
   const { data: res } = await axios.get('UserList')
@@ -140,6 +160,7 @@ onMounted(() => {
   getData()
 })
 
+// 搜索框
 const filterTableData = computed(() =>
   tableData.value.filter((data) =>
     !search.value ||
@@ -147,6 +168,24 @@ const filterTableData = computed(() =>
   )
 )
 
+const handleEdit = (index, row) => {
+  createUserStatus.value = true
+  disabled.value = true
+
+  userInfo.value.id = row.id
+  userInfo.value.username = row.username
+  userInfo.value.password = row.password
+  userInfo.value.mail = row.mail
+  if (row.group === '管理员') {
+    userInfo.value.group = 'administrator'
+  } else if (row.group === '贡献者') {
+    userInfo.value.group = 'contributor'
+  } else if (row.group === '关注者') {
+    userInfo.value.group = 'subscriber'
+  }
+}
+
+// 删除用户按钮
 const handleDelete = async (index, row) => {
   loading.value = true
 
@@ -157,12 +196,11 @@ const handleDelete = async (index, row) => {
   })
 
   $msg(res.data, 'success')
-
   await getData()
-
   loading.value = false
 }
 
+// 显示用户归属地
 const getAddress = async () => {
   tableData.value.forEach(async (element, key) => {
     const { data: ip } = await axios.get('https://v2.api-m.com/api/ip', {
@@ -175,15 +213,15 @@ const getAddress = async () => {
   })
 }
 
-const createUserStatus = ref(false)
+const submit = () => {
+  if (disabled.value === true) {
+    updateUser()
+  } else {
+    createUser()
+  }
+}
 
-const userInfo = ref({
-  username: '',
-  password: '',
-  mail: '',
-  group: '',
-})
-
+// 创建用户
 const createUser = async () => {
   if (!userInfo.value.username || !userInfo.value.password || !userInfo.value.mail || userInfo.value.group === '') {
     $msg('请填写内容', 'error')
@@ -199,14 +237,38 @@ const createUser = async () => {
   const { data: res } = await axios.post('CreateUser', apiBodyValue)
 
   createUserStatus.value = false
-  userInfo.value.username = ''
-  userInfo.value.password = ''
-  userInfo.value.mail = ''
-  userInfo.value.group = ''
-
   getData()
 }
 
+// 修改用户
+const updateUser = async () => {
+  if (!userInfo.value.username || !userInfo.value.password || !userInfo.value.mail || userInfo.value.group === '') {
+    $msg('请填写内容', 'error')
+    return false
+  }
+
+  console.log(userInfo.value.id)
+  const apiBodyValue = new URLSearchParams()
+  apiBodyValue.append('id', userInfo.value.id)
+  apiBodyValue.append('group', userInfo.value.group)
+
+  const { data: res } = await axios.post('UpdateUser', apiBodyValue)
+
+  createUserStatus.value = false
+  getData()
+}
+
+// 监听抽屉是否关闭
+watch(createUserStatus, newValue => {
+  if (newValue === false) {
+    disabled.value = false
+    userInfo.value.id = 0
+    userInfo.value.username = ''
+    userInfo.value.password = ''
+    userInfo.value.mail = ''
+    userInfo.value.group = ''
+  }
+})
 </script>
 
 <style lang="less" scoped>
