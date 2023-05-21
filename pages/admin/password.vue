@@ -28,7 +28,7 @@ const msg = $msg
 
 const username = useCookie('username')
 const token = useCookie('token')
-const grade = useCookie('grade')
+const group = useCookie('group')
 
 const passwordInfo = reactive({
   oldPassword: '',
@@ -54,18 +54,11 @@ const onSubmit = async () => {
 
   const { data: res } = await axios.post('ChangePassword', bodyValue)
 
-  if (res.code !== 200) {
-    username.value = undefined
-    token.value = undefined
-    grade.value = undefined
-    window.location.href = '/login'
-
-    return false
-  }
+  window.location.href = '/login'
 
   username.value = undefined
   token.value = undefined
-  grade.value = undefined
+  group.value = undefined
 
   setTimeout(() => {
     window.location.href = '/login'

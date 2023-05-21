@@ -10,7 +10,7 @@ const { $msg } = useNuxtApp()
 
 const username = useCookie('username')
 const token = useCookie('token')
-const grade = useCookie('grade')
+const group = useCookie('group')
 
 // axios初始化
 const { $axiosDefault } = useNuxtApp()
@@ -34,7 +34,9 @@ axios.interceptors.response.use(response => {
     // delete username and token
     username.value = undefined
     token.value = undefined
-    grade.value = undefined
+    group.value = undefined
+
+    $msg(response.data?.msg, 'error')
 
     navigateTo('/error/403')
   }

@@ -9,7 +9,7 @@
           style="width: 140px; height: 60px"
         />
       </el-menu-item>
-      <div v-if="grade === 2">
+      <div>
         <el-menu-item
           index="1"
           @click="navigateTo('/admin')"
@@ -88,7 +88,7 @@ import {
 import axios from 'axios'
 
 const token = useCookie('token')
-const grade = useCookie('grade')
+const group = useCookie('group')
 
 const handleOpen = (key, keyPath) => {
   // console.log(key, keyPath)

@@ -44,7 +44,7 @@
             </el-table-column>
             <el-table-column prop="id" label="id" width="100" />
             <el-table-column prop="username" label="用户名称" width="130" />
-            <el-table-column prop="grade" label="权限" width="60" />
+            <el-table-column prop="group" label="用户组" width="80" />
             <el-table-column prop="mail" label="邮箱地址" width="200" />
             <el-table-column prop="create_time" label="注册时间" width="180" />
             <el-table-column
@@ -85,10 +85,10 @@
                 </el-form-item>
 
                 <el-form-item label="用户等级">
-                  <el-select v-model="userInfo.grade" placeholder="请选择">
-                    <el-option label="管理员" :value="2" />
-                    <el-option label="高级用户" :value="3" />
-                    <el-option label="普通用户" :value="4" />
+                  <el-select v-model="userInfo.group" placeholder="请选择">
+                    <el-option label="管理员" value="administrator" />
+                    <el-option label="贡献者" value="contributor" />
+                    <el-option label="关注者" value="subscriber" />
                   </el-select>
                 </el-form-item>
               </el-form>
@@ -112,7 +112,6 @@ import axios from "axios"
 const token = useCookie('token')
 
 const { $msg } = useNuxtApp()
-const msg = $msg
 
 const loading = ref(false)
 const tableData = ref([])
@@ -124,6 +123,14 @@ const getData = async () => {
   res.data.forEach((element, key) => {
     res.data[key].login_time = new Date(element.login_time).toLocaleString()
     res.data[key].create_time = new Date(element.create_time).toLocaleString()
+
+    if (res.data[key].group === 'administrator') {
+      res.data[key].group = '管理员'
+    } else if (res.data[key].group === 'contributor') {
+      res.data[key].group = '贡献者'
+    } else if (res.data[key].group === 'subscriber') {
+      res.data[key].group = '关注者'
+    }
   })
 
   tableData.value = res.data
@@ -143,11 +150,13 @@ const filterTableData = computed(() =>
 const handleDelete = async (index, row) => {
   loading.value = true
 
-  const { data: res } = await axios.get('ApiDelete', {
+  const { data: res } = await axios.get('DeleteUser', {
     params: {
       id: row.id
     }
   })
+
+  $msg(res.data, 'success')
 
   await getData()
 
@@ -172,12 +181,12 @@ const userInfo = ref({
   username: '',
   password: '',
   mail: '',
-  grade: '',
+  group: '',
 })
 
 const createUser = async () => {
-  if (!userInfo.value.username || !userInfo.value.password || !userInfo.value.mail || userInfo.value.grade === '') {
-    msg('请填写内容', 'error')
+  if (!userInfo.value.username || !userInfo.value.password || !userInfo.value.mail || userInfo.value.group === '') {
+    $msg('请填写内容', 'error')
     return false
   }
 
@@ -185,7 +194,7 @@ const createUser = async () => {
   apiBodyValue.append('username', userInfo.value.username)
   apiBodyValue.append('password', userInfo.value.password)
   apiBodyValue.append('mail', userInfo.value.mail)
-  apiBodyValue.append('grade', userInfo.value.grade)
+  apiBodyValue.append('group', userInfo.value.group)
 
   const { data: res } = await axios.post('CreateUser', apiBodyValue)
 
@@ -193,7 +202,7 @@ const createUser = async () => {
   userInfo.value.username = ''
   userInfo.value.password = ''
   userInfo.value.mail = ''
-  userInfo.value.grade = ''
+  userInfo.value.group = ''
 
   getData()
 }
