@@ -215,6 +215,7 @@
 import axios from 'axios'
 
 const token = useCookie('token')
+const username = useCookie('username')
 const { $msg } = useNuxtApp()
 const msg = $msg
 
@@ -288,6 +289,7 @@ const create = async () => {
   apiBodyValue.append('php', addapiInfo.php)
   apiBodyValue.append('python', addapiInfo.python)
   apiBodyValue.append('example', addapiInfo.example)
+  apiBodyValue.append('uname', username.value)
 
   if (addapiInfo.state === true) {
     apiBodyValue.append('state', '启用')

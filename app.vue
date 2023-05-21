@@ -7,10 +7,7 @@
 import axios from 'axios'
 
 const { $msg } = useNuxtApp()
-
-const username = useCookie('username')
 const token = useCookie('token')
-const group = useCookie('group')
 
 // axios初始化
 const { $axiosDefault } = useNuxtApp()
@@ -31,13 +28,7 @@ axios.interceptors.request.use(
 
 axios.interceptors.response.use(response => {
   if (response.data?.code === -3) {
-    // delete username and token
-    username.value = undefined
-    token.value = undefined
-    group.value = undefined
-
     $msg(response.data?.msg, 'error')
-
     navigateTo('/error/403')
   }
 

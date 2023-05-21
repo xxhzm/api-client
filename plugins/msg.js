@@ -8,8 +8,7 @@ export default defineNuxtPlugin((/* nuxtApp */) => {
       msg: (message, type) => {
         ElNotification({
           message,
-          type,
-          duration: 1000,
+          type
         })
       }
     }
