@@ -48,10 +48,10 @@ useHead({
   meta: [
     { name: 'baidu-site-verification', content: 'codeva-hVOy3sFFbL' },
   ],
-  // script: [
-  //   {
-  //     src: 'https://hm.baidu.com/hm.js?39cb8b3fa5f089e47f8069895a32b9f3',
-  //   }
-  // ],
+  script: [
+    {
+      src: 'https://hm.baidu.com/hm.js?39cb8b3fa5f089e47f8069895a32b9f3',
+    }
+  ],
 })
 </script>

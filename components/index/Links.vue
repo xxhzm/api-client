@@ -3,7 +3,7 @@
     <h1>友情链接</h1>
     <div class="link-cont">
       <div class="link-box" v-for="item in links" :key="item.id">
-        <a :href="item.url">
+        <a :href="item.url" target="_blank">
           <img :src="item.image" :alt="item.name" />
           <div>
             <p>{{ item.name }}</p>
@@ -16,24 +16,12 @@
 </template>
 
 <script setup>
+import axios from "axios"
 const props = defineProps(['options'])
 
-const links = reactive([
-  {
-    id: 0,
-    name: "桑帛云API",
-    description: "免费快速的API",
-    url: "http://api.caonm.net/",
-    image: "http://api.caonm.net/favicon.ico"
-  },
-  {
-    id: 1,
-    name: "小小孩子们的Blog",
-    description: "记录美好生活",
-    url: "https://www.xxhzm.cn/",
-    image: "https://q2.qlogo.cn/headimg_dl?dst_uin=2595557847&spec=100"
-  }
-])
+const { data: res } = await axios.get("https://admin.api-m.com/links.json")
+
+const links = reactive(res.data)
 </script>
 
 <style lang="less" scoped>

@@ -327,6 +327,8 @@ const create = async () => {
   if (res1.code === 200) {
     msg(res1.msg, 'success')
   }
+
+  navigateTo('/admin/apilist')
 }
 
 // 分类的数据

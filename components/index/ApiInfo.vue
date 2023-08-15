@@ -54,7 +54,7 @@
             effect="dark"
             content="复制"
             placement="left"
-          ><div class="copy" @click="copy(apiInfo.exajaxample)"><el-icon size="14"><CopyDocument /></el-icon></div
+          ><div class="copy" @click="copy(apiInfo.ajax)"><el-icon size="14"><CopyDocument /></el-icon></div
           ></el-tooltip></client-only><code class="javascript.js" v-text="apiInfo.ajax"></code></pre>
         </el-tab-pane>
 
