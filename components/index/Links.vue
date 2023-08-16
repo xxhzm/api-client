@@ -3,7 +3,7 @@
     <h1>友情链接</h1>
     <div class="link-cont">
       <div class="link-box" v-for="item in links" :key="item.id">
-        <a :href="item.url" target="_blank">
+        <a :href="item.url + '?ref=api-m.com'" target="_blank">
           <img :src="item.image" :alt="item.name" />
           <div>
             <p>{{ item.name }}</p>
@@ -39,17 +39,19 @@ const links = reactive(res.data)
 
   .link-cont {
     display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
   }
 
   .link-box {
     overflow: hidden;
-    width: 270px;
+    width: 260px;
     height: 80px;
     padding: 10px;
     border-radius: 15px;
     box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
     transition: all 0.5s;
-    margin-right: 30px;
+    margin-bottom: 30px;
     a {
       width: 100%;
       display: flex;
