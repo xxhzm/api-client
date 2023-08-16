@@ -24,18 +24,21 @@ const requestTotal = ref({
 
 const recentRequest = ref({
   data: {
-    xAxis: ["2022-01-01 12:00"],
-    series: [0]
+    xAxis: [],
+    series: []
   }
 })
 
+const { data: res } = await axios.get('RecentRequest')
+
+res.data.forEach(element => {
+  recentRequest.value.data.xAxis.push(new Date(element.time).toLocaleString())
+  recentRequest.value.data.series.push(element.number)
+})
 
 onMounted(async () => {
   chartShow.value = false
   chartShow.value = true
-
-  recentRequest.value.data.xAxis = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
-  recentRequest.value.data.series = [820, 932, 901, 934, 1290, 1330, 1320]
 
   const dom = document.getElementById('chart')
 
@@ -43,6 +46,19 @@ onMounted(async () => {
   let option
 
   option = {
+    title: {
+      show: true,
+      text: "调用量统计",
+      top: "4%",
+      left: "2%",
+      textStyle: {
+        color: "#555",
+        fontSize: 16,
+      }
+    },
+    legend: {
+      show: true
+    },
     tooltip: {
       trigger: "axis"
     },
