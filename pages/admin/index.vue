@@ -29,11 +29,14 @@ const recentRequest = ref({
   }
 })
 
+const number = ref(0)
+
 const { data: res } = await axios.get('RecentRequest')
 
 res.data.forEach(element => {
   recentRequest.value.data.xAxis.push(new Date(element.time).toLocaleString())
   recentRequest.value.data.series.push(element.number)
+  number.value += element.number
 })
 
 onMounted(async () => {
@@ -121,7 +124,7 @@ onMounted(async () => {
               </AdminIndexCard>
             </el-col>
 
-            <el-col :xs="24" :sm="12" :md="12" :lg="6" :xl="6">
+            <!-- <el-col :xs="24" :sm="12" :md="12" :lg="6" :xl="6">
               <AdminIndexCard>
                 <template v-slot:title>24小时内注册用户</template>
                 <template v-slot:tag>24</template>
@@ -132,7 +135,7 @@ onMounted(async () => {
                   ></HelpersCount>
                 </template>
               </AdminIndexCard>
-            </el-col>
+            </el-col> -->
 
             <el-col :xs="24" :sm="12" :md="12" :lg="6" :xl="6">
               <AdminIndexCard>
@@ -142,6 +145,19 @@ onMounted(async () => {
                   <HelpersCount
                     style="font-size: 26px"
                     :end="apiTotal.data"
+                  ></HelpersCount>
+                </template>
+              </AdminIndexCard>
+            </el-col>
+
+            <el-col :xs="24" :sm="12" :md="12" :lg="6" :xl="6">
+              <AdminIndexCard>
+                <template v-slot:title>24小时内总请求</template>
+                <template v-slot:tag>24</template>
+                <template v-slot:content>
+                  <HelpersCount
+                    style="font-size: 26px"
+                    :end="number"
                   ></HelpersCount>
                 </template>
               </AdminIndexCard>

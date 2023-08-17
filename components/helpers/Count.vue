@@ -8,6 +8,7 @@ const start = () => {
   const number = Math.ceil(props.end / 50)
   time = setInterval(() => {
     if (count.value >= props.end) {
+      count.value = props.end
       clearInterval(time)
       return
     }
