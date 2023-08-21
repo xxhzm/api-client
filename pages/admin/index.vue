@@ -10,10 +10,6 @@ const totaluser = ref({
   data: 0
 })
 
-const todayRegisterUserTotal = ref({
-  data: 0
-})
-
 const apiTotal = ref({
   data: 0
 })
@@ -29,28 +25,46 @@ const recentRequest = ref({
   }
 })
 
-const number = ref(0)
-
-const { data: res } = await axios.get('RecentRequest')
-
-res.data.forEach(element => {
-  recentRequest.value.data.xAxis.push(new Date(element.time).toLocaleString())
-  recentRequest.value.data.series.push(element.number)
-  number.value += element.number
+const todayRequest = ref({
+  data: []
 })
 
+const number = ref(0)
+
 onMounted(async () => {
+  // 平台所有用户
+  const { data: res } = await axios.get('TotalUser')
+  totaluser.value = res
+
+  // 接口总数
+  const { data: res1 } = await axios.get('ApiTotal')
+  apiTotal.value = res1
+
+  // 接口请求总数
+  const { data: res2 } = await axios.get('RequestTotal')
+  requestTotal.value = res2
+
+  // 24小时内请求
+  const { data: res3 } = await axios.get('RecentRequest')
+  if (res3.code == 200) {
+    res3.data.forEach(element => {
+      recentRequest.value.data.xAxis.push(new Date(element.time).getHours() + "时")
+      recentRequest.value.data.series.push(element.number)
+      number.value += element.number
+    })
+  }
+
+  // 图表
   chartShow.value = false
   chartShow.value = true
 
-  const dom = document.getElementById('chart')
+  const recentRequestDom = document.getElementById('recentRequestChart')
 
-  const myChart = echarts.init(dom)
+  const recentRequestChart = echarts.init(recentRequestDom)
   let option
 
   option = {
     title: {
-      show: true,
       text: "调用量统计",
       top: "4%",
       left: "2%",
@@ -59,11 +73,18 @@ onMounted(async () => {
         fontSize: 16,
       }
     },
-    legend: {
-      show: true
-    },
     tooltip: {
-      trigger: "axis"
+      trigger: "axis",
+    },
+    grid: {
+      left: '2%',
+      right: '2%',
+      containLabel: true,
+    },
+    toolbox: {
+      feature: {
+        saveAsImage: {}
+      }
     },
     xAxis: {
       type: 'category',
@@ -77,29 +98,90 @@ onMounted(async () => {
       {
         data: recentRequest.value.data.series,
         type: 'line',
-        smooth: true
+        smooth: true,
+        symbol: 'circle',
+        symbolSize: 10,
+        itemStyle: {
+          color: '#fff',
+          borderColor: '#4bc8db',
+          areaStyle: {
+            type: 'default',
+            opacity: 0.4
+          }
+        },
+        lineStyle: {
+          // 线性渐变，前四个参数分别是 x0, y0, x2, y2, 范围从 0 - 1，相当于在图形包围盒中的百分比，如果 globalCoord 为 `true`，则该四个值是绝对的像素位置
+          color: {
+            type: 'linear',
+            x: 0,
+            y: 0,
+            x2: 1,
+            y2: 0,
+            colorStops: [{
+              offset: 0, color: '#4C84FF' // 0% 处的颜色
+            }, {
+              offset: 1, color: '#28d016' // 100% 处的颜色
+            }],
+            globalCoord: false // 缺省为 false
+          },
+        },
+        areaStyle: {
+          color: 'rgba(255,255,255,0)'
+        },
       }
     ]
   }
 
-  option && myChart.setOption(option)
-})
+  option && recentRequestChart.setOption(option)
 
-onMounted(async () => {
-  // 平台所有用户
-  const { data: res1 } = await axios.get('TotalUser')
-  totaluser.value = res1
+  const { data: res4 } = await axios.get('TodayRequest')
 
-  // 24小时内注册用户
-  const { data: res2 } = await axios.get('TodayRegisterUserTotal')
-  todayRegisterUserTotal.value = res2
+  res4.data.forEach(element => {
+    todayRequest.value.data.push({
+      name: element.alias,
+      value: element.number
+    })
+  })
 
-  // 接口总数
-  const { data: res3 } = await axios.get('ApiTotal')
-  apiTotal.value = res3
+  const TodayRequestDom = document.getElementById('TodayRequestChart')
+  const TodayRequestChart = echarts.init(TodayRequestDom)
 
-  const { data: res4 } = await axios.get('RequestTotal')
-  requestTotal.value = res4
+  option = {
+    title: {
+      top: "4%",
+      text: '接口请求排名',
+      left: 'center',
+      textStyle: {
+        color: "#555",
+        fontSize: 16,
+      }
+    },
+    tooltip: {
+      trigger: 'item'
+    },
+    legend: {
+      bottom: "8%",
+      orient: 'horizontal',
+      left: 'center'
+    },
+    series: [
+      {
+        name: '接口名称',
+        type: 'pie',
+        radius: '50%',
+        data: todayRequest.value.data,
+
+      }
+    ]
+  }
+
+  option && TodayRequestChart.setOption(option)
+
+  // 监听宽度变化
+  window.addEventListener('resize', function () {
+    recentRequestChart.resize()
+    TodayRequestChart.resize()
+  })
 })
 </script>
 
@@ -123,19 +205,6 @@ onMounted(async () => {
                 </template>
               </AdminIndexCard>
             </el-col>
-
-            <!-- <el-col :xs="24" :sm="12" :md="12" :lg="6" :xl="6">
-              <AdminIndexCard>
-                <template v-slot:title>24小时内注册用户</template>
-                <template v-slot:tag>24</template>
-                <template v-slot:content>
-                  <HelpersCount
-                    style="font-size: 26px"
-                    :end="todayRegisterUserTotal.data"
-                  ></HelpersCount>
-                </template>
-              </AdminIndexCard>
-            </el-col> -->
 
             <el-col :xs="24" :sm="12" :md="12" :lg="6" :xl="6">
               <AdminIndexCard>
@@ -340,8 +409,10 @@ onMounted(async () => {
               >
             </el-col>
           </el-row>
-
-          <div id="chart" v-if="chartShow"></div>
+          <div class="chart">
+            <div id="recentRequestChart" v-if="chartShow"></div>
+            <div id="TodayRequestChart" v-if="chartShow"></div>
+          </div>
         </div>
       </div>
     </div>
@@ -362,15 +433,44 @@ onMounted(async () => {
         width: 30px;
         height: 30px;
       }
-      #chart {
-        width: 100%;
-        height: 370px;
-        margin-top: 30px;
-        box-shadow: 0 2px 2px rgb(0 0 0 / 10%);
-        background: #fff;
+      .chart {
+        display: flex;
+        justify-content: space-between;
+        #recentRequestChart {
+          width: 64%;
+          height: 370px;
+          margin-top: 30px;
+          box-shadow: 0 2px 2px rgb(0 0 0 / 10%);
+          background: #fff;
+        }
+        #TodayRequestChart {
+          width: 35%;
+          height: 370px;
+          margin-top: 30px;
+          box-shadow: 0 2px 2px rgb(0 0 0 / 10%);
+          background: #fff;
+        }
       }
       .el-card {
         cursor: pointer;
+      }
+    }
+  }
+}
+
+@media screen and (max-width: 1200px) {
+  .container {
+    .right {
+      .main-container {
+        .chart {
+          flex-wrap: wrap;
+          #recentRequestChart {
+            width: 100%;
+          }
+          #TodayRequestChart {
+            width: 100%;
+          }
+        }
       }
     }
   }
