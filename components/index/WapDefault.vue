@@ -13,7 +13,10 @@
 
     <div style="margin-top: 40px">
       <p style="text-align: center">
-        <span>{{ props.options.icp }}</span
+        <span
+          ><a href="https://beian.miit.gov.cn/">{{
+            props.options.icp
+          }}</a> </span
         ><span>{{ props.options.gongan }}</span>
       </p>
     </div>

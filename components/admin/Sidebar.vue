@@ -3,7 +3,7 @@
     <el-menu class="sidebar-menu" @open="handleOpen" @close="handleClose">
       <el-menu-item index="1" @click="navigateTo('/admin')">
         <img
-          src="https://cdn.xxhzm.cn/img/title.png"
+          src="@/assets/images/logo.png"
           alt="logo"
           class="logo"
           style="width: 140px; height: 60px"
