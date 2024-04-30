@@ -20,5 +20,7 @@
     "nuxt": "^3.6.5",
     "vant": "^4.2.0"
   },
-  "dependencies": {}
+  "dependencies": {
+    "caniuse-lite": "^1.0.30001561"
+  }
 }

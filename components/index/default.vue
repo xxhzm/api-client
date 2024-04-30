@@ -26,7 +26,11 @@
 
     <a href="https://www.kdun.cn/">
       <img
-        src="https://www.kdun.cn/ask/wp-content/uploads/2022/04/456.jpg"
+        src="https://cdn.xxhzm.cn/adpic/20231015203646.gif"
+        class="adPic"
+      />
+      <img
+        src="https://cdn.xxhzm.cn/adpic/KDun-2.gif"
         class="adPic"
       />
     </a>
