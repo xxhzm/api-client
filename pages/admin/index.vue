@@ -6,18 +6,6 @@ const { $logout } = useNuxtApp()
 
 const chartShow = ref(true)
 
-const totaluser = ref({
-  data: 0
-})
-
-const apiTotal = ref({
-  data: 0
-})
-
-const requestTotal = ref({
-  data: 0
-})
-
 const recentRequest = ref({
   data: {
     xAxis: [],
@@ -25,25 +13,9 @@ const recentRequest = ref({
   }
 })
 
-const todayRequest = ref({
-  data: []
-})
-
 const number = ref(0)
 
 onMounted(async () => {
-  // 平台所有用户
-  const { data: res } = await axios.get('TotalUser')
-  totaluser.value = res
-
-  // 接口总数
-  const { data: res1 } = await axios.get('ApiTotal')
-  apiTotal.value = res1
-
-  // 接口请求总数
-  const { data: res2 } = await axios.get('RequestTotal')
-  requestTotal.value = res2
-
   // 24小时内请求
   const { data: res3 } = await axios.get('RecentRequest')
   if (res3.code == 200) {
@@ -192,59 +164,7 @@ onMounted(async () => {
       <AdminHeader></AdminHeader>
       <div class="main-container">
         <div class="info-container">
-          <el-row :gutter="12">
-            <el-col :xs="24" :sm="12" :md="12" :lg="6" :xl="6">
-              <AdminIndexCard>
-                <template v-slot:title>平台用户</template>
-                <template v-slot:tag>总</template>
-                <template v-slot:content>
-                  <HelpersCount
-                    style="font-size: 26px"
-                    :end="totaluser.data"
-                  ></HelpersCount>
-                </template>
-              </AdminIndexCard>
-            </el-col>
-
-            <el-col :xs="24" :sm="12" :md="12" :lg="6" :xl="6">
-              <AdminIndexCard>
-                <template v-slot:title>平台接口</template>
-                <template v-slot:tag>总</template>
-                <template v-slot:content>
-                  <HelpersCount
-                    style="font-size: 26px"
-                    :end="apiTotal.data"
-                  ></HelpersCount>
-                </template>
-              </AdminIndexCard>
-            </el-col>
-
-            <el-col :xs="24" :sm="12" :md="12" :lg="6" :xl="6">
-              <AdminIndexCard>
-                <template v-slot:title>24小时内总请求</template>
-                <template v-slot:tag>24</template>
-                <template v-slot:content>
-                  <HelpersCount
-                    style="font-size: 26px"
-                    :end="number"
-                  ></HelpersCount>
-                </template>
-              </AdminIndexCard>
-            </el-col>
-
-            <el-col :xs="24" :sm="12" :md="12" :lg="6" :xl="6">
-              <AdminIndexCard>
-                <template v-slot:title>请求总调用</template>
-                <template v-slot:tag>总</template>
-                <template v-slot:content>
-                  <HelpersCount
-                    style="font-size: 26px"
-                    :end="requestTotal.data"
-                  ></HelpersCount>
-                </template>
-              </AdminIndexCard>
-            </el-col>
-          </el-row>
+          <SystemInfo></SystemInfo>
 
           <el-row :gutter="12" style="margin-top: 20px; text-align: center">
             <el-col :xs="24" :sm="12" :md="12" :lg="6" :xl="6">

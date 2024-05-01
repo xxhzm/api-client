@@ -1,6 +1,5 @@
 import { ElNotification } from 'element-plus'
 
-
 export default defineNuxtPlugin((/* nuxtApp */) => {
   return {
     provide: {

@@ -1,10 +1,9 @@
 <script setup>
 const type = ref('info')
 
-const typeArr = ref(['', 'success', 'info', 'warning', 'danger'])
+const typeArr = ref(['primary', 'success', 'info', 'warning', 'danger'])
 
 const random = Math.round(Math.random() * 5)
-
 
 type.value = typeArr.value[random]
 </script>
@@ -15,7 +14,9 @@ type.value = typeArr.value[random]
       <div class="card-header">
         <span><slot name="title"></slot></span>
         <div class="tag">
-          <el-tag :type="type"><slot name="tag"></slot></el-tag>
+          <client-only
+            ><el-tag :type="type"><slot name="tag"></slot></el-tag
+          ></client-only>
         </div>
       </div>
     </template>

@@ -1,7 +1,7 @@
 <script setup>
 const props = defineProps(['end'])
 
-const count = ref(0)
+const count = ref(props.end)
 
 const start = () => {
   let time = null
@@ -15,22 +15,25 @@ const start = () => {
     count.value += number
   }, 20)
 }
-
-// 监听，数据变化之后执行函数
-watch(() => props.end, (newValue) => {
-  if (props.end == 1) {
-    count.value++
-    return
-  }
-  start()
-}, {
-  immediate: true
+onMounted(() => {
+  count.value = 0
+  // 监听，数据变化之后执行函数
+  watch(
+    () => props.end,
+    (newValue) => {
+      if (props.end == 1) {
+        count.value++
+        return
+      }
+      start()
+    },
+    {
+      immediate: true,
+    }
+  )
 })
 </script>
 
 <template>
   <span>{{ count }}</span>
 </template>
-
-<style lang="less" scoped>
-</style>
