@@ -1,72 +1,50 @@
 <template>
   <div class="footer-container">
+    <div class="footer">
+      <p style="text-align: center">
+        <span
+          ><a href="https://beian.miit.gov.cn/">{{
+            props.options.icp
+          }}</a> </span
+        ><span>{{ props.options.gongan }}</span>
+      </p>
+    </div>
     <van-tabbar v-model="active">
       <van-tabbar-item name="home" icon="home-o" @click="navigateTo('/')"
         >首页</van-tabbar-item
       >
-      <van-tabbar-item icon="search" @click="show = true"
-        >API列表</van-tabbar-item
-      >
       <van-tabbar-item icon="friends-o" @click="navigateTo('/links')"
         >友情链接</van-tabbar-item
       >
-
+      <van-tabbar-item icon="info-o" @click="navigateTo('/about')"
+        >关于我们</van-tabbar-item
+      >
       <van-tabbar-item
         name="setting"
         icon="setting-o"
         @click="navigateTo('/login')"
-        >后台</van-tabbar-item
+        >登录</van-tabbar-item
       >
       <van-tabbar-item name="qq" icon="more-o" @click="qq"
         >加入群聊</van-tabbar-item
       >
-      <van-action-sheet
-        v-model:show="show"
-        :actions="actions"
-        cancel-text="取消"
-        close-on-click-action
-        @select="onSelect"
-        @open="onOpen"
-      />
     </van-tabbar>
   </div>
 </template>
 
 <script setup>
-import axios from 'axios'
-
 const active = ref(0)
-
-const show = ref(false)
-
-const request = ref(false)
-const actions = ref([{ name: '加载选项', loading: true }])
-
-const onOpen = async () => {
-  if (request.value === false) {
-    const { data: res } = await axios.get('List')
-    actions.value = res.data
-    request.value = true
-  }
-}
-
-const onSelect = (item) => {
-  navigateTo('/doc/' + item.alias)
-}
 
 const qq = () => {
   window.open('https://jq.qq.com/?_wv=1027&k=92BF8Ndr', '_blank')
 }
+
+const props = defineProps(['options'])
 </script>
 
-<style lang="less" scoped>
-.footer-container {
-  display: none;
-}
-
-@media screen and (max-width: 750px) {
-  .footer-container {
-    display: block;
-  }
+<style lang="less">
+.footer{
+  padding-bottom: 50px;
+  margin-bottom: 20px;
 }
 </style>

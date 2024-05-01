@@ -14,8 +14,13 @@ listSearch.value = res.data
 
 <template>
   <div class="apilist">
-    <el-button type="primary" style="margin-top: 10px"
-      ><a href="https://jq.qq.com/?_wv=1027&k=92BF8Ndr" style="text-decoration: none;color: #fff;" target="_blank">接口反馈</a></el-button
+    <el-button type="primary" style="margin-top: 10px; margin-bottom: 10px"
+      ><a
+        href="https://jq.qq.com/?_wv=1027&k=92BF8Ndr"
+        style="text-decoration: none; color: #fff"
+        target="_blank"
+        >接口反馈</a
+      ></el-button
     >
     <el-row :gutter="12">
       <el-col

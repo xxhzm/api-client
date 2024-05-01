@@ -2,38 +2,34 @@
   <div class="index-container">
     <!-- 公告 -->
     <IndexNotice></IndexNotice>
-    <!-- header -->
-    <!-- <IndexHeader></IndexHeader> -->
     <div class="container">
       <h1 style="color: #1f2d3d; font-size: 24px">广告商</h1>
-      <Ad style="margin-bottom: 2rem;"></Ad>
+      <Ad style="margin-bottom: 2rem"></Ad>
 
       <h1 style="color: #1f2d3d; font-size: 24px">系统信息</h1>
-      <SystemInfo style="margin-bottom: 2rem;"></SystemInfo>
+      <SystemInfo style="margin-bottom: 2rem"></SystemInfo>
 
       <h1 style="color: #1f2d3d; font-size: 24px">API搜索</h1>
-      <IndexApiSearch style="margin-bottom: 2rem;"></IndexApiSearch>
+      <IndexApiSearch style="margin-bottom: 2rem"></IndexApiSearch>
 
       <h1 style="color: #1f2d3d; font-size: 24px">API列表</h1>
       <IndexApiList></IndexApiList>
     </div>
+    <IndexFooter :options="options"></IndexFooter>
   </div>
-
-  <!-- <IndexFooter></IndexFooter> -->
 </template>
 
 <script setup>
-import axios from 'axios'
+const { $myFetch } = useNuxtApp()
 
 // 配置项
 const options = ref({})
 
-const getData = async () => {
-  const { data: res } = await axios.get('Options')
-  options.value = res.data
-}
+const {
+  data: { value: res },
+} = await useAsyncData('Options', () => $myFetch('Options'))
 
-await getData()
+options.value = res.data
 
 useHead({
   title: options.value.title + ' - ' + options.value.subheading,

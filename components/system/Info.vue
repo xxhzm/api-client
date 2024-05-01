@@ -137,6 +137,6 @@ systemInfo.value.recent_request.forEach((element) => {
 
 <style lang="less">
 .el-col {
-  margin-top: 1.5rem;
+  margin-top: .5rem;
 }
 </style>
