@@ -12,13 +12,13 @@
             @click="createUserStatus = true"
             >新增用户</el-button
           >
-          <el-button
+          <!-- <el-button
             type="success"
             style="margin-bottom: 20px"
             size="small"
             @click="getAddress"
             >显示用户归属地</el-button
-          >
+          > -->
 
           <el-table :data="filterTableData" style="width: 100%" height="96%">
             <el-table-column width="150">
@@ -49,7 +49,6 @@
             </el-table-column>
             <el-table-column prop="id" label="id" width="100" />
             <el-table-column prop="username" label="用户名称" width="130" />
-            <el-table-column prop="group" label="用户组" width="80" />
             <el-table-column prop="mail" label="邮箱地址" width="200" />
             <el-table-column prop="create_time" label="注册时间" width="180" />
             <el-table-column
@@ -90,13 +89,6 @@
                   <el-input v-model="userInfo.mail" :disabled="disabled" />
                 </el-form-item>
 
-                <el-form-item label="用户等级">
-                  <el-select v-model="userInfo.group" placeholder="请选择">
-                    <el-option label="管理员" value="administrator" />
-                    <el-option label="贡献者" value="contributor" />
-                    <el-option label="关注者" value="subscriber" />
-                  </el-select>
-                </el-form-item>
               </el-form>
             </template>
             <template #footer>
@@ -117,8 +109,6 @@
 <script setup>
 import axios from "axios"
 
-const token = useCookie('token')
-
 const { $msg } = useNuxtApp()
 
 const loading = ref(false)
@@ -133,7 +123,6 @@ const userInfo = ref({
   username: '',
   password: '',
   mail: '',
-  group: '',
 })
 
 
@@ -143,14 +132,6 @@ const getData = async () => {
   res.data.forEach((element, key) => {
     res.data[key].login_time = new Date(element.login_time).toLocaleString()
     res.data[key].create_time = new Date(element.create_time).toLocaleString()
-
-    if (res.data[key].group === 'administrator') {
-      res.data[key].group = '管理员'
-    } else if (res.data[key].group === 'contributor') {
-      res.data[key].group = '贡献者'
-    } else if (res.data[key].group === 'subscriber') {
-      res.data[key].group = '关注者'
-    }
   })
 
   tableData.value = res.data
@@ -176,13 +157,6 @@ const handleEdit = (index, row) => {
   userInfo.value.username = row.username
   userInfo.value.password = row.password
   userInfo.value.mail = row.mail
-  if (row.group === '管理员') {
-    userInfo.value.group = 'administrator'
-  } else if (row.group === '贡献者') {
-    userInfo.value.group = 'contributor'
-  } else if (row.group === '关注者') {
-    userInfo.value.group = 'subscriber'
-  }
 }
 
 // 删除用户按钮
@@ -223,7 +197,7 @@ const submit = () => {
 
 // 创建用户
 const createUser = async () => {
-  if (!userInfo.value.username || !userInfo.value.password || !userInfo.value.mail || userInfo.value.group === '') {
+  if (!userInfo.value.username || !userInfo.value.password || !userInfo.value.mail) {
     $msg('请填写内容', 'error')
     return false
   }
@@ -232,7 +206,6 @@ const createUser = async () => {
   apiBodyValue.append('username', userInfo.value.username)
   apiBodyValue.append('password', userInfo.value.password)
   apiBodyValue.append('mail', userInfo.value.mail)
-  apiBodyValue.append('group', userInfo.value.group)
 
   const { data: res } = await axios.post('CreateUser', apiBodyValue)
 
@@ -242,7 +215,7 @@ const createUser = async () => {
 
 // 修改用户
 const updateUser = async () => {
-  if (!userInfo.value.username || !userInfo.value.password || !userInfo.value.mail || userInfo.value.group === '') {
+  if (!userInfo.value.username || !userInfo.value.password || !userInfo.value.mail ) {
     $msg('请填写内容', 'error')
     return false
   }
@@ -250,7 +223,6 @@ const updateUser = async () => {
   console.log(userInfo.value.id)
   const apiBodyValue = new URLSearchParams()
   apiBodyValue.append('id', userInfo.value.id)
-  apiBodyValue.append('group', userInfo.value.group)
 
   const { data: res } = await axios.post('UpdateUser', apiBodyValue)
 
@@ -266,7 +238,6 @@ watch(createUserStatus, newValue => {
     userInfo.value.username = ''
     userInfo.value.password = ''
     userInfo.value.mail = ''
-    userInfo.value.group = ''
   }
 })
 </script>

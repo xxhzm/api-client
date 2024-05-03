@@ -18,19 +18,12 @@
           <el-icon><Odometer /></el-icon>
           <template #title>控制台</template>
         </el-menu-item>
-        <el-menu-item
-          index="2"
-          @click="navigateTo('/admin/webset')"
-          v-if="group == 'administrator'"
-        >
+        <el-menu-item index="2" @click="navigateTo('/admin/webset')">
           <el-icon><Setting /></el-icon>
           <template #title>系统设置</template>
         </el-menu-item>
 
-        <el-sub-menu
-          index="3"
-          v-if="group == 'administrator' || group == 'contributor'"
-        >
+        <el-sub-menu index="3">
           <template #title>
             <el-icon><List /></el-icon>
             <span>接口管理</span>
@@ -48,19 +41,24 @@
             <el-menu-item
               index="3-2"
               @click="navigateTo('/admin/manage-categories')"
-              v-if="group == 'administrator'"
               >管理分类</el-menu-item
             >
           </el-menu-item-group>
         </el-sub-menu>
-        <el-sub-menu index="4" v-if="group == 'administrator'">
+        <el-sub-menu index="4">
           <template #title>
             <el-icon><Avatar /></el-icon>
             <span>用户管理</span>
           </template>
-          <el-menu-item-group title="用户列表">
+          <el-menu-item-group title="权限管理">
             <el-menu-item index="4-1" @click="navigateTo('/admin/userlist')"
               >用户列表</el-menu-item
+            >
+            <el-menu-item index="4-2" @click="navigateTo('/admin/rolelist')"
+              >角色列表</el-menu-item
+            >
+            <el-menu-item index="4-3" @click="navigateTo('/admin/permissionlist')"
+              >权限列表</el-menu-item
             >
           </el-menu-item-group>
         </el-sub-menu>
@@ -68,11 +66,7 @@
           <el-icon><Promotion /></el-icon>
           <template #title>访问前台</template>
         </el-menu-item>
-        <el-menu-item
-          index="6"
-          @click="deleteCache()"
-          v-if="group == 'administrator'"
-        >
+        <el-menu-item index="6" @click="deleteCache()">
           <el-icon><Coin /></el-icon>
           <template #title>清空缓存</template>
         </el-menu-item>
@@ -92,12 +86,11 @@ import {
   UserFilled,
   Promotion,
   Coin,
-  Avatar
+  Avatar,
 } from '@element-plus/icons-vue'
 import axios from 'axios'
 
 const token = useCookie('token')
-const group = useCookie('group')
 
 const handleOpen = (key, keyPath) => {
   // console.log(key, keyPath)

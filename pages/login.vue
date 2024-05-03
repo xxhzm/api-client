@@ -135,7 +135,6 @@
 <script setup>
 import axios from 'axios'
 
-
 // 引入加密算法
 const { $enCode, $msg } = useNuxtApp()
 
@@ -143,12 +142,10 @@ const router = useRouter()
 
 const username = useCookie('username')
 const token = useCookie('token')
-const group = useCookie('group')
 
 // delete username and token
 username.value = undefined
 token.value = undefined
-group.value = undefined
 
 const info = reactive({
   username: '',
@@ -156,7 +153,7 @@ const info = reactive({
   mail: '',
   captcha: '',
   mailCode: '',
-  sign: ''
+  sign: '',
 })
 
 const LoginIsRegister = ref(true)
@@ -189,7 +186,6 @@ const login = async () => {
     // 设置cookie
     username.value = res.data.username
     token.value = res.data.token
-    group.value = res.data.group
 
     window.location.href = '/admin'
   }
@@ -208,28 +204,35 @@ const getVerifyCodeButtonState = ref(false)
 // 图片验证码信息
 const captchaInfo = ref({
   id: '',
-  url: ''
+  url: '',
 })
 
 // 获取图片验证码
 const getCaptchaInfo = async () => {
   // 接口文档 https://api-m.com/doc/captcha
-  const { data: res } = await axios.get('https://v2.api-m.com/api/captcha?type=digit')
+  const { data: res } = await axios.get(
+    'https://v2.api-m.com/api/captcha?type=digit'
+  )
   captchaInfo.value = res.data
 }
 
 // 监听用户是否切换了显示
-watch(LoginIsRegister, newValue => {
-  if (newValue === false) {
-    info.captcha = ''
-    getCaptchaInfo()
+watch(
+  LoginIsRegister,
+  (newValue) => {
+    if (newValue === false) {
+      info.captcha = ''
+      getCaptchaInfo()
+    }
+  },
+  {
+    immediate: true,
   }
-}, {
-  immediate: true
-})
+)
 
 // 获取邮箱验证码
-const rule = /^[A-Za-z\d]+[A-Za-z\d\-_\.]*@([A-Za-z\d]+[A-Za-z\d\-]*\.)+[A-Za-z]{2,4}$/
+const rule =
+  /^[A-Za-z\d]+[A-Za-z\d\-_\.]*@([A-Za-z\d]+[A-Za-z\d\-]*\.)+[A-Za-z]{2,4}$/
 
 const getMailCode = async () => {
   getVerifyCodeButtonState.value = true
@@ -258,7 +261,13 @@ const getMailCode = async () => {
 }
 
 const register = async () => {
-  if (info.username === '' || info.password === '' || info.mail === '' || rule.test(info.mail) === false || info.mailCode === '') {
+  if (
+    info.username === '' ||
+    info.password === '' ||
+    info.mail === '' ||
+    rule.test(info.mail) === false ||
+    info.mailCode === ''
+  ) {
     msg('请正确填写账号信息', 'error')
     return false
   }

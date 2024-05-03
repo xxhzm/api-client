@@ -28,7 +28,6 @@ const msg = $msg
 
 const username = useCookie('username')
 const token = useCookie('token')
-const group = useCookie('group')
 
 const passwordInfo = reactive({
   oldPassword: '',
@@ -58,7 +57,6 @@ const onSubmit = async () => {
 
   username.value = undefined
   token.value = undefined
-  group.value = undefined
 
   setTimeout(() => {
     window.location.href = '/login'

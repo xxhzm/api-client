@@ -11,72 +11,70 @@
           @click="navigateTo('/admin/addapi')"
           >新增接口</el-button
         >
-        <el-table :data="filterTableData" style="width: 100%" height="96%">
-          <el-table-column width="200">
-            <template #header>
-              <el-input
-                v-model="search"
-                size="small"
-                placeholder="Type to search"
-              />
-            </template>
-            <template #default="scope">
-              <el-button
-                size="small"
-                @click="handleEdit(scope.$index, scope.row)"
-                v-if="group == 'administrator'"
-                >Edit</el-button
-              >
-              <el-popconfirm
-                confirm-button-text="Yes"
-                cancel-button-text="No"
-                title="你确定要删除吗?"
-                @confirm="handleDelete(scope.$index, scope.row)"
-                v-if="group == 'administrator'"
-              >
-                <template #reference>
-                  <el-button size="small" type="danger">Delete</el-button>
-                </template>
-              </el-popconfirm>
+        <client-only>
+          <el-table :data="filterTableData" style="width: 100%" height="96%">
+            <el-table-column width="200">
+              <template #header>
+                <el-input
+                  v-model="search"
+                  size="small"
+                  placeholder="Type to search"
+                />
+              </template>
+              <template #default="scope">
+                <el-button
+                  size="small"
+                  @click="handleEdit(scope.$index, scope.row)"
+                  >Edit</el-button
+                >
+                <el-popconfirm
+                  confirm-button-text="Yes"
+                  cancel-button-text="No"
+                  title="你确定要删除吗?"
+                  @confirm="handleDelete(scope.$index, scope.row)"
+                >
+                  <template #reference>
+                    <el-button size="small" type="danger">Delete</el-button>
+                  </template>
+                </el-popconfirm>
 
-              <el-popconfirm
-                confirm-button-text="Yes"
-                cancel-button-text="No"
-                title="你确定要启用吗?"
-                @confirm="handleOpen(scope.$index, scope.row)"
-                v-if="group == 'administrator'"
-              >
-                <template #reference>
-                  <el-button size="small" type="danger" color="#626aef"
-                    >启用</el-button
-                  >
-                </template>
-              </el-popconfirm>
-            </template>
-          </el-table-column>
-          <el-table-column prop="id" label="id" width="50" />
-          <el-table-column prop="name" label="接口名称" width="150" />
-          <el-table-column prop="alias" label="别名" width="100" />
-          <el-table-column prop="state" label="状态" width="80" />
-          <el-table-column prop="description" label="描述" width="250" />
-          <el-table-column prop="keywords" label="接口关键词" width="300" />
-          <el-table-column prop="url" label="地址" width="280" />
-          <el-table-column prop="method" label="请求方法" width="100" />
-          <el-table-column prop="uname" label="创建人" width="80" />
-          <el-table-column prop="category" label="分类" width="100" />
-          <el-table-column prop="create_time" label="创建时间" width="165" />
-          <el-table-column prop="count" label="调用次数" width="100" />
-        </el-table>
+                <el-popconfirm
+                  confirm-button-text="Yes"
+                  cancel-button-text="No"
+                  title="你确定要启用吗?"
+                  @confirm="handleOpen(scope.$index, scope.row)"
+                >
+                  <template #reference>
+                    <el-button size="small" type="danger" color="#626aef"
+                      >启用</el-button
+                    >
+                  </template>
+                </el-popconfirm>
+              </template>
+            </el-table-column>
+            <el-table-column prop="id" label="id" width="50" />
+            <el-table-column prop="name" label="接口名称" width="150" />
+            <el-table-column prop="alias" label="别名" width="100" />
+            <el-table-column prop="state" label="状态" width="80" />
+            <el-table-column prop="description" label="描述" width="250" />
+            <el-table-column prop="keywords" label="接口关键词" width="300" />
+            <el-table-column prop="url" label="地址" width="280" />
+            <el-table-column prop="method" label="请求方法" width="100" />
+            <el-table-column prop="uname" label="创建人" width="80" />
+            <el-table-column prop="category" label="分类" width="100" />
+            <el-table-column prop="create_time" label="创建时间" width="165" />
+            <el-table-column prop="count" label="调用次数" width="100" />
+          </el-table>
+        </client-only>
       </div>
     </div>
   </div>
 </template>
 
 <script setup>
-import axios from "axios"
+import axios from 'axios'
 
 const token = useCookie('token')
-const group = useCookie('group')
 
 const { $msg } = useNuxtApp()
 const msg = $msg
@@ -95,9 +93,10 @@ onMounted(() => {
 })
 
 const filterTableData = computed(() =>
-  tableData.value.filter((data) =>
-    !search.value ||
-    data.name.toLowerCase().includes(search.value.toLowerCase())
+  tableData.value.filter(
+    (data) =>
+      !search.value ||
+      data.name.toLowerCase().includes(search.value.toLowerCase())
   )
 )
 
@@ -110,8 +109,8 @@ const handleDelete = async (index, row) => {
 
   const { data: res } = await axios.get('ApiDelete', {
     params: {
-      id: row.id
-    }
+      id: row.id,
+    },
   })
 
   await getData()
@@ -124,15 +123,14 @@ const handleOpen = async (index, row) => {
 
   const { data: res } = await axios.get('ApiOpen', {
     params: {
-      id: row.id
-    }
+      id: row.id,
+    },
   })
 
   await getData()
 
   loading.value = false
 }
-
 </script>
 
 <style lang="less" scoped>

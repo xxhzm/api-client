@@ -7,11 +7,9 @@ export default defineNuxtPlugin((/* nuxtApp */) => {
       logout: () => {
         const username = useCookie('username')
         const token = useCookie('token')
-        const group = useCookie('group')
 
         username.value = undefined
         token.value = undefined
-        group.value = undefined
 
         window.location.href = '/login'
       }
