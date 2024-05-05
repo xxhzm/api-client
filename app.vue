@@ -9,6 +9,11 @@ import axios from 'axios'
 const { $msg } = useNuxtApp()
 const token = useCookie('token')
 
+const authorization = useState('Authorization')
+if(token.value !== ''){
+  authorization.value = token.value
+}
+
 // axios初始化
 const { $axiosDefault } = useNuxtApp()
 $axiosDefault()

@@ -17,8 +17,7 @@
           <path
             fill-rule="evenodd"
             d="M15.854 8.354a.5.5 0 0 0 0-.708l-3-3a.5.5 0 0 0-.708.708L14.293 7.5H5.5a.5.5 0 0 0 0 1h8.793l-2.147 2.146a.5.5 0 0 0 .708.708l3-3z"
-          /></svg
-        >返回首页</span
+          /></svg>返回首页</span
       >
       <h4 class="title">登录</h4>
       <p class="text">请输入账号密码进行登录<br />无法登录请刷新此页面</p>
@@ -70,8 +69,7 @@
           <path
             fill-rule="evenodd"
             d="M15.854 8.354a.5.5 0 0 0 0-.708l-3-3a.5.5 0 0 0-.708.708L14.293 7.5H5.5a.5.5 0 0 0 0 1h8.793l-2.147 2.146a.5.5 0 0 0 .708.708l3-3z"
-          /></svg
-        >返回首页</span
+          /></svg>返回首页</span
       >
       <h4 class="title">注册</h4>
       <p class="text">请输入账号密码进行注册</p>
@@ -136,7 +134,7 @@
 import axios from 'axios'
 
 // 引入加密算法
-const { $enCode, $msg } = useNuxtApp()
+const { $enCode, $msg, $myFetch } = useNuxtApp()
 
 const router = useRouter()
 
@@ -181,11 +179,19 @@ const login = async () => {
   // 使用加密算法对数据进行加密
   bodyValue.append('password', $enCode(info.password))
 
-  const { data: res } = await axios.post('Login', bodyValue)
+  const res = await $myFetch('Login', {
+    method: 'POST',
+    body: bodyValue,
+  })
+
   if (res.code === 200 && res.data.username === info.username) {
     // 设置cookie
     username.value = res.data.username
     token.value = res.data.token
+
+    // 将 token 同时保存到 usestate
+    const authorization = useState('Authorization')
+    authorization.value = res.data.token
 
     window.location.href = '/admin'
   }
