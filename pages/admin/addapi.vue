@@ -212,11 +212,9 @@
 </template>
 
 <script setup>
-import axios from 'axios'
-
-const token = useCookie('token')
 const username = useCookie('username')
-const { $msg } = useNuxtApp()
+
+const { $msg, $myFetch } = useNuxtApp()
 const msg = $msg
 
 const addapiInfo = reactive({
@@ -256,15 +254,25 @@ const position = [
   {
     value: 'body',
     label: 'body',
-  }
+  },
 ]
 
-watch(() => addparameter.id, (newValue) => {
-  addparameter.id = newValue.replace(/[^\d]/g, "")
-})
+watch(
+  () => addparameter.id,
+  (newValue) => {
+    addparameter.id = newValue.replace(/[^\d]/g, '')
+  }
+)
 
 const create = async () => {
-  if (!addapiInfo.name || !addapiInfo.alias || !addapiInfo.description || !addapiInfo.keywords || !addapiInfo.url || !addapiInfo.method) {
+  if (
+    !addapiInfo.name ||
+    !addapiInfo.alias ||
+    !addapiInfo.description ||
+    !addapiInfo.keywords ||
+    !addapiInfo.url ||
+    !addapiInfo.method
+  ) {
     msg('请填写内容', 'error')
     return false
   }
@@ -297,14 +305,24 @@ const create = async () => {
     apiBodyValue.append('state', '禁用')
   }
 
-  const { data: res } = await axios.post('ApiCreate', apiBodyValue)
+  const { data: res } = await $myFetch('ApiCreate', {
+    method: 'POST',
+    body: apiBodyValue,
+  })
+
   if (res.code !== 200) {
     return false
   }
 
   // 接口添加成功后添加参数
   addparameter.id = res.data
-  if (!addparameter.id || !addparameter.name || !addparameter.param || !addparameter.docs || !addparameter.position) {
+  if (
+    !addparameter.id ||
+    !addparameter.name ||
+    !addparameter.param ||
+    !addparameter.docs ||
+    !addparameter.position
+  ) {
     navigateTo('/admin/apilist')
     return false
   }
@@ -322,7 +340,10 @@ const create = async () => {
     paramBodyValue.append('required', 2)
   }
 
-  const { data: res1 } = await axios.post('ParamCreate', paramBodyValue)
+  const { data: res1 } = await $myFetch('ParamCreate', {
+    method: 'POST',
+    body: paramBodyValue,
+  })
 
   if (res1.code === 200) {
     msg(res1.msg, 'success')
@@ -337,9 +358,9 @@ const categoryData = ref([])
 const querySearch = async (queryString, cb) => {
   // 如果没有数据则从服务端获取分类内容
   if (categoryData.value.length === 0) {
-    const { data: res } = await axios.get('CategoryList')
+    const { data: res } = await $myFetch('CategoryList')
 
-    res.data = res.data.map(item => {
+    res.data = res.data.map((item) => {
       return {
         id: item.id,
         value: item.name,
@@ -370,7 +391,7 @@ const handleSelect = (item) => {
 }
 </script>
 
-<style  lang="less" scoped>
+<style lang="less" scoped>
 .container {
   display: flex;
   .right {

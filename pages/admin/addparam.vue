@@ -59,12 +59,7 @@
 </template>
 
 <script setup>
-import axios from 'axios'
-
-
-const token = useCookie('token')
-
-const { $msg } = useNuxtApp()
+const { $msg, $myFetch } = useNuxtApp()
 const msg = $msg
 
 const addparameter = reactive({
@@ -84,16 +79,24 @@ const position = [
   {
     value: 'body',
     label: 'body',
-  }
+  },
 ]
 
-watch(() => addparameter.id, (newValue) => {
-  addparameter.id = newValue.replace(/[^\d]/g, "")
-})
-
+watch(
+  () => addparameter.id,
+  (newValue) => {
+    addparameter.id = newValue.replace(/[^\d]/g, '')
+  }
+)
 
 const onSubmit = async () => {
-  if (!addparameter.id || !addparameter.name || !addparameter.param || !addparameter.docs || !addparameter.position) {
+  if (
+    !addparameter.id ||
+    !addparameter.name ||
+    !addparameter.param ||
+    !addparameter.docs ||
+    !addparameter.position
+  ) {
     msg('请填写内容', 'error')
     return false
   }
@@ -111,14 +114,16 @@ const onSubmit = async () => {
     bodyValue.append('required', 2)
   }
 
-  const { data: res } = await axios.post('ParamCreate', bodyValue)
+  const { data: res } = await $myFetch('ParamCreate', {
+    method: 'POST',
+    body: bodyValue,
+  })
 
   navigateTo('/admin/apilist')
-
 }
 </script>
 
-<style  lang="less" scoped>
+<style lang="less" scoped>
 .container {
   display: flex;
   height: 100%;

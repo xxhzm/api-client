@@ -77,7 +77,6 @@
 
 <script setup>
 import { ref } from 'vue'
-
 import {
   List,
   Menu as IconMenu,
@@ -88,9 +87,8 @@ import {
   Coin,
   Avatar,
 } from '@element-plus/icons-vue'
-import axios from 'axios'
 
-const token = useCookie('token')
+const { $myFetch } = useNuxtApp()
 
 const handleOpen = (key, keyPath) => {
   // console.log(key, keyPath)
@@ -101,7 +99,7 @@ const handleClose = (key, keyPath) => {
 
 // 清空缓存
 const deleteCache = async () => {
-  const { data: res } = await axios.get('ClearCache')
+  const { data: res } = await $myFetch('ClearCache')
   if (res.code === 200) {
     setTimeout(() => {
       window.location.reload()

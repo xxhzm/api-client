@@ -81,9 +81,7 @@
 </template>
 
 <script setup>
-import axios from 'axios'
-
-const { $msg } = useNuxtApp()
+const { $msg, $myFetch } = useNuxtApp()
 
 const activeName = ref('first')
 
@@ -94,11 +92,11 @@ const websetInfo = ref({
   description: '',
   create_time: '',
   icp: '',
-  gongan: ''
+  gongan: '',
 })
 
 const getData = async () => {
-  const { data: res } = await axios.get('Options')
+  const res = await $myFetch('Options')
   websetInfo.value = res.data
 }
 
@@ -107,7 +105,13 @@ onMounted(() => {
 })
 
 const onSubmit = async () => {
-  if (!websetInfo.value.title || !websetInfo.value.subheading || !websetInfo.value.keywords || !websetInfo.value.description || !websetInfo.value.create_time) {
+  if (
+    !websetInfo.value.title ||
+    !websetInfo.value.subheading ||
+    !websetInfo.value.keywords ||
+    !websetInfo.value.description ||
+    !websetInfo.value.create_time
+  ) {
     $msg('请填写内容', 'error')
     return false
   }
@@ -121,14 +125,18 @@ const onSubmit = async () => {
   bodyValue.append('icp', websetInfo.value.icp)
   bodyValue.append('gongAn', websetInfo.value.gongan)
 
-  const { data: res } = await axios.post('OptionsUpdate', bodyValue)
+  const { data: res } = await $myFetch('OptionsUpdate', {
+    method: 'POST',
+    body: bodyValue,
+  })
+  
   if (res.code === 200) {
     getData()
   }
 }
 </script>
 
-<style  lang="less" scoped>
+<style lang="less" scoped>
 .container {
   display: flex;
   .right {

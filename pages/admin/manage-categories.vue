@@ -5,35 +5,37 @@
       <AdminHeader></AdminHeader>
       <div class="container" v-loading="loading">
         <div class="cont">
-          <el-table :data="filterTableData" style="width: 100%" height="96%">
-            <el-table-column width="150">
-              <template #header>
-                <el-input
-                  v-model="search"
-                  size="small"
-                  placeholder="Type to search"
-                />
-              </template>
-              <template #default="scope">
-                <el-popconfirm
-                  confirm-button-text="Yes"
-                  cancel-button-text="No"
-                  title="你确定要删除吗?"
-                  @confirm="handleDelete(scope.$index, scope.row)"
-                >
-                  <template #reference>
-                    <el-button size="small" type="danger">Delete</el-button>
-                  </template>
-                </el-popconfirm>
-              </template>
-            </el-table-column>
-            <el-table-column prop="id" label="id" width="100" />
-            <el-table-column prop="name" label="分类名称" width="180" />
-            <el-table-column prop="alias" label="别名" width="100" />
-            <el-table-column prop="count" label="接口数" width="100" />
-            <el-table-column prop="createTime" label="创建时间" width="250" />
-            <el-table-column prop="default" label="默认分类" width="250" />
-          </el-table>
+          <ClientOnly>
+            <el-table :data="filterTableData" style="width: 100%" height="96%">
+              <el-table-column width="150">
+                <template #header>
+                  <el-input
+                    v-model="search"
+                    size="small"
+                    placeholder="Type to search"
+                  />
+                </template>
+                <template #default="scope">
+                  <el-popconfirm
+                    confirm-button-text="Yes"
+                    cancel-button-text="No"
+                    title="你确定要删除吗?"
+                    @confirm="handleDelete(scope.$index, scope.row)"
+                  >
+                    <template #reference>
+                      <el-button size="small" type="danger">Delete</el-button>
+                    </template>
+                  </el-popconfirm>
+                </template>
+              </el-table-column>
+              <el-table-column prop="id" label="id" width="100" />
+              <el-table-column prop="name" label="分类名称" width="180" />
+              <el-table-column prop="alias" label="别名" width="100" />
+              <el-table-column prop="count" label="接口数" width="100" />
+              <el-table-column prop="createTime" label="创建时间" width="250" />
+              <el-table-column prop="default" label="默认分类" width="250" />
+            </el-table>
+          </ClientOnly>
         </div>
       </div>
 
@@ -67,11 +69,7 @@
 </template>
 
 <script setup>
-import axios from "axios"
-
-const token = useCookie('token')
-
-const { $msg } = useNuxtApp()
+const { $msg, $myFetch } = useNuxtApp()
 const msg = $msg
 
 const loading = ref(false)
@@ -79,38 +77,41 @@ const tableData = ref([])
 const search = ref('')
 
 const getData = async () => {
-  const { data: res } = await axios.get('CategoryList')
+  const res = await $myFetch('CategoryList')
 
-  res.data = res.data.map(item => {
+  res.data = res.data.map((item) => {
     return {
       id: item.id,
       alias: item.alias,
       name: item.name,
       default: item.default === 1 ? '是' : '否',
       count: item.count,
-      createTime: item.createTime
+      createTime: item.createTime,
     }
   })
 
   tableData.value = res.data
 }
 
-getData()
+onMounted(() => {
+  getData()
+})
 
 const filterTableData = computed(() =>
-  tableData.value.filter((data) =>
-    !search.value ||
-    data.name.toLowerCase().includes(search.value.toLowerCase())
+  tableData.value.filter(
+    (data) =>
+      !search.value ||
+      data.name.toLowerCase().includes(search.value.toLowerCase())
   )
 )
 
 const handleDelete = async (index, row) => {
   loading.value = true
 
-  const { data: res } = await axios.get('CategoryDelete', {
+  const { data: res } = await $myFetch('CategoryDelete', {
     params: {
-      id: row.id
-    }
+      id: row.id,
+    },
   })
 
   await getData()
@@ -133,7 +134,10 @@ const onSubmit = async () => {
   bodyValue.append('name', addcategoryInfo.name)
   bodyValue.append('alias', addcategoryInfo.alias)
 
-  const { data: res } = await axios.post('CategoryCreate', bodyValue)
+  const { data: res } = await $myFetch('CategoryCreate', {
+    method: 'POST',
+    body: bodyValue,
+  })
 
   getData()
 }

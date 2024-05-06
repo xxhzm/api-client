@@ -17,7 +17,8 @@
           <path
             fill-rule="evenodd"
             d="M15.854 8.354a.5.5 0 0 0 0-.708l-3-3a.5.5 0 0 0-.708.708L14.293 7.5H5.5a.5.5 0 0 0 0 1h8.793l-2.147 2.146a.5.5 0 0 0 .708.708l3-3z"
-          /></svg>返回首页</span
+          /></svg
+        >返回首页</span
       >
       <h4 class="title">登录</h4>
       <p class="text">请输入账号密码进行登录<br />无法登录请刷新此页面</p>
@@ -69,7 +70,8 @@
           <path
             fill-rule="evenodd"
             d="M15.854 8.354a.5.5 0 0 0 0-.708l-3-3a.5.5 0 0 0-.708.708L14.293 7.5H5.5a.5.5 0 0 0 0 1h8.793l-2.147 2.146a.5.5 0 0 0 .708.708l3-3z"
-          /></svg>返回首页</span
+          /></svg
+        >返回首页</span
       >
       <h4 class="title">注册</h4>
       <p class="text">请输入账号密码进行注册</p>
@@ -131,8 +133,6 @@
 </template>
 
 <script setup>
-import axios from 'axios'
-
 // 引入加密算法
 const { $enCode, $msg, $myFetch } = useNuxtApp()
 
@@ -216,7 +216,7 @@ const captchaInfo = ref({
 // 获取图片验证码
 const getCaptchaInfo = async () => {
   // 接口文档 https://api-m.com/doc/captcha
-  const { data: res } = await axios.get(
+  const { data: res } = await $myFetch(
     'https://v2.api-m.com/api/captcha?type=digit'
   )
   captchaInfo.value = res.data
@@ -248,12 +248,15 @@ const getMailCode = async () => {
     return false
   }
 
-  const bodyValue = new URLSearchParams()
-  bodyValue.append('id', captchaInfo.value.id)
-  bodyValue.append('key', info.captcha)
-  bodyValue.append('mail', info.mail)
+  const body = new URLSearchParams()
+  body.append('id', captchaInfo.value.id)
+  body.append('key', info.captcha)
+  body.append('mail', info.mail)
 
-  const { data: res } = await axios.post('MailCode', bodyValue)
+  const { data: res } = await$myFetch('MailCode', {
+    method: 'POST',
+    body,
+  })
 
   if (res.code != 200) {
     getCaptchaInfo()
@@ -283,14 +286,18 @@ const register = async () => {
     return false
   }
 
-  const bodyValue = new URLSearchParams()
-  bodyValue.append('username', info.username)
-  bodyValue.append('password', info.password)
-  bodyValue.append('mail', info.mail)
-  bodyValue.append('mailCode', info.mailCode)
-  bodyValue.append('sign', info.sign)
+  const body = new URLSearchParams()
+  body.append('username', info.username)
+  body.append('password', info.password)
+  body.append('mail', info.mail)
+  body.append('mailCode', info.mailCode)
+  body.append('sign', info.sign)
 
-  const { data: res } = await axios.post('Register', bodyValue)
+  const { data: res } = await $myFetch('Register', {
+    method: 'POST',
+    body,
+  })
+  
   if (res.code === 200) {
     setTimeout(() => {
       router.go(0)

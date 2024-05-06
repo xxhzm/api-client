@@ -112,12 +112,12 @@ const systemInfo = ref({
   total_network_transmission: '0GB',
 })
 
-// const recentRequest = ref({
-//   data: {
-//     xAxis: [],
-//     series: [],
-//   },
-// })
+const recentRequest = ref({
+  data: {
+    xAxis: [],
+    series: [],
+  },
+})
 
 const number = ref(0)
 
@@ -129,14 +129,17 @@ systemInfo.value = res.data
 
 // 24小时内请求
 systemInfo.value.recent_request.forEach((element) => {
-  // recentRequest.value.data.xAxis.push(new Date(element.time).getHours() + '时')
-  // recentRequest.value.data.series.push(element.number)
+  recentRequest.value.data.xAxis.push(new Date(element.time).getHours() + '时')
+  recentRequest.value.data.series.push(element.number)
   number.value += element.number
 })
+
+const recentRequestState = useState('recentRequest')
+recentRequestState.value = recentRequest.value
 </script>
 
 <style lang="less">
 .el-col {
-  margin-top: .5rem;
+  margin-top: 0.5rem;
 }
 </style>

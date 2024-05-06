@@ -116,13 +116,9 @@
 </template>
 
 <script setup>
-import axios from "axios"
-
 const route = useRoute()
 
-const token = useCookie('token')
-
-const { $msg } = useNuxtApp()
+const { $msg, $myFetch } = useNuxtApp()
 const msg = $msg
 
 const formOrTable = ref(false)
@@ -147,14 +143,18 @@ const apiSetInfo = ref({
   python: '',
 })
 
-const { data: res } = await axios.get('Api', {
-  params: {
-    id: route.params.id
-  }
-})
+const {
+  data: { value: res },
+} = await useAsyncData('Api', () =>
+  $myFetch('Api', {
+    params: {
+      id: route.params.id,
+    },
+  })
+)
 
 // 判断参数是否必传
-res.data.params = res.data.params.map(item => {
+res.data.params = res.data.params.map((item) => {
   return {
     id: item.id,
     aid: item.aid,
@@ -163,7 +163,7 @@ res.data.params = res.data.params.map(item => {
     position: item.position,
     docs: item.docs,
     create_time: item.create_time,
-    required: item.required === 1 ? '必传' : '可选'
+    required: item.required === 1 ? '必传' : '可选',
   }
 })
 
@@ -182,7 +182,14 @@ const onSubmit = async () => {
     return false
   }
 
-  if (!apiSetInfo.value.name || !apiSetInfo.value.alias || !apiSetInfo.value.description || !apiSetInfo.value.url || !apiSetInfo.value.keywords || !apiSetInfo.value.method) {
+  if (
+    !apiSetInfo.value.name ||
+    !apiSetInfo.value.alias ||
+    !apiSetInfo.value.description ||
+    !apiSetInfo.value.url ||
+    !apiSetInfo.value.keywords ||
+    !apiSetInfo.value.method
+  ) {
     msg('请填写内容', 'error')
     return false
   }
@@ -205,14 +212,16 @@ const onSubmit = async () => {
   bodyValue.append('python', apiSetInfo.value.python)
   bodyValue.append('example', apiSetInfo.value.example)
 
-
   if (apiSetInfo.value.state) {
     bodyValue.append('state', '启用')
   } else {
     bodyValue.append('state', '关闭')
   }
 
-  const { data: res } = await axios.post('ApiUpdate', bodyValue)
+  const { data: res } = await $myFetch('ApiUpdate', {
+    method: 'POST',
+    body: bodyValue,
+  })
 
   navigateTo('/admin/apilist')
 }
@@ -222,16 +231,15 @@ const handleDelete = async (index, row) => {
   bodyValue.append('id', row.id)
   bodyValue.append('aid', apiSetInfo.value.id)
 
-  const { data: res } = await axios.get('ParamDelete', {
+  const res = await $myFetch('ParamDelete', {
     params: {
       pid: row.id,
       aid: apiSetInfo.value.id,
-      alias: apiSetInfo.value.alias
-    }
+      alias: apiSetInfo.value.alias,
+    },
   })
 
   navigateTo('/admin/apilist')
-
 }
 
 // 分类的数据
@@ -240,9 +248,9 @@ const categoryData = ref([])
 const querySearch = async (queryString, cb) => {
   // 如果没有数据则从服务端获取分类内容
   if (categoryData.value.length === 0) {
-    const { data: res } = await axios.get('CategoryList')
+    const res= await $myFetch('CategoryList')
 
-    res.data = res.data.map(item => {
+    res.data = res.data.map((item) => {
       return {
         id: item.id,
         value: item.name,
@@ -271,11 +279,9 @@ const createFilter = (queryString) => {
 const handleSelect = (item) => {
   apiSetInfo.value.categoryId = item.id
 }
-
-
 </script>
 
-<style  lang="less" scoped>
+<style lang="less" scoped>
 .apiset-container {
   width: 100%;
   height: calc(100vh - 65px);

@@ -21,7 +21,7 @@
           > -->
 
           <el-table :data="filterTableData" style="width: 100%" height="96%">
-            <el-table-column width="150">
+            <el-table-column width="200">
               <template #header>
                 <el-input
                   v-model="search"
@@ -32,8 +32,8 @@
               <template #default="scope">
                 <el-button
                   size="small"
-                  @click="handleEdit(scope.$index, scope.row)"
-                  >Edit</el-button
+                  @click="handleRole(scope.$index, scope.row)"
+                  >绑定角色</el-button
                 >
                 <el-popconfirm
                   confirm-button-text="Yes"
@@ -42,7 +42,7 @@
                   @confirm="handleDelete(scope.$index, scope.row)"
                 >
                   <template #reference>
-                    <el-button size="small" type="danger">Delete</el-button>
+                    <el-button size="small" type="danger">删除</el-button>
                   </template>
                 </el-popconfirm>
               </template>
@@ -58,13 +58,12 @@
             />
             <el-table-column prop="address" label="归属地" width="200" />
             <el-table-column prop="ip" label="ip" width="130" />
-            <el-table-column prop="token" label="token" width="200" />
             <el-table-column prop="password" label="密码" width="200" />
           </el-table>
 
           <el-drawer v-model="createUserStatus" direction="rtl">
             <template #header>
-              <h2>{{ disabled ? "修改用户" : "添加用户" }}</h2>
+              <h2>{{ disabled ? '修改用户' : '添加用户' }}</h2>
             </template>
             <template #default>
               <el-form
@@ -88,18 +87,50 @@
                 <el-form-item label="邮箱地址">
                   <el-input v-model="userInfo.mail" :disabled="disabled" />
                 </el-form-item>
-
               </el-form>
             </template>
             <template #footer>
               <div style="flex: auto">
                 <el-button @click="createUserStatus = false">取消</el-button>
                 <el-button type="primary" @click="submit">{{
-                  disabled ? "修改" : "创建"
+                  disabled ? '修改' : '创建'
                 }}</el-button>
               </div>
             </template>
           </el-drawer>
+
+          <!-- 绑定角色对话框 -->
+          <el-dialog
+            v-model="bindRoleDialogStatus"
+            title="绑定角色"
+            width="500"
+          >
+            <el-select
+              v-model="bindRoleInfo"
+              multiple
+              collapse-tags
+              collapse-tags-tooltip
+              placeholder="请选择要绑定的角色"
+              style="width: 240px"
+            >
+              <el-option
+                v-for="item in roleList"
+                :key="item.role_id"
+                :label="item.role_name"
+                :value="item.role_id"
+              />
+            </el-select>
+            <template #footer>
+              <div class="dialog-footer">
+                <el-button @click="bindRoleDialogStatus = false"
+                  >取消</el-button
+                >
+                <el-button type="primary" @click="handlebindRoleSubmit">
+                  确定
+                </el-button>
+              </div>
+            </template>
+          </el-dialog>
         </client-only>
       </div>
     </div>
@@ -107,9 +138,7 @@
 </template>
 
 <script setup>
-import axios from "axios"
-
-const { $msg } = useNuxtApp()
+const { $msg, $myFetch } = useNuxtApp()
 
 const loading = ref(false)
 const tableData = ref([])
@@ -125,16 +154,15 @@ const userInfo = ref({
   mail: '',
 })
 
-
 const getData = async () => {
-  const { data: res } = await axios.get('UserList')
+  const { data: res } = await $myFetch('UserList')
 
-  res.data.forEach((element, key) => {
-    res.data[key].login_time = new Date(element.login_time).toLocaleString()
-    res.data[key].create_time = new Date(element.create_time).toLocaleString()
+  res.forEach((element, key) => {
+    res[key].login_time = new Date(element.login_time).toLocaleString()
+    res[key].create_time = new Date(element.create_time).toLocaleString()
   })
 
-  tableData.value = res.data
+  tableData.value = res
 }
 
 onMounted(() => {
@@ -143,9 +171,11 @@ onMounted(() => {
 
 // 搜索框
 const filterTableData = computed(() =>
-  tableData.value.filter((data) =>
-    !search.value ||
-    data.username.toLowerCase().includes(search.value.toLowerCase()) || data.mail.toLowerCase().includes(search.value.toLowerCase())
+  tableData.value.filter(
+    (data) =>
+      !search.value ||
+      data.username.toLowerCase().includes(search.value.toLowerCase()) ||
+      data.mail.toLowerCase().includes(search.value.toLowerCase())
   )
 )
 
@@ -163,10 +193,10 @@ const handleEdit = (index, row) => {
 const handleDelete = async (index, row) => {
   loading.value = true
 
-  const { data: res } = await axios.get('DeleteUser', {
+  const { data: res } = await $myFetch('DeleteUser', {
     params: {
-      id: row.id
-    }
+      id: row.id,
+    },
   })
 
   $msg(res.data, 'success')
@@ -177,10 +207,10 @@ const handleDelete = async (index, row) => {
 // 显示用户归属地
 const getAddress = async () => {
   tableData.value.forEach(async (element, key) => {
-    const { data: ip } = await axios.get('https://v2.api-m.com/api/ip', {
+    const { data: ip } = await $myFetch('https://v2.api-m.com/api/ip', {
       params: {
-        ip: element.ip
-      }
+        ip: element.ip,
+      },
     })
 
     tableData.value[key].address = ip.data.address
@@ -197,7 +227,11 @@ const submit = () => {
 
 // 创建用户
 const createUser = async () => {
-  if (!userInfo.value.username || !userInfo.value.password || !userInfo.value.mail) {
+  if (
+    !userInfo.value.username ||
+    !userInfo.value.password ||
+    !userInfo.value.mail
+  ) {
     $msg('请填写内容', 'error')
     return false
   }
@@ -207,7 +241,10 @@ const createUser = async () => {
   apiBodyValue.append('password', userInfo.value.password)
   apiBodyValue.append('mail', userInfo.value.mail)
 
-  const { data: res } = await axios.post('CreateUser', apiBodyValue)
+  const { data: res } = await $myFetch('CreateUser', {
+    method: 'POST',
+    body: apiBodyValue,
+  })
 
   createUserStatus.value = false
   getData()
@@ -215,7 +252,11 @@ const createUser = async () => {
 
 // 修改用户
 const updateUser = async () => {
-  if (!userInfo.value.username || !userInfo.value.password || !userInfo.value.mail ) {
+  if (
+    !userInfo.value.username ||
+    !userInfo.value.password ||
+    !userInfo.value.mail
+  ) {
     $msg('请填写内容', 'error')
     return false
   }
@@ -224,14 +265,17 @@ const updateUser = async () => {
   const apiBodyValue = new URLSearchParams()
   apiBodyValue.append('id', userInfo.value.id)
 
-  const { data: res } = await axios.post('UpdateUser', apiBodyValue)
+  const { data: res } = await $myFetch('UpdateUser', {
+    method: 'POST',
+    body: apiBodyValue,
+  })
 
   createUserStatus.value = false
   getData()
 }
 
 // 监听抽屉是否关闭
-watch(createUserStatus, newValue => {
+watch(createUserStatus, (newValue) => {
   if (newValue === false) {
     disabled.value = false
     userInfo.value.id = 0
@@ -240,6 +284,43 @@ watch(createUserStatus, newValue => {
     userInfo.value.mail = ''
   }
 })
+
+// 绑定角色
+const bindRoleDialogStatus = ref(false)
+const bindRoleInfo = ref({})
+const roleList = ref({})
+const userId = ref()
+
+// 规则绑定角色表格按钮
+const handleRole = async (index, row) => {
+  userId.value = row.id
+  bindRoleDialogStatus.value = true
+
+  // 向服务器获取角色列表
+  const { data: res } = await $myFetch('RoleList')
+  roleList.value = res
+}
+
+const handlebindRoleSubmit = async () => {
+  if (bindRoleInfo.value[0] === undefined) {
+    $msg('请选择要绑定的角色', 'error')
+    return
+  }
+
+  const res = await $myFetch('UserBindRole', {
+    params: {
+      info: JSON.stringify(bindRoleInfo.value),
+      userId: userId.value,
+    },
+  })
+
+  bindRoleDialogStatus.value = false
+  if (res.code === 200) {
+    $msg(res.data, 'success')
+  } else {
+    $msg(res.data, 'error')
+  }
+}
 </script>
 
 <style lang="less" scoped>

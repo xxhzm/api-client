@@ -72,11 +72,7 @@
 </template>
 
 <script setup>
-import axios from 'axios'
-
-const token = useCookie('token')
-
-const { $msg } = useNuxtApp()
+const { $msg, $myFetch } = useNuxtApp()
 const msg = $msg
 
 const loading = ref(false)
@@ -84,7 +80,7 @@ const tableData = ref([])
 const search = ref('')
 
 const getData = async () => {
-  const { data: res } = await axios.get('ApiList')
+  const { data: res } = await $myFetch('ApiList')
   tableData.value = res.data
 }
 
@@ -107,7 +103,7 @@ const handleEdit = (index, row) => {
 const handleDelete = async (index, row) => {
   loading.value = true
 
-  const { data: res } = await axios.get('ApiDelete', {
+  const { data: res } = await $myFetch('ApiDelete', {
     params: {
       id: row.id,
     },
@@ -121,7 +117,7 @@ const handleDelete = async (index, row) => {
 const handleOpen = async (index, row) => {
   loading.value = true
 
-  const { data: res } = await axios.get('ApiOpen', {
+  const { data: res } = await $myFetch('ApiOpen', {
     params: {
       id: row.id,
     },

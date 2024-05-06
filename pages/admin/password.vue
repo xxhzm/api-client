@@ -21,9 +21,7 @@
 </template>
 
 <script setup>
-import axios from "axios"
-
-const { $enCode, $msg } = useNuxtApp()
+const { $enCode, $msg, $myFetch } = useNuxtApp()
 const msg = $msg
 
 const username = useCookie('username')
@@ -51,7 +49,10 @@ const onSubmit = async () => {
   bodyValue.append('token', token.value)
   bodyValue.append('username', username.value)
 
-  const { data: res } = await axios.post('ChangePassword', bodyValue)
+  const { data: res } = await $myFetch('ChangePassword', {
+    method: 'POST',
+    body: bodyValue,
+  })
 
   window.location.href = '/login'
 
@@ -61,11 +62,10 @@ const onSubmit = async () => {
   setTimeout(() => {
     window.location.href = '/login'
   }, 1500)
-
 }
 </script>
 
-<style  lang="less" scoped>
+<style lang="less" scoped>
 .password-container {
   overflow-y: hidden;
   width: 100%;

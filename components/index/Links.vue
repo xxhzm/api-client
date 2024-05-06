@@ -16,10 +16,15 @@
 </template>
 
 <script setup>
-import axios from "axios"
+const { $myFetch } = useNuxtApp()
+
 const props = defineProps(['options'])
 
-const { data: res } = await axios.get("https://admin.api-m.com/links.json")
+const {
+  data: { value: res },
+} = await useAsyncData('RoleList', () =>
+  $myFetch('https://admin.api-m.com/links.json')
+)
 
 const links = reactive(res.data)
 </script>

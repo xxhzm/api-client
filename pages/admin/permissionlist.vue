@@ -140,14 +140,13 @@ const permissionInfo = ref({
 })
 
 const getData = async () => {
-  const {
-    data: { value: res },
-  } = await useAsyncData('PermissionList', () => $myFetch('PermissionList'))
+  const res = await $myFetch('PermissionList')
 
   tableData.value = res.data
 }
-
-await getData()
+onMounted(() => {
+  getData()
+})
 
 const handleEdit = (index, row) => {
   // createPermissionStatus.value = false
@@ -272,12 +271,14 @@ const handlebindRoleSubmit = async () => {
     return
   }
 
-  const res = await $myFetch(
-    'BindRole?info=' +
-      JSON.stringify(bindRoleInfo.value) +
-      '&permissionId=' +
-      permissionId.value
-  )
+  const res = await $myFetch('BindRole', {
+    params: {
+      info: JSON.stringify(bindRoleInfo.value),
+      permissionId: permissionId.value,
+    },
+  })
+
+  bindRoleDialogStatus.value = false
 
   if (res.code === 200) {
     $msg(res.data, 'success')

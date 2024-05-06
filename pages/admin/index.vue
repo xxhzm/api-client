@@ -1,31 +1,15 @@
 <script setup>
 import * as echarts from 'echarts'
-import axios from 'axios'
+const { $myFetch } = useNuxtApp()
 
 const { $logout } = useNuxtApp()
-
 const chartShow = ref(true)
-
-const recentRequest = ref({
-  data: {
-    xAxis: [],
-    series: []
-  }
+const recentRequest = useState('recentRequest')
+const todayRequest = ref({
+  data: [],
 })
 
-const number = ref(0)
-
 onMounted(async () => {
-  // 24小时内请求
-  const { data: res3 } = await axios.get('RecentRequest')
-  if (res3.code == 200) {
-    res3.data.forEach(element => {
-      recentRequest.value.data.xAxis.push(new Date(element.time).getHours() + "时")
-      recentRequest.value.data.series.push(element.number)
-      number.value += element.number
-    })
-  }
-
   // 图表
   chartShow.value = false
   chartShow.value = true
@@ -37,16 +21,16 @@ onMounted(async () => {
 
   option = {
     title: {
-      text: "调用量统计",
-      top: "4%",
-      left: "2%",
+      text: '调用量统计',
+      top: '4%',
+      left: '2%',
       textStyle: {
-        color: "#555",
+        color: '#555',
         fontSize: 16,
-      }
+      },
     },
     tooltip: {
-      trigger: "axis",
+      trigger: 'axis',
     },
     grid: {
       left: '2%',
@@ -55,15 +39,15 @@ onMounted(async () => {
     },
     toolbox: {
       feature: {
-        saveAsImage: {}
-      }
+        saveAsImage: {},
+      },
     },
     xAxis: {
       type: 'category',
-      data: recentRequest.value.data.xAxis
+      data: recentRequest.value.data.xAxis,
     },
     yAxis: {
-      type: 'value'
+      type: 'value',
     },
     dataZoom: [{}],
     series: [
@@ -78,8 +62,8 @@ onMounted(async () => {
           borderColor: '#4bc8db',
           areaStyle: {
             type: 'default',
-            opacity: 0.4
-          }
+            opacity: 0.4,
+          },
         },
         lineStyle: {
           // 线性渐变，前四个参数分别是 x0, y0, x2, y2, 范围从 0 - 1，相当于在图形包围盒中的百分比，如果 globalCoord 为 `true`，则该四个值是绝对的像素位置
@@ -89,52 +73,59 @@ onMounted(async () => {
             y: 0,
             x2: 1,
             y2: 0,
-            colorStops: [{
-              offset: 0, color: '#4C84FF' // 0% 处的颜色
-            }, {
-              offset: 1, color: '#28d016' // 100% 处的颜色
-            }],
-            globalCoord: false // 缺省为 false
+            colorStops: [
+              {
+                offset: 0,
+                color: '#4C84FF', // 0% 处的颜色
+              },
+              {
+                offset: 1,
+                color: '#28d016', // 100% 处的颜色
+              },
+            ],
+            globalCoord: false, // 缺省为 false
           },
         },
         areaStyle: {
-          color: 'rgba(255,255,255,0)'
+          color: 'rgba(255,255,255,0)',
         },
-      }
-    ]
+      },
+    ],
   }
 
   option && recentRequestChart.setOption(option)
 
-  const { data: res4 } = await axios.get('TodayRequest')
+  const { data: res } = await $myFetch('TodayRequest')
 
-  res4.data.forEach(element => {
-    todayRequest.value.data.push({
-      name: element.alias,
-      value: element.number
+  if (res.data !== undefined) {
+    res.data.forEach((element) => {
+      todayRequest.value.data.push({
+        name: element.alias,
+        value: element.number,
+      })
     })
-  })
+  }
 
   const TodayRequestDom = document.getElementById('TodayRequestChart')
   const TodayRequestChart = echarts.init(TodayRequestDom)
 
   option = {
     title: {
-      top: "4%",
+      top: '4%',
       text: '接口请求排名',
       left: 'center',
       textStyle: {
-        color: "#555",
+        color: '#555',
         fontSize: 16,
-      }
+      },
     },
     tooltip: {
-      trigger: 'item'
+      trigger: 'item',
     },
     legend: {
-      bottom: "8%",
+      bottom: '8%',
       orient: 'horizontal',
-      left: 'center'
+      left: 'center',
     },
     series: [
       {
@@ -142,9 +133,8 @@ onMounted(async () => {
         type: 'pie',
         radius: '50%',
         data: todayRequest.value.data,
-
-      }
-    ]
+      },
+    ],
   }
 
   option && TodayRequestChart.setOption(option)
