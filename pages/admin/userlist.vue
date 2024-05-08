@@ -7,11 +7,23 @@
         <client-only>
           <el-button
             type="primary"
-            style="margin-bottom: 20px"
+            style="margin-bottom: 20px; float: left"
             size="small"
             @click="createUserStatus = true"
             >新增用户</el-button
           >
+          <el-pagination
+            :page-size="15"
+            :pager-count="5"
+            :total="totalRecords"
+            v-model:current-page="page"
+            :disabled="pageLoading"
+            :hide-on-single-page
+            small
+            background
+            layout="prev, pager, next"
+            style="float: right; margin-right: 100px"
+          />
           <!-- <el-button
             type="success"
             style="margin-bottom: 20px"
@@ -20,7 +32,12 @@
             >显示用户归属地</el-button
           > -->
 
-          <el-table :data="filterTableData" style="width: 100%" height="96%">
+          <el-table
+            v-loading="pageLoading"
+            :data="filterTableData"
+            style="width: 100%"
+            height="96%"
+          >
             <el-table-column width="200">
               <template #header>
                 <el-input
@@ -56,9 +73,8 @@
               label="上次登录时间"
               width="180"
             />
-            <el-table-column prop="address" label="归属地" width="200" />
+            <el-table-column prop="status" label="状态" width="80" />
             <el-table-column prop="ip" label="ip" width="130" />
-            <el-table-column prop="password" label="密码" width="200" />
           </el-table>
 
           <el-drawer v-model="createUserStatus" direction="rtl">
@@ -143,6 +159,16 @@ const { $msg, $myFetch } = useNuxtApp()
 const loading = ref(false)
 const tableData = ref([])
 const search = ref('')
+
+// 当前页数
+const page = ref(1)
+// 总页数
+const totalPages = ref(1)
+// 总记录
+const totalRecords = ref(50)
+// 页数loading
+const pageLoading = ref(false)
+
 // 抽屉显示状态
 const createUserStatus = ref(false)
 const disabled = ref(false)
@@ -155,14 +181,28 @@ const userInfo = ref({
 })
 
 const getData = async () => {
-  const { data: res } = await $myFetch('UserList')
-
-  res.forEach((element, key) => {
-    res[key].login_time = new Date(element.login_time).toLocaleString()
-    res[key].create_time = new Date(element.create_time).toLocaleString()
+  const { data: res } = await $myFetch('UserList', {
+    params: {
+      page: page.value,
+    },
   })
 
-  tableData.value = res
+  res.userList.forEach((element, key) => {
+    if (element.status === '0') {
+      res.userList[key].status = '启用'
+    } else {
+      res.userList[key].status = '停用'
+    }
+
+    res.userList[key].login_time = new Date(element.login_time).toLocaleString()
+    res.userList[key].create_time = new Date(
+      element.create_time
+    ).toLocaleString()
+  })
+
+  tableData.value = res.userList
+  totalPages.value = res.totalPages
+  totalRecords.value = res.totalRecords
 }
 
 onMounted(() => {
@@ -321,6 +361,18 @@ const handlebindRoleSubmit = async () => {
     $msg(res.data, 'error')
   }
 }
+
+// 监听页数变化
+watch(
+  () => page.value,
+  async (newValue) => {
+    pageLoading.value = true
+    await getData()
+    setTimeout(() => {
+      pageLoading.value = false
+    }, 300)
+  }
+)
 </script>
 
 <style lang="less" scoped>
