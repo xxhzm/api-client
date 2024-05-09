@@ -18,7 +18,6 @@
             :total="totalRecords"
             v-model:current-page="page"
             :disabled="pageLoading"
-            :hide-on-single-page
             small
             background
             layout="prev, pager, next"
@@ -38,7 +37,18 @@
             style="width: 100%"
             height="96%"
           >
-            <el-table-column width="200">
+            <el-table-column prop="id" label="id" width="100" />
+            <el-table-column prop="username" label="用户名称" width="130" />
+            <el-table-column prop="mail" label="邮箱地址" width="200" />
+            <el-table-column prop="create_time" label="注册时间" width="180" />
+            <el-table-column
+              prop="login_time"
+              label="上次登录时间"
+              width="180"
+            />
+            <el-table-column prop="status" label="状态" width="80" />
+            <el-table-column prop="ip" label="ip" width="130" />
+            <el-table-column width="250">
               <template #header>
                 <el-input
                   v-model="search"
@@ -52,6 +62,12 @@
                   @click="handleRole(scope.$index, scope.row)"
                   >绑定角色</el-button
                 >
+                <el-button
+                  size="small"
+                  type="info"
+                  @click="handleUserBindRoleList(scope.$index, scope.row)"
+                  >拥有角色</el-button
+                >
                 <el-popconfirm
                   confirm-button-text="Yes"
                   cancel-button-text="No"
@@ -64,17 +80,6 @@
                 </el-popconfirm>
               </template>
             </el-table-column>
-            <el-table-column prop="id" label="id" width="100" />
-            <el-table-column prop="username" label="用户名称" width="130" />
-            <el-table-column prop="mail" label="邮箱地址" width="200" />
-            <el-table-column prop="create_time" label="注册时间" width="180" />
-            <el-table-column
-              prop="login_time"
-              label="上次登录时间"
-              width="180"
-            />
-            <el-table-column prop="status" label="状态" width="80" />
-            <el-table-column prop="ip" label="ip" width="130" />
           </el-table>
 
           <el-drawer v-model="createUserStatus" direction="rtl">
@@ -119,7 +124,8 @@
           <el-dialog
             v-model="bindRoleDialogStatus"
             title="绑定角色"
-            width="500"
+            width="270"
+            center
           >
             <el-select
               v-model="bindRoleInfo"
@@ -146,6 +152,21 @@
                 </el-button>
               </div>
             </template>
+          </el-dialog>
+
+          <!-- 查看用户拥有角色弹窗 -->
+          <el-dialog
+            v-model="userBindRoleListStatus"
+            title="角色列表"
+            width="500"
+            center
+            destroy-on-close
+          >
+            <el-table :data="userBindRoleList">
+              <el-table-column prop="role_id" label="ID" width="80" />
+              <el-table-column prop="role_name" label="角色名称" width="200" />
+              <el-table-column prop="description" label="描述" width="200" />
+            </el-table>
           </el-dialog>
         </client-only>
       </div>
@@ -373,6 +394,29 @@ watch(
     }, 300)
   }
 )
+
+// 查询用户拥有的角色
+const userBindRoleListStatus = ref(false)
+const userBindRoleList = ref({})
+
+const handleUserBindRoleList = async (index, row) => {
+  pageLoading.value = true
+
+  const res = await $myFetch('UserBindRoleList', {
+    params: {
+      id: row.id,
+    },
+  })
+
+  if (typeof res.data === 'string') {
+    userBindRoleList.value = []
+  } else {
+    userBindRoleList.value = res.data
+  }
+
+  userBindRoleListStatus.value = true
+  pageLoading.value = false
+}
 </script>
 
 <style lang="less" scoped>
