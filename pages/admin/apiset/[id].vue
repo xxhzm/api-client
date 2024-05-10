@@ -1,17 +1,186 @@
 <template>
-  <AdminHeader></AdminHeader>
-  <div style="display: flex">
+  <div class="container">
     <AdminSidebar></AdminSidebar>
-    <div class="apiset-container">
-      <div class="apiset-form">
-        <el-switch
+    <div class="right">
+      <AdminHeader></AdminHeader>
+      <div class="apiset-container">
+        <div class="apiset-cont">
+          <ClientOnly>
+            <el-tabs v-model="activeName">
+              <el-tab-pane label="基本信息" name="Base">
+                <el-form :model="apiSetInfo" label-width="auto">
+                  <el-row :gutter="12">
+                    <el-col :xs="24" :sm="12" :md="12" :lg="8" :xl="8">
+                      <el-form-item label="接口名称"
+                        ><el-input
+                          v-model="apiSetInfo.name"
+                          maxlength="25"
+                          show-word-limit
+                      /></el-form-item>
+                    </el-col>
+
+                    <el-col :xs="24" :sm="12" :md="12" :lg="8" :xl="8">
+                      <el-form-item label="接口别名">
+                        <el-input
+                          v-model="apiSetInfo.alias"
+                          maxlength="25"
+                          show-word-limit
+                        />
+                      </el-form-item>
+                    </el-col>
+
+                    <el-col :xs="24" :sm="12" :md="12" :lg="8" :xl="8">
+                      <el-form-item label="接口地址">
+                        <el-input v-model="apiSetInfo.url" />
+                      </el-form-item>
+                    </el-col>
+
+                    <el-col :xs="24" :sm="12" :md="12" :lg="8" :xl="8">
+                      <el-form-item label="请求类型">
+                        <el-input v-model="apiSetInfo.method" />
+                      </el-form-item>
+                    </el-col>
+
+                    <el-col :xs="24" :sm="12" :md="12" :lg="8" :xl="8">
+                      <el-form-item label="接口分类">
+                        <el-autocomplete
+                          v-model="apiSetInfo.category"
+                          :fetch-suggestions="querySearch"
+                          placeholder="请选择分类"
+                          @select="handleSelect"
+                        />
+                      </el-form-item>
+                    </el-col>
+                  </el-row>
+                </el-form>
+              </el-tab-pane>
+
+              <el-tab-pane label="接口示例" name="Example">
+                <el-form :model="apiSetInfo" label-width="auto">
+                  <el-row :gutter="12">
+                    <el-col :xs="24" :sm="24" :md="24" :lg="24" :xl="24">
+                      <el-form-item label="返回示例">
+                        <el-input
+                          :rows="10"
+                          v-model="apiSetInfo.example"
+                          type="textarea"
+                        />
+                      </el-form-item>
+                    </el-col>
+
+                    <el-col :xs="24" :sm="24" :md="24" :lg="24" :xl="24">
+                      <el-form-item label="ajax">
+                        <el-input
+                          :rows="10"
+                          v-model="apiSetInfo.ajax"
+                          type="textarea"
+                        />
+                      </el-form-item>
+                    </el-col>
+
+                    <el-col :xs="24" :sm="24" :md="24" :lg="24" :xl="24">
+                      <el-form-item label="axios">
+                        <el-input
+                          :rows="10"
+                          v-model="apiSetInfo.axios"
+                          type="textarea"
+                        />
+                      </el-form-item>
+                    </el-col>
+
+                    <el-col :xs="24" :sm="24" :md="24" :lg="24" :xl="24">
+                      <el-form-item label="fetch">
+                        <el-input
+                          :rows="10"
+                          v-model="apiSetInfo.fetch"
+                          type="textarea"
+                        />
+                      </el-form-item>
+                    </el-col>
+
+                    <el-col :xs="24" :sm="24" :md="24" :lg="24" :xl="24">
+                      <el-form-item label="xhr">
+                        <el-input
+                          :rows="10"
+                          v-model="apiSetInfo.xhr"
+                          type="textarea"
+                        />
+                      </el-form-item>
+                    </el-col>
+
+                    <el-col :xs="24" :sm="24" :md="24" :lg="24" :xl="24">
+                      <el-form-item label="php">
+                        <el-input
+                          :rows="10"
+                          v-model="apiSetInfo.php"
+                          type="textarea"
+                        />
+                      </el-form-item>
+                    </el-col>
+
+                    <el-col :xs="24" :sm="24" :md="24" :lg="24" :xl="24">
+                      <el-form-item label="python">
+                        <el-input
+                          :rows="10"
+                          v-model="apiSetInfo.python"
+                          type="textarea"
+                        />
+                      </el-form-item>
+                    </el-col>
+                  </el-row>
+                </el-form>
+              </el-tab-pane>
+              <el-tab-pane label="参数信息" name="Parameter">
+                <el-table :data="res.data.params" >
+                  <el-table-column prop="aid" label="id" width="60" />
+                  <el-table-column prop="name" label="接口名称" width="100" />
+                  <el-table-column prop="param" label="传递参数" width="100" />
+                  <el-table-column
+                    prop="position"
+                    label="传入位置"
+                    width="100"
+                  />
+                  <el-table-column prop="docs" label="参数描述" width="300" />
+                  <el-table-column
+                    prop="required"
+                    label="是否必传"
+                    width="100"
+                  />
+                  <el-table-column
+                    prop="create_time"
+                    label="创建时间"
+                    width="165"
+                  />
+                  <el-table-column width="100" label="操作">
+                    <template #default="scope">
+                      <el-popconfirm
+                        confirm-button-text="Yes"
+                        cancel-button-text="No"
+                        title="你确定要删除吗?"
+                        @confirm="handleDelete(scope.$index, scope.row)"
+                      >
+                        <template #reference>
+                          <el-button size="small" type="danger"
+                            >删除</el-button
+                          >
+                        </template>
+                      </el-popconfirm>
+                    </template>
+                  </el-table-column>
+                </el-table>
+              </el-tab-pane>
+            </el-tabs>
+          </ClientOnly>
+        </div>
+        <!-- <el-switch
           v-model="formOrTable"
           style="margin-bottom: 20px; margin-left: 50px"
           active-text="参数信息"
           inactive-text="接口信息"
-        />
-        <div>
-          <el-form :model="apiSetInfo" label-width="120px" v-if="!formOrTable">
+        /> -->
+        <!-- <div> -->
+
+        <!-- <el-form :model="apiSetInfo" label-width="120px" v-if="!formOrTable">
             <el-form-item label="接口名称">
               <el-input
                 v-model="apiSetInfo.name"
@@ -79,37 +248,9 @@
             <el-form-item>
               <el-button type="primary" @click="onSubmit">提交</el-button>
             </el-form-item>
-          </el-form>
+          </el-form> -->
 
-          <el-table
-            :data="res.data.params"
-            border
-            style="width: 825px; margin-left: 50px"
-            v-if="formOrTable"
-          >
-            <el-table-column width="100" label="操作">
-              <template #default="scope">
-                <el-popconfirm
-                  confirm-button-text="Yes"
-                  cancel-button-text="No"
-                  title="你确定要删除吗?"
-                  @confirm="handleDelete(scope.$index, scope.row)"
-                >
-                  <template #reference>
-                    <el-button size="small" type="danger">Delete</el-button>
-                  </template>
-                </el-popconfirm>
-              </template>
-            </el-table-column>
-            <el-table-column prop="aid" label="id" width="60" />
-            <el-table-column prop="name" label="接口名称" width="100" />
-            <el-table-column prop="param" label="传递参数" width="100" />
-            <el-table-column prop="position" label="传入位置" width="100" />
-            <el-table-column prop="docs" label="参数描述" width="300" />
-            <el-table-column prop="required" label="是否必传" width="100" />
-            <el-table-column prop="create_time" label="创建时间" width="165" />
-          </el-table>
-        </div>
+        <!-- </div> -->
       </div>
     </div>
   </div>
@@ -121,7 +262,8 @@ const route = useRoute()
 const { $msg, $myFetch } = useNuxtApp()
 const msg = $msg
 
-const formOrTable = ref(false)
+// 标签页
+const activeName = ref('Base')
 
 const apiSetInfo = ref({
   name: '',
@@ -248,7 +390,7 @@ const categoryData = ref([])
 const querySearch = async (queryString, cb) => {
   // 如果没有数据则从服务端获取分类内容
   if (categoryData.value.length === 0) {
-    const res= await $myFetch('CategoryList')
+    const res = await $myFetch('CategoryList')
 
     res.data = res.data.map((item) => {
       return {
@@ -282,14 +424,26 @@ const handleSelect = (item) => {
 </script>
 
 <style lang="less" scoped>
-.apiset-container {
-  width: 100%;
-  height: calc(100vh - 65px);
-  padding-left: 20px;
-  padding-top: 35px;
-  .apiset-form {
-    width: 90%;
-    height: 100%;
+.container {
+  display: flex;
+  height: 100vh;
+  .right {
+    width: 100%;
+    background-color: #f7f7f7;
+    overflow-x: hidden;
+    .apiset-container {
+      position: relative;
+      width: 100%;
+      height: 100%;
+      padding: 10px;
+      .apiset-cont {
+        width: 100%;
+        padding: 20px 20px;
+        background: #fff;
+        box-shadow: 0 2px 2px rgb(0 0 0 / 10%);
+        margin-top: 20px;
+      }
+    }
   }
 }
 </style>
