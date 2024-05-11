@@ -11,24 +11,6 @@ if(token.value !== ''){
   authorization.value = token.value
 }
 
-// axios.interceptors.response.use((response) => {
-//   if (response.data?.code === -3) {
-//     $msg(response.data?.msg, 'error')
-//     navigateTo('/error/403')
-//   }
-
-//   if (response.data?.code === -2) {
-//     $msg(response.data?.msg, 'error')
-//   }
-
-//   if (response.config.method === 'post') {
-//     if (response.data?.code === 200) {
-//       $msg(response.data?.msg, 'success')
-//     }
-//   }
-//   return response
-// })
-
 useHead({
   meta: [{ name: 'baidu-site-verification', content: 'codeva-hVOy3sFFbL' }],
   link: [

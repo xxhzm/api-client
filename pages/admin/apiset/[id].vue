@@ -8,9 +8,9 @@
           <ClientOnly>
             <el-tabs v-model="activeName">
               <el-tab-pane label="基本信息" name="Base">
-                <el-form :model="apiSetInfo" label-width="auto">
+                <el-form :model="apiSetInfo">
                   <el-row :gutter="12">
-                    <el-col :xs="24" :sm="12" :md="12" :lg="8" :xl="8">
+                    <el-col :xs="24" :sm="24" :md="24" :lg="24" :xl="24">
                       <el-form-item label="接口名称"
                         ><el-input
                           v-model="apiSetInfo.name"
@@ -19,7 +19,7 @@
                       /></el-form-item>
                     </el-col>
 
-                    <el-col :xs="24" :sm="12" :md="12" :lg="8" :xl="8">
+                    <el-col :xs="24" :sm="24" :md="24" :lg="24" :xl="24">
                       <el-form-item label="接口别名">
                         <el-input
                           v-model="apiSetInfo.alias"
@@ -29,19 +29,19 @@
                       </el-form-item>
                     </el-col>
 
-                    <el-col :xs="24" :sm="12" :md="12" :lg="8" :xl="8">
+                    <el-col :xs="24" :sm="24" :md="24" :lg="24" :xl="24">
                       <el-form-item label="接口地址">
                         <el-input v-model="apiSetInfo.url" />
                       </el-form-item>
                     </el-col>
 
-                    <el-col :xs="24" :sm="12" :md="12" :lg="8" :xl="8">
+                    <el-col :xs="24" :sm="24" :md="24" :lg="24" :xl="24">
                       <el-form-item label="请求类型">
                         <el-input v-model="apiSetInfo.method" />
                       </el-form-item>
                     </el-col>
 
-                    <el-col :xs="24" :sm="12" :md="12" :lg="8" :xl="8">
+                    <el-col :xs="24" :sm="24" :md="24" :lg="24" :xl="24">
                       <el-form-item label="接口分类">
                         <el-autocomplete
                           v-model="apiSetInfo.category"
@@ -51,13 +51,25 @@
                         />
                       </el-form-item>
                     </el-col>
+
+                    <el-col :xs="24" :sm="24" :md="24" :lg="24" :xl="24">
+                      <el-form-item label="接口状态">
+                        <el-select
+                          v-model="apiSetInfo.state"
+                          placeholder="请选择状态"
+                        >
+                          <el-option label="启用" :value="true"></el-option>
+                          <el-option label="停用" :value="false"></el-option>
+                        </el-select>
+                      </el-form-item>
+                    </el-col>
                   </el-row>
                 </el-form>
               </el-tab-pane>
 
               <el-tab-pane label="接口示例" name="Example">
-                <el-form :model="apiSetInfo" label-width="auto">
-                  <el-row :gutter="12">
+                <el-form :model="apiSetInfo" label-width="80px">
+                  <el-row :gutter="24">
                     <el-col :xs="24" :sm="24" :md="24" :lg="24" :xl="24">
                       <el-form-item label="返回示例">
                         <el-input
@@ -131,7 +143,7 @@
                 </el-form>
               </el-tab-pane>
               <el-tab-pane label="参数信息" name="Parameter">
-                <el-table :data="res.data.params" >
+                <el-table :data="res.data.params">
                   <el-table-column prop="aid" label="id" width="60" />
                   <el-table-column prop="name" label="接口名称" width="100" />
                   <el-table-column prop="param" label="传递参数" width="100" />
@@ -160,9 +172,7 @@
                         @confirm="handleDelete(scope.$index, scope.row)"
                       >
                         <template #reference>
-                          <el-button size="small" type="danger"
-                            >删除</el-button
-                          >
+                          <el-button size="small" type="danger">删除</el-button>
                         </template>
                       </el-popconfirm>
                     </template>
@@ -170,87 +180,29 @@
                 </el-table>
               </el-tab-pane>
             </el-tabs>
+            <div class="apiset-footer">
+              <div class="button">
+                <el-button
+                  size="large"
+                  color="#626aef"
+                  type="primary"
+                  :loading="buttonStatus"
+                  @click="updateApiInfo"
+                  >提交</el-button
+                >
+
+                <el-button
+                  size="large"
+                  color="#ff9e08"
+                  style="color: #fff"
+                  type="primary"
+                  @click="navigateTo('/admin/apilist')"
+                  >返回</el-button
+                >
+              </div>
+            </div>
           </ClientOnly>
         </div>
-        <!-- <el-switch
-          v-model="formOrTable"
-          style="margin-bottom: 20px; margin-left: 50px"
-          active-text="参数信息"
-          inactive-text="接口信息"
-        /> -->
-        <!-- <div> -->
-
-        <!-- <el-form :model="apiSetInfo" label-width="120px" v-if="!formOrTable">
-            <el-form-item label="接口名称">
-              <el-input
-                v-model="apiSetInfo.name"
-                maxlength="25"
-                show-word-limit
-              />
-            </el-form-item>
-            <el-form-item label="接口别名">
-              <el-input
-                v-model="apiSetInfo.alias"
-                maxlength="25"
-                show-word-limit
-              />
-            </el-form-item>
-            <el-form-item label="接口描述">
-              <el-input v-model="apiSetInfo.description" />
-            </el-form-item>
-            <el-form-item label="接口关键词">
-              <el-input v-model="apiSetInfo.keywords" />
-            </el-form-item>
-            <el-form-item label="接口地址">
-              <el-input v-model="apiSetInfo.url" />
-            </el-form-item>
-            <el-form-item label="请求类型">
-              <el-input v-model="apiSetInfo.method" />
-            </el-form-item>
-
-            <el-form-item label="接口分类">
-              <client-only>
-                <el-autocomplete
-                  v-model="apiSetInfo.category"
-                  :fetch-suggestions="querySearch"
-                  placeholder="请选择分类"
-                  @select="handleSelect"
-                />
-              </client-only>
-            </el-form-item>
-
-            <el-form-item label="返回示例">
-              <el-input v-model="apiSetInfo.example" type="textarea" />
-            </el-form-item>
-
-            <el-form-item label="ajax">
-              <el-input v-model="apiSetInfo.ajax" type="textarea" />
-            </el-form-item>
-            <el-form-item label="axios">
-              <el-input v-model="apiSetInfo.axios" type="textarea" />
-            </el-form-item>
-            <el-form-item label="fetch">
-              <el-input v-model="apiSetInfo.fetch" type="textarea" />
-            </el-form-item>
-            <el-form-item label="xhr">
-              <el-input v-model="apiSetInfo.xhr" type="textarea" />
-            </el-form-item>
-            <el-form-item label="php">
-              <el-input v-model="apiSetInfo.php" type="textarea" />
-            </el-form-item>
-            <el-form-item label="python">
-              <el-input v-model="apiSetInfo.python" type="textarea" />
-            </el-form-item>
-
-            <el-form-item label="是否启用">
-              <el-switch v-model="apiSetInfo.state" />
-            </el-form-item>
-            <el-form-item>
-              <el-button type="primary" @click="onSubmit">提交</el-button>
-            </el-form-item>
-          </el-form> -->
-
-        <!-- </div> -->
       </div>
     </div>
   </div>
@@ -264,6 +216,8 @@ const msg = $msg
 
 // 标签页
 const activeName = ref('Base')
+
+const buttonStatus = ref(false)
 
 const apiSetInfo = ref({
   name: '',
@@ -318,7 +272,7 @@ if (res.data.state === '启用') {
   apiSetInfo.value.state = false
 }
 
-const onSubmit = async () => {
+const updateApiInfo = async () => {
   if (apiSetInfo.value.category === '' || apiSetInfo.value.categoryId === '') {
     msg('请选择分类', 'error')
     return false
@@ -335,6 +289,9 @@ const onSubmit = async () => {
     msg('请填写内容', 'error')
     return false
   }
+
+  // 将按钮禁用
+  buttonStatus.value = true
 
   const bodyValue = new URLSearchParams()
   bodyValue.append('id', apiSetInfo.value.id)
@@ -360,12 +317,18 @@ const onSubmit = async () => {
     bodyValue.append('state', '关闭')
   }
 
-  const { data: res } = await $myFetch('ApiUpdate', {
+  const res = await $myFetch('ApiUpdate', {
     method: 'POST',
     body: bodyValue,
   })
 
-  navigateTo('/admin/apilist')
+  if (res.code === 200) {
+    msg(res.msg, 'success')
+  }
+
+  setTimeout(() => {
+    navigateTo('/admin/apilist')
+  }, 1000)
 }
 
 const handleDelete = async (index, row) => {
@@ -442,6 +405,23 @@ const handleSelect = (item) => {
         background: #fff;
         box-shadow: 0 2px 2px rgb(0 0 0 / 10%);
         margin-top: 20px;
+        padding-bottom: 100px;
+      }
+
+      .apiset-footer {
+        position: fixed;
+        bottom: 0;
+        right: 0;
+        width: calc(100% - 200px);
+        height: 80px;
+        background: #fff;
+        box-shadow: 0 2px 2px rgb(0 0 0 / 30%);
+        .button {
+          position: absolute;
+          right: 50px;
+          top: 50%;
+          transform: translateY(-50%);
+        }
       }
     }
   }
