@@ -62,11 +62,15 @@
             >
           </el-menu-item-group>
         </el-sub-menu>
-        <el-menu-item index="5" @click="navigateTo('/')">
+        <el-menu-item index="5" @click="navigateTo('/admin/links')">
+          <el-icon><Connection /></el-icon>
+          <template #title>友情链接</template>
+        </el-menu-item>
+        <el-menu-item index="6" @click="navigateTo('/')">
           <el-icon><Promotion /></el-icon>
           <template #title>访问前台</template>
         </el-menu-item>
-        <el-menu-item index="6" @click="deleteCache()">
+        <el-menu-item index="7" @click="deleteCache()">
           <el-icon><Coin /></el-icon>
           <template #title>清空缓存</template>
         </el-menu-item>
@@ -82,10 +86,10 @@ import {
   Menu as IconMenu,
   Setting,
   Odometer,
-  UserFilled,
   Promotion,
   Coin,
   Avatar,
+  Connection
 } from '@element-plus/icons-vue'
 
 const { $myFetch } = useNuxtApp()
