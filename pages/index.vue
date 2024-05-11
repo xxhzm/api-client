@@ -44,8 +44,6 @@ useHead({
 </script>
 
 <style lang="less" scoped>
-@import '@/assets/css/1.less';
-
 .index-container {
   width: 100%;
   height: 100%;
