@@ -8,7 +8,7 @@
           type="primary"
           style="margin-bottom: 20px"
           size="small"
-          @click=";(createRoleStatus = true), (disabled = true)"
+          @click="dialogStatus = true"
           >新增角色</el-button
         >
         <client-only>
@@ -25,31 +25,32 @@
                 >
                   编辑
                 </el-button>
-                <el-button
-                  size="small"
-                  type="danger"
-                  @click="handleDelete(scope.$index, scope.row)"
+                <el-popconfirm
+                  confirm-button-text="Yes"
+                  cancel-button-text="No"
+                  title="你确定要删除吗?"
+                  @confirm="handleDelete(scope.$index, scope.row)"
                 >
-                  删除
-                </el-button>
+                  <template #reference>
+                    <el-button size="small" type="danger">删除</el-button>
+                  </template>
+                </el-popconfirm>
               </template>
             </el-table-column>
           </el-table>
 
-          <el-drawer v-model="disabled" direction="rtl">
-            <template #header>
-              <h2>{{ createRoleStatus ? '添加角色' : '修改角色' }}</h2>
-            </template>
+          <el-dialog
+            v-model="dialogStatus"
+            :title="updateRoleStatus ? '修改角色' : '添加角色'"
+            width="400"
+            center
+          >
             <template #default>
               <el-form
                 :model="roleInfo"
                 label-position="top"
                 label-width="120px"
               >
-                <el-form-item label="角色ID">
-                  <el-input v-model="roleInfo.role_id" :disabled="disabled" />
-                </el-form-item>
-
                 <el-form-item label="角色名称">
                   <el-input type="input" v-model="roleInfo.role_name" />
                 </el-form-item>
@@ -68,13 +69,13 @@
             </template>
             <template #footer>
               <div style="flex: auto">
-                <el-button @click="createRoleStatus = false">取消</el-button>
+                <el-button @click="dialogStatus = false">取消</el-button>
                 <el-button type="primary" @click="submit">{{
-                  disabled ? '修改' : '创建'
+                  updateRoleStatus ? '修改' : '创建'
                 }}</el-button>
               </div>
             </template>
-          </el-drawer>
+          </el-dialog>
         </client-only>
       </div>
     </div>
@@ -88,11 +89,11 @@ const { $msg } = useNuxtApp()
 const loading = ref(false)
 const tableData = ref([])
 
-// 抽屉显示状态
-const createRoleStatus = ref(true)
-const disabled = ref(false)
+// 弹窗显示状态
+const dialogStatus = ref(false)
+const updateRoleStatus = ref(false)
 
-// 抽屉信息
+// 弹窗信息
 const roleInfo = ref({
   role_id: 0,
   role_name: '',
@@ -101,9 +102,7 @@ const roleInfo = ref({
 })
 
 const getData = async () => {
-  const {
-    data: { value: res },
-  } = await useAsyncData('RoleList', () => $myFetch('RoleList'))
+  const res = await $myFetch('RoleList')
 
   tableData.value = res.data
 
@@ -116,11 +115,13 @@ const getData = async () => {
   })
 }
 
-await getData()
+onMounted(async () => {
+  await getData()
+})
 
 const handleEdit = (index, row) => {
-  createRoleStatus.value = false
-  disabled.value = true
+  dialogStatus.value = true
+  updateRoleStatus.value = true
 
   roleInfo.value.role_id = row.role_id
   roleInfo.value.role_name = row.role_name
@@ -129,10 +130,26 @@ const handleEdit = (index, row) => {
 }
 
 const handleDelete = async (index, row) => {
-  console.log(index, row)
+  loading.value = true
+
+  const res = await $myFetch('DeleteRole', {
+    params: {
+      id: row.role_id,
+    },
+  })
+
+  if (res.code === 200) {
+    $msg(res.msg, 'success')
+  } else {
+    $msg(res.msg, 'error')
+  }
+
+  await getData()
+  loading.value = false
 }
 
-const updateRole = async () => {
+// 弹窗按钮点击事件
+const submit = async () => {
   if (
     !roleInfo.value.role_name ||
     !roleInfo.value.description ||
@@ -143,7 +160,6 @@ const updateRole = async () => {
   }
 
   const body = new URLSearchParams()
-  body.append('roleId', roleInfo.value.role_id)
   body.append('roleName', roleInfo.value.role_name)
   body.append('description', roleInfo.value.description)
   if (roleInfo.value.status === '启用') {
@@ -152,50 +168,44 @@ const updateRole = async () => {
     body.append('status', '1')
   }
 
-  const res = await $myFetch('UpdateRole', {
+  const url = ref('')
+
+  // 判断是添加还是修改
+  if (updateRoleStatus.value === true) {
+    url.value = 'UpdateRole'
+
+    // 判断id是否存在
+    if (roleInfo.value.id === 0) {
+      $msg('请填写完整信息', 'error')
+      return
+    }
+
+    body.append('roleId', roleInfo.value.role_id)
+  } else {
+    url.value = 'CreateRole'
+  }
+
+  const res = await $myFetch(url.value, {
     method: 'POST',
     body,
   })
 
   if (res.code === 200) {
-    $msg(res.data, 'success')
+    $msg(res.msg, 'success')
   } else {
-    $msg(res.data, 'error')
+    $msg(res.msg, 'error')
   }
 
-  // 请求新的数据
-  const { data: res1 } = await $myFetch('RoleList')
-
-  tableData.value = res1
-
-  tableData.value.forEach((element, k) => {
-    if (element.status === '0' || element.status === '启用') {
-      tableData.value[k].status = '启用'
-    } else {
-      tableData.value[k].status = '停用'
-    }
-  })
-
-  disabled.value = false
+  await getData()
+  dialogStatus.value = false
+  loading.value = false
 }
 
-const createRole = () => {
-  console.log(2)
-}
-
-// 抽屉按钮点击事件
-const submit = () => {
-  if (createRoleStatus.value) {
-    createRole()
-  } else {
-    updateRole()
-  }
-}
-
-// 监听抽屉是否关闭
-watch(disabled, (newValue) => {
+// 监听弹窗是否关闭
+watch(dialogStatus, (newValue) => {
   if (newValue === false) {
-    disabled.value = false
+    updateRoleStatus.value = false
+
     roleInfo.value.role_id = 0
     roleInfo.value.role_name = ''
     roleInfo.value.description = ''

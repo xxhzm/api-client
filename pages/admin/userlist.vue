@@ -377,9 +377,9 @@ const handlebindRoleSubmit = async () => {
 
   bindRoleDialogStatus.value = false
   if (res.code === 200) {
-    $msg(res.data, 'success')
+    $msg(res.msg, 'success')
   } else {
-    $msg(res.data, 'error')
+    $msg(res.msg, 'error')
   }
 }
 
