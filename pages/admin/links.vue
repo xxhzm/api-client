@@ -9,7 +9,7 @@
             type="primary"
             style="margin-bottom: 20px; float: left"
             size="small"
-            @click="createLinkStatus = true"
+            @click="dialogStatus = true"
             >新增链接</el-button
           >
           <el-table
@@ -47,9 +47,8 @@
             <el-table-column prop="description" label="描述" width="280" />
           </el-table>
 
-          <!-- 绑定角色对话框 -->
           <el-dialog
-            v-model="createLinkStatus"
+            v-model="dialogStatus"
             :title="updateLinkStatus ? '修改链接' : '添加链接'"
             width="400"
             center
@@ -79,7 +78,7 @@
             </template>
             <template #footer>
               <div style="flex: auto">
-                <el-button @click="createLinkStatus = false">取消</el-button>
+                <el-button @click="dialogStatus = false">取消</el-button>
                 <el-button type="primary" @click="submit">{{
                   updateLinkStatus ? '修改' : '创建'
                 }}</el-button>
@@ -101,7 +100,7 @@ const search = ref('')
 const loading = ref(false)
 
 // 弹窗显示状态
-const createLinkStatus = ref(false)
+const dialogStatus = ref(false)
 const updateLinkStatus = ref(false)
 
 const linkInfo = ref({
@@ -133,7 +132,7 @@ const filterTableData = computed(() =>
 
 // 编辑链接
 const handleEdit = (index, row) => {
-  createLinkStatus.value = true
+  dialogStatus.value = true
   updateLinkStatus.value = true
 
   linkInfo.value.id = row.id
@@ -210,12 +209,12 @@ const submit = async () => {
   }
 
   await getData()
-  createLinkStatus.value = false
+  dialogStatus.value = false
   loading.value = false
 }
 
 // 监听弹窗是否关闭，将信息设置为默认
-watch(createLinkStatus, (newValue) => {
+watch(dialogStatus, (newValue) => {
   if (newValue === false) {
     updateLinkStatus.value = false
 

@@ -1,24 +1,9 @@
 <template>
   <div class="login-container">
     <div class="login cont" v-if="LoginIsRegister">
-      <span class="back" @click="goBack"
-        ><svg
-          xmlns="http://www.w3.org/2000/svg"
-          width="16"
-          height="16"
-          fill="currentColor"
-          class="bi bi-box-arrow-right"
-          viewBox="0 0 16 16"
-        >
-          <path
-            fill-rule="evenodd"
-            d="M10 12.5a.5.5 0 0 1-.5.5h-8a.5.5 0 0 1-.5-.5v-9a.5.5 0 0 1 .5-.5h8a.5.5 0 0 1 .5.5v2a.5.5 0 0 0 1 0v-2A1.5 1.5 0 0 0 9.5 2h-8A1.5 1.5 0 0 0 0 3.5v9A1.5 1.5 0 0 0 1.5 14h8a1.5 1.5 0 0 0 1.5-1.5v-2a.5.5 0 0 0-1 0v2z"
-          />
-          <path
-            fill-rule="evenodd"
-            d="M15.854 8.354a.5.5 0 0 0 0-.708l-3-3a.5.5 0 0 0-.708.708L14.293 7.5H5.5a.5.5 0 0 0 0 1h8.793l-2.147 2.146a.5.5 0 0 0 .708.708l3-3z"
-          /></svg
-        >返回首页</span
+      <span class="back" @click="goBack">
+        <img src="@/assets/images/goback.svg" />
+        返回首页</span
       >
       <h4 class="title">登录</h4>
       <p class="text">请输入账号密码进行登录<br />无法登录请刷新此页面</p>
@@ -55,23 +40,7 @@
     </div>
     <div class="register cont" v-if="!LoginIsRegister">
       <span class="back" @click="goBack"
-        ><svg
-          xmlns="http://www.w3.org/2000/svg"
-          width="16"
-          height="16"
-          fill="currentColor"
-          class="bi bi-box-arrow-right"
-          viewBox="0 0 16 16"
-        >
-          <path
-            fill-rule="evenodd"
-            d="M10 12.5a.5.5 0 0 1-.5.5h-8a.5.5 0 0 1-.5-.5v-9a.5.5 0 0 1 .5-.5h8a.5.5 0 0 1 .5.5v2a.5.5 0 0 0 1 0v-2A1.5 1.5 0 0 0 9.5 2h-8A1.5 1.5 0 0 0 0 3.5v9A1.5 1.5 0 0 0 1.5 14h8a1.5 1.5 0 0 0 1.5-1.5v-2a.5.5 0 0 0-1 0v2z"
-          />
-          <path
-            fill-rule="evenodd"
-            d="M15.854 8.354a.5.5 0 0 0 0-.708l-3-3a.5.5 0 0 0-.708.708L14.293 7.5H5.5a.5.5 0 0 0 0 1h8.793l-2.147 2.146a.5.5 0 0 0 .708.708l3-3z"
-          /></svg
-        >返回首页</span
+        ><img src="@/assets/images/goback.svg" />返回首页</span
       >
       <h4 class="title">注册</h4>
       <p class="text">请输入账号密码进行注册</p>
@@ -157,8 +126,6 @@ const info = reactive({
 const LoginIsRegister = ref(true)
 const loginAndRegisterButtonStatus = ref(false)
 
-const msg = $msg
-
 const goBack = () => {
   navigateTo('/')
 }
@@ -169,7 +136,7 @@ const login = async () => {
   }
 
   if (info.username.length < 6 || info.password.length < 6) {
-    msg('请输入6位以上的账号密码', 'error')
+    $msg('请输入6位以上的账号密码', 'error')
     return false
   }
 
@@ -178,7 +145,6 @@ const login = async () => {
 
   // 使用加密算法对数据进行加密
   bodyValue.append('password', $enCode(info.password))
-
   const res = await $myFetch('Login', {
     method: 'POST',
     body: bodyValue,
@@ -193,7 +159,12 @@ const login = async () => {
     const authorization = useState('Authorization')
     authorization.value = res.data.token
 
+    $msg('登录成功', 'success')
+
+    // 跳转到首页
     window.location.href = '/admin'
+  } else {
+    $msg(res.msg, 'error')
   }
 }
 
@@ -244,7 +215,7 @@ const getMailCode = async () => {
   getVerifyCodeButtonState.value = true
 
   if (rule.test(info.mail) === false) {
-    msg('请填写正确的信息', 'error')
+    $msg('请填写正确的信息', 'error')
     return false
   }
 
@@ -277,12 +248,12 @@ const register = async () => {
     rule.test(info.mail) === false ||
     info.mailCode === ''
   ) {
-    msg('请正确填写账号信息', 'error')
+    $msg('请正确填写账号信息', 'error')
     return false
   }
 
   if (info.username.length < 6 || info.password.length < 6) {
-    msg('请输入6位以上的账号密码', 'error')
+    $msg('请输入6位以上的账号密码', 'error')
     return false
   }
 
@@ -297,7 +268,7 @@ const register = async () => {
     method: 'POST',
     body,
   })
-  
+
   if (res.code === 200) {
     setTimeout(() => {
       router.go(0)
@@ -330,7 +301,7 @@ const register = async () => {
       color: #98a6ad;
       cursor: pointer;
       margin-bottom: 48px;
-      svg {
+      img {
         display: inline-block;
         position: relative;
         top: 2px;

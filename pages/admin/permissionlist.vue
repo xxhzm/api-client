@@ -3,12 +3,12 @@
     <AdminSidebar></AdminSidebar>
     <div class="right">
       <AdminHeader></AdminHeader>
-      <div class="apilist-container" v-loading="loading">
+      <div class="permissionlist-container" v-loading="loading">
         <el-button
           type="primary"
           style="margin-bottom: 20px"
           size="small"
-          @click=";(createPermissionStatus = true), (disabled = true)"
+          @click="dialogStatus = true"
           >新增规则</el-button
         >
         <client-only>
@@ -32,31 +32,32 @@
                 >
                   绑定角色
                 </el-button>
-                <el-button
-                  size="small"
-                  type="danger"
-                  @click="handleDelete(scope.$index, scope.row)"
+                <el-popconfirm
+                  confirm-button-text="Yes"
+                  cancel-button-text="No"
+                  title="你确定要删除吗?"
+                  @confirm="handleDelete(scope.$index, scope.row)"
                 >
-                  删除
-                </el-button>
+                  <template #reference>
+                    <el-button size="small" type="danger">删除</el-button>
+                  </template>
+                </el-popconfirm>
               </template>
             </el-table-column>
           </el-table>
 
-          <el-drawer v-model="disabled" direction="rtl">
-            <template #header>
-              <h2>{{ createPermissionStatus ? '添加规则' : '修改规则' }}</h2>
-            </template>
+          <el-dialog
+            v-model="dialogStatus"
+            :title="updatePermissionStatus ? '修改链接' : '添加链接'"
+            width="400"
+            center
+          >
             <template #default>
               <el-form
                 :model="permissionInfo"
                 label-position="top"
                 label-width="120px"
               >
-                <el-form-item label="规则ID" v-if="!createPermissionStatus">
-                  <el-input v-model="permissionInfo.id" :disabled="disabled" />
-                </el-form-item>
-
                 <el-form-item label="规则名称">
                   <el-input type="input" v-model="permissionInfo.name" />
                 </el-form-item>
@@ -72,15 +73,13 @@
             </template>
             <template #footer>
               <div style="flex: auto">
-                <el-button @click="createPermissionStatus = false"
-                  >取消</el-button
-                >
+                <el-button @click="dialogStatus = false">取消</el-button>
                 <el-button type="primary" @click="submit">{{
-                  disabled ? '修改' : '创建'
+                  updatePermissionStatus ? '修改' : '创建'
                 }}</el-button>
               </div>
             </template>
-          </el-drawer>
+          </el-dialog>
 
           <!-- 绑定角色对话框 -->
           <el-dialog
@@ -127,11 +126,11 @@ const { $msg } = useNuxtApp()
 const loading = ref(false)
 const tableData = ref([])
 
-// 抽屉显示状态
-const createPermissionStatus = ref(true)
-const disabled = ref(false)
+// 弹窗显示状态
+const dialogStatus = ref(false)
+const updatePermissionStatus = ref(false)
 
-// 抽屉信息
+// 信息
 const permissionInfo = ref({
   id: 0,
   name: '',
@@ -149,59 +148,31 @@ onMounted(() => {
 })
 
 const handleEdit = (index, row) => {
-  // createPermissionStatus.value = false
-  // disabled.value = true
-  // roleInfo.value.role_id = row.role_id
-  // roleInfo.value.role_name = row.role_name
-  // roleInfo.value.description = row.description
-  // roleInfo.value.status = row.status
+  dialogStatus.value = true
+  updatePermissionStatus.value = true
+
+  permissionInfo.value.id = row.id
+  permissionInfo.value.name = row.name
+  permissionInfo.value.path = row.path
+  permissionInfo.value.description = row.description
 }
 
 const handleDelete = async (index, row) => {
-  console.log(index, row)
+  loading.value = true
+
+  const { data: res } = await $myFetch('DeletePermission', {
+    params: {
+      id: row.id,
+    },
+  })
+
+  $msg(res.msg, 'success')
+  await getData()
+  loading.value = false
 }
 
-const updateRole = async () => {
-  // if (
-  //   !roleInfo.value.role_name ||
-  //   !roleInfo.value.description ||
-  //   !roleInfo.value.status
-  // ) {
-  //   $msg('请填写内容', 'error')
-  //   return false
-  // }
-  // const body = new URLSearchParams()
-  // body.append('roleId', roleInfo.value.role_id)
-  // body.append('roleName', roleInfo.value.role_name)
-  // body.append('description', roleInfo.value.description)
-  // if (roleInfo.value.status === '启用') {
-  //   body.append('status', '0')
-  // } else {
-  //   body.append('status', '1')
-  // }
-  // const res = await $myFetch('UpdateRole', {
-  //   method: 'POST',
-  //   body,
-  // })
-  // if (res.code === 200) {
-  //   $msg(res.data, 'success')
-  // } else {
-  //   $msg(res.data, 'error')
-  // }
-  // // 请求新的数据
-  // const { data: res1 } = await $myFetch('RoleList')
-  // tableData.value = res1
-  // tableData.value.forEach((element, k) => {
-  //   if (element.status === '0' || element.status === '启用') {
-  //     tableData.value[k].status = '启用'
-  //   } else {
-  //     tableData.value[k].status = '停用'
-  //   }
-  // })
-  // disabled.value = false
-}
-
-const createRole = async () => {
+// 抽屉按钮点击事件
+const submit = async () => {
   if (
     !permissionInfo.value.name ||
     !permissionInfo.value.path ||
@@ -216,42 +187,54 @@ const createRole = async () => {
   body.append('path', permissionInfo.value.path)
   body.append('description', permissionInfo.value.description)
 
-  const res = await $myFetch('CreatePermission', {
+  const url = ref('')
+
+  // 判断是添加链接还是修改链接
+  if (updatePermissionStatus.value === true) {
+    url.value = 'UpdatePermission'
+
+    // 判断id是否存在
+    if (permissionInfo.value.id === 0) {
+      $msg('请填写完整信息', 'error')
+      return
+    }
+
+    body.append('id', permissionInfo.value.id)
+  } else {
+    url.value = 'CreatePermission'
+  }
+
+  const res = await $myFetch(url.value, {
     method: 'POST',
     body,
   })
 
   if (res.code === 200) {
-    $msg(res.data, 'success')
+    $msg(res.msg, 'success')
   } else {
-    $msg(res.data, 'error')
-  }
-}
-
-// 抽屉按钮点击事件
-const submit = () => {
-  if (createPermissionStatus.value) {
-    createRole()
-  } else {
-    updateRole()
+    $msg(res.msg, 'error')
   }
 
-  disabled.value = false
+  await getData()
+  dialogStatus.value = false
+  loading.value = false
 }
 
-// 监听抽屉是否关闭
-watch(disabled, (newValue) => {
+// 监听弹窗是否关闭
+watch(dialogStatus, (newValue) => {
   if (newValue === false) {
+    updatePermissionStatus.value = false
+
     permissionInfo.value.id = 0
     permissionInfo.value.name = ''
     permissionInfo.value.path = ''
-    permissionInfo.value.description = '启用'
+    permissionInfo.value.description = ''
   }
 })
 
 // 绑定角色
 const bindRoleDialogStatus = ref(false)
-const bindRoleInfo = ref({})
+const bindRoleInfo = ref([])
 const roleList = ref({})
 const permissionId = ref()
 
@@ -281,11 +264,21 @@ const handlebindRoleSubmit = async () => {
   bindRoleDialogStatus.value = false
 
   if (res.code === 200) {
-    $msg(res.data, 'success')
+    $msg(res.msg, 'success')
   } else {
-    $msg(res.data, 'error')
+    $msg(res.msg, 'error')
   }
 }
+
+// 监听绑定角色弹窗是否关闭
+watch(bindRoleDialogStatus, (newValue) => {
+  if (newValue === false) {
+    // 将数据恢复默认
+    bindRoleInfo.value = []
+    permissionId.value = null
+  }
+})
+
 loading.value = false
 </script>
 
@@ -295,7 +288,7 @@ loading.value = false
   .right {
     width: 100%;
     overflow-x: hidden;
-    .apilist-container {
+    .permissionlist-container {
       width: 100%;
       height: calc(100vh - 65px);
       padding-left: 20px;

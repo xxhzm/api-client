@@ -260,7 +260,7 @@ const handleDelete = async (index, row) => {
     },
   })
 
-  $msg(res.data, 'success')
+  $msg(res.msg, 'success')
   await getData()
   loading.value = false
 }
