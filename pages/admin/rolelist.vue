@@ -25,6 +25,12 @@
                 >
                   编辑
                 </el-button>
+                <el-button
+                  size="small"
+                  type="info"
+                  @click="handleRoleBindPermissionList(scope.$index, scope.row)"
+                  >拥有权限</el-button
+                >
                 <el-popconfirm
                   confirm-button-text="Yes"
                   cancel-button-text="No"
@@ -75,6 +81,26 @@
                 }}</el-button>
               </div>
             </template>
+          </el-dialog>
+
+          <!-- 查看角色拥有权限弹窗 -->
+          <el-dialog
+            v-model="userBindRoleListStatus"
+            title="权限列表"
+            width="750"
+            center
+            destroy-on-close
+          >
+            <el-table :data="userBindRoleList">
+              <el-table-column prop="id" label="ID" width="80" />
+              <el-table-column prop="name" label="权限名称" width="200" />
+              <el-table-column prop="path" label="权限路径" width="200" />
+              <el-table-column
+                prop="description"
+                label="权限描述"
+                width="200"
+              />
+            </el-table>
           </el-dialog>
         </client-only>
       </div>
@@ -212,6 +238,29 @@ watch(dialogStatus, (newValue) => {
     roleInfo.value.status = '启用'
   }
 })
+
+// 查询角色拥有的权限
+const userBindRoleListStatus = ref(false)
+const userBindRoleList = ref({})
+
+const handleRoleBindPermissionList = async (index, row) => {
+  loading.value = true
+
+  const res = await $myFetch('RoleBindPermissionList', {
+    params: {
+      id: row.role_id,
+    },
+  })
+
+  if (typeof res.data === 'string') {
+    userBindRoleList.value = []
+  } else {
+    userBindRoleList.value = res.data
+  }
+
+  userBindRoleListStatus.value = true
+  loading.value = false
+}
 
 loading.value = false
 </script>
