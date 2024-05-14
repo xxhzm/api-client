@@ -254,7 +254,7 @@ const handleEdit = (index, row) => {
 const handleDelete = async (index, row) => {
   loading.value = true
 
-  const { data: res } = await $myFetch('DeleteUser', {
+  const res = await $myFetch('DeleteUser', {
     params: {
       id: row.id,
     },
@@ -381,6 +381,8 @@ const handlebindRoleSubmit = async () => {
   } else {
     $msg(res.msg, 'error')
   }
+  
+  bindRoleInfo.value = []
 }
 
 // 监听页数变化

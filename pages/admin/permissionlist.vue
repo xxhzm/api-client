@@ -14,9 +14,9 @@
         <client-only>
           <el-table :data="tableData" style="width: 100%" height="96%">
             <el-table-column prop="id" label="ID" width="80" />
-            <el-table-column prop="name" label="名称名称" width="150" />
-            <el-table-column prop="path" label="规则地址" width="150" />
-            <el-table-column prop="description" label="描述" width="150" />
+            <el-table-column prop="name" label="名称名称" width="200" />
+            <el-table-column prop="path" label="规则地址" width="200" />
+            <el-table-column prop="description" label="描述" width="200" />
             <el-table-column label="操作">
               <template #default="scope">
                 <el-button
@@ -160,13 +160,13 @@ const handleEdit = (index, row) => {
 const handleDelete = async (index, row) => {
   loading.value = true
 
-  const { data: res } = await $myFetch('DeletePermission', {
+  const res = await $myFetch('DeletePermission', {
     params: {
       id: row.id,
     },
   })
 
-  $msg(res.msg, 'success')
+  $msg(res.data, 'success')
   await getData()
   loading.value = false
 }

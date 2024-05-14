@@ -305,7 +305,7 @@ const create = async () => {
     apiBodyValue.append('state', '禁用')
   }
 
-  const { data: res } = await $myFetch('ApiCreate', {
+  const res = await $myFetch('ApiCreate', {
     method: 'POST',
     body: apiBodyValue,
   })
@@ -313,6 +313,8 @@ const create = async () => {
   if (res.code !== 200) {
     return false
   }
+
+  msg(res.msg, 'success')
 
   // 接口添加成功后添加参数
   addparameter.id = res.data
@@ -340,16 +342,14 @@ const create = async () => {
     paramBodyValue.append('required', 2)
   }
 
-  const { data: res1 } = await $myFetch('ParamCreate', {
+  const res1 = await $myFetch('ParamCreate', {
     method: 'POST',
     body: paramBodyValue,
   })
 
-  if (res1.code === 200) {
-    msg(res1.msg, 'success')
-  }
-
-  navigateTo('/admin/apilist')
+  setTimeout(() => {
+    navigateTo('/admin/apilist')
+  }, 500)
 }
 
 // 分类的数据
@@ -358,7 +358,7 @@ const categoryData = ref([])
 const querySearch = async (queryString, cb) => {
   // 如果没有数据则从服务端获取分类内容
   if (categoryData.value.length === 0) {
-    const { data: res } = await $myFetch('CategoryList')
+    const res = await $myFetch('CategoryList')
 
     res.data = res.data.map((item) => {
       return {

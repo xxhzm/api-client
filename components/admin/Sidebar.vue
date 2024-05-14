@@ -70,10 +70,6 @@
           <el-icon><Promotion /></el-icon>
           <template #title>访问前台</template>
         </el-menu-item>
-        <el-menu-item index="7" @click="deleteCache()">
-          <el-icon><Coin /></el-icon>
-          <template #title>清空缓存</template>
-        </el-menu-item>
       </div>
     </el-menu>
   </div>
@@ -99,16 +95,6 @@ const handleOpen = (key, keyPath) => {
 }
 const handleClose = (key, keyPath) => {
   // console.log(key, keyPath)
-}
-
-// 清空缓存
-const deleteCache = async () => {
-  const { data: res } = await $myFetch('ClearCache')
-  if (res.code === 200) {
-    setTimeout(() => {
-      window.location.reload()
-    }, 3000)
-  }
 }
 </script>
 

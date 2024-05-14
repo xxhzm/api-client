@@ -143,7 +143,7 @@
                 </el-form>
               </el-tab-pane>
               <el-tab-pane label="参数信息" name="Parameter">
-                <el-table :data="res.data.params">
+                <el-table :data="paramsArr">
                   <el-table-column prop="aid" label="id" width="60" />
                   <el-table-column prop="name" label="接口名称" width="100" />
                   <el-table-column prop="param" label="传递参数" width="100" />
@@ -239,38 +239,41 @@ const apiSetInfo = ref({
   python: '',
 })
 
-const {
-  data: { value: res },
-} = await useAsyncData('Api', () =>
-  $myFetch('Api', {
+const paramsArr = ref()
+const getData = async () => {
+  const res = await $myFetch('Api', {
     params: {
       id: route.params.id,
     },
   })
-)
 
-// 判断参数是否必传
-res.data.params = res.data.params.map((item) => {
-  return {
-    id: item.id,
-    aid: item.aid,
-    name: item.name,
-    param: item.param,
-    position: item.position,
-    docs: item.docs,
-    create_time: item.create_time,
-    required: item.required === 1 ? '必传' : '可选',
+  // 判断参数是否必传
+  paramsArr.value = res.data.params.map((item) => {
+    return {
+      id: item.id,
+      aid: item.aid,
+      name: item.name,
+      param: item.param,
+      position: item.position,
+      docs: item.docs,
+      create_time: item.create_time,
+      required: item.required === 1 ? '必传' : '可选',
+    }
+  })
+
+  apiSetInfo.value = res.data
+  apiSetInfo.value.oldCategoryId = res.data.categoryId
+
+  if (res.data.state === '启用') {
+    apiSetInfo.value.state = true
+  } else {
+    apiSetInfo.value.state = false
   }
-})
-
-apiSetInfo.value = res.data
-apiSetInfo.value.oldCategoryId = res.data.categoryId
-
-if (res.data.state === '启用') {
-  apiSetInfo.value.state = true
-} else {
-  apiSetInfo.value.state = false
 }
+
+onMounted(async () => {
+  await getData()
+})
 
 const updateApiInfo = async () => {
   if (apiSetInfo.value.category === '' || apiSetInfo.value.categoryId === '') {
@@ -344,7 +347,13 @@ const handleDelete = async (index, row) => {
     },
   })
 
-  navigateTo('/admin/apilist')
+  if (res.code === 200) {
+    msg(res.msg, 'success')
+  } else {
+    msg(res.msg, 'error')
+  }
+
+  getData()
 }
 
 // 分类的数据

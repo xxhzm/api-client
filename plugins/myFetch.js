@@ -3,10 +3,17 @@ export default defineNuxtPlugin((/* nuxtApp */) => {
     provide: {
       // 封装useFetch
       myFetch: (request, opts) => {
+        const { $msg } = useNuxtApp()
+
         // 创建一个新的对象
         const obj = {
           headers: {
             Authorization: '',
+          },
+          onResponse({ request, response, options }) {
+            if (response._data.code === -6) {
+              $msg(response._data.msg, 'error')
+            }
           },
         }
 

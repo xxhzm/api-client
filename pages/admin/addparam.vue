@@ -114,12 +114,20 @@ const onSubmit = async () => {
     bodyValue.append('required', 2)
   }
 
-  const { data: res } = await $myFetch('ParamCreate', {
+  const res = await $myFetch('ParamCreate', {
     method: 'POST',
     body: bodyValue,
   })
 
-  navigateTo('/admin/apilist')
+  if (res.code === 200) {
+    msg(res.msg, 'success')
+  } else {
+    msg(res.msg, 'error')
+  }
+
+  setTimeout(() => {
+    navigateTo('/admin/apilist')
+  }, 500)
 }
 </script>
 
