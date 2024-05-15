@@ -42,6 +42,12 @@
                     </el-col>
 
                     <el-col :xs="24" :sm="24" :md="24" :lg="24" :xl="24">
+                      <el-form-item label="接口示例">
+                        <el-input v-model="apiSetInfo.example_url" />
+                      </el-form-item>
+                    </el-col>
+
+                    <el-col :xs="24" :sm="24" :md="24" :lg="24" :xl="24">
                       <el-form-item label="接口分类">
                         <el-autocomplete
                           v-model="apiSetInfo.category"
@@ -63,13 +69,7 @@
                         </el-select>
                       </el-form-item>
                     </el-col>
-                  </el-row>
-                </el-form>
-              </el-tab-pane>
 
-              <el-tab-pane label="接口示例" name="Example">
-                <el-form :model="apiSetInfo" label-width="80px">
-                  <el-row :gutter="24">
                     <el-col :xs="24" :sm="24" :md="24" :lg="24" :xl="24">
                       <el-form-item label="返回示例">
                         <el-input
@@ -79,69 +79,10 @@
                         />
                       </el-form-item>
                     </el-col>
-
-                    <el-col :xs="24" :sm="24" :md="24" :lg="24" :xl="24">
-                      <el-form-item label="ajax">
-                        <el-input
-                          :rows="10"
-                          v-model="apiSetInfo.ajax"
-                          type="textarea"
-                        />
-                      </el-form-item>
-                    </el-col>
-
-                    <el-col :xs="24" :sm="24" :md="24" :lg="24" :xl="24">
-                      <el-form-item label="axios">
-                        <el-input
-                          :rows="10"
-                          v-model="apiSetInfo.axios"
-                          type="textarea"
-                        />
-                      </el-form-item>
-                    </el-col>
-
-                    <el-col :xs="24" :sm="24" :md="24" :lg="24" :xl="24">
-                      <el-form-item label="fetch">
-                        <el-input
-                          :rows="10"
-                          v-model="apiSetInfo.fetch"
-                          type="textarea"
-                        />
-                      </el-form-item>
-                    </el-col>
-
-                    <el-col :xs="24" :sm="24" :md="24" :lg="24" :xl="24">
-                      <el-form-item label="xhr">
-                        <el-input
-                          :rows="10"
-                          v-model="apiSetInfo.xhr"
-                          type="textarea"
-                        />
-                      </el-form-item>
-                    </el-col>
-
-                    <el-col :xs="24" :sm="24" :md="24" :lg="24" :xl="24">
-                      <el-form-item label="php">
-                        <el-input
-                          :rows="10"
-                          v-model="apiSetInfo.php"
-                          type="textarea"
-                        />
-                      </el-form-item>
-                    </el-col>
-
-                    <el-col :xs="24" :sm="24" :md="24" :lg="24" :xl="24">
-                      <el-form-item label="python">
-                        <el-input
-                          :rows="10"
-                          v-model="apiSetInfo.python"
-                          type="textarea"
-                        />
-                      </el-form-item>
-                    </el-col>
                   </el-row>
                 </el-form>
               </el-tab-pane>
+
               <el-tab-pane label="参数信息" name="Parameter">
                 <el-table :data="paramsArr">
                   <el-table-column prop="aid" label="id" width="60" />
@@ -231,12 +172,7 @@ const apiSetInfo = ref({
   category: '',
   categoryId: '',
   state: true,
-  ajax: '',
-  axios: '',
-  fetch: '',
-  xhr: '',
-  php: '',
-  python: '',
+  example_url: '',
 })
 
 const paramsArr = ref()
@@ -306,13 +242,8 @@ const updateApiInfo = async () => {
   bodyValue.append('method', apiSetInfo.value.method)
   bodyValue.append('categoryId', apiSetInfo.value.categoryId)
   bodyValue.append('oldCategoryId', apiSetInfo.value.oldCategoryId)
-  bodyValue.append('ajax', apiSetInfo.value.ajax)
-  bodyValue.append('axios', apiSetInfo.value.axios)
-  bodyValue.append('fetch', apiSetInfo.value.fetch)
-  bodyValue.append('xhr', apiSetInfo.value.xhr)
-  bodyValue.append('php', apiSetInfo.value.php)
-  bodyValue.append('python', apiSetInfo.value.python)
   bodyValue.append('example', apiSetInfo.value.example)
+  bodyValue.append('exampleUrl', apiSetInfo.value.example_url)
 
   if (apiSetInfo.value.state) {
     bodyValue.append('state', '启用')

@@ -53,6 +53,16 @@
               </el-col>
 
               <el-col :xs="24" :sm="12" :md="12" :lg="8" :xl="8">
+                <el-form-item label="接口示例">
+                  <el-input
+                    v-model="addapiInfo.exampleUrl"
+                    maxlength="128"
+                    show-word-limit
+                  />
+                </el-form-item>
+              </el-col>
+
+              <el-col :xs="24" :sm="12" :md="12" :lg="8" :xl="8">
                 <el-form-item label="请求类型">
                   <el-input
                     v-model="addapiInfo.method"
@@ -62,62 +72,6 @@
                   />
                 </el-form-item>
               </el-col>
-
-              <el-col :xs="24" :sm="12" :md="12" :lg="8" :xl="8">
-                <el-form-item label="ajax">
-                  <el-input
-                    v-model="addapiInfo.ajax"
-                    type="textarea"
-                    :rows="1"
-                  /> </el-form-item
-              ></el-col>
-
-              <el-col :xs="24" :sm="12" :md="12" :lg="8" :xl="8">
-                <el-form-item label="axios">
-                  <el-input
-                    v-model="addapiInfo.axios"
-                    type="textarea"
-                    :rows="1"
-                  />
-                </el-form-item>
-              </el-col>
-
-              <el-col :xs="24" :sm="12" :md="12" :lg="8" :xl="8">
-                <el-form-item label="fetch">
-                  <el-input
-                    v-model="addapiInfo.fetch"
-                    type="textarea"
-                    :rows="1"
-                  />
-                </el-form-item>
-              </el-col>
-
-              <el-col :xs="24" :sm="12" :md="12" :lg="8" :xl="8">
-                <el-form-item label="xhr">
-                  <el-input
-                    v-model="addapiInfo.xhr"
-                    type="textarea"
-                    :rows="1"
-                  /> </el-form-item
-              ></el-col>
-
-              <el-col :xs="24" :sm="12" :md="12" :lg="8" :xl="8">
-                <el-form-item label="php">
-                  <el-input
-                    v-model="addapiInfo.php"
-                    type="textarea"
-                    :rows="1"
-                  /> </el-form-item
-              ></el-col>
-
-              <el-col :xs="24" :sm="12" :md="12" :lg="8" :xl="8">
-                <el-form-item label="python">
-                  <el-input
-                    v-model="addapiInfo.python"
-                    type="textarea"
-                    :rows="1"
-                  /> </el-form-item
-              ></el-col>
 
               <el-col :xs="24" :sm="8" :md="8" :lg="8" :xl="8">
                 <el-form-item label="接口分类">
@@ -228,12 +182,7 @@ const addapiInfo = reactive({
   categoryId: '',
   example: '',
   state: true,
-  ajax: '',
-  axios: '',
-  fetch: '',
-  xhr: '',
-  php: '',
-  python: '',
+  exampleUrl: '',
 })
 
 // 参数信息
@@ -290,14 +239,9 @@ const create = async () => {
   apiBodyValue.append('url', addapiInfo.url)
   apiBodyValue.append('method', addapiInfo.method)
   apiBodyValue.append('categoryId', addapiInfo.categoryId)
-  apiBodyValue.append('ajax', addapiInfo.ajax)
-  apiBodyValue.append('axios', addapiInfo.axios)
-  apiBodyValue.append('fetch', addapiInfo.fetch)
-  apiBodyValue.append('xhr', addapiInfo.xhr)
-  apiBodyValue.append('php', addapiInfo.php)
-  apiBodyValue.append('python', addapiInfo.python)
   apiBodyValue.append('example', addapiInfo.example)
   apiBodyValue.append('uname', username.value)
+  apiBodyValue.append('exampleUrl', addapiInfo.exampleUrl)
 
   if (addapiInfo.state === true) {
     apiBodyValue.append('state', '启用')
@@ -311,6 +255,7 @@ const create = async () => {
   })
 
   if (res.code !== 200) {
+    msg(res.msg, 'error')
     return false
   }
 
