@@ -11,13 +11,11 @@
       <div class="box">
         <el-tag type="success">{{ apiInfo.method }}</el-tag>
 
-        <client-only>
-          <el-tooltip effect="dark" content="点击复制" placement="top">
-            <span class="url" @click="copy(apiInfo.url)" ref="urlDom">{{
-              apiInfo.url
-            }}</span>
-          </el-tooltip>
-        </client-only>
+        <el-tooltip effect="dark" content="点击复制" placement="top">
+          <span class="url" @click="copy(apiInfo.url)" ref="urlDom">{{
+            apiInfo.url
+          }}</span>
+        </el-tooltip>
 
         <!-- <el-button color="#626aef">调试</el-button> -->
       </div>
@@ -144,8 +142,8 @@ const apiInfo = ref({})
 
 const {
   data: { value: res },
-} = await useAsyncData('Api', () =>
-  $myFetch('Api', {
+} = await useAsyncData('ApiAlias', () =>
+  $myFetch('ApiAlias', {
     query: {
       alias: route.params.alias,
     },

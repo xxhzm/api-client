@@ -48,6 +48,19 @@
                     </el-col>
 
                     <el-col :xs="24" :sm="24" :md="24" :lg="24" :xl="24">
+                      <el-form-item label="接口前缀">
+                        <client-only>
+                          <el-autocomplete
+                            v-model="apiSetInfo.prefixValue"
+                            :fetch-suggestions="querySearchPrefix"
+                            placeholder="请选择服务"
+                            @select="handlePrefixSelect"
+                          />
+                        </client-only>
+                      </el-form-item>
+                    </el-col>
+
+                    <el-col :xs="24" :sm="24" :md="24" :lg="24" :xl="24">
                       <el-form-item label="接口分类">
                         <el-autocomplete
                           v-model="apiSetInfo.category"
@@ -173,11 +186,13 @@ const apiSetInfo = ref({
   categoryId: '',
   state: true,
   example_url: '',
+  prefix: '',
+  prefixValue: '',
 })
 
 const paramsArr = ref()
 const getData = async () => {
-  const res = await $myFetch('Api', {
+  const res = await $myFetch('ApiId', {
     params: {
       id: route.params.id,
     },
@@ -198,6 +213,10 @@ const getData = async () => {
   })
 
   apiSetInfo.value = res.data
+
+  apiSetInfo.value.prefixValue = res.data.prefixName
+  apiSetInfo.value.prefix = res.data.prefix
+
   apiSetInfo.value.oldCategoryId = res.data.categoryId
 
   if (res.data.state === '启用') {
@@ -223,7 +242,8 @@ const updateApiInfo = async () => {
     !apiSetInfo.value.description ||
     !apiSetInfo.value.url ||
     !apiSetInfo.value.keywords ||
-    !apiSetInfo.value.method
+    !apiSetInfo.value.method ||
+    !apiSetInfo.value.prefix
   ) {
     msg('请填写内容', 'error')
     return false
@@ -244,6 +264,7 @@ const updateApiInfo = async () => {
   bodyValue.append('oldCategoryId', apiSetInfo.value.oldCategoryId)
   bodyValue.append('example', apiSetInfo.value.example)
   bodyValue.append('exampleUrl', apiSetInfo.value.example_url)
+  bodyValue.append('prefix', apiSetInfo.value.prefix)
 
   if (apiSetInfo.value.state) {
     bodyValue.append('state', '启用')
@@ -323,6 +344,36 @@ const createFilter = (queryString) => {
 
 const handleSelect = (item) => {
   apiSetInfo.value.categoryId = item.id
+}
+
+// 接口前缀数据的数据
+const PrefixList = ref([])
+
+const querySearchPrefix = async (queryString, cb) => {
+  // 如果没有数据则从服务端获取分类内容
+  if (PrefixList.value.length === 0) {
+    const res = await $myFetch('PrefixList')
+
+    res.data = res.data.map((item) => {
+      return {
+        id: item.id,
+        value: item.name,
+      }
+    })
+
+    PrefixList.value = res.data
+  }
+
+  const results = queryString
+    ? PrefixList.value.filter(createFilter(queryString))
+    : PrefixList.value
+
+  // call callback function to return suggestions
+  cb(results)
+}
+
+const handlePrefixSelect = (item) => {
+  apiSetInfo.value.prefix = item.id
 }
 </script>
 

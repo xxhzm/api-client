@@ -9,7 +9,7 @@
             type="primary"
             style="margin-bottom: 20px"
             size="small"
-            @click="navigateTo('/admin/addapi')"
+            @click="navigateTo('/admin/createapi')"
             >新增接口</el-button
           >
           <el-pagination
@@ -60,7 +60,8 @@
             <el-table-column prop="name" label="接口名称" width="150" />
             <el-table-column prop="alias" label="别名" width="100" />
             <el-table-column prop="state" label="状态" width="80" />
-            <el-table-column prop="url" label="地址" width="280" />
+            <el-table-column prop="prefixUrl" label="前缀地址" width="200" />
+            <el-table-column prop="url" label="地址" width="100" />
             <el-table-column prop="method" label="请求方法" width="100" />
             <el-table-column prop="uname" label="创建人" width="80" />
             <el-table-column prop="category" label="分类" width="100" />

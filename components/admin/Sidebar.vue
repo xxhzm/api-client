@@ -32,7 +32,7 @@
             <el-menu-item index="3-1" @click="navigateTo('/admin/apilist')"
               >接口列表</el-menu-item
             >
-            <el-menu-item index="3-2" @click="navigateTo('/admin/addapi')"
+            <el-menu-item index="3-2" @click="navigateTo('/admin/createapi')"
               >新增接口</el-menu-item
             >
             <el-menu-item index="3-2" @click="navigateTo('/admin/addparam')"
