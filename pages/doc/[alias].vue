@@ -196,20 +196,17 @@ onMounted(() => {
 const urlDom = ref()
 
 const copy = (value) => {
-  navigator.clipboard
-    .writeText(value)
-    .then(() => {
-      ElMessage({
-        message: '复制成功',
-        type: 'success',
-      })
-    })
-    .catch(() => {
-      ElMessage({
-        message: '复制失败',
-        type: 'error',
-      })
-    })
+  const textArea = document.createElement('textarea')
+  textArea.value = value
+  document.body.appendChild(textArea)
+  textArea.select()
+  document.execCommand('copy')
+  document.body.removeChild(textArea)
+
+  ElMessage({
+    message: '复制成功',
+    type: 'success',
+  })
 }
 </script>
 

@@ -187,9 +187,8 @@ const captchaInfo = ref({
 // 获取图片验证码
 const getCaptchaInfo = async () => {
   // 接口文档 https://api-m.com/doc/captcha
-  const { data: res } = await $myFetch(
-    'https://v2.api-m.com/api/captcha?type=digit'
-  )
+  // const res = await $fetch('https://v2.api-m.com/api/captcha?type=digit')
+  const res = await $fetch('http://127.0.0.1:3005/api/captcha?type=digit')
   captchaInfo.value = res.data
 }
 
@@ -224,17 +223,20 @@ const getMailCode = async () => {
   body.append('key', info.captcha)
   body.append('mail', info.mail)
 
-  const { data: res } = await$myFetch('MailCode', {
+  const res = await $myFetch('MailCode', {
     method: 'POST',
     body,
   })
 
   if (res.code != 200) {
+    $msg(res.msg, 'error')
     getCaptchaInfo()
 
     getVerifyCodeButtonState.value = false
     return false
   }
+
+  $msg('验证码已发送', 'success')
 
   info.sign = res.data
   getVerifyCodeButtonState.value = false
@@ -264,16 +266,19 @@ const register = async () => {
   body.append('mailCode', info.mailCode)
   body.append('sign', info.sign)
 
-  const { data: res } = await $myFetch('Register', {
+  const res = await $myFetch('Register', {
     method: 'POST',
     body,
   })
 
   if (res.code === 200) {
+    $msg('注册成功，请登录', 'success')
     setTimeout(() => {
       router.go(0)
-    }, 1000)
+    }, 500)
   }
+  
+  $msg(res.msg, 'error')
 }
 </script>
 

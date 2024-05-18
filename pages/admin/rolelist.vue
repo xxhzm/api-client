@@ -130,6 +130,10 @@ const roleInfo = ref({
 const getData = async () => {
   const res = await $myFetch('RoleList')
 
+  if(res.code !== 200){
+    return
+  }
+  
   tableData.value = res.data
 
   tableData.value.forEach((element, k) => {

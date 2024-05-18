@@ -140,7 +140,9 @@ const permissionInfo = ref({
 
 const getData = async () => {
   const res = await $myFetch('PermissionList')
-
+  if (res.code !== 200) {
+    return
+  }
   tableData.value = res.data
 }
 onMounted(() => {

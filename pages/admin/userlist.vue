@@ -207,6 +207,10 @@ const getData = async () => {
       page: page.value,
     },
   })
+  
+  if (res.code !== 200) {
+    return
+  }
 
   res.userList.forEach((element, key) => {
     if (element.status === '0') {
@@ -381,7 +385,7 @@ const handlebindRoleSubmit = async () => {
   } else {
     $msg(res.msg, 'error')
   }
-  
+
   bindRoleInfo.value = []
 }
 
