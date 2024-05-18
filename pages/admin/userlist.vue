@@ -202,7 +202,7 @@ const userInfo = ref({
 })
 
 const getData = async () => {
-  const { data: res } = await $myFetch('UserList', {
+  const res = await $myFetch('UserList', {
     params: {
       page: page.value,
     },
@@ -212,22 +212,22 @@ const getData = async () => {
     return
   }
 
-  res.userList.forEach((element, key) => {
+  res.data.userList.forEach((element, key) => {
     if (element.status === '0') {
-      res.userList[key].status = '启用'
+      res.data.userList[key].status = '启用'
     } else {
-      res.userList[key].status = '停用'
+      res.data.userList[key].status = '停用'
     }
 
-    res.userList[key].login_time = new Date(element.login_time).toLocaleString()
-    res.userList[key].create_time = new Date(
+    res.data.userList[key].login_time = new Date(element.login_time).toLocaleString()
+    res.data.userList[key].create_time = new Date(
       element.create_time
     ).toLocaleString()
   })
 
-  tableData.value = res.userList
-  totalPages.value = res.totalPages
-  totalRecords.value = res.totalRecords
+  tableData.value = res.data.userList
+  totalPages.value = res.data.totalPages
+  totalRecords.value = res.data.totalRecords
 }
 
 onMounted(() => {

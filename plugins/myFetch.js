@@ -11,7 +11,7 @@ export default defineNuxtPlugin((/* nuxtApp */) => {
             Authorization: '',
           },
           onResponse({ request, response, options }) {
-            if (response._data.code === -6) {
+            if (response._data.code === -6 || response._data.code === -5) {
               $msg(response._data.msg, 'error')
             }
           },

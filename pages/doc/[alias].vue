@@ -150,6 +150,13 @@ const {
   })
 )
 
+if (res.code !== 200) {
+  throw createError({
+    statusCode: 404,
+    statusMessage: 'Page Not Found',
+  })
+}
+
 // 判断参数是否必传
 res.data.params = res.data.params.map((item) => {
   return {
