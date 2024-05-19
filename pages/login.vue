@@ -130,6 +130,8 @@ const goBack = () => {
   navigateTo('/')
 }
 
+const routeInfo = useCookie('routeInfo')
+
 const login = async () => {
   if (info.username === '' || info.password === '') {
     return false
@@ -161,11 +163,12 @@ const login = async () => {
 
     $msg('登录成功', 'success')
 
-    // 跳转到首页
-    window.location.href = '/admin'
-  } else {
-    $msg(res.msg, 'error')
+    routeInfo.value = res.data.routeInfo
+    navigateTo('/admin')
+    return false
   }
+
+  $msg(res.msg, 'error')
 }
 
 // 登录注册切换
@@ -277,7 +280,7 @@ const register = async () => {
       router.go(0)
     }, 500)
   }
-  
+
   $msg(res.msg, 'error')
 }
 </script>
