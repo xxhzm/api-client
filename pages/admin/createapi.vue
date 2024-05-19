@@ -383,6 +383,13 @@ const handlePrefixSelect = (item) => {
 const handleSelect = (item) => {
   createapiInfo.categoryId = item.id
 }
+
+useHead({
+  title: '新增接口',
+  viewport:
+    'width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0',
+  charset: 'utf-8',
+})
 </script>
 
 <style lang="less" scoped>

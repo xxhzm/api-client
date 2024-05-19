@@ -225,6 +225,13 @@ watch(dialogStatus, (newValue) => {
     linkInfo.value.image = ''
   }
 })
+
+useHead({
+  title: '友情链接',
+  viewport:
+    'width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0',
+  charset: 'utf-8',
+})
 </script>
 
 <style lang="less" scoped>

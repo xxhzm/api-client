@@ -375,6 +375,13 @@ const querySearchPrefix = async (queryString, cb) => {
 const handlePrefixSelect = (item) => {
   apiSetInfo.value.prefix = item.id
 }
+
+useHead({
+  title: '编辑接口',
+  viewport:
+    'width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0',
+  charset: 'utf-8',
+})
 </script>
 
 <style lang="less" scoped>

@@ -23,6 +23,7 @@ export default defineNuxtPlugin((/* nuxtApp */) => {
         }
 
         const baseURL = 'http://127.0.0.1:3005/admin/'
+        // const baseURL = 'https://127.0.0.1:3005/admin/'
 
         return $fetch(baseURL + request, { ...opts, ...obj })
       },

@@ -129,6 +129,13 @@ const onSubmit = async () => {
     navigateTo('/admin/apilist')
   }, 500)
 }
+
+useHead({
+  title: '添加参数',
+  viewport:
+    'width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0',
+  charset: 'utf-8',
+})
 </script>
 
 <style lang="less" scoped>
