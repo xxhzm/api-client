@@ -9,7 +9,29 @@ const todayRequest = ref({
   data: [],
 })
 
+const routeInfo = useCookie('routeInfo')
+
+// 判断是否拥有权限，动态显示左侧边栏
+const routeShow = (path) => {
+  if (path === undefined) {
+    return false
+  }
+
+  const state = routeInfo.value.find((obj) => obj.path === path)
+
+  if (state !== undefined) {
+    return true
+  }
+
+  return false
+}
+
 onMounted(async () => {
+  // 如果用户没有权限，那么取消渲染图表
+  if(!routeShow('/admin/EchartDom')){
+    return false
+  }
+
   // 图表
   chartShow.value = false
   chartShow.value = true
@@ -95,7 +117,7 @@ onMounted(async () => {
 
   option && recentRequestChart.setOption(option)
 
-  const { data: res } = await $myFetch('TodayRequest')
+  const res = await $myFetch('TodayRequest')
 
   if (res.data !== undefined) {
     res.data.forEach((element) => {
@@ -319,7 +341,7 @@ onMounted(async () => {
               >
             </el-col>
           </el-row>
-          <div class="chart">
+          <div class="chart"  v-if="routeShow('/admin/EchartDom')">
             <div id="recentRequestChart" v-if="chartShow"></div>
             <div id="TodayRequestChart" v-if="chartShow"></div>
           </div>

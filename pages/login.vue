@@ -280,8 +280,6 @@ const register = async () => {
       router.go(0)
     }, 500)
   }
-
-  $msg(res.msg, 'error')
 }
 </script>
 
