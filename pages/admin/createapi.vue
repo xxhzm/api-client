@@ -106,7 +106,7 @@
                   <el-input
                     v-model="createapiInfo.example"
                     type="textarea"
-                    :rows="1"
+                    :rows="8"
                   /> </el-form-item
               ></el-col>
             </el-row>

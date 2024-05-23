@@ -190,8 +190,7 @@ const captchaInfo = ref({
 // 获取图片验证码
 const getCaptchaInfo = async () => {
   // 接口文档 https://api-m.com/doc/captcha
-  // const res = await $fetch('https://v2.api-m.com/api/captcha?type=digit')
-  const res = await $fetch('http://127.0.0.1:3005/api/captcha?type=digit')
+  const res = await $fetch('https://v2.api-m.com/api/captcha?type=digit')
   captchaInfo.value = res.data
 }
 
