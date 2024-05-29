@@ -28,7 +28,7 @@ const routeShow = (path) => {
 
 onMounted(async () => {
   // 如果用户没有权限，那么取消渲染图表
-  if(!routeShow('/admin/EchartDom')){
+  if (!routeShow('/admin/EchartDom')) {
     return false
   }
 
@@ -154,12 +154,100 @@ onMounted(async () => {
         name: '接口名称',
         type: 'pie',
         radius: '50%',
-        data: todayRequest.value.data,
+        data: todayRequest.value.data.slice(0, 5),
       },
     ],
   }
 
   option && TodayRequestChart.setOption(option)
+
+  // 接口名称
+  const namesArr = []
+  // 请求次数
+  const valuesArr = []
+
+  todayRequest.value.data.forEach((item, index) => {
+    if (index >= 5) {
+      // 前五条数据不做处理
+      namesArr.push(item.name)
+      valuesArr.push(item.value)
+    }
+  })
+
+  // 生成随机数
+  let previousIndex = -1
+
+  const APIRankingListDom = document.getElementById('APIRankingList')
+  const APIRankingListChart = echarts.init(APIRankingListDom)
+
+  option = {
+    title: {
+      text: '调用量统计',
+      top: '4%',
+      left: '2%',
+      textStyle: {
+        color: '#555',
+        fontSize: 16,
+      },
+    },
+    tooltip: {
+      trigger: 'axis',
+      axisPointer: {
+        type: 'shadow',
+      },
+    },
+    grid: {
+      left: '3%',
+      right: '4%',
+      bottom: '3%',
+      containLabel: true,
+    },
+    legend: {},
+    xAxis: {
+      type: 'category',
+      data: namesArr,
+      axisTick: {
+        alignWithLabel: true,
+      },
+    },
+    yAxis: [
+      {
+        type: 'value',
+      },
+    ],
+    series: [
+      {
+        name: '次数',
+        type: 'bar',
+        barWidth: '60%',
+        data: valuesArr,
+        itemStyle: {
+          color: function () {
+            let colorList = [
+              '#f1939c',
+              '#5698c3',
+              '#57c3c2',
+              '#e9ddb6',
+              '#fbc82f',
+              '#f7cfba',
+              '#f4c7ba'
+            ]
+            let randomNum
+            do {
+              randomNum = Math.floor(Math.random() * colorList.length)
+            } while (randomNum === previousIndex)
+
+            previousIndex = randomNum
+            // 返回随机颜色
+            let colorItem = colorList[randomNum]
+            return colorItem
+          },
+        },
+      },
+    ],
+  }
+
+  option && APIRankingListChart.setOption(option)
 
   // 监听宽度变化
   window.addEventListener('resize', function () {
@@ -348,10 +436,11 @@ useHead({
               >
             </el-col>
           </el-row>
-          <div class="chart"  v-if="routeShow('/admin/EchartDom')">
+          <div class="chart" v-if="routeShow('/admin/EchartDom')">
             <div id="recentRequestChart" v-if="chartShow"></div>
             <div id="TodayRequestChart" v-if="chartShow"></div>
           </div>
+          <div id="APIRankingList"></div>
         </div>
       </div>
     </div>
@@ -389,6 +478,13 @@ useHead({
           box-shadow: 0 2px 2px rgb(0 0 0 / 10%);
           background: #fff;
         }
+      }
+      #APIRankingList {
+        width: 100%;
+        height: 370px;
+        margin-top: 30px;
+        box-shadow: 0 2px 2px rgb(0 0 0 / 10%);
+        background: #fff;
       }
       .el-card {
         cursor: pointer;
