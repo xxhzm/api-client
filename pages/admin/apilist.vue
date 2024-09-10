@@ -112,10 +112,10 @@ const getData = async () => {
     },
   })
 
-  if(res.code !== 200){
+  if (res.code !== 200) {
     return
   }
-  
+
   tableData.value = res.data
 }
 
@@ -147,6 +147,7 @@ const handleDelete = async (index, row) => {
   await getData()
 
   loading.value = false
+  msg('删除成功', 'success')
 }
 
 const handleOpen = async (index, row) => {

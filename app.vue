@@ -7,7 +7,7 @@
 const token = useCookie('token')
 
 const authorization = useState('Authorization')
-if(token.value !== ''){
+if (token.value !== '') {
   authorization.value = token.value
 }
 
@@ -17,9 +17,9 @@ useHead({
     { rel: 'icon', type: 'images/png', sizes: '56x56', href: '/favicon.ico' },
   ],
   script: [
-    // {
-    //   src: 'https://hm.baidu.com/hm.js?39cb8b3fa5f089e47f8069895a32b9f3',
-    // }
+    {
+      src: 'https://hm.baidu.com/hm.js?39cb8b3fa5f089e47f8069895a32b9f3',
+    },
   ],
 })
 </script>
