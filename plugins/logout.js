@@ -9,8 +9,10 @@ export default defineNuxtPlugin((/* nuxtApp */) => {
         username.value = undefined
         token.value = undefined
 
-        window.location.href = '/login'
-      }
-    }
+        setTimeout(() => {
+          window.location.href = '/login'
+        }, 500)
+      },
+    },
   }
 })

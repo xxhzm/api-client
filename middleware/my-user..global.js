@@ -15,6 +15,11 @@ export default defineNuxtRouteMiddleware(async (to, from) => {
     })
 
     if (res.code !== 200) {
+      const username = useCookie('username')
+      const token = useCookie('token')
+
+      username.value = undefined
+      token.value = undefined
       $msg('您没有权限访问该页面', 'error')
       setTimeout(() => {
         return navigateTo('/login')

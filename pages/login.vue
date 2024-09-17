@@ -110,9 +110,12 @@ const router = useRouter()
 const username = useCookie('username')
 const token = useCookie('token')
 
-// delete username and token
-username.value = undefined
-token.value = undefined
+if (username.value != undefined && token.value != undefined) {
+  navigateTo('/admin')
+} else {
+  username.value = undefined
+  token.value = undefined
+}
 
 const info = reactive({
   username: '',
