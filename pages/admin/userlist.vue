@@ -30,7 +30,6 @@
             @click="getAddress"
             >显示用户归属地</el-button
           > -->
-
           <el-table
             v-loading="pageLoading"
             :data="filterTableData"
@@ -47,8 +46,9 @@
               width="180"
             />
             <el-table-column prop="status" label="状态" width="80" />
-            <el-table-column prop="ip" label="ip" width="130" />
-            <el-table-column width="250">
+            <el-table-column prop="ip" label="ip" width="150" />
+            <el-table-column prop="balance" label="账户余额" width="150" />
+            <el-table-column width="300">
               <template #header>
                 <el-input
                   v-model="search"
@@ -59,14 +59,14 @@
               <template #default="scope">
                 <el-button
                   size="small"
-                  @click="handleRole(scope.$index, scope.row)"
-                  >绑定角色</el-button
+                  type="info"
+                  @click="handleUserBindRoleList(scope.$index, scope.row)"
+                  >查看用户拥有角色</el-button
                 >
                 <el-button
                   size="small"
-                  type="info"
-                  @click="handleUserBindRoleList(scope.$index, scope.row)"
-                  >拥有角色</el-button
+                  @click="handleEdit(scope.$index, scope.row)"
+                  >编辑</el-button
                 >
                 <el-popconfirm
                   confirm-button-text="Yes"
@@ -82,74 +82,55 @@
             </el-table-column>
           </el-table>
 
-          <el-drawer v-model="createUserStatus" direction="rtl">
-            <template #header>
-              <h2>{{ disabled ? '修改用户' : '添加用户' }}</h2>
-            </template>
-            <template #default>
-              <el-form
-                :model="userInfo"
-                label-position="top"
-                label-width="120px"
+          <el-dialog
+            v-model="createUserStatus"
+            :title="disabled ? '修改用户' : '添加用户'"
+            width="500"
+            center
+          >
+            <el-form :model="userInfo" label-position="top" label-width="120px">
+              <el-form-item label="用户名称">
+                <el-input v-model="userInfo.username" :disabled="disabled" />
+              </el-form-item>
+
+              <el-form-item label="密码">
+                <el-input
+                  type="password"
+                  v-model="userInfo.password"
+                  show-password
+                />
+              </el-form-item>
+
+              <el-form-item label="邮箱地址">
+                <el-input v-model="userInfo.mail" />
+              </el-form-item>
+
+              <el-form-item label="账户余额" v-if="disabled">
+                <el-input v-model="userInfo.balance" />
+              </el-form-item>
+
+              <el-select
+                v-model="bindRoleInfo"
+                multiple
+                collapse-tags
+                collapse-tags-tooltip
+                placeholder="请选择要绑定的角色"
+                v-if="disabled"
               >
-                <el-form-item label="用户名称">
-                  <el-input v-model="userInfo.username" :disabled="disabled" />
-                </el-form-item>
-
-                <el-form-item label="密码">
-                  <el-input
-                    type="password"
-                    v-model="userInfo.password"
-                    show-password
-                    :disabled="disabled"
-                  />
-                </el-form-item>
-
-                <el-form-item label="邮箱地址">
-                  <el-input v-model="userInfo.mail" :disabled="disabled" />
-                </el-form-item>
-              </el-form>
-            </template>
+                <el-option
+                  v-for="item in roleList"
+                  :key="item.role_id"
+                  :label="item.role_name"
+                  :value="item.role_id"
+                />
+              </el-select>
+            </el-form>
             <template #footer>
               <div style="flex: auto">
                 <el-button @click="createUserStatus = false">取消</el-button>
                 <el-button type="primary" @click="submit">{{
                   disabled ? '修改' : '创建'
                 }}</el-button>
-              </div>
-            </template>
-          </el-drawer>
-
-          <!-- 绑定角色对话框 -->
-          <el-dialog
-            v-model="bindRoleDialogStatus"
-            title="绑定角色"
-            width="270"
-            center
-          >
-            <el-select
-              v-model="bindRoleInfo"
-              multiple
-              collapse-tags
-              collapse-tags-tooltip
-              placeholder="请选择要绑定的角色"
-              style="width: 240px"
-            >
-              <el-option
-                v-for="item in roleList"
-                :key="item.role_id"
-                :label="item.role_name"
-                :value="item.role_id"
-              />
-            </el-select>
-            <template #footer>
-              <div class="dialog-footer">
-                <el-button @click="bindRoleDialogStatus = false"
-                  >取消</el-button
-                >
-                <el-button type="primary" @click="handlebindRoleSubmit">
-                  确定
-                </el-button>
               </div>
             </template>
           </el-dialog>
@@ -199,6 +180,7 @@ const userInfo = ref({
   username: '',
   password: '',
   mail: '',
+  balance: 0,
 })
 
 const getData = async () => {
@@ -207,7 +189,7 @@ const getData = async () => {
       page: page.value,
     },
   })
-  
+
   if (res.code !== 200) {
     return
   }
@@ -219,7 +201,9 @@ const getData = async () => {
       res.data.userList[key].status = '停用'
     }
 
-    res.data.userList[key].login_time = new Date(element.login_time).toLocaleString()
+    res.data.userList[key].login_time = new Date(
+      element.login_time
+    ).toLocaleString()
     res.data.userList[key].create_time = new Date(
       element.create_time
     ).toLocaleString()
@@ -243,8 +227,12 @@ const filterTableData = computed(() =>
       data.mail.toLowerCase().includes(search.value.toLowerCase())
   )
 )
-
-const handleEdit = (index, row) => {
+// 当前选择的角色
+const bindRoleInfo = ref({})
+// 角色列表
+const roleList = ref({})
+// 修改用户
+const handleEdit = async (index, row) => {
   createUserStatus.value = true
   disabled.value = true
 
@@ -252,7 +240,19 @@ const handleEdit = (index, row) => {
   userInfo.value.username = row.username
   userInfo.value.password = row.password
   userInfo.value.mail = row.mail
+  userInfo.value.balance = row.balance
+
+  // 向服务器获取角色列表
+  const { data: res } = await $myFetch('RoleList')
+  roleList.value = res
 }
+
+// 监听修改用户弹窗是否关闭
+watch(createUserStatus, (newValue) => {
+  if (newValue === false) {
+    bindRoleInfo.value = []
+  }
+})
 
 // 删除用户按钮
 const handleDelete = async (index, row) => {
@@ -306,34 +306,75 @@ const createUser = async () => {
   apiBodyValue.append('password', userInfo.value.password)
   apiBodyValue.append('mail', userInfo.value.mail)
 
-  const { data: res } = await $myFetch('CreateUser', {
+  const res = await $myFetch('CreateUser', {
     method: 'POST',
     body: apiBodyValue,
   })
 
   createUserStatus.value = false
   getData()
+
+  if (res.code === 200) {
+    $msg(res.msg, 'success')
+  } else {
+    $msg(res.msg, 'error')
+  }
 }
 
 // 修改用户
 const updateUser = async () => {
-  if (
-    !userInfo.value.username ||
-    !userInfo.value.password ||
-    !userInfo.value.mail
-  ) {
+  if (!userInfo.value.username || !userInfo.value.mail) {
     $msg('请填写内容', 'error')
+    createUserStatus.value = false
     return false
   }
 
-  console.log(userInfo.value.id)
+  if (userInfo.value.balance > 4294967295) {
+    $msg('余额过大，超出限制', 'error')
+    createUserStatus.value = false
+    return false
+  }
+
+  if (userInfo.value.balance < 0) {
+    $msg('余额不能小于0', 'error')
+    createUserStatus.value = false
+    return false
+  }
+
+  // 绑定角色
+  if ((Object.keys(bindRoleInfo.value).length !== 0) === true) {
+    const res = await $myFetch('UserBindRole', {
+      params: {
+        info: JSON.stringify(bindRoleInfo.value),
+        userId: userInfo.value.id,
+      },
+    })
+    if (res.code !== 200) {
+      $msg(res.msg, 'error')
+    }
+
+    bindRoleInfo.value = []
+  }
+
+  // 修改用户信息
   const apiBodyValue = new URLSearchParams()
   apiBodyValue.append('id', userInfo.value.id)
+  if (userInfo.value.password) {
+    apiBodyValue.append('password', userInfo.value.password)
+  }
+  apiBodyValue.append('mail', userInfo.value.mail)
+  apiBodyValue.append('balance', userInfo.value.balance)
 
-  const { data: res } = await $myFetch('UpdateUser', {
+  const res = await $myFetch('UpdateUser', {
     method: 'POST',
     body: apiBodyValue,
   })
+
+  if (res.code === 200) {
+    $msg(res.msg, 'success')
+  } else {
+    $msg(res.msg, 'error')
+  }
 
   createUserStatus.value = false
   getData()
@@ -347,47 +388,9 @@ watch(createUserStatus, (newValue) => {
     userInfo.value.username = ''
     userInfo.value.password = ''
     userInfo.value.mail = ''
+    userInfo.value.balance = 0
   }
 })
-
-// 绑定角色
-const bindRoleDialogStatus = ref(false)
-const bindRoleInfo = ref({})
-const roleList = ref({})
-const userId = ref()
-
-// 规则绑定角色表格按钮
-const handleRole = async (index, row) => {
-  userId.value = row.id
-  bindRoleDialogStatus.value = true
-
-  // 向服务器获取角色列表
-  const { data: res } = await $myFetch('RoleList')
-  roleList.value = res
-}
-
-const handlebindRoleSubmit = async () => {
-  if (bindRoleInfo.value[0] === undefined) {
-    $msg('请选择要绑定的角色', 'error')
-    return
-  }
-
-  const res = await $myFetch('UserBindRole', {
-    params: {
-      info: JSON.stringify(bindRoleInfo.value),
-      userId: userId.value,
-    },
-  })
-
-  bindRoleDialogStatus.value = false
-  if (res.code === 200) {
-    $msg(res.msg, 'success')
-  } else {
-    $msg(res.msg, 'error')
-  }
-
-  bindRoleInfo.value = []
-}
 
 // 监听页数变化
 watch(
