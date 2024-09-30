@@ -6,8 +6,10 @@
       <h1 style="color: #1f2d3d; font-size: 24px">广告商</h1>
       <Ad style="margin-bottom: 2rem"></Ad>
 
-      <h1 style="color: #1f2d3d; font-size: 24px">系统信息</h1>
-      <SystemInfo style="margin-bottom: 2rem"></SystemInfo>
+      <client-only>
+        <h1 style="color: #1f2d3d; font-size: 24px">系统信息</h1>
+        <SystemInfo style="margin-bottom: 2rem"></SystemInfo>
+      </client-only>
 
       <h1 style="color: #1f2d3d; font-size: 24px">API搜索</h1>
       <IndexApiSearch style="margin-bottom: 2rem"></IndexApiSearch>

@@ -121,9 +121,7 @@ const recentRequest = ref({
 
 const number = ref(0)
 
-const {
-  data: { value: res },
-} = await useAsyncData('SystemInfo', () => $myFetch('SystemInfo'))
+const res = await $myFetch('SystemInfo')
 
 systemInfo.value = res.data
 
