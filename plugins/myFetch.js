@@ -22,8 +22,8 @@ export default defineNuxtPlugin((/* nuxtApp */) => {
           obj.headers.Authorization = authorization.value
         }
 
-        // const baseURL = 'https://admin.api-m.com/admin/'
-        const baseURL = 'http://127.0.0.1:3005/admin/'
+        const baseURL = 'https://admin.api-m.com/admin/'
+        // const baseURL = 'http://127.0.0.1:3005/admin/'
 
         return $fetch(baseURL + request, { ...opts, ...obj })
       },

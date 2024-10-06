@@ -20,10 +20,8 @@
             class="adPic" /></a
       ></el-col>
       <el-col :xs="24" :sm="12" :md="12" :lg="12" :xl="12">
-        <a href="#">
-          <img
-            src="@/assets/images/banner.jpg"
-            class="adPic" /></a
+        <a href="https://cdn.ledcdn.com?rel=xxapi">
+          <img src="https://cdn.xxhzm.cn/adpic/ledcdn.jpg" class="adPic" /></a
       ></el-col>
     </el-row>
   </div>

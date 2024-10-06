@@ -13,7 +13,7 @@
             >新增用户</el-button
           >
           <el-pagination
-            :page-size="15"
+            :page-size="25"
             :pager-count="5"
             :total="totalRecords"
             v-model:current-page="page"
@@ -109,6 +109,13 @@
                 <el-input v-model="userInfo.balance" />
               </el-form-item>
 
+              <el-form-item label="用户状态" v-if="disabled">
+                <el-select v-model="userInfo.status" placeholder="用户状态">
+                  <el-option label="启用" value="启用" />
+                  <el-option label="停用" value="停用" />
+                </el-select>
+              </el-form-item>
+
               <el-select
                 v-model="bindRoleInfo"
                 multiple
@@ -181,6 +188,7 @@ const userInfo = ref({
   password: '',
   mail: '',
   balance: 0,
+  status: '',
 })
 
 const getData = async () => {
@@ -241,6 +249,7 @@ const handleEdit = async (index, row) => {
   userInfo.value.password = row.password
   userInfo.value.mail = row.mail
   userInfo.value.balance = row.balance
+  userInfo.value.status = row.status
 
   // 向服务器获取角色列表
   const { data: res } = await $myFetch('RoleList')
@@ -364,6 +373,7 @@ const updateUser = async () => {
   }
   apiBodyValue.append('mail', userInfo.value.mail)
   apiBodyValue.append('balance', userInfo.value.balance)
+  apiBodyValue.append('status', userInfo.value.status)
 
   const res = await $myFetch('UpdateUser', {
     method: 'POST',
