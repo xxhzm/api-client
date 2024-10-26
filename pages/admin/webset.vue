@@ -35,41 +35,48 @@
                     <el-input v-model="websetInfo.gongan" />
                   </el-form-item>
                   <el-form-item>
-                    <el-button type="primary" @click="onSubmit">保存</el-button>
+                    <el-button type="primary" @click="websetInfoSubmit"
+                      >提交</el-button
+                    >
                   </el-form-item>
                 </el-form>
               </el-tab-pane>
 
               <el-tab-pane label="邮件设置" name="second">
                 <el-form
-                  :model="websetInfo"
+                  :model="mailInfo"
                   label-position="top"
                   label-width="120px"
                 >
-                  <el-form-item label="网站标题">
-                    <el-input v-model="websetInfo.title" />
+                  <el-form-item label="SMTP服务器地址">
+                    <el-input v-model="mailInfo.smtp" />
                   </el-form-item>
-                  <!-- <el-form-item label="网站副标题">
-                    <el-input v-model="websetInfo.subheading" />
+
+                  <el-form-item label="邮箱账户">
+                    <el-input v-model="mailInfo.user" />
                   </el-form-item>
-                  <el-form-item label="网站关键词">
-                    <el-input v-model="websetInfo.keywords" />
+
+                  <el-form-item label="密码">
+                    <el-input v-model="mailInfo.password" />
                   </el-form-item>
-                  <el-form-item label="网站描述">
-                    <el-input v-model="websetInfo.description" />
+
+                  <el-form-item label="发件人">
+                    <el-input v-model="mailInfo.setfrom" />
                   </el-form-item>
-                  <el-form-item label="建站时间">
-                    <el-input v-model="websetInfo.create_time" />
+
+                  <el-form-item label="服务器端口">
+                    <el-input v-model="mailInfo.port" />
                   </el-form-item>
-                  <el-form-item label="ICP备案号">
-                    <el-input v-model="websetInfo.icp" />
+
+                  <el-form-item label="发信名称">
+                    <el-input v-model="mailInfo.name" />
                   </el-form-item>
-                  <el-form-item label="公安备案号">
-                    <el-input v-model="websetInfo.gongan" />
-                  </el-form-item>
+
                   <el-form-item>
-                    <el-button type="primary" @click="onSubmit">保存</el-button>
-                  </el-form-item> -->
+                    <el-button type="primary" @click="mailInfoSubmit"
+                      >提交</el-button
+                    >
+                  </el-form-item>
                 </el-form>
               </el-tab-pane>
             </el-tabs>
@@ -95,16 +102,31 @@ const websetInfo = ref({
   gongan: '',
 })
 
-const getData = async () => {
+const mailInfo = ref({
+  smtp: '',
+  user: '',
+  password: '',
+  setfrom: '',
+  port: '',
+  name: '',
+})
+
+const getWebsetInfo = async () => {
   const res = await $myFetch('Options')
   websetInfo.value = res.data
 }
 
+const getMailInfo = async () => {
+  const res = await $myFetch('MailInfo')
+  mailInfo.value = res.data
+}
+
 onMounted(() => {
-  getData()
+  getWebsetInfo()
+  getMailInfo()
 })
 
-const onSubmit = async () => {
+const websetInfoSubmit = async () => {
   if (
     !websetInfo.value.title ||
     !websetInfo.value.subheading ||
@@ -132,7 +154,39 @@ const onSubmit = async () => {
 
   if (res.code === 200) {
     $msg(res.msg, 'success')
-    getData()
+    getWebsetInfo()
+  }
+}
+
+const mailInfoSubmit = async () => {
+  if (
+    !mailInfo.value.smtp ||
+    !mailInfo.value.user ||
+    !mailInfo.value.password ||
+    !mailInfo.value.setfrom ||
+    !mailInfo.value.port ||
+    !mailInfo.value.name
+  ) {
+    $msg('请填写内容', 'error')
+    return false
+  }
+
+  const bodyValue = new URLSearchParams()
+  bodyValue.append('smtp', mailInfo.value.smtp)
+  bodyValue.append('user', mailInfo.value.user)
+  bodyValue.append('password', mailInfo.value.password)
+  bodyValue.append('setfrom', mailInfo.value.setfrom)
+  bodyValue.append('port', mailInfo.value.port)
+  bodyValue.append('name', mailInfo.value.name)
+
+  const res = await $myFetch('MailInfoUpdate', {
+    method: 'POST',
+    body: bodyValue,
+  })
+
+  if (res.code === 200) {
+    $msg(res.msg, 'success')
+    getMailInfo()
   }
 }
 

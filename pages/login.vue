@@ -281,6 +281,8 @@ const register = async () => {
     setTimeout(() => {
       router.go(0)
     }, 500)
+  } else {
+    $msg(res.msg, 'error')
   }
 }
 useHead({
