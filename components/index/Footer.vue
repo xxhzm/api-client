@@ -2,11 +2,26 @@
   <div class="footer-container">
     <div class="footer">
       <p style="text-align: center">
-        <span
-          ><a href="https://beian.miit.gov.cn/">{{
+        <span v-if="props.options.icp"
+          ><a href="https://beian.miit.gov.cn/" target="_blank">{{
             props.options.icp
           }}</a> </span
-        ><span>{{ props.options.gongan }}</span>
+        ><br />
+        <span v-if="props.options.gongan"
+          ><img
+            src="@/assets/images/gongan.png"
+            width="15"
+            height="15"
+            alt=""
+          /><a
+            target="_blank"
+            :href="
+              'https://beian.mps.gov.cn/#/query/webSearch?code=' +
+              props.options.gongan
+            "
+            >{{ props.options.gongan }}</a
+          ></span
+        >
       </p>
     </div>
     <van-tabbar v-model="active">
@@ -43,8 +58,15 @@ const props = defineProps(['options'])
 </script>
 
 <style lang="less">
-.footer{
+.footer {
   padding-bottom: 50px;
   margin-bottom: 20px;
+  a {
+    color: #9999ff;
+    transition: all 0.5s;
+  }
+  a:hover {
+    color: #0000ff;
+  }
 }
 </style>

@@ -123,7 +123,7 @@ const onSubmit = async () => {
   bodyValue.append('description', websetInfo.value.description)
   bodyValue.append('createTime', websetInfo.value.create_time)
   bodyValue.append('icp', websetInfo.value.icp)
-  bodyValue.append('gongAn', websetInfo.value.gongan)
+  bodyValue.append('gongan', websetInfo.value.gongan)
 
   const res = await $myFetch('OptionsUpdate', {
     method: 'POST',
@@ -133,8 +133,6 @@ const onSubmit = async () => {
   if (res.code === 200) {
     $msg(res.msg, 'success')
     getData()
-  }else{
-    $msg(res.msg, 'error')
   }
 }
 

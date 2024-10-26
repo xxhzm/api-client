@@ -11,7 +11,11 @@ export default defineNuxtPlugin((/* nuxtApp */) => {
             Authorization: '',
           },
           onResponse({ request, response, options }) {
-            if (response._data.code === -6 || response._data.code === -5) {
+            if (
+              response._data.code === -5 ||
+              response._data.code === -6 ||
+              response._data.code === -7
+            ) {
               $msg(response._data.msg, 'error')
             }
           },
@@ -22,8 +26,8 @@ export default defineNuxtPlugin((/* nuxtApp */) => {
           obj.headers.Authorization = authorization.value
         }
 
-        const baseURL = 'https://admin.api-m.com/admin/'
-        // const baseURL = 'http://127.0.0.1:3005/admin/'
+        // const baseURL = 'https://admin.api-m.com/admin/'
+        const baseURL = 'http://127.0.0.1:3005/admin/'
 
         return $fetch(baseURL + request, { ...opts, ...obj })
       },
