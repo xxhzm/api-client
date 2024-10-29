@@ -1,6 +1,7 @@
 <script setup>
 import * as echarts from 'echarts'
-const { $myFetch } = useNuxtApp()
+const { $msg, $myFetch } = useNuxtApp()
+const msg = $msg
 
 const { $logout } = useNuxtApp()
 const chartShow = ref(true)
@@ -230,7 +231,7 @@ onMounted(async () => {
               '#e9ddb6',
               '#fbc82f',
               '#f7cfba',
-              '#f4c7ba'
+              '#f4c7ba',
             ]
             let randomNum
             do {
@@ -256,6 +257,65 @@ onMounted(async () => {
   })
 })
 
+const username = useCookie('username')
+const token = useCookie('token')
+const userKey = ref('')
+
+// 获取用户 KEY 信息
+onMounted(async () => {
+  if (username.value && token.value) {
+    const res = await $myFetch('Key', {
+      params: {
+        username: username.value,
+      },
+    })
+
+    if (res.code !== 200) {
+      msg(res.msg, 'error')
+      return
+    }
+
+    userKey.value = res.data
+  }
+})
+
+const createKey = async () => {
+  if (!username.value || !token.value) {
+    msg('请先登录', 'error')
+    return
+  }
+
+  const res = await $myFetch('CreateKey', {
+    method: 'post',
+    params: {
+      username: username.value,
+      key: userKey.value,
+    },
+  })
+
+  if (res.code !== 200) {
+    msg(res.msg, 'error')
+    return
+  }
+
+  msg(res.msg, 'success')
+  userKey.value = res.data
+}
+
+const copy = (value) => {
+  const textArea = document.createElement('textarea')
+  textArea.value = value
+  document.body.appendChild(textArea)
+  textArea.select()
+  document.execCommand('copy')
+  document.body.removeChild(textArea)
+
+  ElMessage({
+    message: '复制成功',
+    type: 'success',
+  })
+}
+
 useHead({
   title: '管理后台',
   viewport:
@@ -271,9 +331,28 @@ useHead({
       <AdminHeader></AdminHeader>
       <div class="main-container">
         <div class="info-container">
+          <el-row :gutter="12">
+            <el-col :xs="24" :sm="24" :md="24" :lg="24" :xl="24">
+              <el-card style="padding: 5px 0" shadow="hover"
+                >您的秘钥：
+                <el-tag type="primary" size="large">{{ userKey }}</el-tag>
+                <el-button class="createKey" type="success" @click="createKey"
+                  >重新生成秘钥</el-button
+                >
+                <el-button class="copykey" @click="copy(userKey)" type="primary"
+                  >复制您的秘钥</el-button
+                >
+              </el-card>
+            </el-col></el-row
+          >
+
           <SystemInfo></SystemInfo>
 
-          <el-row :gutter="12" style="margin-top: 20px; text-align: center">
+          <el-row
+            :gutter="12"
+            style="margin-top: 20px; text-align: center"
+            v-if="routeShow('/admin/FunctionBox')"
+          >
             <el-col :xs="24" :sm="12" :md="12" :lg="6" :xl="6">
               <el-card style="padding: 5px 0" shadow="hover">
                 <svg
@@ -342,7 +421,11 @@ useHead({
             </el-col>
           </el-row>
 
-          <el-row :gutter="12" style="margin-top: 20px; text-align: center">
+          <el-row
+            :gutter="12"
+            style="margin-top: 20px; text-align: center"
+            v-if="routeShow('/admin/FunctionBox')"
+          >
             <el-col :xs="24" :sm="12" :md="12" :lg="6" :xl="6">
               <el-card style="padding: 5px 0" shadow="hover">
                 <svg
@@ -440,7 +523,7 @@ useHead({
             <div id="recentRequestChart" v-if="chartShow"></div>
             <div id="TodayRequestChart" v-if="chartShow"></div>
           </div>
-          <div id="APIRankingList"></div>
+          <div v-if="routeShow('/admin/EchartDom')" id="APIRankingList"></div>
         </div>
       </div>
     </div>
@@ -455,8 +538,14 @@ useHead({
     .main-container {
       height: 100%;
       padding: 0 10px;
-      padding-top: 20px;
       background-color: #f7f7f7;
+      .createKey {
+        float: right;
+        margin-left: 10px;
+      }
+      .copykey {
+        float: right;
+      }
       svg {
         width: 30px;
         height: 30px;
@@ -506,6 +595,20 @@ useHead({
             width: 100%;
           }
         }
+      }
+    }
+  }
+}
+@media screen and (max-width: 900px) {
+  .container {
+    .right {
+      .createKey {
+        float: none !important;
+        margin-top: 5px;
+      }
+      .copykey {
+        float: none !important;
+        margin-top: 5px;
       }
     }
   }

@@ -84,6 +84,18 @@
                     </el-col>
 
                     <el-col :xs="24" :sm="24" :md="24" :lg="24" :xl="24">
+                      <el-form-item label="秘钥验证">
+                        <el-select
+                          v-model="apiSetInfo.key"
+                          placeholder="请选择状态"
+                        >
+                          <el-option label="开启" :value="true"></el-option>
+                          <el-option label="关闭" :value="false"></el-option>
+                        </el-select>
+                      </el-form-item>
+                    </el-col>
+
+                    <el-col :xs="24" :sm="24" :md="24" :lg="24" :xl="24">
                       <el-form-item label="返回示例">
                         <el-input
                           :rows="10"
@@ -188,6 +200,7 @@ const apiSetInfo = ref({
   example_url: '',
   prefix: '',
   prefixValue: '',
+  key: '',
 })
 
 const paramsArr = ref()
@@ -223,6 +236,12 @@ const getData = async () => {
     apiSetInfo.value.state = true
   } else {
     apiSetInfo.value.state = false
+  }
+
+  if (res.data.key === '开启') {
+    apiSetInfo.value.key = true
+  } else {
+    apiSetInfo.value.key = false
   }
 }
 
@@ -272,6 +291,12 @@ const updateApiInfo = async () => {
     bodyValue.append('state', '关闭')
   }
 
+  if (apiSetInfo.value.key) {
+    bodyValue.append('key', '开启')
+  } else {
+    bodyValue.append('key', '关闭')
+  }
+
   const res = await $myFetch('ApiUpdate', {
     method: 'POST',
     body: bodyValue,
@@ -279,6 +304,8 @@ const updateApiInfo = async () => {
 
   if (res.code === 200) {
     msg(res.msg, 'success')
+  } else {
+    msg(res.msg, 'error')
   }
 
   setTimeout(() => {
