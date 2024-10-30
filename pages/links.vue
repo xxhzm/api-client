@@ -63,7 +63,7 @@ useHead({
     .link-cont {
       display: flex;
       flex-wrap: wrap;
-      justify-content: space-between;
+      justify-content: flex-start;
     }
 
     .link-box {
@@ -75,6 +75,7 @@ useHead({
       box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
       transition: all 0.5s;
       margin-bottom: 30px;
+      margin-left: 12px;
       a {
         width: 100%;
         display: flex;

@@ -86,7 +86,7 @@
                     <el-col :xs="24" :sm="24" :md="24" :lg="24" :xl="24">
                       <el-form-item label="秘钥验证">
                         <el-select
-                          v-model="apiSetInfo.key"
+                          v-model="apiSetInfo.keyState"
                           placeholder="请选择状态"
                         >
                           <el-option label="开启" :value="true"></el-option>
@@ -200,7 +200,7 @@ const apiSetInfo = ref({
   example_url: '',
   prefix: '',
   prefixValue: '',
-  key: '',
+  keyState: '',
 })
 
 const paramsArr = ref()
@@ -238,10 +238,10 @@ const getData = async () => {
     apiSetInfo.value.state = false
   }
 
-  if (res.data.key === '开启') {
-    apiSetInfo.value.key = true
+  if (res.data.keyState === '开启') {
+    apiSetInfo.value.keyState = true
   } else {
-    apiSetInfo.value.key = false
+    apiSetInfo.value.keyState = false
   }
 }
 
@@ -291,10 +291,10 @@ const updateApiInfo = async () => {
     bodyValue.append('state', '关闭')
   }
 
-  if (apiSetInfo.value.key) {
-    bodyValue.append('key', '开启')
+  if (apiSetInfo.value.keyState) {
+    bodyValue.append('keyState', '开启')
   } else {
-    bodyValue.append('key', '关闭')
+    bodyValue.append('keyState', '关闭')
   }
 
   const res = await $myFetch('ApiUpdate', {

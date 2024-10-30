@@ -65,7 +65,7 @@
             <el-table-column prop="method" label="请求方法" width="80" />
             <el-table-column prop="uname" label="创建人" width="80" />
             <el-table-column prop="category" label="分类" width="60" />
-            <el-table-column prop="key" label="Key验证" width="80" />
+            <el-table-column prop="keyState" label="Key验证" width="80" />
             <el-table-column prop="create_time" label="创建时间" width="165" />
             <el-table-column prop="count" label="调用次数" width="100" />
             <el-table-column prop="description" label="描述" width="250" />

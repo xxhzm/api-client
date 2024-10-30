@@ -289,7 +289,7 @@ const createKey = async () => {
     method: 'post',
     params: {
       username: username.value,
-      key: userKey.value,
+      userKey: userKey.value,
     },
   })
 
