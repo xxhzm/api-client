@@ -83,8 +83,6 @@ const msg = $msg
 
 // 当前页数
 const page = ref(1)
-// 总页数
-const totalPages = ref(1)
 // 总记录
 const totalRecords = ref(50)
 // 页数loading
@@ -117,7 +115,8 @@ const getData = async () => {
     return
   }
 
-  tableData.value = res.data
+  tableData.value = res.data.list
+  totalRecords.value = res.data.count
 }
 
 onMounted(() => {
