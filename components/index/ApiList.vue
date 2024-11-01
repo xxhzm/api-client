@@ -69,7 +69,7 @@ listSearch.value = res.data
         position: absolute;
         right: 0;
         top: 0;
-        width: 65px;
+        width: 90px;
         height: 25px;
         padding-top: 2px;
         padding-left: 15px;
