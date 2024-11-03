@@ -159,6 +159,13 @@ if (res.code !== 200) {
 
 // 判断参数是否必传
 res.data.params = res.data.params.map((item) => {
+  let requiredText
+  if (item.required === 1 || item.required === '必传') {
+    requiredText = '必传'
+  } else {
+    requiredText = '可选'
+  }
+
   return {
     id: item.id,
     aid: item.aid,
@@ -166,7 +173,7 @@ res.data.params = res.data.params.map((item) => {
     param: item.param,
     position: item.position,
     docs: item.docs,
-    required: item.required === 1 ? '必传' : '可选',
+    required: requiredText,
   }
 })
 
