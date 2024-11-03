@@ -194,8 +194,8 @@ useHead({
     'width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0',
   charset: 'utf-8',
   meta: [
-    { description: apiInfo.value.description },
-    { keywords: apiInfo.value.keywords },
+    { name: 'description', content: options.value.description },
+    { name: 'keywords', content: options.value.keywords },
   ],
 })
 
