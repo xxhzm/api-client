@@ -113,7 +113,15 @@
           <el-icon><Connection /></el-icon>
           <template #title>友情链接</template>
         </el-menu-item>
-        <el-menu-item index="6" @click="navigateTo('/')">
+        <el-menu-item
+          index="6"
+          @click="sitemap()"
+          v-if="routeShow('/admin/sitemap')"
+        >
+          <el-icon><Document /></el-icon>
+          <template #title>生成sitemap</template>
+        </el-menu-item>
+        <el-menu-item index="7" @click="navigateTo('/')">
           <el-icon><Promotion /></el-icon>
           <template #title>访问前台</template>
         </el-menu-item>
@@ -133,8 +141,10 @@ import {
   Coin,
   Avatar,
   Connection,
+  Document,
 } from '@element-plus/icons-vue'
 
+const { $enCode, $msg, $myFetch } = useNuxtApp()
 const routeInfo = useCookie('routeInfo')
 
 // 判断是否拥有权限，动态显示左侧边栏
@@ -160,10 +170,10 @@ const routeShowArr = (arr) => {
   const set2 = new Set(arr)
 
   const state = routeInfo.value.some((obj) => set2.has(obj.path))
-  if(state === true){
+  if (state === true) {
     return true
   }
-  
+
   return false
 }
 
@@ -172,6 +182,18 @@ const handleOpen = (key, keyPath) => {
 }
 const handleClose = (key, keyPath) => {
   // console.log(key, keyPath)
+}
+
+const sitemap = async () => {
+  const res = await $myFetch('Sitemap', {
+    method: 'GET',
+  })
+
+  if (res.code === 200) {
+    $msg(res.msg, 'success')
+  } else {
+    $msg(res.msg, 'success')
+  }
 }
 </script>
 
