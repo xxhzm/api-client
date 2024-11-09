@@ -35,7 +35,7 @@ listSearch.value = res.data
           <div class="apilist_box">
             <div class="apilist_category">{{ item.category }}</div>
             <div>
-              <h1>{{ item.name }}</h1>
+              <h2>{{ item.name }}</h2>
               <span>{{ item.description }}</span>
             </div>
           </div></nuxt-link
@@ -81,7 +81,7 @@ listSearch.value = res.data
       div {
         margin-left: 20px;
         padding-right: 20px;
-        h1 {
+        h2 {
           color: #555;
           font-size: 18px;
           font-weight: bold;

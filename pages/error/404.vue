@@ -1,7 +1,7 @@
 <template>
   <div class="error">
     <img src="@/assets/images/404.svg" />
-    <p>抱歉，您访问的页面不存在</p>
+    <h1>抱歉，您访问的页面不存在</h1>
     <el-button
       type="primary"
       plain
@@ -22,9 +22,10 @@
     width: 350px;
     height: 200px;
   }
-  p {
+  h1 {
     color: #6b7280;
     font-size: 18px;
+    font-weight: normal;
   }
 }
 </style>
