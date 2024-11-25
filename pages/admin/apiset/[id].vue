@@ -220,7 +220,7 @@ const getData = async () => {
       param: item.param,
       position: item.position,
       docs: item.docs,
-      create_time: item.create_time,
+      create_time: new Date(Number(item.create_time)).toLocaleString(),
       required: item.required === 1 ? '必传' : '可选',
     }
   })
