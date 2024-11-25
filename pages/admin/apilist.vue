@@ -18,7 +18,7 @@
             :total="totalRecords"
             v-model:current-page="page"
             :disabled="pageLoading"
-            small
+            size="small"
             background
             layout="prev, pager, next"
             style="float: right; margin-right: 100px"
@@ -114,6 +114,12 @@ const getData = async () => {
   if (res.code !== 200) {
     return
   }
+
+  res.data.list.forEach((element, key) => {
+    res.data.list[key].create_time = new Date(
+      Number(element.create_time)
+    ).toLocaleString()
+  })
 
   tableData.value = res.data.list
   totalRecords.value = res.data.count
