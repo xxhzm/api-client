@@ -281,7 +281,7 @@ const handleDelete = async (index, row) => {
 // 显示用户归属地
 const getAddress = async () => {
   tableData.value.forEach(async (element, key) => {
-    const { data: ip } = await $myFetch('https://v2.api-m.com/api/ip', {
+    const { data: ip } = await $myFetch('https://v2.xxapi.cn/api/ip', {
       params: {
         ip: element.ip,
       },

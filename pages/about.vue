@@ -9,7 +9,7 @@
       <h1 style="color: #1f2d3d; font-size: 18px">服务说明</h1>
       <div class="text">
         <p>
-          小小 API 是 小小孩子们 支持并维护的 API
+          小小 API 是 滕州市星语软件开发工作室 支持并维护的 API
           接口项目，致力于为用户提供稳定、快速的 API 接口服务平台。
         </p>
         <p>反馈或建议请发送邮件至：admin@xxhzm.cn</p>
@@ -25,14 +25,13 @@
       </div>
       <h1 style="color: #1f2d3d; font-size: 18px">服务地址</h1>
       <div class="text">
-        <p>主域名：api-m.com</p>
-        <p>备域名：xxapi.cn</p>
+        <p>https://xxapi.cn</p>
       </div>
 
       <div class="text">
         <p>
-          小小API以下简称本平台,所提供的各项服务的所有权和运作权归 小小孩子们
-          所有
+          小小API以下简称本平台,所提供的各项服务的所有权和运作权归
+          滕州市星语软件开发工作室 所有
         </p>
       </div>
       <h1 style="color: #1f2d3d; font-size: 18px">API服务说明</h1>

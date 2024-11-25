@@ -9,7 +9,7 @@
       <h1 style="color: #1f2d3d; font-size: 24px">友情链接</h1>
       <div class="link-cont">
         <div class="link-box" v-for="item in links" :key="item.id">
-          <a :href="item.url + '?ref=api-m.com'" target="_blank">
+          <a :href="item.url + '?ref=xxapi.cn'" target="_blank">
             <img :src="item.image" :alt="item.name" />
             <div>
               <p>{{ item.name }}</p>
