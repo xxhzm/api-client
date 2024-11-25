@@ -86,7 +86,7 @@ const getData = async () => {
       name: item.name,
       default: item.default === 1 ? '是' : '否',
       count: item.count,
-      createTime: item.createTime,
+      createTime: new Date(Number(item.createTime)).toLocaleString(),
     }
   })
 
