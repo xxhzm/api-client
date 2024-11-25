@@ -3,19 +3,6 @@
     <el-row :gutter="12">
       <el-col :xs="24" :sm="12" :md="12" :lg="6" :xl="6">
         <SystemCard>
-          <template v-slot:title>平台用户</template>
-          <template v-slot:tag>用户</template>
-          <template v-slot:content>
-            <HelpersCount
-              style="font-size: 18px"
-              :end="systemInfo.total_user"
-            ></HelpersCount>
-          </template>
-        </SystemCard>
-      </el-col>
-
-      <el-col :xs="24" :sm="12" :md="12" :lg="6" :xl="6">
-        <SystemCard>
           <template v-slot:title>平台接口</template>
           <template v-slot:tag>接口</template>
           <template v-slot:content>
@@ -45,6 +32,19 @@
             <HelpersCount
               style="font-size: 18px"
               :end="systemInfo.total_request_number"
+            ></HelpersCount>
+          </template>
+        </SystemCard>
+      </el-col>
+
+      <el-col :xs="24" :sm="12" :md="12" :lg="6" :xl="6">
+        <SystemCard>
+          <template v-slot:title>已稳定运营</template>
+          <template v-slot:tag>天</template>
+          <template v-slot:content>
+            <HelpersCount
+              style="font-size: 18px"
+              :end="systemInfo.day"
             ></HelpersCount>
           </template>
         </SystemCard>
@@ -101,8 +101,7 @@
 const { $myFetch } = useNuxtApp()
 
 const systemInfo = ref({
-  total_user: 0,
-  total_user: 0,
+  day: 0,
   total_api: 0,
   recent_request: [],
   total_request_number: 0,
