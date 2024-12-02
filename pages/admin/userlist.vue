@@ -18,7 +18,7 @@
             :total="totalRecords"
             v-model:current-page="page"
             :disabled="pageLoading"
-            small
+            size="small"
             background
             layout="prev, pager, next"
             style="float: right; margin-right: 100px"
@@ -69,9 +69,10 @@
                   >编辑</el-button
                 >
                 <el-popconfirm
-                  confirm-button-text="Yes"
-                  cancel-button-text="No"
-                  title="你确定要删除吗?"
+                  confirm-button-text="确定"
+                  cancel-button-text="取消"
+                  title="您确定要删除吗?"
+                  width="160px"
                   @confirm="handleDelete(scope.$index, scope.row)"
                 >
                   <template #reference>

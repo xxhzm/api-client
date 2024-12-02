@@ -20,6 +20,7 @@
     "vant": "^4.8.11"
   },
   "dependencies": {
-    "caniuse-lite": "^1.0.30001561"
+    "caniuse-lite": "^1.0.30001561",
+    "vditor": "^3.10.7"
   }
 }

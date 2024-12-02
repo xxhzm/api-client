@@ -31,9 +31,16 @@
       <van-tabbar-item icon="friends-o" @click="navigateTo('/links')"
         >友情链接</van-tabbar-item
       >
+      <van-tabbar-item
+        name="articles"
+        icon="comment-o"
+        @click="navigateTo('/articles')"
+        >文章</van-tabbar-item
+      >
       <van-tabbar-item icon="info-o" @click="navigateTo('/about')"
         >关于我们</van-tabbar-item
       >
+
       <van-tabbar-item
         name="setting"
         icon="setting-o"

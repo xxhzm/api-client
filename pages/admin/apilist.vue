@@ -45,9 +45,10 @@
                   >编辑</el-button
                 >
                 <el-popconfirm
-                  confirm-button-text="Yes"
-                  cancel-button-text="No"
-                  title="你确定要删除吗?"
+                  confirm-button-text="确定"
+                  cancel-button-text="取消"
+                  title="您确定要删除吗?"
+                  width="160px"
                   @confirm="handleDelete(scope.$index, scope.row)"
                 >
                   <template #reference>
@@ -144,7 +145,7 @@ const handleEdit = (index, row) => {
 const handleDelete = async (index, row) => {
   loading.value = true
 
-  const { data: res } = await $myFetch('ApiDelete', {
+  const res = await $myFetch('ApiDelete', {
     params: {
       id: row.id,
     },

@@ -19,14 +19,38 @@
           <el-icon><Odometer /></el-icon>
           <template #title>控制台</template>
         </el-menu-item>
-        <el-menu-item
+
+        <el-sub-menu
           index="2"
-          @click="navigateTo('/admin/webset')"
-          v-if="routeShow('/admin/webset')"
+          v-if="
+            routeShowArr(['/admin/webset', '/admin/mailset', '/admin/sitemap'])
+          "
         >
-          <el-icon><Setting /></el-icon>
-          <template #title>系统设置</template>
-        </el-menu-item>
+          <template #title>
+            <el-icon><Setting /></el-icon>
+            <span>系统设置</span>
+          </template>
+          <el-menu-item-group title="系统设置">
+            <el-menu-item
+              index="2-1"
+              @click="navigateTo('/admin/webset')"
+              v-if="routeShow('/admin/webset')"
+              >基本设置</el-menu-item
+            >
+            <el-menu-item
+              index="2-1"
+              @click="navigateTo('/admin/mailset')"
+              v-if="routeShow('/admin/webset')"
+              >邮件设置</el-menu-item
+            >
+            <el-menu-item
+              index="2-3"
+              @click="sitemap()"
+              v-if="routeShow('/admin/sitemap')"
+              >生成网站地图
+            </el-menu-item>
+          </el-menu-item-group>
+        </el-sub-menu>
 
         <el-sub-menu
           index="3"
@@ -70,6 +94,7 @@
             >
           </el-menu-item-group>
         </el-sub-menu>
+
         <el-sub-menu
           index="4"
           v-if="
@@ -84,7 +109,7 @@
             <el-icon><Avatar /></el-icon>
             <span>用户管理</span>
           </template>
-          <el-menu-item-group title="权限管理">
+          <el-menu-item-group title="用户管理">
             <el-menu-item
               index="4-1"
               @click="navigateTo('/admin/userlist')"
@@ -105,21 +130,35 @@
             >
           </el-menu-item-group>
         </el-sub-menu>
+
+        <el-sub-menu index="5" v-if="routeShowArr(['/admin/articlelist'])">
+          <template #title>
+            <el-icon><Tickets /></el-icon>
+            <span>文章管理</span>
+          </template>
+          <el-menu-item-group title="文章管理">
+            <el-menu-item
+              index="5-1"
+              @click="navigateTo('/admin/articlelist')"
+              v-if="routeShow('/admin/articlelist')"
+              >文章列表</el-menu-item
+            >
+            <el-menu-item
+              index="5-2"
+              @click="navigateTo('/admin/createarticle')"
+              v-if="routeShow('/admin/createarticle')"
+              >新增文章</el-menu-item
+            >
+          </el-menu-item-group>
+        </el-sub-menu>
+
         <el-menu-item
-          index="5"
+          index="6"
           @click="navigateTo('/admin/links')"
           v-if="routeShow('/admin/links')"
         >
           <el-icon><Connection /></el-icon>
           <template #title>友情链接</template>
-        </el-menu-item>
-        <el-menu-item
-          index="6"
-          @click="sitemap()"
-          v-if="routeShow('/admin/sitemap')"
-        >
-          <el-icon><Document /></el-icon>
-          <template #title>生成sitemap</template>
         </el-menu-item>
         <el-menu-item index="7" @click="navigateTo('/')">
           <el-icon><Promotion /></el-icon>
@@ -138,13 +177,13 @@ import {
   Setting,
   Odometer,
   Promotion,
-  Coin,
+  Tickets,
   Avatar,
   Connection,
   Document,
 } from '@element-plus/icons-vue'
 
-const { $enCode, $msg, $myFetch } = useNuxtApp()
+const { $msg, $myFetch } = useNuxtApp()
 const routeInfo = useCookie('routeInfo')
 
 // 判断是否拥有权限，动态显示左侧边栏

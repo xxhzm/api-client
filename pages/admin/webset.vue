@@ -6,80 +6,38 @@
       <div class="webset_container">
         <div class="cont">
           <div class="form">
-            <el-tabs v-model="activeName">
-              <el-tab-pane label="基础设置" name="first">
-                <el-form
-                  :model="websetInfo"
-                  label-position="top"
-                  label-width="120px"
+            <el-form
+              :model="websetInfo"
+              label-position="top"
+              label-width="120px"
+            >
+              <el-form-item label="网站标题">
+                <el-input v-model="websetInfo.title" />
+              </el-form-item>
+              <el-form-item label="网站副标题">
+                <el-input v-model="websetInfo.subheading" />
+              </el-form-item>
+              <el-form-item label="网站关键词">
+                <el-input v-model="websetInfo.keywords" />
+              </el-form-item>
+              <el-form-item label="网站描述">
+                <el-input v-model="websetInfo.description" />
+              </el-form-item>
+              <el-form-item label="建站时间">
+                <el-input v-model="websetInfo.create_time" />
+              </el-form-item>
+              <el-form-item label="ICP备案号">
+                <el-input v-model="websetInfo.icp" />
+              </el-form-item>
+              <el-form-item label="公安备案号">
+                <el-input v-model="websetInfo.gongan" />
+              </el-form-item>
+              <el-form-item>
+                <el-button type="primary" @click="websetInfoSubmit"
+                  >提交</el-button
                 >
-                  <el-form-item label="网站标题">
-                    <el-input v-model="websetInfo.title" />
-                  </el-form-item>
-                  <el-form-item label="网站副标题">
-                    <el-input v-model="websetInfo.subheading" />
-                  </el-form-item>
-                  <el-form-item label="网站关键词">
-                    <el-input v-model="websetInfo.keywords" />
-                  </el-form-item>
-                  <el-form-item label="网站描述">
-                    <el-input v-model="websetInfo.description" />
-                  </el-form-item>
-                  <el-form-item label="建站时间">
-                    <el-input v-model="websetInfo.create_time" />
-                  </el-form-item>
-                  <el-form-item label="ICP备案号">
-                    <el-input v-model="websetInfo.icp" />
-                  </el-form-item>
-                  <el-form-item label="公安备案号">
-                    <el-input v-model="websetInfo.gongan" />
-                  </el-form-item>
-                  <el-form-item>
-                    <el-button type="primary" @click="websetInfoSubmit"
-                      >提交</el-button
-                    >
-                  </el-form-item>
-                </el-form>
-              </el-tab-pane>
-
-              <el-tab-pane label="邮件设置" name="second">
-                <el-form
-                  :model="mailInfo"
-                  label-position="top"
-                  label-width="120px"
-                >
-                  <el-form-item label="SMTP服务器地址">
-                    <el-input v-model="mailInfo.smtp" />
-                  </el-form-item>
-
-                  <el-form-item label="邮箱账户">
-                    <el-input v-model="mailInfo.user" />
-                  </el-form-item>
-
-                  <el-form-item label="密码">
-                    <el-input v-model="mailInfo.password" />
-                  </el-form-item>
-
-                  <el-form-item label="发件人">
-                    <el-input v-model="mailInfo.setfrom" />
-                  </el-form-item>
-
-                  <el-form-item label="服务器端口">
-                    <el-input v-model="mailInfo.port" />
-                  </el-form-item>
-
-                  <el-form-item label="发信名称">
-                    <el-input v-model="mailInfo.name" />
-                  </el-form-item>
-
-                  <el-form-item>
-                    <el-button type="primary" @click="mailInfoSubmit"
-                      >提交</el-button
-                    >
-                  </el-form-item>
-                </el-form>
-              </el-tab-pane>
-            </el-tabs>
+              </el-form-item>
+            </el-form>
           </div>
         </div>
       </div>
@@ -89,8 +47,6 @@
 
 <script setup>
 const { $msg, $myFetch } = useNuxtApp()
-
-const activeName = ref('first')
 
 const websetInfo = ref({
   title: '',
@@ -102,28 +58,13 @@ const websetInfo = ref({
   gongan: '',
 })
 
-const mailInfo = ref({
-  smtp: '',
-  user: '',
-  password: '',
-  setfrom: '',
-  port: '',
-  name: '',
-})
-
 const getWebsetInfo = async () => {
   const res = await $myFetch('Options')
   websetInfo.value = res.data
 }
 
-const getMailInfo = async () => {
-  const res = await $myFetch('MailInfo')
-  mailInfo.value = res.data
-}
-
 onMounted(() => {
   getWebsetInfo()
-  getMailInfo()
 })
 
 const websetInfoSubmit = async () => {
@@ -158,40 +99,8 @@ const websetInfoSubmit = async () => {
   }
 }
 
-const mailInfoSubmit = async () => {
-  if (
-    !mailInfo.value.smtp ||
-    !mailInfo.value.user ||
-    !mailInfo.value.password ||
-    !mailInfo.value.setfrom ||
-    !mailInfo.value.port ||
-    !mailInfo.value.name
-  ) {
-    $msg('请填写内容', 'error')
-    return false
-  }
-
-  const bodyValue = new URLSearchParams()
-  bodyValue.append('smtp', mailInfo.value.smtp)
-  bodyValue.append('user', mailInfo.value.user)
-  bodyValue.append('password', mailInfo.value.password)
-  bodyValue.append('setfrom', mailInfo.value.setfrom)
-  bodyValue.append('port', mailInfo.value.port)
-  bodyValue.append('name', mailInfo.value.name)
-
-  const res = await $myFetch('MailInfoUpdate', {
-    method: 'POST',
-    body: bodyValue,
-  })
-
-  if (res.code === 200) {
-    $msg(res.msg, 'success')
-    getMailInfo()
-  }
-}
-
 useHead({
-  title: '系统设置',
+  title: '基本设置',
   viewport:
     'width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0',
   charset: 'utf-8',
@@ -204,7 +113,7 @@ useHead({
   .right {
     width: 100%;
     .webset_container {
-      height: 100%;
+      min-height: 100vh;
       padding: 10px;
       background-color: #f7f7f7;
       .cont {

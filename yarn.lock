@@ -2412,6 +2412,11 @@ devalue@^5.0.0:
   resolved "https://registry.npmmirror.com/devalue/-/devalue-5.1.1.tgz#a71887ac0f354652851752654e4bd435a53891ae"
   integrity sha512-maua5KUiapvEwiEAe+XnlZ3Rh0GD+qI1J/nb9vrJc3muPXvcF/8gXYTWF76+5DAqHyDUtOIImEuo0YKE9mshVw==
 
+diff-match-patch@^1.0.5:
+  version "1.0.5"
+  resolved "https://registry.npmmirror.com/diff-match-patch/-/diff-match-patch-1.0.5.tgz#abb584d5f10cd1196dfc55aa03701592ae3f7b37"
+  integrity sha512-IayShXAgj/QMXgB0IWmKx+rOPuGMhqm5w6jvFxmVenXKIzRqTAAsbBPT3kWQeGANj3jGgvcvv4yK6SxqYmikgw==
+
 diff@^7.0.0:
   version "7.0.0"
   resolved "https://registry.npmmirror.com/diff/-/diff-7.0.0.tgz#3fb34d387cd76d803f6eebea67b921dab0182a9a"
@@ -5248,6 +5253,13 @@ vant@^4.8.11:
     "@vant/popperjs" "^1.3.0"
     "@vant/use" "^1.6.0"
     "@vue/shared" "^3.5.11"
+
+vditor@^3.10.7:
+  version "3.10.7"
+  resolved "https://registry.npmmirror.com/vditor/-/vditor-3.10.7.tgz#177e26e20c4f090c04b30e7da1a70ea321e31fc9"
+  integrity sha512-n+ZM1IgLJzUGZeXzQT4xKbUwCplSFoRlsnmMvLv2kMPLnUTMk9O2qV8nMEOahYed0xExhQZtVb6TKeavgA6w3w==
+  dependencies:
+    diff-match-patch "^1.0.5"
 
 vite-hot-client@^0.2.3:
   version "0.2.3"

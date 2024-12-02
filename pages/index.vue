@@ -3,10 +3,10 @@
     <!-- 公告 -->
     <IndexNotice></IndexNotice>
     <div class="container">
-      <h2 style="color: #1f2d3d; font-size: 24px">广告商</h2>
-      <Ad style="margin-bottom: 2rem"></Ad>
-
       <client-only>
+        <h2 style="color: #1f2d3d; font-size: 24px">广告商</h2>
+        <Ad style="margin-bottom: 2rem"></Ad>
+
         <h2 style="color: #1f2d3d; font-size: 24px">系统信息</h2>
         <SystemInfo style="margin-bottom: 2rem"></SystemInfo>
       </client-only>
@@ -48,7 +48,7 @@ useHead({
 <style lang="less" scoped>
 .index-container {
   width: 100%;
-  height: 100%;
+  min-height: 100vh;
   background: #f7f9fe;
   .container {
     width: 80%;

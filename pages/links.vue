@@ -3,9 +3,6 @@
     <!-- 公告 -->
     <IndexNotice></IndexNotice>
     <div class="container">
-      <h1 style="color: #1f2d3d; font-size: 24px">广告商</h1>
-      <Ad style="margin-bottom: 2rem"></Ad>
-
       <h1 style="color: #1f2d3d; font-size: 24px">友情链接</h1>
       <div class="link-cont">
         <div class="link-box" v-for="item in links" :key="item.id">
@@ -44,7 +41,7 @@ const {
 options.value = res1.data
 
 useHead({
-  title: options.value.title + ' - ' + '友情链接',
+  title: '友情链接' + ' - ' + options.value.title,
   viewport:
     'width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0',
   charset: 'utf-8',
@@ -55,11 +52,10 @@ useHead({
 <style lang="less" scoped>
 .links-container {
   width: 100%;
-  height: 100%;
+  min-height: 100vh;
   background: #f7f9fe;
   .container {
     width: 80%;
-    height: 100vh;
     margin: 0 auto;
     .link-cont {
       display: flex;

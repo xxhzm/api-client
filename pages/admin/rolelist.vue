@@ -32,9 +32,10 @@
                   >拥有权限</el-button
                 >
                 <el-popconfirm
-                  confirm-button-text="Yes"
-                  cancel-button-text="No"
-                  title="你确定要删除吗?"
+                  confirm-button-text="确定"
+                  cancel-button-text="取消"
+                  title="您确定要删除吗?"
+                  width="160px"
                   @confirm="handleDelete(scope.$index, scope.row)"
                 >
                   <template #reference>
@@ -130,10 +131,10 @@ const roleInfo = ref({
 const getData = async () => {
   const res = await $myFetch('RoleList')
 
-  if(res.code !== 200){
+  if (res.code !== 200) {
     return
   }
-  
+
   tableData.value = res.data
 
   tableData.value.forEach((element, k) => {

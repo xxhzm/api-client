@@ -40,7 +40,9 @@
         </el-table>
       </div>
 
-      <Ad></Ad>
+      <client-only>
+        <Ad></Ad>
+      </client-only>
 
       <div class="box">
         <h2>请求示例</h2>

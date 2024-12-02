@@ -145,7 +145,7 @@ useHead({
   .right {
     width: 100%;
     .addparam_container {
-      height: 100%;
+      min-height: 100vh;
       padding: 10px;
       background-color: #f7f7f7;
       .cont {
