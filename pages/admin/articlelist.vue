@@ -105,6 +105,19 @@ const totalRecords = ref(50)
 // 页数loading
 const pageLoading = ref(false)
 
+// 监听页数变化
+watch(
+  () => page.value,
+  async (newValue) => {
+    pageLoading.value = true
+    await getData()
+    console.log(newValue)
+    setTimeout(() => {
+      pageLoading.value = false
+    }, 300)
+  }
+)
+
 const getData = async () => {
   const res = await $myFetch('ArticleList', {
     params: {
@@ -136,7 +149,6 @@ const getData = async () => {
 
   tableData.value = res.data.list
   totalPages.value = res.data.totalPages
-  totalRecords.value = res.data.totalRecords
 }
 
 onMounted(() => {
@@ -169,18 +181,6 @@ const handleDelete = async (index, row) => {
   $msg(res.msg, 'success')
   await getData()
 }
-
-// 监听页数变化
-watch(
-  () => page.value,
-  async (newValue) => {
-    pageLoading.value = true
-    await getData()
-    setTimeout(() => {
-      pageLoading.value = false
-    }, 300)
-  }
-)
 
 // 导入文章
 const importArticleUrl = ref('')

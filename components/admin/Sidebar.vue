@@ -6,7 +6,7 @@
           src="@/assets/images/logo.png"
           alt="logo"
           class="logo"
-          style="width: 140px; height: 60px"
+          style="width: 120px"
         />
       </el-menu-item>
       <div>

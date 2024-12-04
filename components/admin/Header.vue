@@ -6,7 +6,6 @@
       :ellipsis="false"
       @select="handleSelect"
     >
-      <div class="flex-grow" />
       <ClientOnly>
         <el-sub-menu index="1" style="position: absolute; right: 40px">
           <template #title>{{ username }}</template>
@@ -34,7 +33,6 @@ const handleSelect = (key) => {
   if (key === '0-2') {
     $logout()
   }
-
 }
 </script>
 
