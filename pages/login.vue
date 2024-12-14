@@ -193,7 +193,9 @@ const captchaInfo = ref({
 // 获取图片验证码
 const getCaptchaInfo = async () => {
   // 接口文档 https://xxapi.cn/doc/captcha
-  const res = await $fetch('https://v2.xxapi.cn/api/captcha?type=digit')
+  const res = await $fetch(
+    'https://v2.xxapi.cn/api/captcha?type=math&options=3'
+  )
   captchaInfo.value = res.data
 }
 
@@ -297,7 +299,7 @@ useHead({
 .login-container {
   position: relative;
   width: 100%;
-  height: 100vh;
+  min-height: 100vh;
   background: #f3f4f6;
   .cont {
     position: absolute;
