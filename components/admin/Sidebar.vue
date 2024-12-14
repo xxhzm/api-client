@@ -38,13 +38,19 @@
               >基本设置</el-menu-item
             >
             <el-menu-item
-              index="2-1"
+              index="2-2"
               @click="navigateTo('/admin/mailset')"
               v-if="routeShow('/admin/webset')"
               >邮件设置</el-menu-item
             >
             <el-menu-item
               index="2-3"
+              @click="navigateTo('/admin/ad')"
+              v-if="routeShow('/admin/ad')"
+              >广告位管理</el-menu-item
+            >
+            <el-menu-item
+              index="2-4"
               @click="sitemap()"
               v-if="routeShow('/admin/sitemap')"
               >生成网站地图
