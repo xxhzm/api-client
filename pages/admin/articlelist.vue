@@ -36,6 +36,13 @@
             style="width: 100%"
             height="96%"
           >
+            <el-table-column prop="id" label="id" width="80" />
+            <el-table-column prop="author" label="作者" width="80" />
+            <el-table-column prop="title" label="文章标题" width="200" />
+            <el-table-column prop="keywords" label="关键词" width="200" />
+            <el-table-column prop="create_time" label="发布时间" width="180" />
+            <el-table-column prop="update_time" label="修改时间" width="180" />
+            <el-table-column prop="status" label="状态" width="80" />
             <el-table-column width="150">
               <template #header>
                 <el-input v-model="search" size="small" placeholder="搜索" />
@@ -59,13 +66,6 @@
                 </el-popconfirm>
               </template>
             </el-table-column>
-            <el-table-column prop="id" label="id" width="80" />
-            <el-table-column prop="author" label="作者" width="80" />
-            <el-table-column prop="title" label="文章标题" width="200" />
-            <el-table-column prop="keywords" label="关键词" width="200" />
-            <el-table-column prop="create_time" label="发布时间" width="180" />
-            <el-table-column prop="update_time" label="修改时间" width="180" />
-            <el-table-column prop="status" label="状态" width="80" />
           </el-table>
 
           <el-dialog v-model="dialogVisible" title="导入文章" width="500">

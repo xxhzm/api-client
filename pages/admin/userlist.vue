@@ -36,33 +36,21 @@
             style="width: 100%"
             height="96%"
           >
-            <el-table-column prop="id" label="id" width="100" />
-            <el-table-column prop="username" label="用户名称" width="130" />
-            <el-table-column prop="mail" label="邮箱地址" width="200" />
-            <el-table-column prop="create_time" label="注册时间" width="180" />
-            <el-table-column
-              prop="login_time"
-              label="上次登录时间"
-              width="180"
-            />
-            <el-table-column prop="status" label="状态" width="80" />
-            <el-table-column prop="ip" label="ip" width="150" />
-            <el-table-column prop="balance" label="账户余额" width="150" />
-            <el-table-column width="300">
+            <el-table-column width="200">
               <template #header>
                 <el-input v-model="search" size="small" placeholder="搜索" />
               </template>
               <template #default="scope">
                 <el-button
                   size="small"
-                  type="info"
-                  @click="handleUserBindRoleList(scope.$index, scope.row)"
-                  >查看用户拥有角色</el-button
+                  @click="handleEdit(scope.$index, scope.row)"
+                  >编辑</el-button
                 >
                 <el-button
                   size="small"
-                  @click="handleEdit(scope.$index, scope.row)"
-                  >编辑</el-button
+                  type="info"
+                  @click="handleUserBindRoleList(scope.$index, scope.row)"
+                  >角色</el-button
                 >
                 <el-popconfirm
                   confirm-button-text="确定"
@@ -77,6 +65,18 @@
                 </el-popconfirm>
               </template>
             </el-table-column>
+            <el-table-column prop="id" label="id" width="55" />
+            <el-table-column prop="username" label="用户名称" width="130" />
+            <el-table-column prop="mail" label="邮箱地址" width="200" />
+            <el-table-column prop="create_time" label="注册时间" width="180" />
+            <el-table-column
+              prop="login_time"
+              label="上次登录时间"
+              width="180"
+            />
+            <el-table-column prop="status" label="状态" width="80" />
+            <el-table-column prop="ip" label="ip" width="150" />
+            <el-table-column prop="balance" label="账户余额" width="150" />
           </el-table>
 
           <el-dialog
@@ -142,7 +142,7 @@
           <!-- 查看用户拥有角色弹窗 -->
           <el-dialog
             v-model="userBindRoleListStatus"
-            title="角色列表"
+            title="用户角色"
             width="500"
             center
             destroy-on-close

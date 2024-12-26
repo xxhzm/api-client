@@ -7,7 +7,16 @@
         <div class="cont">
           <ClientOnly>
             <el-table :data="filterTableData" style="width: 100%" height="96%">
-              <el-table-column width="150">
+              <el-table-column prop="id" label="id" width="100" />
+              <el-table-column prop="name" label="分类名称" width="180" />
+              <el-table-column prop="alias" label="别名" width="100" />
+              <el-table-column prop="count" label="接口数" width="100" />
+              <el-table-column prop="createTime" label="创建时间" width="180" />
+              <el-table-column
+                prop="default"
+                label="默认分类"
+                width="80"
+              /><el-table-column width="110">
                 <template #header>
                   <el-input v-model="search" size="small" placeholder="搜索" />
                 </template>
@@ -20,17 +29,11 @@
                     @confirm="handleDelete(scope.$index, scope.row)"
                   >
                     <template #reference>
-                      <el-button size="small" type="danger">Delete</el-button>
+                      <el-button size="small" type="danger">删除</el-button>
                     </template>
                   </el-popconfirm>
                 </template>
               </el-table-column>
-              <el-table-column prop="id" label="id" width="100" />
-              <el-table-column prop="name" label="分类名称" width="180" />
-              <el-table-column prop="alias" label="别名" width="100" />
-              <el-table-column prop="count" label="接口数" width="100" />
-              <el-table-column prop="createTime" label="创建时间" width="250" />
-              <el-table-column prop="default" label="默认分类" width="250" />
             </el-table>
           </ClientOnly>
         </div>
