@@ -50,11 +50,7 @@
             <el-table-column prop="balance" label="账户余额" width="150" />
             <el-table-column width="300">
               <template #header>
-                <el-input
-                  v-model="search"
-                  size="small"
-                  placeholder="Type to search"
-                />
+                <el-input v-model="search" size="small" placeholder="搜索" />
               </template>
               <template #default="scope">
                 <el-button

@@ -32,11 +32,7 @@
           >
             <el-table-column width="150">
               <template #header>
-                <el-input
-                  v-model="search"
-                  size="small"
-                  placeholder="Type to search"
-                />
+                <el-input v-model="search" size="small" placeholder="搜索" />
               </template>
               <template #default="scope">
                 <el-button
@@ -134,7 +130,8 @@ const filterTableData = computed(() =>
   tableData.value.filter(
     (data) =>
       !search.value ||
-      data.name.toLowerCase().includes(search.value.toLowerCase())
+      data.name.toLowerCase().includes(search.value.toLowerCase()) ||
+      data.alias.toLowerCase().includes(search.value.toLowerCase())
   )
 )
 

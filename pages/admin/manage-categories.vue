@@ -9,11 +9,7 @@
             <el-table :data="filterTableData" style="width: 100%" height="96%">
               <el-table-column width="150">
                 <template #header>
-                  <el-input
-                    v-model="search"
-                    size="small"
-                    placeholder="Type to search"
-                  />
+                  <el-input v-model="search" size="small" placeholder="搜索" />
                 </template>
                 <template #default="scope">
                   <el-popconfirm
