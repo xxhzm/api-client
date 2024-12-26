@@ -11,8 +11,13 @@
               label-position="top"
               label-width="120px"
             >
-              <el-form-item label="接口id">
-                <el-input v-model="addparameter.id" />
+              <el-form-item label="接口名称">
+                <el-autocomplete
+                  v-model="addparameter.apiName"
+                  :fetch-suggestions="querySearchAsync"
+                  placeholder="请输入接口名称"
+                  @select="handleSearchSelect"
+                />
               </el-form-item>
               <el-form-item label="参数名称">
                 <el-input v-model="addparameter.name" placeholder="return" />
@@ -62,8 +67,12 @@
 const { $msg, $myFetch } = useNuxtApp()
 const msg = $msg
 
+const searchData = ref({})
+const searchOldValue = ref('')
+
 const addparameter = reactive({
   id: 0,
+  apiName: '',
   name: '',
   param: '',
   position: '',
@@ -81,13 +90,6 @@ const position = [
     label: 'body',
   },
 ]
-
-watch(
-  () => addparameter.id,
-  (newValue) => {
-    addparameter.id = newValue.replace(/[^\d]/g, '')
-  }
-)
 
 const onSubmit = async () => {
   if (
@@ -128,6 +130,44 @@ const onSubmit = async () => {
   setTimeout(() => {
     navigateTo('/admin/apilist')
   }, 500)
+}
+
+// 搜索
+const querySearchAsync = async (queryString, cb) => {
+  if (queryString === '') {
+    addparameter.apiName = ''
+    cb([])
+    return false
+  }
+
+  if (queryString === searchOldValue.value) {
+    cb(searchData.value)
+    return false
+  }
+  const res = await $myFetch('ApiSearch', {
+    params: {
+      keyword: queryString,
+    },
+  })
+
+  if (res.code !== 200) {
+    $msg(res.msg, 'error')
+  }
+
+  // 遍历数据，将 name 改为 value
+  res.data = res.data.map((item) => {
+    item.value = item.name
+    delete item.name
+    return item
+  })
+
+  searchOldValue.value = queryString
+  searchData.value = res.data
+  cb(searchData.value)
+}
+
+const handleSearchSelect = (item) => {
+  addparameter.id = item.id
 }
 
 useHead({
