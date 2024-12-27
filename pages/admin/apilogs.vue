@@ -95,6 +95,7 @@ const msg = $msg
 
 // 当前页数
 const page = ref(1)
+const pageLock = ref(false)
 // 总记录
 const maxPage = ref(50)
 // 页数loading
@@ -104,6 +105,10 @@ const pageLoading = ref(false)
 watch(
   () => page.value,
   async (newValue, oldValue) => {
+    if (pageLock.value === true) {
+      pageLock.value = false
+      return false
+    }
     pageLoading.value = true
 
     if (searchTime.value === undefined) {
@@ -194,6 +199,7 @@ const handleSearchTime = async (sPage) => {
   tableData.value = res.data.logs
   maxPage.value = res.data.max_page_count
   if (page.value != sPage) {
+    pageLock.value = true
     page.value = sPage
   }
 }
@@ -227,8 +233,10 @@ const handleSearchId = async () => {
   const uaArr = res.data.url.split('=')
   res.data.ua = uaArr[uaArr.length - 1]
 
+  pageLock.value = true
   tableData.value = [res.data]
   maxPage.value = 1
+  page.value = 1
 }
 
 const handleSearch = async (page) => {
