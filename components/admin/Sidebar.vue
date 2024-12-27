@@ -1,6 +1,11 @@
 <template>
   <div class="sidebar-container">
-    <el-menu class="sidebar-menu" @open="handleOpen" @close="handleClose">
+    <el-menu
+      class="sidebar-menu"
+      @open="handleOpen"
+      @close="handleClose"
+      :unique-opened="true"
+    >
       <el-menu-item index="1" @click="navigateTo('/admin')">
         <img
           src="@/assets/images/logo.png"
@@ -87,16 +92,22 @@
               >新增接口</el-menu-item
             >
             <el-menu-item
-              index="3-2"
+              index="3-3"
               @click="navigateTo('/admin/addparam')"
               v-if="routeShow('/admin/addparam')"
               >添加参数</el-menu-item
             >
             <el-menu-item
-              index="3-2"
+              index="3-4"
               @click="navigateTo('/admin/manage-categories')"
               v-if="routeShow('/admin/manage-categories')"
               >管理分类</el-menu-item
+            >
+            <el-menu-item
+              index="3-5"
+              @click="navigateTo('/admin/apilogs')"
+              v-if="routeShow('/admin/apilogs')"
+              >接口日志</el-menu-item
             >
           </el-menu-item-group>
         </el-sub-menu>
