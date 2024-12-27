@@ -65,8 +65,18 @@
             <el-table-column prop="keyState" label="Key验证" width="80" />
             <el-table-column prop="create_time" label="创建时间" width="165" />
             <el-table-column prop="count" label="调用次数" width="100" />
-            <el-table-column prop="description" label="描述" width="250" />
-            <el-table-column prop="keywords" label="接口关键词" width="300" />
+            <el-table-column
+              prop="description"
+              label="描述"
+              width="250"
+              show-overflow-tooltip
+            />
+            <el-table-column
+              prop="keywords"
+              label="接口关键词"
+              width="300"
+              show-overflow-tooltip
+            />
           </el-table>
         </client-only>
       </div>

@@ -52,12 +52,23 @@
             v-loading="pageLoading"
           >
             <el-table-column
+              prop="key"
+              label="key"
+              width="60"
+              show-overflow-tooltip
+            />
+            <el-table-column
               prop="id"
               label="请求ID"
               width="180"
               show-overflow-tooltip
             />
-            <el-table-column prop="alias" label="接口名称" width="80" />
+            <el-table-column
+              prop="alias"
+              label="接口名称"
+              width="100"
+              show-overflow-tooltip
+            />
             <el-table-column prop="method" label="请求方法" width="100" />
             <el-table-column
               prop="path"
@@ -72,7 +83,12 @@
             />
             <el-table-column prop="status_code" label="状态码" width="80" />
             <el-table-column prop="client_ip" label="IP" width="150" />
-            <el-table-column prop="address" label="用户归属地" width="150" />
+            <el-table-column
+              prop="address"
+              label="用户归属地"
+              width="150"
+              show-overflow-tooltip
+            />
             <el-table-column prop="timestamp" label="请求时间" width="220" />
             <el-table-column
               prop="ua"
@@ -138,6 +154,7 @@ const getData = async () => {
   }
 
   res.data.logs.forEach((element, key) => {
+    res.data.logs[key].key = key + 1
     res.data.logs[key].timestamp = new Date(element.timestamp).toLocaleString()
     // 提取URL中的信息
     const parts = res.data.logs[key].url.split(' ')
@@ -183,6 +200,7 @@ const handleSearchTime = async (sPage) => {
   }
 
   res.data.logs.forEach((element, key) => {
+    res.data.logs[key].key = key + 1
     res.data.logs[key].timestamp = new Date(element.timestamp).toLocaleString()
     // 提取URL中的信息
     const parts = res.data.logs[key].url.split(' ')
@@ -221,6 +239,7 @@ const handleSearchId = async () => {
     return false
   }
 
+  res.data.logs[key].key = 1
   res.data.timestamp = new Date(res.data.timestamp).toLocaleString()
   // 提取URL中的信息
   const parts = res.data.url.split(' ')
