@@ -268,7 +268,7 @@ const register = async () => {
 
   const body = new URLSearchParams()
   body.append('username', info.username)
-  body.append('password', info.password)
+  body.append('password', $enCode(info.password))
   body.append('mail', info.mail)
   body.append('mailCode', info.mailCode)
   body.append('sign', info.sign)
