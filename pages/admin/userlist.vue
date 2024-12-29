@@ -34,7 +34,7 @@
             v-loading="pageLoading"
             :data="filterTableData"
             style="width: 100%"
-            height="96%"
+            height="90%"
           >
             <el-table-column width="200">
               <template #header>

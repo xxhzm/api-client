@@ -260,7 +260,6 @@ const updateApiInfo = async () => {
     !apiSetInfo.value.name ||
     !apiSetInfo.value.alias ||
     !apiSetInfo.value.description ||
-    !apiSetInfo.value.url ||
     !apiSetInfo.value.keywords ||
     !apiSetInfo.value.method ||
     !apiSetInfo.value.prefix

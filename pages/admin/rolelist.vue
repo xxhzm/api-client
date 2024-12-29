@@ -12,7 +12,7 @@
           >新增角色</el-button
         >
         <client-only>
-          <el-table :data="tableData" style="width: 100%" height="96%">
+          <el-table :data="tableData" style="width: 100%" height="90%">
             <el-table-column prop="role_id" label="id" width="80" />
             <el-table-column prop="role_name" label="接口名称" width="150" />
             <el-table-column prop="description" label="描述" width="150" />

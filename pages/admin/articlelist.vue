@@ -34,7 +34,7 @@
             v-loading="pageLoading"
             :data="filterTableData"
             style="width: 100%"
-            height="96%"
+            height="90%"
           >
             <el-table-column prop="id" label="id" width="80" />
             <el-table-column prop="author" label="作者" width="80" />

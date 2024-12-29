@@ -70,7 +70,9 @@
               '/admin/apilist',
               '/admin/createapi',
               '/admin/addparam',
-              '/admin/manage-categories',
+              '/admin/categories',
+              '/admin/prefix',
+              '/admin/apilogs',
             ])
           "
         >
@@ -99,12 +101,18 @@
             >
             <el-menu-item
               index="3-4"
-              @click="navigateTo('/admin/manage-categories')"
-              v-if="routeShow('/admin/manage-categories')"
+              @click="navigateTo('/admin/categories')"
+              v-if="routeShow('/admin/categories')"
               >管理分类</el-menu-item
             >
             <el-menu-item
               index="3-5"
+              @click="navigateTo('/admin/prefix')"
+              v-if="routeShow('/admin/prefix')"
+              >管理前缀</el-menu-item
+            >
+            <el-menu-item
+              index="3-6"
               @click="navigateTo('/admin/apilogs')"
               v-if="routeShow('/admin/apilogs')"
               >接口日志</el-menu-item
@@ -148,7 +156,10 @@
           </el-menu-item-group>
         </el-sub-menu>
 
-        <el-sub-menu index="5" v-if="routeShowArr(['/admin/articlelist'])">
+        <el-sub-menu
+          index="5"
+          v-if="routeShowArr(['/admin/articlelist', '/admin/createarticle'])"
+        >
           <template #title>
             <el-icon><Tickets /></el-icon>
             <span>文章管理</span>
@@ -187,7 +198,6 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
 import {
   List,
   Menu as IconMenu,

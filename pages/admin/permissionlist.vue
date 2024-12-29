@@ -12,7 +12,7 @@
           >新增规则</el-button
         >
         <client-only>
-          <el-table :data="tableData" style="width: 100%" height="96%">
+          <el-table :data="tableData" style="width: 100%" height="90%">
             <el-table-column prop="id" label="ID" width="80" />
             <el-table-column prop="name" label="名称名称" width="200" />
             <el-table-column prop="path" label="规则地址" width="200" />

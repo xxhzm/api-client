@@ -6,17 +6,8 @@
       <div class="container" v-loading="loading">
         <div class="cont">
           <ClientOnly>
-            <el-table :data="filterTableData" style="width: 100%" height="96%">
-              <el-table-column prop="id" label="id" width="100" />
-              <el-table-column prop="name" label="分类名称" width="180" />
-              <el-table-column prop="alias" label="别名" width="100" />
-              <el-table-column prop="count" label="接口数" width="100" />
-              <el-table-column prop="createTime" label="创建时间" width="180" />
-              <el-table-column
-                prop="default"
-                label="默认分类"
-                width="80"
-              /><el-table-column width="110">
+            <el-table :data="filterTableData" style="width: 100%" height="90%"
+              ><el-table-column width="150">
                 <template #header>
                   <el-input v-model="search" size="small" placeholder="搜索" />
                 </template>
@@ -34,6 +25,12 @@
                   </el-popconfirm>
                 </template>
               </el-table-column>
+              <el-table-column prop="id" label="id" width="100" />
+              <el-table-column prop="name" label="分类名称" width="180" />
+              <el-table-column prop="alias" label="别名" width="100" />
+              <el-table-column prop="count" label="接口数" width="100" />
+              <el-table-column prop="createTime" label="创建时间" width="180" />
+              <el-table-column prop="default" label="默认分类" width="80" />
             </el-table>
           </ClientOnly>
         </div>

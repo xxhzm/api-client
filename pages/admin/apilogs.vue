@@ -48,7 +48,7 @@
           <el-table
             :data="tableData"
             style="width: 100%; margin-top: 15px"
-            height="96%"
+            height="90%"
             v-loading="pageLoading"
           >
             <el-table-column
@@ -239,7 +239,7 @@ const handleSearchId = async () => {
     return false
   }
 
-  res.data.logs[key].key = 1
+  res.data.key = 1
   res.data.timestamp = new Date(res.data.timestamp).toLocaleString()
   // 提取URL中的信息
   const parts = res.data.url.split(' ')

@@ -16,7 +16,7 @@
             :data="filterTableData"
             :v-loadding="loading"
             style="width: 100%"
-            height="96%"
+            height="90%"
           >
             <el-table-column width="150">
               <template #header>

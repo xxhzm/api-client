@@ -27,7 +27,7 @@
           <el-table
             :data="filterTableData"
             style="width: 100%"
-            height="96%"
+            height="90%"
             v-loading="pageLoading"
           >
             <el-table-column width="150">
@@ -57,13 +57,23 @@
             <el-table-column prop="name" label="接口名称" width="150" />
             <el-table-column prop="alias" label="别名" width="120" />
             <el-table-column prop="state" label="状态" width="80" />
-            <!-- <el-table-column prop="prefixUrl" label="前缀地址" width="200" /> -->
-            <!-- <el-table-column prop="url" label="地址" width="150" /> -->
+            <el-table-column
+              prop="prefixUrl"
+              label="前缀地址"
+              width="180"
+              show-overflow-tooltip
+            />
+            <el-table-column
+              prop="url"
+              label="地址"
+              width="80"
+              show-overflow-tooltip
+            />
             <el-table-column prop="method" label="请求方法" width="80" />
             <el-table-column prop="uname" label="创建人" width="80" />
             <el-table-column prop="category" label="分类" width="60" />
             <el-table-column prop="keyState" label="Key验证" width="80" />
-            <el-table-column prop="create_time" label="创建时间" width="165" />
+            <el-table-column prop="create_time" label="创建时间" width="175" />
             <el-table-column prop="count" label="调用次数" width="100" />
             <el-table-column
               prop="description"
