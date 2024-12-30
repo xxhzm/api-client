@@ -94,6 +94,11 @@ listSearch.value = res.data
           font-size: 13px;
           color: #777;
           line-height: 15px;
+          display: -webkit-box;
+          -webkit-box-orient: vertical;
+          -webkit-line-clamp: 3;
+          overflow: hidden;
+          text-overflow: ellipsis;
         }
       }
     }

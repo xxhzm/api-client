@@ -63,7 +63,7 @@
                   />
                 </el-form-item>
               </el-col>
-              
+
               <el-col :xs="24" :sm="8" :md="8" :lg="8" :xl="8">
                 <el-form-item label="接口前缀URL">
                   <client-only>
@@ -236,7 +236,6 @@ const create = async () => {
     !createapiInfo.alias ||
     !createapiInfo.description ||
     !createapiInfo.keywords ||
-    !createapiInfo.url ||
     !createapiInfo.method ||
     !createapiInfo.prefix
   ) {
