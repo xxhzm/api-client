@@ -150,6 +150,7 @@ recentRequestState.value = recentRequest.value
   transition: all 0.3s ease;
   border: 1px solid #ebeef5;
   overflow: hidden;
+  cursor: pointer;
 
   &:hover {
     transform: translateY(-4px);
