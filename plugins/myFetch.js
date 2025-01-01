@@ -1,4 +1,5 @@
 export default defineNuxtPlugin((/* nuxtApp */) => {
+  const config = useRuntimeConfig()
   return {
     provide: {
       // 封装useFetch

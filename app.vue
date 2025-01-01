@@ -17,7 +17,7 @@ useHead({
   ],
   script: [
     {
-      // src: 'https://hm.baidu.com/hm.js?277dc1783564930b9da342049f6ddea9',
+      src: 'https://hm.baidu.com/hm.js?277dc1783564930b9da342049f6ddea9',
     },
   ],
 })

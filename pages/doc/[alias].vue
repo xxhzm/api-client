@@ -114,29 +114,13 @@
 
       <div class="box">
         <h2>返回示例</h2>
-        <div class="response-container" v-if="response">
-          <h3>响应结果</h3>
-          <template v-if="isImageResponse">
-            <div class="image-response">
-              <img :src="imageUrl" alt="接口返回图片" />
-              <div class="image-actions">
-                <el-button type="primary" size="small" @click="downloadImage">
-                  <el-icon><Download /></el-icon>
-                  下载图片
-                </el-button>
-                <el-button size="small" @click="copyImageUrl">
-                  <el-icon><CopyDocument /></el-icon>
-                  复制图片链接
-                </el-button>
-              </div>
-            </div>
-          </template>
-          <template v-else>
-            <pre class="example mac_light mac_pre" ref="preElement">
-              <code class="json" ref="responseCode">{{ formatResponse }}</code>
-            </pre>
-          </template>
-        </div>
+        <pre class="example mac_light mac_pre"><client-only><el-tooltip
+        class="box-item"
+        effect="dark"
+        content="复制"
+        placement="left"
+      ><div class="copy" @click="copy(apiInfo.example)"><el-icon size="14"><CopyDocument /></el-icon></div
+      ></el-tooltip></client-only><code class="json" v-text="apiInfo.example"></code></pre>
       </div>
     </div>
 
@@ -152,14 +136,14 @@
         <div class="params-form">
           <h3>请求参数</h3>
           <el-form :model="debugForm" label-width="100px">
-            <el-form-item 
-              v-for="param in apiInfo.params" 
+            <el-form-item
+              v-for="param in apiInfo.params"
               :key="param.id"
               :label="param.name"
               :required="param.required === '必传'"
             >
-              <el-input 
-                v-model="debugForm[param.param]" 
+              <el-input
+                v-model="debugForm[param.param]"
                 :placeholder="param.param"
               />
             </el-form-item>
@@ -335,8 +319,10 @@ const sendRequest = async () => {
   try {
     // 检查必填参数
     const missingParams = apiInfo.value.params
-      .filter(param => param.required === '必传' && !debugForm.value[param.param])
-      .map(param => param.param)
+      .filter(
+        (param) => param.required === '必传' && !debugForm.value[param.param]
+      )
+      .map((param) => param.param)
 
     if (missingParams.length > 0) {
       ElMessage.error(`请填写必填参数: ${missingParams.join(', ')}`)
@@ -348,8 +334,8 @@ const sendRequest = async () => {
     let options = {
       method: apiInfo.value.method,
       headers: {
-        'Content-Type': 'application/x-www-form-urlencoded'
-      }
+        'Content-Type': 'application/x-www-form-urlencoded',
+      },
     }
 
     // 处理 POST 请求
@@ -371,7 +357,7 @@ const sendRequest = async () => {
           params.append(param.name, value)
         }
       }
-      
+
       const queryString = params.toString()
       if (queryString) {
         url += (url.includes('?') ? '&' : '?') + queryString
@@ -380,10 +366,10 @@ const sendRequest = async () => {
 
     // 发送请求
     const res = await fetch(url, options)
-    
+
     // 获取响应类型
     const contentType = res.headers.get('content-type')
-    
+
     // 处理重定向
     if (res.status === 302) {
       const redirectUrl = res.headers.get('location')
@@ -395,7 +381,7 @@ const sendRequest = async () => {
         return
       }
     }
-    
+
     // 处理直接返回的图片
     if (contentType && contentType.includes('image/')) {
       isImageResponse.value = true
@@ -415,13 +401,13 @@ const sendRequest = async () => {
         const newCode = document.createElement('code')
         newCode.className = 'json'
         newCode.textContent = formatResponse.value
-        
+
         preElement.value.innerHTML = ''
         preElement.value.appendChild(newCode)
-        
+
         hljs.registerLanguage('json', json)
         hljs.highlightElement(newCode)
-        
+
         responseCode.value = newCode
       }
     }
@@ -471,7 +457,11 @@ watch(debugVisible, (val) => {
 })
 </script>
 
-<style lang="less" scoped>
+<style lang="less">
+.el-message {
+  z-index: 9999 !important;
+}
+
 .container {
   width: 100%;
   min-height: 100vh;
@@ -546,7 +536,7 @@ watch(debugVisible, (val) => {
 
       .el-button {
         margin-left: 12px;
-        
+
         .el-icon {
           margin-right: 4px;
         }
@@ -569,7 +559,7 @@ watch(debugVisible, (val) => {
       background: #f8fafc;
       border-radius: 8px;
       border: 1px solid #edf2f7;
-      
+
       .copy {
         position: absolute;
         top: 12px;
@@ -626,7 +616,7 @@ watch(debugVisible, (val) => {
         border-radius: 4px;
         height: 32px;
         line-height: 32px;
-        
+
         &.is-active {
           border-color: #409eff;
           color: #409eff;
@@ -641,7 +631,7 @@ watch(debugVisible, (val) => {
     .el-table {
       border-radius: 8px;
       overflow: hidden;
-      
+
       :deep(th) {
         background: #f8fafc;
         color: #1a202c;
@@ -779,7 +769,7 @@ watch(debugVisible, (val) => {
       border-radius: 8px;
       border: 1px solid #edf2f7;
       padding: 16px;
-      
+
       img {
         max-width: 100%;
         max-height: 400px;
@@ -807,7 +797,8 @@ watch(debugVisible, (val) => {
 :deep(.el-dialog) {
   border-radius: 12px;
   overflow: hidden;
-  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1),
+    0 10px 10px -5px rgba(0, 0, 0, 0.04);
 
   .el-dialog__header {
     margin: 0;
