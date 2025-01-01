@@ -1,5 +1,5 @@
 <template>
-  <div class="container">
+  <div class="doc-container">
     <!-- 公告 -->
     <IndexNotice></IndexNotice>
 
@@ -18,7 +18,9 @@
         </el-tooltip>
 
         <el-button type="primary" size="small" @click="openDebugDialog">
-          <el-icon><VideoPlay /></el-icon>
+          <el-icon>
+            <VideoPlay />
+          </el-icon>
           调试
         </el-button>
       </div>
@@ -114,38 +116,34 @@
 
       <div class="box">
         <h2>返回示例</h2>
-        <pre class="example mac_light mac_pre"><client-only><el-tooltip
-        class="box-item"
-        effect="dark"
-        content="复制"
-        placement="left"
-      ><div class="copy" @click="copy(apiInfo.example)"><el-icon size="14"><CopyDocument /></el-icon></div
-      ></el-tooltip></client-only><code class="json" v-text="apiInfo.example"></code></pre>
+        <pre class="example mac_light mac_pre">
+          <client-only>
+            <el-tooltip
+              class="box-item"
+              effect="dark"
+              content="复制"
+              placement="left"
+            >
+              <div class="copy" @click="copy(apiInfo.example)">
+                <el-icon size="14"><CopyDocument /></el-icon>
+              </div>
+            </el-tooltip>
+          </client-only>
+          <code class="json" v-html="highlightedExample"></code>
+        </pre>
       </div>
     </div>
 
     <!-- 调试对话框 -->
-    <el-dialog
-      v-model="debugVisible"
-      title="接口调试"
-      width="60%"
-      :close-on-click-modal="false"
-    >
+    <el-dialog v-model="debugVisible" title="接口调试" width="60%" :close-on-click-modal="false">
       <div class="debug-container">
         <!-- 请求参数表单 -->
         <div class="params-form">
           <h3>请求参数</h3>
           <el-form :model="debugForm" label-width="100px">
-            <el-form-item
-              v-for="param in apiInfo.params"
-              :key="param.id"
-              :label="param.name"
-              :required="param.required === '必传'"
-            >
-              <el-input
-                v-model="debugForm[param.param]"
-                :placeholder="param.param"
-              />
+            <el-form-item v-for="param in apiInfo.params" :key="param.id" :label="param.name"
+              :required="param.required === '必传'">
+              <el-input v-model="debugForm[param.param]" :placeholder="param.param" />
             </el-form-item>
           </el-form>
         </div>
@@ -165,11 +163,15 @@
               <img :src="imageUrl" alt="接口返回图片" />
               <div class="image-actions">
                 <el-button type="primary" size="small" @click="downloadImage">
-                  <el-icon><Download /></el-icon>
+                  <el-icon>
+                    <Download />
+                  </el-icon>
                   下载图片
                 </el-button>
                 <el-button size="small" @click="copyImageUrl">
-                  <el-icon><CopyDocument /></el-icon>
+                  <el-icon>
+                    <CopyDocument />
+                  </el-icon>
                   复制图片链接
                 </el-button>
               </div>
@@ -455,6 +457,25 @@ watch(debugVisible, (val) => {
     }
   }
 })
+
+// 添加新的计算属性
+const highlightedExample = computed(() => {
+  if (!apiInfo.value.example) return ''
+
+  try {
+    // 如果example是字符串形式的JSON,先解析再格式化
+    const parsed = typeof apiInfo.value.example === 'string'
+      ? JSON.parse(apiInfo.value.example)
+      : apiInfo.value.example
+
+    const formatted = JSON.stringify(parsed, null, 2)
+    // 使用highlight.js进行代码高亮
+    return hljs.highlight(formatted, { language: 'json' }).value
+  } catch (e) {
+    // 如果解析失败,直接返回原始内容
+    return apiInfo.value.example
+  }
+})
 </script>
 
 <style lang="less">
@@ -462,7 +483,7 @@ watch(debugVisible, (val) => {
   z-index: 9999 !important;
 }
 
-.container {
+.doc-container {
   width: 100%;
   min-height: 100vh;
   background: #ffffff;
@@ -546,6 +567,16 @@ watch(debugVisible, (val) => {
     .example {
       width: 100%;
       margin: 0;
+
+      code {
+        white-space: pre-wrap;
+        word-break: break-all;
+      }
+
+      .hljs {
+        background: transparent;
+        padding: 0;
+      }
     }
 
     pre {
