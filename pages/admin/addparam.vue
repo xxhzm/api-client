@@ -4,58 +4,61 @@
     <div class="right">
       <AdminHeader></AdminHeader>
       <div class="addparam_container">
-        <div class="cont">
+        <div class="param-card">
+          <div class="card-header">
+            <div class="header-left">
+              <el-icon class="icon">
+                <Setting />
+              </el-icon>
+              <span class="title">参数配置</span>
+            </div>
+            <div class="header-right">
+              <el-tag size="small" effect="plain" type="info">必填项</el-tag>
+            </div>
+          </div>
+
           <div class="form">
-            <el-form
-              :model="addparameter"
-              label-position="top"
-              label-width="120px"
-            >
+            <el-form :model="addparameter" label-position="top" label-width="120px">
               <el-form-item label="接口名称">
-                <el-autocomplete
-                  v-model="addparameter.apiName"
-                  :fetch-suggestions="querySearchAsync"
-                  placeholder="请输入接口名称"
-                  @select="handleSearchSelect"
-                />
+                <el-autocomplete v-model="addparameter.apiName" :fetch-suggestions="querySearchAsync"
+                  placeholder="请输入接口名称" @select="handleSearchSelect" class="full-width" />
               </el-form-item>
               <el-form-item label="参数名称">
                 <el-input v-model="addparameter.name" placeholder="return" />
               </el-form-item>
               <el-form-item label="可传参数">
-                <el-input
-                  v-model="addparameter.param"
-                  placeholder="json | 302"
-                />
+                <el-input v-model="addparameter.param" placeholder="json | 302" />
               </el-form-item>
               <client-only>
                 <el-form-item label="传入位置">
-                  <el-select
-                    v-model="addparameter.position"
-                    placeholder="传入位置"
-                  >
-                    <el-option
-                      v-for="item in position"
-                      :key="item.value"
-                      :label="item.label"
-                      :value="item.value"
-                    />
+                  <el-select v-model="addparameter.position" placeholder="传入位置" class="full-width">
+                    <el-option v-for="item in position" :key="item.value" :label="item.label" :value="item.value" />
                   </el-select>
                 </el-form-item>
               </client-only>
               <el-form-item label="参数描述">
-                <el-input
-                  v-model="addparameter.docs"
-                  placeholder="返回json数据 | 重定义到图片"
-                />
+                <el-input v-model="addparameter.docs" type="textarea" :rows="3" placeholder="返回json数据 | 重定义到图片" />
               </el-form-item>
               <el-form-item label="是否必传">
                 <el-switch v-model="addparameter.required" />
               </el-form-item>
-              <el-form-item>
-                <el-button type="primary" @click="onSubmit">提交</el-button>
-              </el-form-item>
             </el-form>
+          </div>
+        </div>
+
+        <!-- 底部操作栏 -->
+        <div class="param-footer">
+          <div class="footer-content">
+            <div class="left-info">
+              <el-icon>
+                <InfoFilled />
+              </el-icon>
+              <span>请仔细检查信息后再提交</span>
+            </div>
+            <div class="right-buttons">
+              <el-button type="primary" size="large" @click="onSubmit">提交</el-button>
+              <el-button plain size="large" @click="navigateTo('/admin/apilist')">取消</el-button>
+            </div>
           </div>
         </div>
       </div>
@@ -181,21 +184,137 @@ useHead({
 <style lang="less" scoped>
 .container {
   display: flex;
-  height: 100%;
+  background: #f5f7fa;
+
   .right {
     width: 100%;
+
     .addparam_container {
+      position: relative;
       min-height: 100vh;
-      padding: 10px;
-      background-color: #f7f7f7;
-      .cont {
-        width: 100%;
-        height: 100%;
-        padding: 20px 20px;
+      padding: 24px 32px;
+      padding-bottom: 80px;
+
+      .param-card {
         background: #fff;
-        box-shadow: 0 2px 2px rgb(0 0 0 / 10%);
+        border-radius: 12px;
+        box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.03);
+        border: 1px solid #eaecf0;
+
+        .card-header {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          padding: 20px 24px;
+          border-bottom: 1px solid #eaecf0;
+
+          .header-left {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+
+            .icon {
+              font-size: 20px;
+              color: #4b5563;
+            }
+
+            .title {
+              font-size: 16px;
+              font-weight: 600;
+              color: #1a1f36;
+            }
+          }
+        }
+
         .form {
           width: 60%;
+          padding: 24px;
+
+          :deep(.el-form-item) {
+            margin-bottom: 24px;
+
+            &:last-child {
+              margin-bottom: 0;
+            }
+
+            .el-form-item__label {
+              font-weight: 500;
+              color: #374151;
+              padding-bottom: 8px;
+            }
+
+            .el-input__wrapper,
+            .el-textarea__inner {
+              box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+              border: 1px solid #d1d5db;
+              border-radius: 6px;
+
+              &:hover {
+                border-color: #9ca3af;
+              }
+
+              &.is-focus {
+                border-color: #3b82f6;
+                box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+              }
+            }
+
+            .full-width {
+              width: 100%;
+            }
+          }
+        }
+      }
+
+      .param-footer {
+        position: fixed;
+        bottom: 0;
+        right: 0;
+        width: calc(100% - 200px);
+        background: #fff;
+        border-top: 1px solid #eaecf0;
+        padding: 16px 32px;
+        z-index: 10;
+
+        .footer-content {
+          display: flex;
+          justify-content: flex-end;
+          align-items: center;
+          gap: 24px;
+
+          .left-info {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: #6b7280;
+            font-size: 14px;
+            margin-right: auto;
+
+            .el-icon {
+              color: #9ca3af;
+            }
+          }
+
+          .right-buttons {
+            display: flex;
+            gap: 12px;
+
+            .el-button {
+              padding: 12px 24px;
+              font-weight: 500;
+              font-size: 14px;
+              min-width: 88px;
+
+              &.el-button--primary {
+                background: #3b82f6;
+                border: none;
+
+                &:hover {
+                  background: #2563eb;
+                }
+              }
+            }
+          }
         }
       }
     }
@@ -203,16 +322,18 @@ useHead({
 }
 
 @media screen and (max-width: 1200px) {
-  .container {
-    .right {
-      .addparam_container {
-        .cont {
-          .form {
-            width: 100%;
-          }
-        }
-      }
+  .container .right .addparam_container {
+    padding: 20px;
+
+    .param-card .form {
+      width: 100%;
     }
+  }
+}
+
+@media screen and (max-width: 768px) {
+  .container .right .addparam_container {
+    padding: 16px;
   }
 }
 </style>

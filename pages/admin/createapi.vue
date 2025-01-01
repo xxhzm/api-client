@@ -4,75 +4,57 @@
     <div class="right">
       <AdminHeader></AdminHeader>
       <div class="createapi-container">
+        <!-- 接口信息卡片 -->
         <div class="createapi-cont">
-          <h1 class="title">接口信息</h1>
-          <el-divider />
-          <el-form :model="createapiInfo" label-width="100px">
+          <div class="card-header">
+            <div class="header-left">
+              <el-icon class="icon">
+                <Connection />
+              </el-icon>
+              <span class="title">接口基础信息</span>
+            </div>
+            <div class="header-right">
+              <el-tag size="small" effect="plain" type="info">必填项</el-tag>
+            </div>
+          </div>
+
+          <!-- 表单内容保持不变，但调整样式 -->
+          <el-form :model="createapiInfo" label-width="120px" class="main-form">
             <el-row :gutter="12">
               <el-col :xs="24" :sm="12" :md="12" :lg="8" :xl="8">
                 <el-form-item label="接口名称">
-                  <el-input
-                    v-model="createapiInfo.name"
-                    maxlength="32"
-                    show-word-limit
-                  /> </el-form-item
-              ></el-col>
+                  <el-input v-model="createapiInfo.name" maxlength="32" show-word-limit /> </el-form-item></el-col>
 
               <el-col :xs="24" :sm="12" :md="12" :lg="8" :xl="8">
                 <el-form-item label="接口别名">
-                  <el-input
-                    v-model="createapiInfo.alias"
-                    maxlength="32"
-                    show-word-limit
-                  /> </el-form-item
-              ></el-col>
+                  <el-input v-model="createapiInfo.alias" maxlength="32" show-word-limit /> </el-form-item></el-col>
 
               <el-col :xs="24" :sm="12" :md="12" :lg="8" :xl="8">
                 <el-form-item label="接口描述">
-                  <el-input
-                    v-model="createapiInfo.description"
-                  /> </el-form-item
-              ></el-col>
+                  <el-input v-model="createapiInfo.description" /> </el-form-item></el-col>
 
               <el-col :xs="24" :sm="12" :md="12" :lg="8" :xl="8">
                 <el-form-item label="接口关键词">
-                  <el-input
-                    v-model="createapiInfo.keywords"
-                    maxlength="128"
-                    show-word-limit
-                    placeholder="英文逗号隔开"
-                  /> </el-form-item
-              ></el-col>
+                  <el-input v-model="createapiInfo.keywords" maxlength="128" show-word-limit placeholder="英文逗号隔开" />
+                </el-form-item></el-col>
 
               <el-col :xs="24" :sm="12" :md="12" :lg="8" :xl="8">
                 <el-form-item label="接口地址">
-                  <el-input
-                    v-model="createapiInfo.url"
-                    maxlength="128"
-                    show-word-limit
-                  />
+                  <el-input v-model="createapiInfo.url" maxlength="128" show-word-limit />
                 </el-form-item>
               </el-col>
 
               <el-col :xs="24" :sm="12" :md="12" :lg="8" :xl="8">
                 <el-form-item label="接口示例">
-                  <el-input
-                    v-model="createapiInfo.exampleUrl"
-                    maxlength="128"
-                    show-word-limit
-                  />
+                  <el-input v-model="createapiInfo.exampleUrl" maxlength="128" show-word-limit />
                 </el-form-item>
               </el-col>
 
               <el-col :xs="24" :sm="8" :md="8" :lg="8" :xl="8">
                 <el-form-item label="接口前缀URL">
                   <client-only>
-                    <el-autocomplete
-                      v-model="createapiInfo.prefixValue"
-                      :fetch-suggestions="querySearchPrefix"
-                      placeholder="请选择服务"
-                      @select="handlePrefixSelect"
-                    />
+                    <el-autocomplete v-model="createapiInfo.prefixValue" :fetch-suggestions="querySearchPrefix"
+                      placeholder="请选择服务" @select="handlePrefixSelect" />
                   </client-only>
                 </el-form-item>
               </el-col>
@@ -80,35 +62,21 @@
               <el-col :xs="24" :sm="8" :md="8" :lg="8" :xl="8">
                 <el-form-item label="接口分类">
                   <client-only>
-                    <el-autocomplete
-                      v-model="createapiInfo.category"
-                      :fetch-suggestions="querySearch"
-                      placeholder="请选择分类"
-                      @select="handleSelect"
-                    />
+                    <el-autocomplete v-model="createapiInfo.category" :fetch-suggestions="querySearch"
+                      placeholder="请选择分类" @select="handleSelect" />
                   </client-only>
                 </el-form-item>
               </el-col>
 
               <el-col :xs="24" :sm="12" :md="12" :lg="8" :xl="8">
                 <el-form-item label="请求类型">
-                  <el-input
-                    v-model="createapiInfo.method"
-                    maxlength="12"
-                    show-word-limit
-                    placeholder="GET 建议使用大写"
-                  />
+                  <el-input v-model="createapiInfo.method" maxlength="12" show-word-limit placeholder="GET 建议使用大写" />
                 </el-form-item>
               </el-col>
 
               <el-col :xs="24" :sm="16" :md="16" :lg="16" :xl="16">
                 <el-form-item label="返回示例">
-                  <el-input
-                    v-model="createapiInfo.example"
-                    type="textarea"
-                    :rows="8"
-                  /> </el-form-item
-              ></el-col>
+                  <el-input v-model="createapiInfo.example" type="textarea" :rows="8" /> </el-form-item></el-col>
             </el-row>
 
             <el-form-item label="是否启用">
@@ -117,11 +85,22 @@
           </el-form>
         </div>
 
+        <!-- 参数信息卡片 -->
         <div class="createapi-cont">
-          <h1 class="title" style="margin-top: 20px">参数信息</h1>
-          <el-divider />
+          <div class="card-header">
+            <div class="header-left">
+              <el-icon class="icon">
+                <Setting />
+              </el-icon>
+              <span class="title">参数配置信息</span>
+            </div>
+            <div class="header-right">
+              <el-tag size="small" effect="plain" type="warning">选填项</el-tag>
+            </div>
+          </div>
 
-          <el-form :model="addparameter" label-width="120px">
+          <!-- 原有参数表单 -->
+          <el-form :model="addparameter" label-width="120px" class="param-form">
             <el-form-item label="参数名称">
               <el-input v-model="addparameter.name" placeholder="return" />
             </el-form-item>
@@ -130,24 +109,13 @@
             </el-form-item>
             <client-only>
               <el-form-item label="传入位置">
-                <el-select
-                  v-model="addparameter.position"
-                  placeholder="传入位置"
-                >
-                  <el-option
-                    v-for="item in position"
-                    :key="item.value"
-                    :label="item.label"
-                    :value="item.value"
-                  />
+                <el-select v-model="addparameter.position" placeholder="传入位置">
+                  <el-option v-for="item in position" :key="item.value" :label="item.label" :value="item.value" />
                 </el-select>
               </el-form-item>
             </client-only>
             <el-form-item label="参数描述">
-              <el-input
-                v-model="addparameter.docs"
-                placeholder="返回json数据 | 重定义到图片"
-              />
+              <el-input v-model="addparameter.docs" placeholder="返回json数据 | 重定义到图片" />
             </el-form-item>
             <el-form-item label="是否必传">
               <el-switch v-model="addparameter.required" />
@@ -155,24 +123,19 @@
           </el-form>
         </div>
 
+        <!-- 底部操作栏 -->
         <div class="createapi-footer">
-          <div class="button">
-            <el-button
-              size="large"
-              color="#626aef"
-              type="primary"
-              @click="create"
-              >提交</el-button
-            >
-
-            <el-button
-              size="large"
-              color="#ff9e08"
-              style="color: #fff"
-              type="primary"
-              @click="navigateTo('/admin')"
-              >返回</el-button
-            >
+          <div class="footer-content">
+            <div class="left-info">
+              <el-icon>
+                <InfoFilled />
+              </el-icon>
+              <span>请仔细检查信息后再提交</span>
+            </div>
+            <div class="right-buttons">
+              <el-button type="primary" size="large" @click="create">提交</el-button>
+              <el-button plain size="large" @click="navigateTo('/admin')">取消</el-button>
+            </div>
           </div>
         </div>
       </div>
@@ -394,45 +357,157 @@ useHead({
 <style lang="less" scoped>
 .container {
   display: flex;
+  background: #f5f7fa;
+
   .right {
     width: 100%;
+
     .createapi-container {
       position: relative;
-      width: 100%;
-      height: 100%;
-      padding: 10px;
-      background-color: #f7f7f7;
-      .createapi-cont {
-        width: 100%;
-        padding: 20px 20px;
-        background: #fff;
-        box-shadow: 0 2px 2px rgb(0 0 0 / 10%);
-        margin-top: 20px;
-        .title {
-          font-size: 17px;
-          font-weight: 500;
-          color: rgb(31, 34, 37);
-        }
-      }
+      min-height: 100vh;
+      padding: 24px 32px;
 
-      .createapi-cont:nth-last-child(2) {
-        margin-bottom: 40px;
+      .createapi-cont {
+        background: #fff;
+        border-radius: 12px;
+        box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.03);
+        margin-bottom: 24px;
+        border: 1px solid #eaecf0;
+
+        .card-header {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          padding: 20px 24px;
+          border-bottom: 1px solid #eaecf0;
+
+          .header-left {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+
+            .icon {
+              font-size: 20px;
+              color: #4b5563;
+            }
+
+            .title {
+              font-size: 16px;
+              font-weight: 600;
+              color: #1a1f36;
+            }
+          }
+        }
+
+        :deep(.main-form),
+        :deep(.param-form) {
+          padding: 24px;
+
+          .el-form-item {
+            margin-bottom: 24px;
+
+            .el-form-item__label {
+              font-weight: 500;
+              color: #374151;
+            }
+
+            .el-input__wrapper {
+              box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+              border: 1px solid #d1d5db;
+              border-radius: 6px;
+
+              &:hover {
+                border-color: #9ca3af;
+              }
+
+              &.is-focus {
+                border-color: #3b82f6;
+                box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+              }
+            }
+
+            .el-select,
+            .el-autocomplete {
+              width: 100%;
+            }
+          }
+        }
       }
 
       .createapi-footer {
         position: fixed;
         bottom: 0;
+        right: 0;
         width: calc(100% - 200px);
-        height: 80px;
         background: #fff;
-        box-shadow: 2px 2px 2px rgb(0 0 0 / 10%);
-        .button {
-          position: absolute;
-          right: 50px;
-          top: 50%;
-          transform: translateY(-50%);
+        border-top: 1px solid #eaecf0;
+        padding: 16px 32px;
+        z-index: 10;
+
+        .footer-content {
+          display: flex;
+          justify-content: flex-end;
+          align-items: center;
+          gap: 24px;
+
+          .left-info {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: #6b7280;
+            font-size: 14px;
+            margin-right: auto;
+
+            .el-icon {
+              color: #9ca3af;
+            }
+          }
+
+          .right-buttons {
+            display: flex;
+            gap: 12px;
+
+            .el-button {
+              padding: 12px 24px;
+              font-weight: 500;
+              font-size: 14px;
+
+              &.el-button--primary {
+                background: #3b82f6;
+                border: none;
+                min-width: 88px;
+
+                &:hover {
+                  background: #2563eb;
+                }
+              }
+
+              &.el-button--default {
+                min-width: 88px;
+              }
+            }
+          }
         }
       }
+    }
+  }
+}
+
+// 响应式设计
+@media screen and (max-width: 1200px) {
+  .container .right .createapi-container {
+    padding: 20px;
+  }
+}
+
+@media screen and (max-width: 768px) {
+  .container .right .createapi-container {
+    padding: 16px;
+
+    .page-header {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 12px;
     }
   }
 }

@@ -4,100 +4,76 @@
     <div class="right">
       <AdminHeader></AdminHeader>
       <div class="apilogs-container" v-loading="loading">
-        <client-only>
-          <span style="color: #606266; margin-right: 10px; cursor: pointer"
-            >请选择时间</span
-          >
-          <el-date-picker
-            v-model="searchTime"
-            type="datetimerange"
-            range-separator="至"
-            start-placeholder="起始时间"
-            end-placeholder="结束时间"
-            size="small"
-            :editable="false"
-            style="cursor: pointer"
-            :disabled-date="disabledDate"
-            value-format="x"
-          />
-          <el-input
-            v-model="searchId"
-            style="width: 240px; margin-left: 20px"
-            placeholder="请输入请求ID"
-            :prefix-icon="Search"
-            size="small"
-          />
-          <el-pagination
-            :page-size="100"
-            :pager-count="5"
-            :page-count="maxPage"
-            v-model:current-page="page"
-            :disabled="pageLoading"
-            size="small"
-            background
-            layout="prev, pager, next"
-            style="float: right; margin-right: 100px"
-          />
-          <div style="display: block; margin-top: 15px">
-            <el-button type="primary" @click="handleSearch(1)">查询</el-button>
-            <el-button type="primary" plain @click="handleReset"
-              >重置</el-button
-            >
+        <div class="logs-card">
+          <!-- 搜索区域 -->
+          <div class="card-header">
+            <div class="header-left">
+              <el-icon class="icon">
+                <Document />
+              </el-icon>
+              <span class="title">接口日志</span>
+            </div>
+            <div class="header-right">
+              <el-pagination :page-size="100" :pager-count="5" :page-count="maxPage" v-model:current-page="page"
+                :disabled="pageLoading" size="small" background layout="prev, pager, next" />
+            </div>
           </div>
 
-          <el-table
-            :data="tableData"
-            style="width: 100%; margin-top: 15px"
-            height="90%"
-            v-loading="pageLoading"
-          >
-            <el-table-column
-              prop="key"
-              label="key"
-              width="60"
-              show-overflow-tooltip
-            />
-            <el-table-column
-              prop="id"
-              label="请求ID"
-              width="180"
-              show-overflow-tooltip
-            />
-            <el-table-column
-              prop="alias"
-              label="接口名称"
-              width="100"
-              show-overflow-tooltip
-            />
-            <el-table-column prop="method" label="请求方法" width="100" />
-            <el-table-column
-              prop="path"
-              label="请求路径"
-              width="200"
-              show-overflow-tooltip
-            />
-            <el-table-column
-              prop="response_time"
-              label="响应时间"
-              width="100"
-            />
-            <el-table-column prop="status_code" label="状态码" width="80" />
-            <el-table-column prop="client_ip" label="IP" width="150" />
-            <el-table-column
-              prop="address"
-              label="用户归属地"
-              width="150"
-              show-overflow-tooltip
-            />
-            <el-table-column prop="timestamp" label="请求时间" width="220" />
-            <el-table-column
-              prop="ua"
-              label="ua"
-              width="240"
-              show-overflow-tooltip
-            />
-          </el-table>
-        </client-only>
+          <!-- 搜索工具栏 -->
+          <div class="search-toolbar">
+            <div class="search-items">
+              <div class="date-picker">
+                <span class="label">选择时间：</span>
+                <el-date-picker v-model="searchTime" type="datetimerange" range-separator="至" start-placeholder="起始时间"
+                  end-placeholder="结束时间" :disabled-date="disabledDate" value-format="x" />
+              </div>
+              <div class="search-input">
+                <el-input v-model="searchId" placeholder="请输入请求ID" clearable>
+                  <template #prefix>
+                    <el-icon>
+                      <Search />
+                    </el-icon>
+                  </template>
+                </el-input>
+              </div>
+              <div class="search-buttons">
+                <el-button type="primary" @click="handleSearch(1)">查询</el-button>
+                <el-button @click="handleReset">重置</el-button>
+              </div>
+            </div>
+          </div>
+
+          <!-- 表格区域 -->
+          <div class="table-container">
+            <client-only>
+              <el-table :data="tableData" style="width: 100%" v-loading="pageLoading">
+                <el-table-column prop="key" label="序号" width="60" />
+                <el-table-column prop="id" label="请求ID" min-width="180" show-overflow-tooltip />
+                <el-table-column prop="alias" label="接口名称" width="120" show-overflow-tooltip />
+                <el-table-column prop="method" label="请求方法" width="90">
+                  <template #default="scope">
+                    <el-tag :type="scope.row.method === 'GET' ? 'success' : 'warning'" size="small">
+                      {{ scope.row.method }}
+                    </el-tag>
+                  </template>
+                </el-table-column>
+                <el-table-column prop="path" label="请求路径" min-width="200" show-overflow-tooltip />
+                <el-table-column prop="response_time" label="响应时间" width="90" />
+                <el-table-column prop="status_code" label="状态码" width="80">
+                  <template #default="scope">
+                    <el-tag :type="scope.row.status_code === 200 ? 'success' : 'danger'" size="small">
+                      {{ scope.row.status_code }}
+                    </el-tag>
+                  </template>
+                </el-table-column>
+                <el-table-column prop="client_ip" label="IP" width="130" />
+                <el-table-column prop="address" label="归属地" width="130" show-overflow-tooltip />
+                <el-table-column prop="timestamp" label="请求时间" width="180" />
+                <el-table-column prop="ua" label="User Agent" min-width="200" show-overflow-tooltip />
+              </el-table>
+            </client-only>
+          </div>
+        </div>
       </div>
     </div>
   </div>
@@ -289,14 +265,151 @@ useHead({
 <style lang="less" scoped>
 .container {
   display: flex;
+  background: #f5f7fa;
+
   .right {
     width: 100%;
-    overflow-x: hidden;
+    min-width: 0;
+
     .apilogs-container {
-      width: 100%;
-      height: calc(100vh - 65px);
-      padding-left: 20px;
-      padding-top: 15px;
+      position: relative;
+      min-height: 100vh;
+      padding: 24px;
+      display: flex;
+      justify-content: center;
+
+      .logs-card {
+        width: 100%;
+        max-width: 1400px;
+        border-radius: 12px;
+        margin: 0 auto;
+
+        .card-header {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          padding: 20px 24px;
+          background: #fff;
+          border: 1px solid #eaecf0;
+          border-radius: 12px;
+          box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.03);
+          margin-bottom: 16px;
+
+          .header-left {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+
+            .icon {
+              font-size: 20px;
+              color: #4b5563;
+            }
+
+            .title {
+              font-size: 16px;
+              font-weight: 600;
+              color: #1a1f36;
+            }
+          }
+        }
+
+        .search-toolbar {
+          background: #fff;
+          border: 1px solid #eaecf0;
+          border-radius: 12px;
+          box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.03);
+          padding: 20px 24px;
+          margin-bottom: 16px;
+
+          .search-items {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            flex-wrap: wrap;
+
+            .date-picker {
+              display: flex;
+              align-items: center;
+              gap: 8px;
+
+              .label {
+                color: #374151;
+                font-size: 14px;
+              }
+            }
+
+            .search-input {
+              width: 240px;
+            }
+
+            .search-buttons {
+              display: flex;
+              gap: 8px;
+            }
+          }
+        }
+
+        .table-container {
+          padding: 24px;
+          background: #fff;
+          border: 1px solid #eaecf0;
+          border-radius: 12px;
+          box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.03);
+
+          :deep(.el-table) {
+            border: none;
+
+            .el-table__header-wrapper {
+              th {
+                background: #f8fafc;
+                color: #1f2937;
+                font-weight: 600;
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
+
+// 响应式设计
+@media screen and (max-width: 1200px) {
+  .container .right .apilogs-container {
+    padding: 16px;
+
+    .logs-card {
+      .search-toolbar {
+        .search-items {
+          gap: 12px;
+        }
+      }
+    }
+  }
+}
+
+@media screen and (max-width: 768px) {
+  .container .right .apilogs-container {
+    padding: 12px;
+
+    .logs-card {
+      .search-toolbar {
+        padding: 16px;
+
+        .search-items {
+          flex-direction: column;
+          align-items: stretch;
+          gap: 12px;
+
+          .search-input {
+            width: 100%;
+          }
+
+          .search-buttons {
+            justify-content: flex-end;
+          }
+        }
+      }
     }
   }
 }
