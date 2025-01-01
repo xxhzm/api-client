@@ -70,7 +70,7 @@ listSearch.value = res.data
   text-decoration: none;
   font-size: 13px;
   transition: all 0.3s ease;
-  
+
   i {
     font-size: 14px;
   }
