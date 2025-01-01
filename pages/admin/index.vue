@@ -332,7 +332,14 @@ useHead({
       <div class="main-container">
         <div class="info-container">
           <el-row :gutter="12">
-            <el-col :xs="24" :sm="24" :md="24" :lg="24" :xl="24">
+            <el-col
+              :xs="24"
+              :sm="24"
+              :md="24"
+              :lg="24"
+              :xl="24"
+              style="margin: 15px 0"
+            >
               <el-card style="padding: 5px 0" shadow="hover"
                 >您的秘钥：
                 <el-tag type="primary" size="large">{{ userKey }}</el-tag>
@@ -556,14 +563,14 @@ useHead({
         #recentRequestChart {
           width: 64%;
           height: 370px;
-          margin-top: 30px;
+          margin-top: 10px;
           box-shadow: 0 2px 2px rgb(0 0 0 / 10%);
           background: #fff;
         }
         #TodayRequestChart {
           width: 35%;
           height: 370px;
-          margin-top: 30px;
+          margin-top: 10px;
           box-shadow: 0 2px 2px rgb(0 0 0 / 10%);
           background: #fff;
         }

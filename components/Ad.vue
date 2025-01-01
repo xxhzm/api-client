@@ -1,6 +1,6 @@
 <template>
   <div class="ad">
-    <el-row :gutter="12">
+    <el-row :gutter="20">
       <el-col
         :xs="24"
         :sm="12"
@@ -10,9 +10,9 @@
         v-for="item in adDate"
         :key="item.id"
       >
-        <a :href="item.url" target="_blank">
-          <img :src="item.image" alt="广告" class="adPic"
-        /></a>
+        <a :href="item.url" target="_blank" class="ad-link">
+          <img :src="item.image" alt="广告" class="ad-image" />
+        </a>
       </el-col>
     </el-row>
   </div>
@@ -30,14 +30,35 @@ const res = await $myFetch('AdListForFrontend', {
 adDate.value = res.data
 </script>
 
-<style lang="less">
+<style lang="less" scoped>
 .ad {
-  overflow: hidden;
-  width: 100%;
+  .el-col {
+    margin-bottom: 3px;
+
+    &:last-child {
+      margin-bottom: 0;
+    }
+  }
 }
 
-.adPic {
+.ad-image {
   width: 100%;
-  height: 60px;
+  height: 65px;
+}
+
+@media screen and (max-width: 768px) {
+  .ad {
+    .el-col {
+      margin-bottom: 1px;
+
+      &:last-child {
+        margin-bottom: 0;
+      }
+    }
+  }
+
+  .ad-image {
+    height: 35px;
+  }
 }
 </style>
