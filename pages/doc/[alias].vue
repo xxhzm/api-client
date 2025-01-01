@@ -47,16 +47,6 @@
       <div class="box">
         <h2>请求示例</h2>
         <el-tabs v-model="activeName" type="card">
-          <el-tab-pane label="ajax" name="first">
-            <pre class="example mac_light mac_pre"><client-only><el-tooltip
-            class="box-item"
-            effect="dark"
-            content="复制"
-            placement="left"
-          ><div class="copy" @click="copy(apiInfo.ajax)"><el-icon size="14"><CopyDocument /></el-icon></div
-          ></el-tooltip></client-only><code class="javascript.js" v-text="apiInfo.ajax"></code></pre>
-          </el-tab-pane>
-
           <el-tab-pane label="axios" name="axios">
             <pre class="example mac_light mac_pre"><client-only><el-tooltip
             class="box-item"
@@ -65,6 +55,16 @@
             placement="left"
           ><div class="copy" @click="copy(apiInfo.axios)"><el-icon size="14"><CopyDocument /></el-icon></div
           ></el-tooltip></client-only><code class="javascript.js" v-text="apiInfo.axios"></code></pre>
+          </el-tab-pane>
+
+          <el-tab-pane label="ajax" name="ajax">
+            <pre class="example mac_light mac_pre"><client-only><el-tooltip
+            class="box-item"
+            effect="dark"
+            content="复制"
+            placement="left"
+          ><div class="copy" @click="copy(apiInfo.ajax)"><el-icon size="14"><CopyDocument /></el-icon></div
+          ></el-tooltip></client-only><code class="javascript.js" v-text="apiInfo.ajax"></code></pre>
           </el-tab-pane>
 
           <el-tab-pane label="fetch" name="fetch">
@@ -137,7 +137,7 @@ import javascript from 'highlight.js/lib/languages/javascript'
 import php from 'highlight.js/lib/languages/php'
 import python from 'highlight.js/lib/languages/python'
 
-const activeName = ref('first')
+const activeName = ref('axios')
 const route = useRoute()
 
 const apiInfo = ref({})
@@ -229,111 +229,195 @@ const copy = (value) => {
 <style lang="less" scoped>
 .container {
   width: 100%;
-  height: 100%;
+  min-height: 100vh;
+  background: #ffffff;
+
   .apiinfo-container {
-    width: 70%;
-    flex: 1;
-    padding-left: 40px;
-    padding-right: 40px;
+    width: 90%;
+    max-width: 1000px;
     margin: 0 auto;
-    margin-top: 20px;
+    padding: 32px 0;
+
     .box {
-      margin-bottom: 30px;
-    }
+      margin-bottom: 40px;
 
-    h1 {
-      font-size: 26px;
-      font-weight: normal;
-    }
+      h1 {
+        font-size: 28px;
+        font-weight: 600;
+        color: #2c3e50;
+        margin: 0 0 24px 0;
+      }
 
-    h2 {
-      font-size: 20px;
-      color: #181819b3;
-      font-weight: normal;
-      margin-bottom: 30px;
-    }
+      h2 {
+        position: relative;
+        font-size: 20px;
+        color: #2c3e50;
+        font-weight: 500;
+        margin: 0 0 24px 0;
+        padding-left: 12px;
+        line-height: 1.4;
 
-    .url {
-      font-weight: 700;
-      margin: 0 10px;
-      cursor: pointer;
-      color: rgba(24, 24, 25, 0.7);
-      font-size: 14px;
-      user-select: none;
-    }
+        &::before {
+          content: '';
+          position: absolute;
+          left: 0;
+          top: 50%;
+          transform: translateY(-50%);
+          width: 3px;
+          height: 16px;
+          background: #409eff;
+          border-radius: 3px;
+        }
+      }
 
-    .url:hover {
-      text-decoration: underline;
+      .url {
+        font-weight: 500;
+        margin: 0 12px;
+        padding: 6px 12px;
+        cursor: pointer;
+        color: #181819b3;
+        font-size: 14px;
+        user-select: all;
+        border-radius: 4px;
+        transition: all 0.3s ease;
+        text-decoration: none;
+        outline: none;
+
+        &:hover {
+          opacity: 0.8;
+        }
+
+        &:active,
+        &:focus {
+          outline: none;
+          background: transparent;
+        }
+      }
+
+      .el-tag {
+        font-weight: 500;
+        height: 28px;
+      }
     }
 
     .example {
-      width: 70%;
+      width: 100%;
+      margin: 0;
     }
 
     pre {
       display: block;
-      overflow: hidden;
       position: relative;
-      padding: 0;
-      margin: 1.5em 0;
-      font-size: 13px;
-      line-height: 1.4;
-      color: #333;
-      word-break: break-all;
-      word-wrap: break-word;
-      cursor: pointer;
-    }
+      padding: 16px;
+      margin: 0;
+      font-size: 14px;
+      line-height: 1.6;
+      color: #2c3e50;
+      background: #f8fafc;
+      border-radius: 8px;
+      border: 1px solid #edf2f7;
+      
+      .copy {
+        position: absolute;
+        top: 12px;
+        right: 12px;
+        padding: 6px;
+        background: rgba(255, 255, 255, 0.9);
+        border-radius: 4px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+        opacity: 0;
+        transition: opacity 0.3s ease;
+        cursor: pointer;
 
-    pre .copy {
-      display: none;
-      position: absolute;
-      top: 40px;
-      right: 10px;
-      cursor: pointer;
-    }
+        &:hover {
+          background: #fff;
+        }
+      }
 
-    pre:hover .copy {
-      display: block;
+      &:hover .copy {
+        opacity: 1;
+      }
     }
 
     .mac_light {
-      background: #eee !important;
-      border-radius: 5px !important;
+      background: #f8fafc !important;
     }
 
     .mac_light code {
-      background: #f3f3f3 !important;
+      background: transparent !important;
     }
 
     .mac_pre::before {
       content: '';
       display: block;
-      background-size: 40px;
-      margin-bottom: 8px;
-      margin-left: 8px;
-      margin-top: 8px;
-      border-radius: 50%;
-      background: #ff0800 no-repeat 10px 10px;
-      width: 12px;
       height: 12px;
-      -webkit-box-shadow: 20px 0 #fdbc40, 40px 0 #35cd4b;
-      box-shadow: 20px 0 #fdbc40, 40px 0 #35cd4b;
-      z-index: 3;
+      margin: 0 0 16px 4px;
+      border-radius: 50%;
+      background: #ff5f56;
+      box-shadow: 20px 0 #ffbd2e, 40px 0 #27c93f;
+      width: 12px;
     }
 
-    .adPic {
-      width: 70%;
-      height: 120px;
-      margin-bottom: 20px;
+    .el-tabs {
+      :deep(.el-tabs__header) {
+        margin-bottom: 16px;
+      }
+
+      :deep(.el-tabs__nav) {
+        border: none;
+      }
+
+      :deep(.el-tabs__item) {
+        border: 1px solid #e2e8f0;
+        margin-right: 8px;
+        border-radius: 4px;
+        height: 32px;
+        line-height: 32px;
+        
+        &.is-active {
+          border-color: #409eff;
+          color: #409eff;
+        }
+
+        &:hover {
+          color: #409eff;
+        }
+      }
+    }
+
+    .el-table {
+      border-radius: 8px;
+      overflow: hidden;
+      
+      :deep(th) {
+        background: #f8fafc;
+        color: #2c3e50;
+        font-weight: 500;
+      }
+
+      :deep(td) {
+        color: #4a5568;
+      }
     }
   }
 
-  @media screen and (max-width: 750px) {
+  @media screen and (max-width: 768px) {
     .apiinfo-container {
-      width: 100%;
+      width: 92%;
+      padding: 20px 0;
 
-      .example {
-        width: 100%;
+      .box {
+        margin-bottom: 32px;
+
+        h1 {
+          font-size: 24px;
+          margin-bottom: 20px;
+        }
+
+        h2 {
+          font-size: 18px;
+          margin-bottom: 20px;
+        }
       }
     }
   }
