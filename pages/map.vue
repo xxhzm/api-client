@@ -82,13 +82,24 @@ const getOption = () => ({
         layoutSize: '85%',
         aspectScale: 0.85,
         label: {
-            show: false
+            show: true,
+            position: 'inside',
+            color: '#aaa',
+            fontSize: 10,
+            formatter: (params) => {
+                return params.name.replace(/(省|市|自治区|特别行政区|壮族|维吾尔|回族)$/, '')
+            }
         },
         itemStyle: {
             areaColor: '#1a213c',
             borderColor: '#111'
         },
         emphasis: {
+            label: {
+                show: true,
+                color: '#fff',
+                fontSize: 12
+            },
             itemStyle: {
                 areaColor: '#2a333d'
             }
@@ -111,7 +122,17 @@ const getOption = () => ({
                 loop: true
             },
             lineStyle: {
-                color: '#ffa022',
+                color: {
+                    type: 'linear',
+                    x: 0,
+                    y: 0,
+                    x2: 1,
+                    y2: 0,
+                    colorStops: [
+                        { offset: 0, color: '#4B91E2' },  // 起始点颜色（蓝色）
+                        { offset: 1, color: '#2ECDA7' }   // 结束点颜色（绿色）
+                    ]
+                },
                 width: 1,
                 opacity: 0.6,
                 curveness: 0.2,
@@ -132,7 +153,16 @@ const getOption = () => ({
             },
             symbolSize: (val) => val[2] / 8,
             itemStyle: {
-                color: '#ff4444'
+                color: {
+                    type: 'radial',
+                    x: 0.5,
+                    y: 0.5,
+                    r: 0.5,
+                    colorStops: [
+                        { offset: 0, color: '#2ECDA7' },  // 内圈颜色（绿色）
+                        { offset: 1, color: '#4B91E2' }   // 外圈颜色（蓝色）
+                    ]
+                }
             },
             animation: false,
             data: []
@@ -144,7 +174,16 @@ const getOption = () => ({
             zlevel: 4,
             symbolSize: 8,
             itemStyle: {
-                color: '#ffa022'
+                color: {
+                    type: 'radial',
+                    x: 0.5,
+                    y: 0.5,
+                    r: 0.5,
+                    colorStops: [
+                        { offset: 0, color: '#2ECDA7' },  // 内圈颜色（绿色）
+                        { offset: 1, color: '#2ECDA7' }   // 外圈颜色（绿色）
+                    ]
+                }
             },
             animation: false,
             data: attackData.value.map((dataItem) => ({
