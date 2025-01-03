@@ -8,12 +8,7 @@
           <div class="link-card" v-for="item in links" :key="item.id">
             <a :href="item.url + '?ref=xxapi.cn'" target="_blank">
               <div class="link-card__image-wrapper">
-                <img 
-                  :src="item.image" 
-                  :alt="item.name" 
-                  class="link-card__image"
-                  @error="handleImageError"
-                />
+                <img :src="item.image" :alt="item.name" class="link-card__image" @error="handleImageError" />
               </div>
               <div class="link-card__content">
                 <h3 class="link-card__title">{{ item.name }}</h3>
@@ -55,9 +50,14 @@ useHead({
   meta: [{ name: 'description', content: '小小API-友情链接' }],
 })
 
-// 图片加载失败时的处理
+// 图片错误处理函数
 const handleImageError = (e) => {
-  e.target.src = '/default-avatar.png' // 设置一个默认图片
+  const img = e.target
+  // 直接使用透明图片
+  img.src = 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7'
+  // 添加灰色背景
+  img.style.background = '#f5f7fa'
+  img.style.padding = '8px'
 }
 </script>
 
@@ -66,7 +66,7 @@ const handleImageError = (e) => {
   width: 100%;
   min-height: 100vh;
   background: linear-gradient(to bottom, #f7f9fe, #ffffff);
-  
+
   .container {
     width: 90%;
     max-width: 1200px;
@@ -122,11 +122,11 @@ const handleImageError = (e) => {
     }
 
     &__image-wrapper {
-      flex: none;  // 防止图片容器被压缩
+      flex: none; // 防止图片容器被压缩
       width: 48px;
       height: 48px;
       border-radius: 8px;
-      background: #f5f7fa;  // 添加背景色作为占位
+      background: #f5f7fa; // 添加背景色作为占位
       overflow: hidden;
     }
 
@@ -138,8 +138,8 @@ const handleImageError = (e) => {
     }
 
     &__content {
-      flex: 1;  // 让内容区域占据剩余空间
-      min-width: 0;  // 防止文字溢出
+      flex: 1; // 让内容区域占据剩余空间
+      min-width: 0; // 防止文字溢出
       margin-left: 16px;
       overflow: hidden;
     }
