@@ -21,4 +21,14 @@ export default defineNuxtConfig({
   },
 
   compatibilityDate: '2024-11-08',
+
+  runtimeConfig: {
+    public: {
+      isDev: process.env.NODE_ENV === 'development'
+    }
+  },
+
+  dev: process.env.NODE_ENV === 'development' ? {
+    globalError: false
+  } : undefined
 })
