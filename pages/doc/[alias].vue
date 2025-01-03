@@ -116,21 +116,13 @@
 
       <div class="box">
         <h2>返回示例</h2>
-        <pre class="example mac_light mac_pre">
-          <client-only>
-            <el-tooltip
-              class="box-item"
-              effect="dark"
-              content="复制"
-              placement="left"
-            >
-              <div class="copy" @click="copy(apiInfo.example)">
-                <el-icon size="14"><CopyDocument /></el-icon>
-              </div>
-            </el-tooltip>
-          </client-only>
-          <code class="json" v-html="highlightedExample"></code>
-        </pre>
+        <pre class="example mac_light mac_pre"><client-only><el-tooltip
+        class="box-item"
+        effect="dark"
+        content="复制"
+        placement="left"
+      ><div class="copy" @click="copy(apiInfo.example)"><el-icon size="14"><CopyDocument /></el-icon></div
+      ></el-tooltip></client-only><code class="json" v-text="apiInfo.example"></code></pre>
       </div>
     </div>
 
@@ -271,6 +263,7 @@ onMounted(() => {
   hljs.registerLanguage('javascript.js', javascript)
   hljs.registerLanguage('php', php)
   hljs.registerLanguage('python', python)
+  hljs.highlightAll()
 })
 
 const urlDom = ref()
