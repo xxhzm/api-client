@@ -18,26 +18,52 @@
           </div>
 
           <div class="form">
-            <el-form :model="addparameter" label-position="top" label-width="120px">
+            <el-form
+              :model="addparameter"
+              label-position="top"
+              label-width="120px"
+            >
               <el-form-item label="接口名称">
-                <el-autocomplete v-model="addparameter.apiName" :fetch-suggestions="querySearchAsync"
-                  placeholder="请输入接口名称" @select="handleSearchSelect" class="full-width" />
+                <el-autocomplete
+                  v-model="addparameter.apiName"
+                  :fetch-suggestions="querySearchAsync"
+                  placeholder="请输入接口名称"
+                  @select="handleSearchSelect"
+                  class="full-width"
+                />
               </el-form-item>
               <el-form-item label="参数名称">
                 <el-input v-model="addparameter.name" placeholder="return" />
               </el-form-item>
               <el-form-item label="可传参数">
-                <el-input v-model="addparameter.param" placeholder="json | 302" />
+                <el-input
+                  v-model="addparameter.param"
+                  placeholder="json | 302"
+                />
               </el-form-item>
               <client-only>
                 <el-form-item label="传入位置">
-                  <el-select v-model="addparameter.position" placeholder="传入位置" class="full-width">
-                    <el-option v-for="item in position" :key="item.value" :label="item.label" :value="item.value" />
+                  <el-select
+                    v-model="addparameter.position"
+                    placeholder="传入位置"
+                    class="full-width"
+                  >
+                    <el-option
+                      v-for="item in position"
+                      :key="item.value"
+                      :label="item.label"
+                      :value="item.value"
+                    />
                   </el-select>
                 </el-form-item>
               </client-only>
               <el-form-item label="参数描述">
-                <el-input v-model="addparameter.docs" type="textarea" :rows="3" placeholder="返回json数据 | 重定义到图片" />
+                <el-input
+                  v-model="addparameter.docs"
+                  type="textarea"
+                  :rows="3"
+                  placeholder="返回json数据 | 重定义到图片"
+                />
               </el-form-item>
               <el-form-item label="是否必传">
                 <el-switch v-model="addparameter.required" />
@@ -56,8 +82,15 @@
               <span>请仔细检查信息后再提交</span>
             </div>
             <div class="right-buttons">
-              <el-button type="primary" size="large" @click="onSubmit">提交</el-button>
-              <el-button plain size="large" @click="navigateTo('/admin/apilist')">取消</el-button>
+              <el-button type="primary" size="large" @click="onSubmit"
+                >提交</el-button
+              >
+              <el-button
+                plain
+                size="large"
+                @click="navigateTo('/admin/apilist')"
+                >取消</el-button
+              >
             </div>
           </div>
         </div>
@@ -67,6 +100,7 @@
 </template>
 
 <script setup>
+import { Setting, InfoFilled } from '@element-plus/icons-vue'
 const { $msg, $myFetch } = useNuxtApp()
 const msg = $msg
 

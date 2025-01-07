@@ -25,33 +25,49 @@
             <client-only>
               <el-table :data="tableData" style="width: 100%">
                 <el-table-column prop="id" label="ID" width="80" />
-                <el-table-column prop="name" label="规则名称" width="200" show-overflow-tooltip />
-                <el-table-column prop="path" label="规则地址" min-width="200" show-overflow-tooltip />
-                <el-table-column prop="description" label="描述" min-width="200" show-overflow-tooltip />
+                <el-table-column
+                  prop="name"
+                  label="规则名称"
+                  width="200"
+                  show-overflow-tooltip
+                />
+                <el-table-column
+                  prop="path"
+                  label="规则地址"
+                  min-width="200"
+                  show-overflow-tooltip
+                />
+                <el-table-column
+                  prop="description"
+                  label="描述"
+                  min-width="200"
+                  show-overflow-tooltip
+                />
                 <el-table-column width="200" fixed="right">
                   <template #default="scope">
                     <div class="table-actions">
-                      <el-button type="primary" link @click="handleEdit(scope.$index, scope.row)">
-                        <el-icon>
-                          <Edit />
-                        </el-icon>
+                      <el-button
+                        type="primary"
+                        link
+                        @click="handleEdit(scope.$index, scope.row)"
+                      >
                         编辑
                       </el-button>
-                      <el-button type="info" link @click="handleRole(scope.$index, scope.row)">
-                        <el-icon>
-                          <UserFilled />
-                        </el-icon>
+                      <el-button
+                        type="info"
+                        link
+                        @click="handleRole(scope.$index, scope.row)"
+                      >
                         绑定角色
                       </el-button>
-                      <el-popconfirm confirm-button-text="确定" cancel-button-text="取消" title="确定要删除吗？"
-                        @confirm="handleDelete(scope.$index, scope.row)">
+                      <el-popconfirm
+                        confirm-button-text="确定"
+                        cancel-button-text="取消"
+                        title="确定要删除吗？"
+                        @confirm="handleDelete(scope.$index, scope.row)"
+                      >
                         <template #reference>
-                          <el-button type="danger" link>
-                            <el-icon>
-                              <Delete />
-                            </el-icon>
-                            删除
-                          </el-button>
+                          <el-button type="danger" link> 删除 </el-button>
                         </template>
                       </el-popconfirm>
                     </div>
@@ -62,42 +78,78 @@
           </div>
 
           <!-- 新增/编辑规则对话框 -->
-          <el-dialog v-model="dialogStatus" :title="updatePermissionStatus ? '修改规则' : '新增规则'" width="500px"
-            destroy-on-close>
+          <el-dialog
+            v-model="dialogStatus"
+            :title="updatePermissionStatus ? '修改规则' : '新增规则'"
+            width="500px"
+            destroy-on-close
+          >
             <el-form :model="permissionInfo" label-width="90px">
               <el-form-item label="规则名称" required>
-                <el-input v-model="permissionInfo.name" placeholder="请输入规则名称" />
+                <el-input
+                  v-model="permissionInfo.name"
+                  placeholder="请输入规则名称"
+                />
               </el-form-item>
               <el-form-item label="规则地址" required>
-                <el-input v-model="permissionInfo.path" placeholder="请输入规则地址" />
+                <el-input
+                  v-model="permissionInfo.path"
+                  placeholder="请输入规则地址"
+                />
               </el-form-item>
               <el-form-item label="规则描述" required>
-                <el-input v-model="permissionInfo.description" type="textarea" :rows="3" placeholder="请输入规则描述" />
+                <el-input
+                  v-model="permissionInfo.description"
+                  type="textarea"
+                  :rows="3"
+                  placeholder="请输入规则描述"
+                />
               </el-form-item>
             </el-form>
             <template #footer>
               <div class="dialog-footer">
                 <el-button @click="dialogStatus = false">取消</el-button>
-                <el-button type="primary" @click="submit">{{ updatePermissionStatus ? '修改' : '创建' }}</el-button>
+                <el-button type="primary" @click="submit">{{
+                  updatePermissionStatus ? '修改' : '创建'
+                }}</el-button>
               </div>
             </template>
           </el-dialog>
 
           <!-- 绑定角色对话框 -->
-          <el-dialog v-model="bindRoleDialogStatus" title="绑定角色" width="500px" destroy-on-close>
+          <el-dialog
+            v-model="bindRoleDialogStatus"
+            title="绑定角色"
+            width="500px"
+            destroy-on-close
+          >
             <el-form label-width="90px">
               <el-form-item label="选择角色">
-                <el-select v-model="bindRoleInfo" multiple collapse-tags collapse-tags-tooltip placeholder="请选择要绑定的角色"
-                  class="full-width">
-                  <el-option v-for="item in roleList" :key="item.role_id" :label="item.role_name"
-                    :value="item.role_id" />
+                <el-select
+                  v-model="bindRoleInfo"
+                  multiple
+                  collapse-tags
+                  collapse-tags-tooltip
+                  placeholder="请选择要绑定的角色"
+                  class="full-width"
+                >
+                  <el-option
+                    v-for="item in roleList"
+                    :key="item.role_id"
+                    :label="item.role_name"
+                    :value="item.role_id"
+                  />
                 </el-select>
               </el-form-item>
             </el-form>
             <template #footer>
               <div class="dialog-footer">
-                <el-button @click="bindRoleDialogStatus = false">取消</el-button>
-                <el-button type="primary" @click="handlebindRoleSubmit">确定</el-button>
+                <el-button @click="bindRoleDialogStatus = false"
+                  >取消</el-button
+                >
+                <el-button type="primary" @click="handlebindRoleSubmit"
+                  >确定</el-button
+                >
               </div>
             </template>
           </el-dialog>
@@ -108,6 +160,7 @@
 </template>
 
 <script setup>
+import { Lock } from '@element-plus/icons-vue'
 const { $myFetch } = useNuxtApp()
 const { $msg } = useNuxtApp()
 

@@ -25,11 +25,23 @@
             <client-only>
               <el-table :data="tableData" style="width: 100%">
                 <el-table-column prop="role_id" label="ID" width="80" />
-                <el-table-column prop="role_name" label="角色名称" width="150" />
-                <el-table-column prop="description" label="描述" min-width="200" show-overflow-tooltip />
+                <el-table-column
+                  prop="role_name"
+                  label="角色名称"
+                  width="150"
+                />
+                <el-table-column
+                  prop="description"
+                  label="描述"
+                  min-width="200"
+                  show-overflow-tooltip
+                />
                 <el-table-column prop="status" label="状态" width="100">
                   <template #default="scope">
-                    <el-tag :type="scope.row.status === '启用' ? 'success' : 'danger'" size="small">
+                    <el-tag
+                      :type="scope.row.status === '启用' ? 'success' : 'danger'"
+                      size="small"
+                    >
                       {{ scope.row.status }}
                     </el-tag>
                   </template>
@@ -37,27 +49,30 @@
                 <el-table-column width="200" fixed="right">
                   <template #default="scope">
                     <div class="table-actions">
-                      <el-button type="primary" link @click="handleEdit(scope.$index, scope.row)">
-                        <el-icon>
-                          <Edit />
-                        </el-icon>
+                      <el-button
+                        type="primary"
+                        link
+                        @click="handleEdit(scope.$index, scope.row)"
+                      >
                         编辑
                       </el-button>
-                      <el-button type="info" link @click="handleRoleBindPermissionList(scope.$index, scope.row)">
-                        <el-icon>
-                          <Lock />
-                        </el-icon>
+                      <el-button
+                        type="info"
+                        link
+                        @click="
+                          handleRoleBindPermissionList(scope.$index, scope.row)
+                        "
+                      >
                         权限
                       </el-button>
-                      <el-popconfirm confirm-button-text="确定" cancel-button-text="取消" title="确定要删除吗？"
-                        @confirm="handleDelete(scope.$index, scope.row)">
+                      <el-popconfirm
+                        confirm-button-text="确定"
+                        cancel-button-text="取消"
+                        title="确定要删除吗？"
+                        @confirm="handleDelete(scope.$index, scope.row)"
+                      >
                         <template #reference>
-                          <el-button type="danger" link>
-                            <el-icon>
-                              <Delete />
-                            </el-icon>
-                            删除
-                          </el-button>
+                          <el-button type="danger" link> 删除 </el-button>
                         </template>
                       </el-popconfirm>
                     </div>
@@ -68,16 +83,33 @@
           </div>
 
           <!-- 新增/编辑角色对话框 -->
-          <el-dialog v-model="dialogStatus" :title="updateRoleStatus ? '修改角色' : '新增角色'" width="500px" destroy-on-close>
+          <el-dialog
+            v-model="dialogStatus"
+            :title="updateRoleStatus ? '修改角色' : '新增角色'"
+            width="500px"
+            destroy-on-close
+          >
             <el-form :model="roleInfo" label-width="90px">
               <el-form-item label="角色名称" required>
-                <el-input v-model="roleInfo.role_name" placeholder="请输入角色名称" />
+                <el-input
+                  v-model="roleInfo.role_name"
+                  placeholder="请输入角色名称"
+                />
               </el-form-item>
               <el-form-item label="角色描述" required>
-                <el-input v-model="roleInfo.description" type="textarea" :rows="3" placeholder="请输入角色描述" />
+                <el-input
+                  v-model="roleInfo.description"
+                  type="textarea"
+                  :rows="3"
+                  placeholder="请输入角色描述"
+                />
               </el-form-item>
               <el-form-item label="角色状态" required>
-                <el-select v-model="roleInfo.status" placeholder="请选择角色状态" class="full-width">
+                <el-select
+                  v-model="roleInfo.status"
+                  placeholder="请选择角色状态"
+                  class="full-width"
+                >
                   <el-option label="启用" value="启用" />
                   <el-option label="停用" value="停用" />
                 </el-select>
@@ -86,18 +118,35 @@
             <template #footer>
               <div class="dialog-footer">
                 <el-button @click="dialogStatus = false">取消</el-button>
-                <el-button type="primary" @click="submit">{{ updateRoleStatus ? '修改' : '创建' }}</el-button>
+                <el-button type="primary" @click="submit">{{
+                  updateRoleStatus ? '修改' : '创建'
+                }}</el-button>
               </div>
             </template>
           </el-dialog>
 
           <!-- 权限列表对话框 -->
-          <el-dialog v-model="userBindRoleListStatus" title="权限列表" width="750px" destroy-on-close>
+          <el-dialog
+            v-model="userBindRoleListStatus"
+            title="权限列表"
+            width="750px"
+            destroy-on-close
+          >
             <el-table :data="userBindRoleList">
               <el-table-column prop="id" label="ID" width="80" />
               <el-table-column prop="name" label="权限名称" width="200" />
-              <el-table-column prop="path" label="权限路径" width="200" show-overflow-tooltip />
-              <el-table-column prop="description" label="权限描述" min-width="200" show-overflow-tooltip />
+              <el-table-column
+                prop="path"
+                label="权限路径"
+                width="200"
+                show-overflow-tooltip
+              />
+              <el-table-column
+                prop="description"
+                label="权限描述"
+                min-width="200"
+                show-overflow-tooltip
+              />
             </el-table>
           </el-dialog>
         </div>
@@ -107,6 +156,7 @@
 </template>
 
 <script setup>
+import { UserFilled } from '@element-plus/icons-vue'
 const { $myFetch } = useNuxtApp()
 const { $msg } = useNuxtApp()
 

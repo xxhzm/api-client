@@ -3,7 +3,7 @@
     <AdminSidebar></AdminSidebar>
     <div class="right">
       <AdminHeader></AdminHeader>
-      <div class="articlelist-container" v-loading="loading">
+      <div class="articlelist-container">
         <div class="article-card">
           <!-- 标题区域 -->
           <div class="card-header">
@@ -50,9 +50,6 @@
                         link
                         @click="handleEdit(scope.$index, scope.row)"
                       >
-                        <el-icon>
-                          <Edit />
-                        </el-icon>
                         编辑
                       </el-button>
                       <el-popconfirm
@@ -62,12 +59,7 @@
                         @confirm="handleDelete(scope.$index, scope.row)"
                       >
                         <template #reference>
-                          <el-button type="danger" link>
-                            <el-icon>
-                              <Delete />
-                            </el-icon>
-                            删除
-                          </el-button>
+                          <el-button type="danger" link> 删除 </el-button>
                         </template>
                       </el-popconfirm>
                     </div>
@@ -154,6 +146,8 @@
 </template>
 
 <script setup>
+import { Search } from '@element-plus/icons-vue'
+
 const { $msg, $myFetch } = useNuxtApp()
 
 const tableData = ref([])

@@ -9,7 +9,7 @@
         </div>
 
         <div class="section">
-          <h2 class="section-title" style="margin-bottom: 10px;">系统信息</h2>
+          <h2 class="section-title" style="margin-bottom: 10px">系统信息</h2>
           <SystemInfo></SystemInfo>
         </div>
       </client-only>
@@ -26,7 +26,7 @@
             class="search-box__input"
           >
             <template #suffix>
-              <i class="el-icon-search"></i>
+              <el-icon><Search /></el-icon>
             </template>
           </el-input>
         </div>
@@ -35,10 +35,14 @@
       <div class="section">
         <div class="section-header">
           <h2 class="section-title">API列表</h2>
-          <a href="https://jq.qq.com/?_wv=1027&k=92BF8Ndr" target="_blank" class="feedback-btn">
-            <i class="el-icon-chat-dot-round"></i>
+          <a
+            href="https://jq.qq.com/?_wv=1027&k=92BF8Ndr"
+            target="_blank"
+            class="feedback-btn"
+          >
+            <el-icon><ChatDotSquare /></el-icon>
             <span>问题反馈</span>
-            <i class="el-icon-right feedback-btn__arrow"></i>
+            <el-icon class="feedback-btn__arrow"><Right /></el-icon>
           </a>
         </div>
         <IndexApiList></IndexApiList>
@@ -49,6 +53,8 @@
 </template>
 
 <script setup>
+import { ChatDotSquare, Search, Right } from '@element-plus/icons-vue'
+
 const { $myFetch } = useNuxtApp()
 
 // 配置项
@@ -93,7 +99,7 @@ watch(
   width: 100%;
   min-height: 100vh;
   background: linear-gradient(to bottom, #f7f9fe, #ffffff);
-  
+
   .container {
     width: 90%;
     max-width: 1200px;
@@ -102,7 +108,7 @@ watch(
 
   .section {
     margin-bottom: 8px;
-    
+
     &:last-child {
       margin-bottom: 0;
     }
@@ -150,7 +156,7 @@ watch(
     text-decoration: none;
     font-size: 13px;
     transition: all 0.3s ease;
-    
+
     i {
       font-size: 14px;
     }

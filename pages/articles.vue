@@ -5,21 +5,17 @@
       <div class="section">
         <h2 class="section-title">技术文章</h2>
         <div class="article-grid">
-          <nuxt-link 
-            v-for="item in list" 
-            :key="item.id" 
-            :to="'/article/' + item.id" 
+          <nuxt-link
+            v-for="item in list"
+            :key="item.id"
+            :to="'/article/' + item.id"
             class="article-card"
           >
             <div class="article-content">
               <div class="article-meta">
                 <span class="article-author">
-                  <i class="el-icon-user"></i>
+                  <el-icon><User /></el-icon>
                   {{ item.author }}
-                </span>
-                <span class="article-date">
-                  <i class="el-icon-time"></i>
-                  {{ item.created_at }}
                 </span>
               </div>
               <h3 class="article-title">{{ item.title }}</h3>
@@ -27,7 +23,7 @@
               <div class="article-footer">
                 <span class="read-more">
                   阅读全文
-                  <i class="el-icon-right"></i>
+                  <el-icon><Right /></el-icon>
                 </span>
               </div>
             </div>
@@ -40,6 +36,8 @@
 </template>
 
 <script setup>
+import { User, Timer, Right } from '@element-plus/icons-vue'
+
 const { $myFetch } = useNuxtApp()
 
 const list = ref()
@@ -74,7 +72,7 @@ useHead({
   width: 100%;
   min-height: 100vh;
   background: linear-gradient(to bottom, #f7f9fe, #ffffff);
-  
+
   .container {
     width: 90%;
     max-width: 1200px;
@@ -127,7 +125,7 @@ useHead({
 
       .read-more {
         color: #409eff;
-        
+
         i {
           transform: translateX(4px);
         }
@@ -148,10 +146,10 @@ useHead({
       font-size: 13px;
       color: #909399;
 
-      .article-author, .article-date {
+      .article-author {
         display: inline-flex;
         align-items: center;
-        
+
         i {
           margin-right: 6px;
           font-size: 14px;

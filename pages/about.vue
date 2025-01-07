@@ -9,25 +9,40 @@
             <h3>滕州市星语软件开发工作室</h3>
             <p class="slogan">致力于为用户提供稳定、快速的API接口服务平台</p>
             <div class="intro-text">
-              <p>小小API平台成立于2022年，是一家专注于API接口服务的技术团队。我们始终秉持"稳定、快速、专业"的服务理念，致力于为开发者提供高质量的API接口服务。</p>
-              <p>经过多年发展，我们已累计服务超过10000+开发者，日均调用量突破100万次。我们的API覆盖文本处理、图像识别、数据查询等多个领域，能够满足各类开发场景的需求。</p>
-              <p>未来，我们将持续优化服务质量，不断扩展API品类，为用户提供更多优质、实用的接口服务。同时，我们也在积极探索新技术领域，努力为行业发展贡献力量。</p>
+              <p>
+                小小API平台成立于2022年，是一家专注于API接口服务的技术团队。我们始终秉持"稳定、快速、专业"的服务理念，致力于为开发者提供高质量的API接口服务。
+              </p>
+              <p>
+                经过多年发展，我们已累计服务超过10000+开发者，日均调用量突破100万次。我们的API覆盖文本处理、图像识别、数据查询等多个领域，能够满足各类开发场景的需求。
+              </p>
+              <p>
+                未来，我们将持续优化服务质量，不断扩展API品类，为用户提供更多优质、实用的接口服务。同时，我们也在积极探索新技术领域，努力为行业发展贡献力量。
+              </p>
             </div>
             <div class="contact-info">
               <div class="contact-item">
-                <i class="el-icon-message"></i>
+                <el-icon>
+                  <Message />
+                </el-icon>
                 <span>反馈邮箱：</span>
                 <a href="mailto:admin@xxhzm.cn">admin@xxhzm.cn</a>
               </div>
               <div class="contact-item">
-                <i class="el-icon-user"></i>
+                <el-icon>
+                  <User />
+                </el-icon>
                 <span>商务微信：</span>
                 <span>xiaoxiaohaizimen（备注需求）</span>
               </div>
               <div class="contact-item">
-                <i class="el-icon-chat-dot-round"></i>
+                <el-icon><ChatDotSquare /></el-icon>
                 <span>用户交流群：</span>
-                <a href="https://jq.qq.com/?_wv=1027&k=92BF8Ndr" target="_blank" class="link">点击加入QQ群</a>
+                <a
+                  href="https://jq.qq.com/?_wv=1027&k=92BF8Ndr"
+                  target="_blank"
+                  class="link"
+                  >点击加入QQ群</a
+                >
               </div>
             </div>
           </div>
@@ -39,22 +54,22 @@
         <div class="content-card features">
           <div class="feature-grid">
             <div class="feature-item">
-              <i class="el-icon-lightning"></i>
+              <el-icon><Lightning /></el-icon>
               <h4>高性能</h4>
               <p>采用分布式架构，确保接口快速响应，平均响应时间<100ms</p>
             </div>
             <div class="feature-item">
-              <i class="el-icon-lock"></i>
+              <el-icon><Lock /></el-icon>
               <h4>安全可靠</h4>
               <p>数据传输采用SSL加密，多重安全防护，确保数据安全</p>
             </div>
             <div class="feature-item">
-              <i class="el-icon-data-line"></i>
+              <el-icon><DataLine /></el-icon>
               <h4>稳定性高</h4>
               <p>服务可用性99.9%，多机房容灾备份，确保服务稳定</p>
             </div>
             <div class="feature-item">
-              <i class="el-icon-service"></i>
+              <el-icon><Service /></el-icon>
               <h4>专业支持</h4>
               <p>7*24小时技术支持，专业团队快速响应解决问题</p>
             </div>
@@ -68,7 +83,9 @@
           <div class="terms-section">
             <h3>服务说明</h3>
             <div class="terms-content">
-              <p>小小API（以下简称"本平台"）是由滕州市星语软件开发工作室开发并运营的API接口服务平台，本平台所提供的各项服务的所有权和运作权归滕州市星语软件开发工作室所有。</p>
+              <p>
+                小小API（以下简称"本平台"）是由滕州市星语软件开发工作室开发并运营的API接口服务平台，本平台所提供的各项服务的所有权和运作权归滕州市星语软件开发工作室所有。
+              </p>
               <p>服务地址：<span class="highlight">https://xxapi.cn</span></p>
             </div>
           </div>
@@ -77,10 +94,18 @@
             <h3>API服务协议</h3>
             <div class="terms-content">
               <ol class="numbered-list">
-                <li>本平台根据不同API功能制定相应的请求频次限制，以确保服务质量。</li>
-                <li>用户不得进行恶意请求或数据采集，违者将被限制使用或封禁IP。</li>
-                <li>本平台保留根据实际运营情况调整服务内容和收费标准的权利。</li>
-                <li>用户注册即表示同意本平台在遵守隐私保护义务的前提下合理使用相关数据。</li>
+                <li>
+                  本平台根据不同API功能制定相应的请求频次限制，以确保服务质量。
+                </li>
+                <li>
+                  用户不得进行恶意请求或数据采集，违者将被限制使用或封禁IP。
+                </li>
+                <li>
+                  本平台保留根据实际运营情况调整服务内容和收费标准的权利。
+                </li>
+                <li>
+                  用户注册即表示同意本平台在遵守隐私保护义务的前提下合理使用相关数据。
+                </li>
               </ol>
             </div>
           </div>
@@ -181,6 +206,15 @@
 </template>
 
 <script setup>
+import {
+  Message,
+  User,
+  ChatDotSquare,
+  Lightning,
+  DataLine,
+  Service,
+  Lock,
+} from '@element-plus/icons-vue'
 const { $myFetch } = useNuxtApp()
 
 // 配置项
@@ -206,7 +240,7 @@ useHead({
   width: 100%;
   min-height: 100vh;
   background: linear-gradient(to bottom, #f7f9fe, #ffffff);
-  
+
   .container {
     width: 90%;
     max-width: 1200px;
@@ -306,7 +340,7 @@ useHead({
 
       .intro-text {
         margin-bottom: 24px;
-        
+
         p {
           color: #606266;
           font-size: 14px;
@@ -417,7 +451,7 @@ useHead({
 
       li {
         margin-bottom: 8px;
-        
+
         &:last-child {
           margin-bottom: 0;
         }
@@ -490,7 +524,7 @@ useHead({
 
     .tech-item {
       background: #fff;
-      
+
       h4 {
         font-size: 16px;
         color: #303133;

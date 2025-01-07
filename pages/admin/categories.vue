@@ -20,38 +20,49 @@
                   <template #header>
                     <div class="search-wrapper">
                       <el-input v-model="search" placeholder="搜索" clearable>
-                        <template #prefix>
-                          <el-icon>
-                            <Search />
-                          </el-icon>
-                        </template>
                       </el-input>
                     </div>
                   </template>
                   <template #default="scope">
                     <div class="table-actions">
-                      <el-popconfirm confirm-button-text="确定" cancel-button-text="取消" title="确定要删除吗？"
-                        @confirm="handleDelete(scope.$index, scope.row)">
+                      <el-popconfirm
+                        confirm-button-text="确定"
+                        cancel-button-text="取消"
+                        title="确定要删除吗？"
+                        @confirm="handleDelete(scope.$index, scope.row)"
+                      >
                         <template #reference>
-                          <el-button type="danger" link>
-                            <el-icon>
-                              <Delete />
-                            </el-icon>
-                            删除
-                          </el-button>
+                          <el-button type="danger" link> 删除 </el-button>
                         </template>
                       </el-popconfirm>
                     </div>
                   </template>
                 </el-table-column>
                 <el-table-column prop="id" label="ID" width="100" />
-                <el-table-column prop="name" label="分类名称" width="180" show-overflow-tooltip />
-                <el-table-column prop="alias" label="别名" width="120" show-overflow-tooltip />
+                <el-table-column
+                  prop="name"
+                  label="分类名称"
+                  width="180"
+                  show-overflow-tooltip
+                />
+                <el-table-column
+                  prop="alias"
+                  label="别名"
+                  width="120"
+                  show-overflow-tooltip
+                />
                 <el-table-column prop="count" label="接口数" width="100" />
-                <el-table-column prop="createTime" label="创建时间" width="180" />
+                <el-table-column
+                  prop="createTime"
+                  label="创建时间"
+                  width="180"
+                />
                 <el-table-column prop="default" label="默认分类" width="100">
                   <template #default="scope">
-                    <el-tag :type="scope.row.default === '是' ? 'success' : 'info'" size="small">
+                    <el-tag
+                      :type="scope.row.default === '是' ? 'success' : 'info'"
+                      size="small"
+                    >
                       {{ scope.row.default }}
                     </el-tag>
                   </template>
@@ -68,13 +79,25 @@
             <div class="form-content">
               <el-form :model="addcategoryInfo" label-width="90px">
                 <el-form-item label="分类名称" required>
-                  <el-input v-model="addcategoryInfo.name" maxlength="32" show-word-limit placeholder="请输入分类名称" />
+                  <el-input
+                    v-model="addcategoryInfo.name"
+                    maxlength="32"
+                    show-word-limit
+                    placeholder="请输入分类名称"
+                  />
                 </el-form-item>
                 <el-form-item label="分类别名" required>
-                  <el-input v-model="addcategoryInfo.alias" maxlength="32" show-word-limit placeholder="请输入分类别名" />
+                  <el-input
+                    v-model="addcategoryInfo.alias"
+                    maxlength="32"
+                    show-word-limit
+                    placeholder="请输入分类别名"
+                  />
                 </el-form-item>
                 <el-form-item>
-                  <el-button type="primary" @click="onSubmit">创建分类</el-button>
+                  <el-button type="primary" @click="onSubmit"
+                    >创建分类</el-button
+                  >
                 </el-form-item>
               </el-form>
             </div>

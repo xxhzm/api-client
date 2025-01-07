@@ -28,47 +28,65 @@
                   <template #header>
                     <div class="search-wrapper">
                       <el-input v-model="search" placeholder="搜索" clearable>
-                        <template #prefix>
-                          <el-icon>
-                            <Search />
-                          </el-icon>
-                        </template>
                       </el-input>
                     </div>
                   </template>
                   <template #default="scope">
                     <div class="table-actions">
-                      <el-button type="primary" link @click="handleEdit(scope.$index, scope.row)">
-                        <el-icon>
-                          <Edit />
-                        </el-icon>
+                      <el-button
+                        type="primary"
+                        link
+                        @click="handleEdit(scope.$index, scope.row)"
+                      >
                         编辑
                       </el-button>
-                      <el-popconfirm confirm-button-text="确定" cancel-button-text="取消" title="确定要删除吗？"
-                        @confirm="handleDelete(scope.$index, scope.row)">
+                      <el-popconfirm
+                        confirm-button-text="确定"
+                        cancel-button-text="取消"
+                        title="确定要删除吗？"
+                        @confirm="handleDelete(scope.$index, scope.row)"
+                      >
                         <template #reference>
-                          <el-button type="danger" link>
-                            <el-icon>
-                              <Delete />
-                            </el-icon>
-                            删除
-                          </el-button>
+                          <el-button type="danger" link> 删除 </el-button>
                         </template>
                       </el-popconfirm>
                     </div>
                   </template>
                 </el-table-column>
                 <el-table-column prop="id" label="ID" width="50" />
-                <el-table-column prop="url" label="广告地址" min-width="200" show-overflow-tooltip />
-                <el-table-column prop="image" label="图像地址" min-width="200" show-overflow-tooltip />
-                <el-table-column prop="create_time" label="添加时间" width="180" />
-                <el-table-column prop="expiration_time" label="到期时间" width="180" />
+                <el-table-column
+                  prop="url"
+                  label="广告地址"
+                  min-width="200"
+                  show-overflow-tooltip
+                />
+                <el-table-column
+                  prop="image"
+                  label="图像地址"
+                  min-width="200"
+                  show-overflow-tooltip
+                />
+                <el-table-column
+                  prop="create_time"
+                  label="添加时间"
+                  width="180"
+                />
+                <el-table-column
+                  prop="expiration_time"
+                  label="到期时间"
+                  width="180"
+                />
               </el-table>
             </client-only>
           </div>
 
           <!-- 新增/编辑广告对话框 -->
-          <el-dialog v-model="dialogStatus" :title="updateAdStatus ? '修改广告' : '新增广告'" width="500px" destroy-on-close>
+          <el-dialog
+            v-model="dialogStatus"
+            :title="updateAdStatus ? '修改广告' : '新增广告'"
+            width="500px"
+            destroy-on-close
+          >
             <el-form :model="adInfo" label-width="90px">
               <el-form-item label="广告地址" required>
                 <el-input v-model="adInfo.url" placeholder="请输入广告地址" />
@@ -77,14 +95,22 @@
                 <el-input v-model="adInfo.image" placeholder="请输入图像地址" />
               </el-form-item>
               <el-form-item label="到期时间" required>
-                <el-date-picker v-model="adInfo.expiration_time" type="date" format="YYYY/MM/DD" value-format="x"
-                  placeholder="请选择日期" class="full-width" />
+                <el-date-picker
+                  v-model="adInfo.expiration_time"
+                  type="date"
+                  format="YYYY/MM/DD"
+                  value-format="x"
+                  placeholder="请选择日期"
+                  class="full-width"
+                />
               </el-form-item>
             </el-form>
             <template #footer>
               <div class="dialog-footer">
                 <el-button @click="dialogStatus = false">取消</el-button>
-                <el-button type="primary" @click="submit">{{ updateAdStatus ? '修改' : '创建' }}</el-button>
+                <el-button type="primary" @click="submit">{{
+                  updateAdStatus ? '修改' : '创建'
+                }}</el-button>
               </div>
             </template>
           </el-dialog>
@@ -95,6 +121,7 @@
 </template>
 
 <script setup>
+import { Picture } from '@element-plus/icons-vue'
 const { $msg, $myFetch } = useNuxtApp()
 
 const tableData = ref([])

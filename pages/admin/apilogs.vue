@@ -14,8 +14,16 @@
               <span class="title">接口日志</span>
             </div>
             <div class="header-right">
-              <el-pagination :page-size="100" :pager-count="5" :page-count="maxPage" v-model:current-page="page"
-                :disabled="pageLoading" size="small" background layout="prev, pager, next" />
+              <el-pagination
+                :page-size="100"
+                :pager-count="5"
+                :page-count="maxPage"
+                v-model:current-page="page"
+                :disabled="pageLoading"
+                size="small"
+                background
+                layout="prev, pager, next"
+              />
             </div>
           </div>
 
@@ -24,11 +32,22 @@
             <div class="search-items">
               <div class="date-picker">
                 <span class="label">选择时间：</span>
-                <el-date-picker v-model="searchTime" type="datetimerange" range-separator="至" start-placeholder="起始时间"
-                  end-placeholder="结束时间" :disabled-date="disabledDate" value-format="x" />
+                <el-date-picker
+                  v-model="searchTime"
+                  type="datetimerange"
+                  range-separator="至"
+                  start-placeholder="起始时间"
+                  end-placeholder="结束时间"
+                  :disabled-date="disabledDate"
+                  value-format="x"
+                />
               </div>
               <div class="search-input">
-                <el-input v-model="searchId" placeholder="请输入请求ID" clearable>
+                <el-input
+                  v-model="searchId"
+                  placeholder="请输入请求ID"
+                  clearable
+                >
                   <template #prefix>
                     <el-icon>
                       <Search />
@@ -37,7 +56,9 @@
                 </el-input>
               </div>
               <div class="search-buttons">
-                <el-button type="primary" @click="handleSearch(1)">查询</el-button>
+                <el-button type="primary" @click="handleSearch(1)"
+                  >查询</el-button
+                >
                 <el-button @click="handleReset">重置</el-button>
               </div>
             </div>
@@ -46,30 +67,75 @@
           <!-- 表格区域 -->
           <div class="table-container">
             <client-only>
-              <el-table :data="tableData" style="width: 100%" v-loading="pageLoading">
+              <el-table
+                :data="tableData"
+                style="width: 100%"
+                v-loading="pageLoading"
+              >
                 <el-table-column prop="key" label="序号" width="60" />
-                <el-table-column prop="id" label="请求ID" min-width="180" show-overflow-tooltip />
-                <el-table-column prop="alias" label="接口名称" width="120" show-overflow-tooltip />
+                <el-table-column
+                  prop="id"
+                  label="请求ID"
+                  min-width="180"
+                  show-overflow-tooltip
+                />
+                <el-table-column
+                  prop="alias"
+                  label="接口名称"
+                  width="120"
+                  show-overflow-tooltip
+                />
                 <el-table-column prop="method" label="请求方法" width="90">
                   <template #default="scope">
-                    <el-tag :type="scope.row.method === 'GET' ? 'success' : 'warning'" size="small">
+                    <el-tag
+                      :type="scope.row.method === 'GET' ? 'success' : 'warning'"
+                      size="small"
+                    >
                       {{ scope.row.method }}
                     </el-tag>
                   </template>
                 </el-table-column>
-                <el-table-column prop="path" label="请求路径" min-width="200" show-overflow-tooltip />
-                <el-table-column prop="response_time" label="响应时间" width="90" />
+                <el-table-column
+                  prop="path"
+                  label="请求路径"
+                  min-width="200"
+                  show-overflow-tooltip
+                />
+                <el-table-column
+                  prop="response_time"
+                  label="响应时间"
+                  width="90"
+                />
                 <el-table-column prop="status_code" label="状态码" width="80">
                   <template #default="scope">
-                    <el-tag :type="scope.row.status_code === 200 ? 'success' : 'danger'" size="small">
+                    <el-tag
+                      :type="
+                        scope.row.status_code === 200 ? 'success' : 'danger'
+                      "
+                      size="small"
+                    >
                       {{ scope.row.status_code }}
                     </el-tag>
                   </template>
                 </el-table-column>
                 <el-table-column prop="client_ip" label="IP" width="130" />
-                <el-table-column prop="address" label="归属地" width="130" show-overflow-tooltip />
-                <el-table-column prop="timestamp" label="请求时间" width="180" />
-                <el-table-column prop="ua" label="User Agent" min-width="200" show-overflow-tooltip />
+                <el-table-column
+                  prop="address"
+                  label="归属地"
+                  width="130"
+                  show-overflow-tooltip
+                />
+                <el-table-column
+                  prop="timestamp"
+                  label="请求时间"
+                  width="180"
+                />
+                <el-table-column
+                  prop="ua"
+                  label="User Agent"
+                  min-width="200"
+                  show-overflow-tooltip
+                />
               </el-table>
             </client-only>
           </div>
@@ -80,7 +146,7 @@
 </template>
 
 <script setup>
-import { Search } from '@element-plus/icons-vue'
+import { Search, Document } from '@element-plus/icons-vue'
 
 const { $msg, $myFetch } = useNuxtApp()
 const msg = $msg

@@ -23,42 +23,42 @@
           <!-- 表格区域 -->
           <div class="table-container">
             <client-only>
-              <el-table :data="filterTableData" style="width: 100%" v-loading="pageLoading">
+              <el-table
+                :data="filterTableData"
+                style="width: 100%"
+                v-loading="pageLoading"
+              >
                 <el-table-column width="160" fixed="right">
                   <template #header>
                     <div class="search-wrapper">
                       <el-input v-model="search" placeholder="搜索" clearable>
-                        <template #prefix>
-                          <el-icon>
-                            <Search />
-                          </el-icon>
-                        </template>
                       </el-input>
                     </div>
                   </template>
                   <template #default="scope">
                     <div class="table-actions">
-                      <el-button type="primary" link @click="handleEdit(scope.$index, scope.row)">
-                        <el-icon>
-                          <Edit />
-                        </el-icon>
+                      <el-button
+                        type="primary"
+                        link
+                        @click="handleEdit(scope.$index, scope.row)"
+                      >
                         编辑
                       </el-button>
-                      <el-button type="info" link @click="handleUserBindRoleList(scope.$index, scope.row)">
-                        <el-icon>
-                          <UserFilled />
-                        </el-icon>
+                      <el-button
+                        type="info"
+                        link
+                        @click="handleUserBindRoleList(scope.$index, scope.row)"
+                      >
                         角色
                       </el-button>
-                      <el-popconfirm confirm-button-text="确定" cancel-button-text="取消" title="确定要删除吗？"
-                        @confirm="handleDelete(scope.$index, scope.row)">
+                      <el-popconfirm
+                        confirm-button-text="确定"
+                        cancel-button-text="取消"
+                        title="确定要删除吗？"
+                        @confirm="handleDelete(scope.$index, scope.row)"
+                      >
                         <template #reference>
-                          <el-button type="danger" link>
-                            <el-icon>
-                              <Delete />
-                            </el-icon>
-                            删除
-                          </el-button>
+                          <el-button type="danger" link> 删除 </el-button>
                         </template>
                       </el-popconfirm>
                     </div>
@@ -66,12 +66,28 @@
                 </el-table-column>
                 <el-table-column prop="id" label="ID" width="55" />
                 <el-table-column prop="username" label="用户名称" width="130" />
-                <el-table-column prop="mail" label="邮箱地址" width="200" show-overflow-tooltip />
-                <el-table-column prop="create_time" label="注册时间" width="180" />
-                <el-table-column prop="login_time" label="上次登录时间" width="180" />
+                <el-table-column
+                  prop="mail"
+                  label="邮箱地址"
+                  width="200"
+                  show-overflow-tooltip
+                />
+                <el-table-column
+                  prop="create_time"
+                  label="注册时间"
+                  width="180"
+                />
+                <el-table-column
+                  prop="login_time"
+                  label="上次登录时间"
+                  width="180"
+                />
                 <el-table-column prop="status" label="状态" width="80">
                   <template #default="scope">
-                    <el-tag :type="scope.row.status === '启用' ? 'success' : 'danger'" size="small">
+                    <el-tag
+                      :type="scope.row.status === '启用' ? 'success' : 'danger'"
+                      size="small"
+                    >
                       {{ scope.row.status }}
                     </el-tag>
                   </template>
@@ -85,55 +101,108 @@
               </el-table>
 
               <div class="pagination">
-                <el-pagination :page-size="25" :pager-count="5" :total="totalRecords" v-model:current-page="page"
-                  :disabled="pageLoading" background layout="prev, pager, next" />
+                <el-pagination
+                  :page-size="25"
+                  :pager-count="5"
+                  :total="totalRecords"
+                  v-model:current-page="page"
+                  :disabled="pageLoading"
+                  background
+                  layout="prev, pager, next"
+                />
               </div>
             </client-only>
           </div>
 
           <!-- 新增/编辑用户对话框 -->
-          <el-dialog v-model="createUserStatus" :title="disabled ? '修改用户' : '新增用户'" width="500px" destroy-on-close>
+          <el-dialog
+            v-model="createUserStatus"
+            :title="disabled ? '修改用户' : '新增用户'"
+            width="500px"
+            destroy-on-close
+          >
             <el-form :model="userInfo" label-width="90px">
               <el-form-item label="用户名称" required>
-                <el-input v-model="userInfo.username" :disabled="disabled" placeholder="请输入用户名称" />
+                <el-input
+                  v-model="userInfo.username"
+                  :disabled="disabled"
+                  placeholder="请输入用户名称"
+                />
               </el-form-item>
               <el-form-item label="密码" required>
-                <el-input type="password" v-model="userInfo.password" show-password placeholder="请输入密码" />
+                <el-input
+                  type="password"
+                  v-model="userInfo.password"
+                  show-password
+                  placeholder="请输入密码"
+                />
               </el-form-item>
               <el-form-item label="邮箱地址" required>
-                <el-input v-model="userInfo.mail" placeholder="请输入邮箱地址" />
+                <el-input
+                  v-model="userInfo.mail"
+                  placeholder="请输入邮箱地址"
+                />
               </el-form-item>
               <el-form-item label="账户余额" v-if="disabled">
-                <el-input v-model="userInfo.balance" placeholder="请输入账户余额" />
+                <el-input
+                  v-model="userInfo.balance"
+                  placeholder="请输入账户余额"
+                />
               </el-form-item>
               <el-form-item label="用户状态" v-if="disabled">
-                <el-select v-model="userInfo.status" placeholder="请选择用户状态" class="full-width">
+                <el-select
+                  v-model="userInfo.status"
+                  placeholder="请选择用户状态"
+                  class="full-width"
+                >
                   <el-option label="启用" value="启用" />
                   <el-option label="停用" value="停用" />
                 </el-select>
               </el-form-item>
               <el-form-item label="绑定角色" v-if="disabled">
-                <el-select v-model="bindRoleInfo" multiple collapse-tags collapse-tags-tooltip placeholder="请选择要绑定的角色"
-                  class="full-width">
-                  <el-option v-for="item in roleList" :key="item.role_id" :label="item.role_name"
-                    :value="item.role_id" />
+                <el-select
+                  v-model="bindRoleInfo"
+                  multiple
+                  collapse-tags
+                  collapse-tags-tooltip
+                  placeholder="请选择要绑定的角色"
+                  class="full-width"
+                >
+                  <el-option
+                    v-for="item in roleList"
+                    :key="item.role_id"
+                    :label="item.role_name"
+                    :value="item.role_id"
+                  />
                 </el-select>
               </el-form-item>
             </el-form>
             <template #footer>
               <div class="dialog-footer">
                 <el-button @click="createUserStatus = false">取消</el-button>
-                <el-button type="primary" @click="submit">{{ disabled ? '修改' : '创建' }}</el-button>
+                <el-button type="primary" @click="submit">{{
+                  disabled ? '修改' : '创建'
+                }}</el-button>
               </div>
             </template>
           </el-dialog>
 
           <!-- 用户角色列表对话框 -->
-          <el-dialog v-model="userBindRoleListStatus" title="用户角色" width="500px" destroy-on-close>
+          <el-dialog
+            v-model="userBindRoleListStatus"
+            title="用户角色"
+            width="500px"
+            destroy-on-close
+          >
             <el-table :data="userBindRoleList">
               <el-table-column prop="role_id" label="ID" width="80" />
               <el-table-column prop="role_name" label="角色名称" width="200" />
-              <el-table-column prop="description" label="描述" min-width="200" show-overflow-tooltip />
+              <el-table-column
+                prop="description"
+                label="描述"
+                min-width="200"
+                show-overflow-tooltip
+              />
             </el-table>
           </el-dialog>
         </div>
@@ -143,6 +212,7 @@
 </template>
 
 <script setup>
+import { User } from '@element-plus/icons-vue'
 const { $msg, $myFetch } = useNuxtApp()
 
 const loading = ref(false)

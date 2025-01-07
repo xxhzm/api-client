@@ -230,7 +230,6 @@ import {
   Tickets,
   Avatar,
   Connection,
-  Document,
   Wallet,
 } from '@element-plus/icons-vue'
 

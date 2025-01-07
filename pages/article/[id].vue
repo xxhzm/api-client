@@ -7,22 +7,10 @@
           <div class="title-section">
             <h1 class="article-title">{{ info.title }}</h1>
           </div>
-          <div class="meta-section">
-            <div class="meta-left">
-              <span class="meta-item">
-                <i class="el-icon-user"></i>
-                {{ info.author }}
-              </span>
-              <span class="meta-item">
-                <i class="el-icon-date"></i>
-                {{ info.created_at }}
-              </span>
-            </div>
-          </div>
         </div>
-        
+
         <div class="article-divider"></div>
-        
+
         <div class="article-content">
           <div class="content-wrapper" v-html="info.content"></div>
         </div>
@@ -32,12 +20,12 @@
         <div class="article-footer">
           <div class="keywords" v-if="info.keywords">
             <span class="keyword-label">
-              <i class="el-icon-collection-tag"></i>
+              <el-icon><CollectionTag /></el-icon>
               关键词：
             </span>
-            <span 
-              v-for="keyword in info.keywords.split(',')" 
-              :key="keyword" 
+            <span
+              v-for="keyword in info.keywords.split(',')"
+              :key="keyword"
               class="keyword-tag"
             >
               {{ keyword.trim() }}
@@ -51,6 +39,8 @@
 </template>
 
 <script setup>
+import { CollectionTag } from '@element-plus/icons-vue'
+
 const { $myFetch } = useNuxtApp()
 const route = useRoute()
 const info = ref({})
@@ -130,29 +120,6 @@ useHead({
         letter-spacing: 0.5px;
       }
     }
-
-    .meta-section {
-      display: flex;
-      align-items: center;
-
-      .meta-left {
-        display: flex;
-        align-items: center;
-        gap: 24px;
-
-        .meta-item {
-          display: flex;
-          align-items: center;
-          color: #909399;
-          font-size: 14px;
-
-          i {
-            margin-right: 8px;
-            font-size: 16px;
-          }
-        }
-      }
-    }
   }
 
   .article-divider {
@@ -163,7 +130,7 @@ useHead({
 
   .article-content {
     padding: 32px 40px;
-    
+
     .content-wrapper {
       :deep(h1) {
         font-size: 24px;
@@ -196,7 +163,8 @@ useHead({
         letter-spacing: 0.2px;
       }
 
-      :deep(ul), :deep(ol) {
+      :deep(ul),
+      :deep(ol) {
         padding-left: 24px;
         margin: 16px 0;
 
@@ -212,7 +180,8 @@ useHead({
         background: #f5f7fa;
         padding: 2px 6px;
         border-radius: 4px;
-        font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New', monospace;
+        font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
+          monospace;
         font-size: 14px;
         color: #476582;
       }
@@ -325,7 +294,7 @@ useHead({
       .meta-section {
         .meta-left {
           gap: 16px;
-          
+
           .meta-item {
             font-size: 13px;
           }
@@ -367,7 +336,7 @@ useHead({
 
         .meta-left {
           gap: 16px;
-          
+
           .meta-item {
             font-size: 13px;
           }

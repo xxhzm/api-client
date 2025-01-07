@@ -31,11 +31,6 @@
                         placeholder="搜索"
                         clearable
                       >
-                        <template #prefix>
-                          <el-icon>
-                            <Search />
-                          </el-icon>
-                        </template>
                       </el-input>
                     </div>
                   </template>
@@ -46,9 +41,6 @@
                         link
                         @click="handleEdit(scope.$index, scope.row)"
                       >
-                        <el-icon>
-                          <Edit />
-                        </el-icon>
                         编辑
                       </el-button>
                       <el-popconfirm
@@ -58,12 +50,7 @@
                         @confirm="handleDelete(scope.$index, scope.row)"
                       >
                         <template #reference>
-                          <el-button type="danger" link>
-                            <el-icon>
-                              <Delete />
-                            </el-icon>
-                            删除
-                          </el-button>
+                          <el-button type="danger" link> 删除 </el-button>
                         </template>
                       </el-popconfirm>
                     </div>
@@ -148,6 +135,7 @@
 </template>
 
 <script setup>
+import { Connection } from '@element-plus/icons-vue'
 const { $msg, $myFetch } = useNuxtApp()
 const msg = $msg
 
