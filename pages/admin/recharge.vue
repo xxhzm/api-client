@@ -49,27 +49,27 @@
                         v-model="form.amount"
                         class="amount-radio-group"
                       >
-                        <el-radio :value="1000">
+                        <el-radio :value="10">
                           <span class="amount-label">
-                            <span class="amount">1000</span>
+                            <span class="amount">10</span>
                             <span class="unit">元</span>
                           </span>
                         </el-radio>
-                        <el-radio :value="2000">
+                        <el-radio :value="50">
                           <span class="amount-label">
-                            <span class="amount">2000</span>
+                            <span class="amount">50</span>
                             <span class="unit">元</span>
                           </span>
                         </el-radio>
-                        <el-radio :value="5000">
+                        <el-radio :value="100">
                           <span class="amount-label">
-                            <span class="amount">5000</span>
+                            <span class="amount">100</span>
                             <span class="unit">元</span>
                           </span>
                         </el-radio>
-                        <el-radio :value="10000">
+                        <el-radio :value="500">
                           <span class="amount-label">
-                            <span class="amount">10000</span>
+                            <span class="amount">500</span>
                             <span class="unit">元</span>
                           </span>
                         </el-radio>
@@ -215,6 +215,9 @@ const refreshBalance = () => {
   getBalance(true)
 }
 
+// 查询是否支付定时器
+let timer = null
+
 // 提交充值表单
 const submitForm = async () => {
   if (form.value.amount < 1) {
@@ -246,7 +249,6 @@ const submitForm = async () => {
       // 显示支付状态确认弹窗
       payStatusDialogVisible.value = true
       // 查询接口
-      let timer = null
       timer = setInterval(async () => {
         const queryRes = await $myFetch('AlipayTradeQuery', {
           params: {
@@ -281,8 +283,10 @@ const submitForm = async () => {
 // 处理支付状态
 const handlePayStatus = (isSuccess) => {
   if (isSuccess) {
-    $msg('请等待到账', 'success')
+    clearInterval(timer)
+    $msg('支付成功', 'success')
   } else {
+    clearInterval(timer)
     $msg('如遇支付问题，请联系客服处理', 'warning')
   }
   payStatusDialogVisible.value = false
