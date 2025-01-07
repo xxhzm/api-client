@@ -11,7 +11,10 @@
               <span class="title">文章列表</span>
             </div>
             <div class="header-right">
-              <el-button type="primary" @click="navigateTo('/admin/createarticle')">
+              <el-button
+                type="primary"
+                @click="navigateTo('/admin/createarticle')"
+              >
                 <span>新增文章</span>
               </el-button>
               <el-button type="success" @click="dialogVisible = true">
@@ -23,7 +26,11 @@
           <!-- 表格区域 -->
           <div class="table-container">
             <client-only>
-              <el-table :data="filterTableData" style="width: 100%" v-loading="pageLoading">
+              <el-table
+                :data="filterTableData"
+                style="width: 100%"
+                v-loading="pageLoading"
+              >
                 <el-table-column width="160" fixed="right">
                   <template #header>
                     <div class="search-wrapper">
@@ -38,14 +45,22 @@
                   </template>
                   <template #default="scope">
                     <div class="table-actions">
-                      <el-button type="primary" link @click="handleEdit(scope.$index, scope.row)">
+                      <el-button
+                        type="primary"
+                        link
+                        @click="handleEdit(scope.$index, scope.row)"
+                      >
                         <el-icon>
                           <Edit />
                         </el-icon>
                         编辑
                       </el-button>
-                      <el-popconfirm confirm-button-text="确定" cancel-button-text="取消" title="确定要删除吗？"
-                        @confirm="handleDelete(scope.$index, scope.row)">
+                      <el-popconfirm
+                        confirm-button-text="确定"
+                        cancel-button-text="取消"
+                        title="确定要删除吗？"
+                        @confirm="handleDelete(scope.$index, scope.row)"
+                      >
                         <template #reference>
                           <el-button type="danger" link>
                             <el-icon>
@@ -60,13 +75,34 @@
                 </el-table-column>
                 <el-table-column prop="id" label="ID" width="80" />
                 <el-table-column prop="author" label="作者" width="100" />
-                <el-table-column prop="title" label="文章标题" min-width="200" show-overflow-tooltip />
-                <el-table-column prop="keywords" label="关键词" width="200" show-overflow-tooltip />
-                <el-table-column prop="create_time" label="发布时间" width="180" />
-                <el-table-column prop="update_time" label="修改时间" width="180" />
+                <el-table-column
+                  prop="title"
+                  label="文章标题"
+                  min-width="200"
+                  show-overflow-tooltip
+                />
+                <el-table-column
+                  prop="keywords"
+                  label="关键词"
+                  width="200"
+                  show-overflow-tooltip
+                />
+                <el-table-column
+                  prop="create_time"
+                  label="发布时间"
+                  width="180"
+                />
+                <el-table-column
+                  prop="update_time"
+                  label="修改时间"
+                  width="180"
+                />
                 <el-table-column prop="status" label="状态" width="100">
                   <template #default="scope">
-                    <el-tag :type="getStatusType(scope.row.status)" size="small">
+                    <el-tag
+                      :type="getStatusType(scope.row.status)"
+                      size="small"
+                    >
                       {{ scope.row.status }}
                     </el-tag>
                   </template>
@@ -74,23 +110,40 @@
               </el-table>
 
               <div class="pagination">
-                <el-pagination :page-size="25" :pager-count="5" :total="totalRecords" v-model:current-page="page"
-                  :disabled="pageLoading" background layout="prev, pager, next" />
+                <el-pagination
+                  :page-size="25"
+                  :pager-count="5"
+                  :total="totalRecords"
+                  v-model:current-page="page"
+                  :disabled="pageLoading"
+                  background
+                  layout="prev, pager, next"
+                />
               </div>
             </client-only>
           </div>
 
           <!-- 导入文章对话框 -->
-          <el-dialog v-model="dialogVisible" title="导入文章" width="500px" destroy-on-close>
+          <el-dialog
+            v-model="dialogVisible"
+            title="导入文章"
+            width="500px"
+            destroy-on-close
+          >
             <el-form label-width="90px">
               <el-form-item label="文章URL" required>
-                <el-input v-model="importArticleUrl" placeholder="请输入文章URL" />
+                <el-input
+                  v-model="importArticleUrl"
+                  placeholder="请输入文章URL"
+                />
               </el-form-item>
             </el-form>
             <template #footer>
               <div class="dialog-footer">
                 <el-button @click="dialogVisible = false">取消</el-button>
-                <el-button type="primary" @click="importArticle">确定</el-button>
+                <el-button type="primary" @click="importArticle"
+                  >确定</el-button
+                >
               </div>
             </template>
           </el-dialog>
@@ -121,7 +174,6 @@ watch(
   async (newValue) => {
     pageLoading.value = true
     await getData()
-    console.log(newValue)
     setTimeout(() => {
       pageLoading.value = false
     }, 300)

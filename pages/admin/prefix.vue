@@ -25,7 +25,12 @@
                 <el-table-column width="160" fixed="right">
                   <template #header>
                     <div class="search-wrapper">
-                      <el-input v-model="search" size="default" placeholder="搜索" clearable>
+                      <el-input
+                        v-model="search"
+                        size="default"
+                        placeholder="搜索"
+                        clearable
+                      >
                         <template #prefix>
                           <el-icon>
                             <Search />
@@ -36,14 +41,22 @@
                   </template>
                   <template #default="scope">
                     <div class="table-actions">
-                      <el-button type="primary" link @click="handleEdit(scope.$index, scope.row)">
+                      <el-button
+                        type="primary"
+                        link
+                        @click="handleEdit(scope.$index, scope.row)"
+                      >
                         <el-icon>
                           <Edit />
                         </el-icon>
                         编辑
                       </el-button>
-                      <el-popconfirm confirm-button-text="确定" cancel-button-text="取消" title="确定要删除吗？"
-                        @confirm="handleDelete(scope.$index, scope.row)">
+                      <el-popconfirm
+                        confirm-button-text="确定"
+                        cancel-button-text="取消"
+                        title="确定要删除吗？"
+                        @confirm="handleDelete(scope.$index, scope.row)"
+                      >
                         <template #reference>
                           <el-button type="danger" link>
                             <el-icon>
@@ -58,10 +71,22 @@
                 </el-table-column>
                 <el-table-column prop="id" label="ID" width="50" />
                 <el-table-column prop="name" label="前缀名称" width="140" />
-                <el-table-column prop="prefix" label="前缀地址" min-width="180" show-overflow-tooltip />
+                <el-table-column
+                  prop="prefix"
+                  label="前缀地址"
+                  min-width="180"
+                  show-overflow-tooltip
+                />
                 <el-table-column prop="request_type" label="类型" width="80">
                   <template #default="scope">
-                    <el-tag :type="scope.row.request_type === 'http' ? 'success' : 'warning'" size="small">
+                    <el-tag
+                      :type="
+                        scope.row.request_type === 'http'
+                          ? 'success'
+                          : 'warning'
+                      "
+                      size="small"
+                    >
                       {{ scope.row.request_type }}
                     </el-tag>
                   </template>
@@ -72,16 +97,34 @@
         </div>
 
         <!-- 新增/编辑对话框 -->
-        <el-dialog v-model="createStatus" :title="disabled ? '修改前缀' : '新增前缀'" width="500px" destroy-on-close>
+        <el-dialog
+          v-model="createStatus"
+          :title="disabled ? '修改前缀' : '新增前缀'"
+          width="500px"
+          destroy-on-close
+        >
           <el-form :model="prefixInfo" label-width="90px">
             <el-form-item label="前缀名称" required>
-              <el-input v-model="prefixInfo.name" maxlength="32" show-word-limit placeholder="请输入前缀名称" />
+              <el-input
+                v-model="prefixInfo.name"
+                maxlength="32"
+                show-word-limit
+                placeholder="请输入前缀名称"
+              />
             </el-form-item>
             <el-form-item label="前缀地址" required>
-              <el-input v-model="prefixInfo.prefix" show-word-limit placeholder="请输入前缀地址" />
+              <el-input
+                v-model="prefixInfo.prefix"
+                show-word-limit
+                placeholder="请输入前缀地址"
+              />
             </el-form-item>
             <el-form-item label="接口类型" required>
-              <el-select v-model="prefixInfo.requestType" placeholder="请选择接口类型" class="full-width">
+              <el-select
+                v-model="prefixInfo.requestType"
+                placeholder="请选择接口类型"
+                class="full-width"
+              >
                 <el-option label="HTTP" value="http" />
                 <el-option label="gRPC" value="grpc" />
               </el-select>
@@ -90,7 +133,10 @@
           <template #footer>
             <div class="dialog-footer">
               <el-button @click="createStatus = false">取消</el-button>
-              <el-button type="primary" @click="disabled ? updatePrefix() : createPrefix()">
+              <el-button
+                type="primary"
+                @click="disabled ? updatePrefix() : createPrefix()"
+              >
                 确定
               </el-button>
             </div>
@@ -164,7 +210,6 @@ const prefixInfo = ref({
 
 const createPrefix = async () => {
   disabled.value = false
-  console.log(123)
   if (!prefixInfo.value.name || !prefixInfo.value.requestType) {
     msg('请填写内容', 'error')
     return false
