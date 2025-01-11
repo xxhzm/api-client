@@ -8,7 +8,11 @@
           <el-tabs v-model="activeTab" class="setting-tabs">
             <el-tab-pane label="基本设置" name="basic">
               <div class="form">
-                <el-form :model="websetInfo" label-position="top" label-width="120px">
+                <el-form
+                  :model="websetInfo"
+                  label-position="top"
+                  label-width="120px"
+                >
                   <el-form-item label="网站标题">
                     <el-input v-model="websetInfo.title" />
                   </el-form-item>
@@ -22,8 +26,14 @@
                     <el-input v-model="websetInfo.description" />
                   </el-form-item>
                   <el-form-item label="建站时间">
-                    <el-date-picker v-model="websetInfo.create_time" type="datetime" placeholder="选择建站时间"
-                      format="YYYY/MM/DD HH:mm:ss" value-format="YYYY/MM/DD HH:mm:ss" :disabled-date="disabledDate" />
+                    <el-date-picker
+                      v-model="websetInfo.create_time"
+                      type="datetime"
+                      placeholder="选择建站时间"
+                      format="YYYY/MM/DD HH:mm:ss"
+                      value-format="YYYY/MM/DD HH:mm:ss"
+                      :disabled-date="disabledDate"
+                    />
                   </el-form-item>
                   <el-form-item label="ICP备案号">
                     <el-input v-model="websetInfo.icp" />
@@ -32,7 +42,9 @@
                     <el-input v-model="websetInfo.gongan" />
                   </el-form-item>
                   <el-form-item>
-                    <el-button type="primary" @click="websetInfoSubmit">提交</el-button>
+                    <el-button type="primary" @click="websetInfoSubmit"
+                      >提交</el-button
+                    >
                   </el-form-item>
                 </el-form>
               </div>
@@ -40,7 +52,11 @@
 
             <el-tab-pane label="邮件设置" name="mail">
               <div class="form">
-                <el-form :model="mailInfo" label-position="top" label-width="120px">
+                <el-form
+                  :model="mailInfo"
+                  label-position="top"
+                  label-width="120px"
+                >
                   <el-form-item label="SMTP服务器地址">
                     <el-input v-model="mailInfo.smtp" />
                   </el-form-item>
@@ -48,7 +64,11 @@
                     <el-input v-model="mailInfo.user" />
                   </el-form-item>
                   <el-form-item label="密码">
-                    <el-input v-model="mailInfo.password" type="password" show-password />
+                    <el-input
+                      v-model="mailInfo.password"
+                      type="password"
+                      show-password
+                    />
                   </el-form-item>
                   <el-form-item label="发件人">
                     <el-input v-model="mailInfo.setfrom" />
@@ -60,7 +80,24 @@
                     <el-input v-model="mailInfo.name" />
                   </el-form-item>
                   <el-form-item>
-                    <el-button type="primary" @click="mailInfoSubmit">提交</el-button>
+                    <el-button type="primary" @click="mailInfoSubmit"
+                      >提交</el-button
+                    >
+                  </el-form-item>
+                </el-form>
+              </div>
+            </el-tab-pane>
+
+            <el-tab-pane label="发信测试" name="test">
+              <div class="form">
+                <el-form label-position="top" label-width="120px">
+                  <el-form-item label="测试邮箱">
+                    <el-input v-model="testMail" placeholder="请输入测试邮箱" />
+                  </el-form-item>
+                  <el-form-item>
+                    <el-button type="primary" @click="sendTestMail"
+                      >发送测试</el-button
+                    >
                   </el-form-item>
                 </el-form>
               </div>
@@ -96,6 +133,8 @@ const mailInfo = ref({
   port: '',
   name: '',
 })
+
+const testMail = ref('')
 
 // 获取网站设置
 const getWebsetInfo = async () => {
@@ -180,6 +219,27 @@ const mailInfoSubmit = async () => {
   }
 }
 
+// 发送测试邮件
+const sendTestMail = async () => {
+  if (!testMail.value) {
+    $msg('请输入测试邮箱', 'error')
+    return false
+  }
+
+  const res = await $myFetch('SendTestMail', {
+    params: {
+      mail: testMail.value,
+    },
+  })
+
+  if (res.code === 200) {
+    $msg(res.msg, 'success')
+    testMail.value = ''
+  } else {
+    $msg(res.msg, 'error')
+  }
+}
+
 // 禁用未来日期
 const disabledDate = (time) => {
   return time.getTime() > Date.now()
@@ -187,7 +247,8 @@ const disabledDate = (time) => {
 
 useHead({
   title: '系统设置',
-  viewport: 'width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0',
+  viewport:
+    'width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0',
   charset: 'utf-8',
 })
 </script>
