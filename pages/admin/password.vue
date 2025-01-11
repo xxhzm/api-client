@@ -1,20 +1,36 @@
 <template>
-  <AdminHeader></AdminHeader>
-  <div style="display: flex">
+  <div class="container">
     <AdminSidebar></AdminSidebar>
-    <div class="password-container">
-      <div class="password-form">
-        <el-form :model="passwordInfo" label-width="120px">
-          <el-form-item label="请输入旧密码">
-            <el-input v-model="passwordInfo.oldPassword" />
-          </el-form-item>
-          <el-form-item label="请输入新密码">
-            <el-input v-model="passwordInfo.newPassword" />
-          </el-form-item>
-          <el-form-item>
-            <el-button type="primary" @click="onSubmit">保存</el-button>
-          </el-form-item>
-        </el-form>
+    <div class="right">
+      <AdminHeader></AdminHeader>
+      <div class="password-container">
+        <div class="cont">
+          <div class="form">
+            <el-form
+              :model="passwordInfo"
+              label-position="top"
+              label-width="120px"
+            >
+              <el-form-item label="请输入旧密码">
+                <el-input
+                  v-model="passwordInfo.oldPassword"
+                  type="password"
+                  show-password
+                />
+              </el-form-item>
+              <el-form-item label="请输入新密码">
+                <el-input
+                  v-model="passwordInfo.newPassword"
+                  type="password"
+                  show-password
+                />
+              </el-form-item>
+              <el-form-item>
+                <el-button type="primary" @click="onSubmit">修改</el-button>
+              </el-form-item>
+            </el-form>
+          </div>
+        </div>
       </div>
     </div>
   </div>
@@ -49,36 +65,86 @@ const onSubmit = async () => {
   bodyValue.append('token', token.value)
   bodyValue.append('username', username.value)
 
-  const { data: res } = await $myFetch('ChangePassword', {
+  const res = await $myFetch('ChangePassword', {
     method: 'POST',
     body: bodyValue,
   })
 
-  window.location.href = '/login'
+  if (res.code === 200) {
+    msg('修改成功', 'success')
+    setTimeout(() => {
+      window.location.href = '/login'
+    }, 1500)
 
-  username.value = undefined
-  token.value = undefined
-
-  setTimeout(() => {
-    window.location.href = '/login'
-  }, 1500)
+    username.value = undefined
+    token.value = undefined
+  } else {
+    msg(res.msg, 'error')
+  }
 }
 </script>
 
 <style lang="less" scoped>
-.password-container {
-  overflow-y: hidden;
-  width: 100%;
-  height: calc(100vh - 65px);
-  padding: 20px 40px;
-  background-color: #f7f7f7;
-  .password-form {
+.container {
+  display: flex;
+
+  .right {
     width: 100%;
-    height: 100%;
-    overflow-y: scroll;
-    padding: 40px 50px;
-    background: #fff;
-    box-shadow: 0 2px 2px rgb(0 0 0 / 10%);
+
+    .password-container {
+      min-height: 100vh;
+      padding: 10px;
+      background-color: #f7f7f7;
+
+      .cont {
+        width: 100%;
+        height: 100%;
+        padding: 20px;
+        background: #fff;
+        box-shadow: 0 2px 2px rgb(0 0 0 / 10%);
+        border-radius: 8px;
+
+        .form {
+          width: 60%;
+
+          :deep(.el-form-item__label) {
+            font-weight: 500;
+            padding-bottom: 8px;
+          }
+
+          :deep(.el-input__wrapper) {
+            box-shadow: 0 0 0 1px #dcdfe6 inset;
+
+            &:hover {
+              box-shadow: 0 0 0 1px #c0c4cc inset;
+            }
+
+            &.is-focus {
+              box-shadow: 0 0 0 1px #409eff inset;
+            }
+          }
+
+          .el-button {
+            padding: 12px 24px;
+            font-weight: 500;
+          }
+        }
+      }
+    }
+  }
+}
+
+@media screen and (max-width: 1200px) {
+  .container {
+    .right {
+      .password-container {
+        .cont {
+          .form {
+            width: 100%;
+          }
+        }
+      }
+    }
   }
 }
 </style>
