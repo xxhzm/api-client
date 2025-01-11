@@ -43,7 +43,7 @@ adDate.value = res.data
 
 .ad-image {
   width: 100%;
-  height: 65px;
+  height: 40px;
 }
 
 @media screen and (max-width: 768px) {
