@@ -182,7 +182,7 @@
           </el-menu-item-group>
         </el-sub-menu>
 
-        <el-sub-menu index="6" v-if="routeShowArr(['/admin/recharge'])">
+        <el-sub-menu index="6" v-if="routeShowArr(['/admin/pay'])">
           <template #title>
             <el-icon>
               <Wallet />
@@ -192,8 +192,8 @@
           <el-menu-item-group title="财务功能">
             <el-menu-item
               index="6-1"
-              @click="navigateTo('/admin/recharge')"
-              v-if="routeShow('/admin/recharge')"
+              @click="navigateTo('/admin/pay')"
+              v-if="routeShow('/admin/pay')"
               >账户充值</el-menu-item
             >
           </el-menu-item-group>
@@ -201,6 +201,17 @@
 
         <el-menu-item
           index="7"
+          @click="navigateTo('/admin/key')"
+          v-if="routeShow('/admin/key')"
+        >
+          <el-icon>
+            <Connection />
+          </el-icon>
+          <template #title>API密钥管理</template>
+        </el-menu-item>
+
+        <el-menu-item
+          index="8"
           @click="navigateTo('/admin/links')"
           v-if="routeShow('/admin/links')"
         >
@@ -209,7 +220,8 @@
           </el-icon>
           <template #title>友情链接</template>
         </el-menu-item>
-        <el-menu-item index="8" @click="navigateTo('/')">
+
+        <el-menu-item index="9" @click="navigateTo('/')">
           <el-icon>
             <Promotion />
           </el-icon>

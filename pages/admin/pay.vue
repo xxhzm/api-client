@@ -49,7 +49,7 @@
                         v-model="form.amount"
                         class="amount-radio-group"
                       >
-                        <el-radio :value="10">
+                        <el-radio :value="10" required>
                           <span class="amount-label">
                             <span class="amount">10</span>
                             <span class="unit">元</span>
@@ -167,7 +167,7 @@ const balance = ref(0)
 // 表单数据
 const formRef = ref(null)
 const form = ref({
-  amount: 1000,
+  amount: 10,
   customAmount: null,
   payMethod: 'alipay',
 })
