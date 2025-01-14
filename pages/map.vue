@@ -425,6 +425,10 @@ onUnmounted(() => {
   window.removeEventListener('resize', handleResize)
   chart?.dispose()
 })
+
+useHead({
+  title: '实时请求大屏 - 免费API',
+})
 </script>
 
 <style lang="less" scoped>
