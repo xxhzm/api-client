@@ -182,7 +182,10 @@
           </el-menu-item-group>
         </el-sub-menu>
 
-        <el-sub-menu index="6" v-if="routeShowArr(['/admin/pay'])">
+        <el-sub-menu
+          index="6"
+          v-if="routeShowArr(['/admin/pay', '/admin/package'])"
+        >
           <template #title>
             <el-icon>
               <Wallet />
@@ -195,6 +198,12 @@
               @click="navigateTo('/admin/pay')"
               v-if="routeShow('/admin/pay')"
               >账户充值</el-menu-item
+            >
+            <el-menu-item
+              index="6-2"
+              @click="navigateTo('/admin/package')"
+              v-if="routeShow('/admin/package')"
+              >套餐管理</el-menu-item
             >
           </el-menu-item-group>
         </el-sub-menu>

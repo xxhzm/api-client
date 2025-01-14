@@ -127,15 +127,27 @@
     </div>
 
     <!-- 调试对话框 -->
-    <el-dialog v-model="debugVisible" title="接口调试" width="60%" :close-on-click-modal="false">
+    <el-dialog
+      v-model="debugVisible"
+      title="接口调试"
+      width="60%"
+      :close-on-click-modal="false"
+    >
       <div class="debug-container">
         <!-- 请求参数表单 -->
         <div class="params-form">
           <h3>请求参数</h3>
           <el-form :model="debugForm" label-width="100px">
-            <el-form-item v-for="param in apiInfo.params" :key="param.id" :label="param.name"
-              :required="param.required === '必传'">
-              <el-input v-model="debugForm[param.param]" :placeholder="param.param" />
+            <el-form-item
+              v-for="param in apiInfo.params"
+              :key="param.id"
+              :label="param.name"
+              :required="param.required === '必传'"
+            >
+              <el-input
+                v-model="debugForm[param.param]"
+                :placeholder="param.param"
+              />
             </el-form-item>
           </el-form>
         </div>
@@ -248,7 +260,7 @@ const {
 options.value = res1.data
 
 useHead({
-  title: apiInfo.value.name + ' - ' + options.value.title,
+  title: apiInfo.value.name + ' - 免费API',
   viewport:
     'width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0',
   charset: 'utf-8',
@@ -457,9 +469,10 @@ const highlightedExample = computed(() => {
 
   try {
     // 如果example是字符串形式的JSON,先解析再格式化
-    const parsed = typeof apiInfo.value.example === 'string'
-      ? JSON.parse(apiInfo.value.example)
-      : apiInfo.value.example
+    const parsed =
+      typeof apiInfo.value.example === 'string'
+        ? JSON.parse(apiInfo.value.example)
+        : apiInfo.value.example
 
     const formatted = JSON.stringify(parsed, null, 2)
     // 使用highlight.js进行代码高亮
