@@ -205,6 +205,12 @@
               v-if="routeShow('/admin/package')"
               >套餐管理</el-menu-item
             >
+            <el-menu-item
+              index="6-3"
+              @click="navigateTo('/admin/buy')"
+              v-if="routeShow('/admin/buy')"
+              >购买套餐</el-menu-item
+            >
           </el-menu-item-group>
         </el-sub-menu>
 
