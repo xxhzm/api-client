@@ -227,6 +227,78 @@ useHead({
           border-bottom-color: #66b1ff;
         }
       }
+
+      :deep(table) {
+        width: 100%;
+        border-collapse: collapse;
+        margin: 24px 0;
+        font-size: 14px;
+        background: #fff;
+        border-radius: 8px;
+        overflow: hidden;
+        box-shadow: 0 0 0 1px #ebeef5;
+
+        th,
+        td {
+          padding: 12px 16px;
+          text-align: left;
+          border-bottom: 1px solid #ebeef5;
+          color: #606266;
+        }
+
+        th {
+          background: #f5f7fa;
+          font-weight: 500;
+          color: #303133;
+          white-space: nowrap;
+        }
+
+        tr {
+          transition: background-color 0.3s;
+
+          &:hover {
+            background-color: #f5f7fa;
+          }
+
+          &:last-child {
+            td {
+              border-bottom: none;
+            }
+          }
+        }
+      }
+
+      :deep(hr) {
+        margin: 24px 0;
+        border: none;
+        border-top: 1px solid #ebeef5;
+      }
+
+      :deep(*:not(pre) > code) {
+        background: #f5f7fa;
+        padding: 2px 6px;
+        border-radius: 4px;
+        font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
+          monospace;
+        font-size: 14px;
+        color: #476582;
+        margin: 0 2px;
+      }
+
+      :deep(strong) {
+        font-weight: 600;
+        color: #2c3e50;
+      }
+
+      :deep(em) {
+        font-style: italic;
+        color: #2c3e50;
+      }
+
+      :deep(del) {
+        text-decoration: line-through;
+        color: #909399;
+      }
     }
   }
 
