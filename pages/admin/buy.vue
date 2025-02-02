@@ -40,7 +40,7 @@
           <!-- 套餐列表 -->
           <div class="package-list" v-loading="loading">
             <!-- 套餐卡片列表 -->
-            <div class="package-cards">
+            <div v-if="packages.length > 0" class="package-cards">
               <el-card
                 v-for="pkg in packages"
                 :key="pkg.id"
@@ -57,7 +57,7 @@
                 <div class="card-content">
                   <div class="price-section">
                     <div class="price">
-                      <span class="currency">¥</span>{{ pkg.price / 100 }}
+                      <span class="currency">¥</span>{{ pkg.price }}
                     </div>
                   </div>
 
@@ -96,6 +96,16 @@
                 </div>
               </el-card>
             </div>
+            <!-- 暂无套餐时的空状态 -->
+            <div v-else class="empty-state">
+              <el-empty description="暂无套餐">
+                <template #image>
+                  <el-icon :size="60" class="empty-icon"
+                    ><ShoppingCart
+                  /></el-icon>
+                </template>
+              </el-empty>
+            </div>
           </div>
         </div>
       </div>
@@ -126,9 +136,7 @@
             </div>
             <div class="info-row">
               <span class="label">价格：</span>
-              <span class="confirm-price"
-                >¥{{ selectedPackage.price / 100 }}</span
-              >
+              <span class="confirm-price">¥{{ selectedPackage.price }}</span>
             </div>
           </div>
         </div>
@@ -255,17 +263,13 @@ const confirmBuy = async () => {
     const res = await $myFetch('BuyPackage', {
       method: 'POST',
       body: new URLSearchParams({
-        package_id: selectedPackage.value.id,
+        packageId: selectedPackage.value.id,
       }),
     })
 
     if (res.code === 200) {
-      $msg(res.msg, 'success')
+      $msg(res.data, 'success')
       dialogVisible.value = false
-      // 购买成功后的跳转逻辑
-      setTimeout(() => {
-        navigateTo('/user/order')
-      }, 1500)
     } else {
       $msg(res.msg, 'error')
     }
@@ -382,177 +386,168 @@ useHead({
           flex-direction: row;
           flex-wrap: wrap;
           gap: 24px;
+          min-height: 400px;
 
-          .api-group {
-            flex: 1;
-            min-width: 280px;
-            background: #fff;
-            border-radius: 12px;
-            padding: 24px;
-            border: 1px solid #e5e7eb;
-            transition: all 0.3s ease;
+          .empty-state {
+            width: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 40px 0;
 
-            &:hover {
-              box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1),
-                0 2px 4px -1px rgba(0, 0, 0, 0.06);
-            }
+            :deep(.el-empty) {
+              padding: 40px;
+              background: #fff;
+              border-radius: 12px;
+              border: 1px solid #e5e7eb;
 
-            .api-header {
-              margin-bottom: 24px;
-              padding-bottom: 16px;
-              border-bottom: 1px solid #f0f0f0;
-
-              h2 {
-                margin: 0 0 8px;
-                font-size: 20px;
-                color: #1f2937;
-                font-weight: 600;
+              .empty-icon {
+                color: #909399;
+                margin-bottom: 20px;
               }
 
-              .api-description {
-                margin: 0;
-                color: #6b7280;
+              .el-empty__description {
+                color: #606266;
                 font-size: 14px;
-                line-height: 1.5;
               }
             }
           }
-        }
 
-        .package-cards {
-          display: grid;
-          grid-template-columns: repeat(4, 360px);
-          gap: 40px;
-          width: 100%;
-          margin: 0 -24px;
-          padding: 0 24px;
-          justify-content: space-between;
-
-          .package-card {
+          .package-cards {
+            display: grid;
+            grid-template-columns: repeat(4, 360px);
+            gap: 40px;
             width: 100%;
-            transition: all 0.3s ease;
-            border: 1px solid #e5e7eb;
-            border-radius: 8px;
-            overflow: hidden;
-            background: #fff;
-            display: flex;
-            flex-direction: column;
-            cursor: pointer;
+            margin: 0 -24px;
+            padding: 0 24px;
+            justify-content: space-between;
 
-            &:hover {
-              transform: translateY(-2px);
-              box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
-            }
-
-            .card-header {
-              background: #fff;
-              padding: 16px;
-              border-bottom: 1px solid #e5e7eb;
-              text-align: center;
-              margin-bottom: 0;
-
-              h3 {
-                margin: 0;
-                font-size: 16px;
-                color: #333;
-                font-weight: 600;
-              }
-
-              .el-tag {
-                margin-top: 8px;
-                padding: 2px 12px;
-                font-size: 12px;
-                border-radius: 4px;
-                font-weight: 500;
-              }
-            }
-
-            .card-content {
-              padding: 16px;
+            .package-card {
+              width: 100%;
+              transition: all 0.3s ease;
+              border: 1px solid #e5e7eb;
+              border-radius: 8px;
+              overflow: hidden;
               background: #fff;
               display: flex;
               flex-direction: column;
-              gap: 12px;
-              flex: 1;
-              min-height: 260px;
+              cursor: pointer;
 
-              .price-section {
+              &:hover {
+                transform: translateY(-2px);
+                box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+              }
+
+              .card-header {
+                background: #fff;
+                padding: 16px;
+                border-bottom: 1px solid #e5e7eb;
                 text-align: center;
-                padding: 12px;
-                background: #f9fafb;
-                border-radius: 6px;
+                margin-bottom: 0;
 
-                .price {
-                  font-size: 24px;
+                h3 {
+                  margin: 0;
+                  font-size: 16px;
+                  color: #333;
                   font-weight: 600;
-                  color: #f56c6c;
-                  line-height: 1;
+                }
 
-                  .currency {
-                    font-size: 14px;
-                    margin-right: 4px;
-                  }
+                .el-tag {
+                  margin-top: 8px;
+                  padding: 2px 12px;
+                  font-size: 12px;
+                  border-radius: 4px;
+                  font-weight: 500;
                 }
               }
 
-              .info-list {
+              .card-content {
+                padding: 16px;
+                background: #fff;
                 display: flex;
                 flex-direction: column;
-                gap: 10px;
+                gap: 12px;
                 flex: 1;
+                min-height: 260px;
 
-                .info-item {
-                  display: flex;
-                  flex-direction: column;
-                  gap: 4px;
-                  padding: 10px;
+                .price-section {
+                  text-align: center;
+                  padding: 12px;
                   background: #f9fafb;
                   border-radius: 6px;
-                  font-size: 13px;
 
-                  .label {
-                    color: #666;
-                    font-size: 12px;
+                  .price {
+                    font-size: 24px;
+                    font-weight: 600;
+                    color: #f56c6c;
+                    line-height: 1;
+
+                    .currency {
+                      font-size: 14px;
+                      margin-right: 4px;
+                    }
                   }
+                }
 
-                  .value {
-                    color: #333;
-                    font-weight: 500;
-                    font-size: 14px;
-                    word-break: break-all;
-                  }
+                .info-list {
+                  display: flex;
+                  flex-direction: column;
+                  gap: 10px;
+                  flex: 1;
 
-                  &.api-name {
-                    background: #f5f7fa;
+                  .info-item {
+                    display: flex;
+                    flex-direction: column;
+                    gap: 4px;
+                    padding: 10px;
+                    background: #f9fafb;
+                    border-radius: 6px;
+                    font-size: 13px;
 
                     .label {
                       color: #666;
+                      font-size: 12px;
                     }
 
                     .value {
-                      color: #409eff;
+                      color: #333;
+                      font-weight: 500;
+                      font-size: 14px;
+                      word-break: break-all;
+                    }
+
+                    &.api-name {
+                      background: #f5f7fa;
+
+                      .label {
+                        color: #666;
+                      }
+
+                      .value {
+                        color: #409eff;
+                      }
                     }
                   }
                 }
               }
-            }
 
-            .card-footer {
-              padding: 14px;
-              border-top: 1px solid #e5e7eb;
-              text-align: center;
-              background: #fff;
-              margin-top: auto;
+              .card-footer {
+                padding: 14px;
+                border-top: 1px solid #e5e7eb;
+                text-align: center;
+                background: #fff;
+                margin-top: auto;
 
-              .el-button {
-                width: 90%;
-                padding: 8px 12px;
-                font-size: 14px;
-                font-weight: 500;
-                border-radius: 4px;
+                .el-button {
+                  width: 90%;
+                  padding: 8px 12px;
+                  font-size: 14px;
+                  font-weight: 500;
+                  border-radius: 4px;
 
-                &:hover {
-                  transform: translateY(-1px);
+                  &:hover {
+                    transform: translateY(-1px);
+                  }
                 }
               }
             }
@@ -632,12 +627,8 @@ useHead({
           }
 
           .package-list {
-            .api-group {
-              padding: 20px;
-
-              .package-cards {
-                grid-template-columns: 1fr;
-              }
+            .package-cards {
+              grid-template-columns: 1fr;
             }
           }
         }
