@@ -28,3 +28,10 @@ useHead({
   ],
 })
 </script>
+
+<style>
+/* 全局消息提示样式 */
+.el-message {
+  z-index: 999999999999999999999999 !important;
+}
+</style>

@@ -16,6 +16,19 @@
             </div>
             <div class="header-right">
               <el-select
+                v-model="selectedApi"
+                placeholder="选择接口"
+                clearable
+                class="filter-select"
+              >
+                <el-option
+                  v-for="api in apiList"
+                  :key="api.id"
+                  :label="api.name"
+                  :value="api.id"
+                />
+              </el-select>
+              <el-select
                 v-model="selectedType"
                 placeholder="套餐类型"
                 clearable
@@ -177,6 +190,7 @@ const dialogVisible = ref(false)
 const confirmLoading = ref(false)
 const selectedPackage = ref({})
 const selectedType = ref(null)
+const selectedApi = ref(null)
 
 // 获取所有接口及其套餐信息
 const getData = async () => {
@@ -209,18 +223,26 @@ const getData = async () => {
 
 // 搜索过滤
 const packages = computed(() => {
-  // 先按类型筛选
-  let filteredByType = apiList.value.reduce((acc, api) => {
-    const packages = selectedType.value
-      ? api.packages.filter((pkg) => pkg.type === selectedType.value)
-      : api.packages
-    return acc.concat(packages)
+  // 先按接口筛选
+  let filteredByApi = apiList.value.reduce((acc, api) => {
+    if (selectedApi.value && api.id !== selectedApi.value) {
+      return acc
+    }
+    return acc.concat(api.packages)
   }, [])
 
-  // 再按关键字搜索
+  // 再按类型筛选
+  let filteredByType = filteredByApi
+  if (selectedType.value) {
+    filteredByType = filteredByApi.filter(
+      (pkg) => pkg.type === selectedType.value
+    )
+  }
+
+  // 最后按关键字搜索
   if (searchKeyword.value) {
     const keyword = searchKeyword.value.toLowerCase()
-    filteredByType = filteredByType.filter(
+    return filteredByType.filter(
       (pkg) =>
         pkg.name.toLowerCase().includes(keyword) ||
         pkg.api_name.toLowerCase().includes(keyword)
@@ -350,7 +372,7 @@ useHead({
             align-items: center;
 
             .filter-select {
-              width: 120px;
+              width: 160px;
               :deep(.el-input__wrapper) {
                 box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
                 border: 1px solid #e5e7eb;
@@ -663,9 +685,5 @@ useHead({
   color: #909399;
   margin-left: 4px;
   cursor: help;
-}
-
-:deep(.el-message) {
-  z-index: 999999999999999999 !important;
 }
 </style>
