@@ -48,76 +48,94 @@
 
           <!-- 套餐列表 -->
           <div class="package-list" v-loading="loading">
-            <!-- 套餐卡片列表 -->
-            <div v-if="packages.length > 0" class="package-cards">
-              <el-card
-                v-for="pkg in packages"
-                :key="pkg.id"
-                class="package-card"
-                :body-style="{ padding: '0px' }"
-              >
-                <div class="card-header">
-                  <h3>{{ pkg.name }}</h3>
-                  <div class="tag-group">
-                    <el-tag :type="getTypeTag(pkg.type)">
-                      {{ getTypeText(pkg.type) }}
-                    </el-tag>
-                    <el-tag :type="getStatusTag(pkg.status)">
-                      {{ getStatusText(pkg.status) }}
-                    </el-tag>
-                  </div>
-                </div>
-
-                <div class="card-content">
-                  <div class="info-list">
-                    <div class="info-item api-name">
-                      <span class="label">API名称</span>
-                      <span class="value">{{ pkg.api_name }}</span>
-                    </div>
-                    <div class="info-item">
-                      <span class="label">购买时间</span>
-                      <span class="value">{{
-                        formatTime(pkg.create_time)
-                      }}</span>
-                    </div>
-                    <div class="info-item">
-                      <span class="label">到期时间</span>
-                      <span class="value">{{
-                        formatTime(pkg.expire_time)
-                      }}</span>
-                    </div>
-                    <div class="info-item">
-                      <span class="label">剩余点数</span>
-                      <span class="value">{{
-                        pkg.type === 2
-                          ? '不限制'
-                          : `${pkg.points - pkg.points_used}点`
-                      }}</span>
-                    </div>
-                    <div class="info-item">
-                      <span class="label">使用情况</span>
-                      <div class="progress-wrapper" v-if="pkg.type === 3">
-                        <el-progress
-                          :percentage="getUsagePercentage(pkg)"
-                          :status="getProgressStatus(pkg)"
-                        />
+            <el-table
+              v-if="packages.length > 0"
+              :data="packages"
+              style="width: 100%"
+              border
+            >
+              <el-table-column prop="id" label="ID" width="80" align="center" />
+              <el-table-column prop="name" label="套餐名称" min-width="280">
+                <template #default="{ row }">
+                  <div class="name-cell">
+                    <div class="name-wrapper">
+                      <span class="name">{{ row.name }}</span>
+                      <div class="tags">
+                        <el-tag
+                          :type="getTypeTag(row.type)"
+                          size="small"
+                          effect="light"
+                        >
+                          {{ getTypeText(row.type) }}
+                        </el-tag>
+                        <el-tag type="info" size="small" effect="light">
+                          {{ row.type === 3 ? '永久使用' : '不限次数' }}
+                        </el-tag>
+                        <el-tag
+                          :type="getStatusTag(row.status)"
+                          size="small"
+                          effect="light"
+                        >
+                          {{ getStatusText(row.status) }}
+                        </el-tag>
                       </div>
-                      <span v-else class="value">不限制</span>
                     </div>
                   </div>
-                </div>
-
-                <div class="card-footer">
+                </template>
+              </el-table-column>
+              <el-table-column
+                prop="api_name"
+                label="API名称"
+                min-width="150"
+              />
+              <el-table-column label="购买时间" min-width="160">
+                <template #default="{ row }">
+                  {{ formatTime(row.create_time) }}
+                </template>
+              </el-table-column>
+              <el-table-column label="有效期" min-width="160">
+                <template #default="{ row }">
+                  {{
+                    row.type === 3 ? '永久使用' : formatTime(row.expire_time)
+                  }}
+                </template>
+              </el-table-column>
+              <el-table-column label="总点数" min-width="120">
+                <template #default="{ row }">
+                  <span v-if="row.type === 2">不限次数</span>
+                  <span v-else>{{ row.points }}点</span>
+                </template>
+              </el-table-column>
+              <el-table-column label="剩余点数" min-width="120">
+                <template #default="{ row }">
+                  <span v-if="row.type === 2">不限次数</span>
+                  <span v-else>{{ row.points - row.points_used }}点</span>
+                </template>
+              </el-table-column>
+              <el-table-column label="使用情况" min-width="200">
+                <template #default="{ row }">
+                  <div v-if="row.type === 3" class="progress-cell">
+                    <el-progress
+                      :percentage="getUsagePercentage(row)"
+                      :status="getProgressStatus(row)"
+                    />
+                  </div>
+                  <span v-else>不限制</span>
+                </template>
+              </el-table-column>
+              <el-table-column label="操作" width="120" fixed="right">
+                <template #default="{ row }">
                   <el-button
                     type="primary"
-                    @click="handleRenew(pkg)"
-                    :disabled="pkg.status === 2"
+                    link
+                    :disabled="row.status === 2"
+                    @click="handleRenew(row)"
                   >
                     续费套餐
                   </el-button>
-                </div>
-              </el-card>
-            </div>
+                </template>
+              </el-table-column>
+            </el-table>
             <!-- 暂无套餐时的空状态 -->
             <div v-else class="empty-state">
               <el-empty description="暂无套餐">
@@ -135,6 +153,71 @@
         </div>
       </div>
     </div>
+
+    <!-- 续费确认对话框 -->
+    <el-dialog
+      v-model="dialogVisible"
+      title="续费套餐"
+      width="500px"
+      destroy-on-close
+      :modal-append-to-body="false"
+      append-to-body
+      :close-on-click-modal="false"
+      class="renew-dialog"
+    >
+      <div class="renew-content">
+        <div class="info-section">
+          <div class="info-row">
+            <span class="label">套餐名称：</span>
+            <span class="value">{{ selectedPackage.name }}</span>
+          </div>
+          <div class="info-row">
+            <span class="label">API名称：</span>
+            <span class="value">{{ selectedPackage.api_name }}</span>
+          </div>
+          <div class="info-row">
+            <span class="label">套餐类型：</span>
+            <el-tag :type="getTypeTag(selectedPackage.type)" size="small">
+              {{ getTypeText(selectedPackage.type) }}
+            </el-tag>
+          </div>
+          <div class="info-row" v-if="selectedPackage.type === 2">
+            <span class="label">当前到期时间：</span>
+            <span class="value">{{
+              formatTime(selectedPackage.expire_time)
+            }}</span>
+          </div>
+          <div class="info-row" v-if="selectedPackage.type === 3">
+            <span class="label">可使用点数：</span>
+            <span class="value"
+              >{{
+                selectedPackage.points - selectedPackage.points_used
+              }}点</span
+            >
+          </div>
+          <div class="info-row">
+            <span class="label">续费金额：</span>
+            <span class="value price">¥{{ renewalAmount.toFixed(2) }}</span>
+          </div>
+        </div>
+        <div class="tip-section">
+          <el-alert title="续费说明" type="info" :closable="false" show-icon>
+            <p v-if="selectedPackage.type === 2">
+              续费后有效期将在原到期时间基础上延长
+            </p>
+            <p v-if="selectedPackage.type === 3">
+              续费后点数将在原有点数基础上累加
+            </p>
+          </el-alert>
+        </div>
+      </div>
+      <template #footer>
+        <div class="dialog-footer">
+          <el-button @click="dialogVisible = false">取消</el-button>
+          <el-button type="primary" @click="confirmRenew">确认续费</el-button>
+        </div>
+      </template>
+    </el-dialog>
   </div>
 </template>
 
@@ -169,11 +252,17 @@ const getData = async () => {
     if (res.code === 200) {
       // 将套餐数据按照api_id分组
       const groupedData = {}
+      if (!res.data || !Array.isArray(res.data)) {
+        apiList.value = []
+        loading.value = false
+        return
+      }
+
       res.data.forEach((pkg) => {
         if (!groupedData[pkg.api_id]) {
           groupedData[pkg.api_id] = {
-            id: pkg.api_id,
-            name: pkg.api_name,
+            id: pkg.api_id || 0, // 确保id有值
+            name: pkg.api_name || '未知接口', // 确保name有值
             packages: [],
           }
         }
@@ -269,8 +358,39 @@ const getProgressStatus = (pkg) => {
 
 // 续费套餐
 const handleRenew = (pkg) => {
-  navigateTo('/admin/buy')
+  selectedPackage.value = {
+    ...pkg,
+    amount: Number(pkg.amount || 0), // 使用amount参数
+  }
+  renewalAmount.value = Number(pkg.amount || 0) // 使用amount参数
+  dialogVisible.value = true
 }
+
+// 确认续费
+const confirmRenew = async () => {
+  try {
+    const res = await $myFetch('RenewalPackage', {
+      method: 'POST',
+      body: new URLSearchParams({
+        packageId: selectedPackage.value.id,
+      }),
+    })
+
+    if (res.code === 200) {
+      $msg(res.msg, 'success')
+      dialogVisible.value = false
+      await getData()
+    } else {
+      $msg(res.msg, 'error')
+    }
+  } catch (error) {
+    $msg('续费失败，请重试', 'error')
+  }
+}
+
+const dialogVisible = ref(false)
+const selectedPackage = ref(null)
+const renewalAmount = ref(0)
 
 onMounted(() => {
   getData()
@@ -352,155 +472,90 @@ useHead({
         }
 
         .package-list {
-          display: flex;
-          flex-direction: row;
-          flex-wrap: wrap;
-          gap: 24px;
-          min-height: 400px;
+          :deep(.el-table) {
+            border-radius: 8px;
+            overflow: hidden;
 
-          .empty-state {
-            width: 100%;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            padding: 40px 0;
-
-            :deep(.el-empty) {
-              padding: 40px;
-              background: #fff;
-              border-radius: 12px;
-              border: 1px solid #e5e7eb;
-
-              .empty-icon {
-                color: #909399;
-                margin-bottom: 20px;
-              }
-
-              .el-empty__description {
+            .el-table__header {
+              background-color: #f5f7fa;
+              th {
+                background-color: #f5f7fa;
                 color: #606266;
-                font-size: 14px;
-                margin-bottom: 20px;
+                font-weight: 500;
+                padding: 12px 0;
+              }
+            }
+
+            .el-table__row {
+              td {
+                padding: 16px;
+              }
+              .el-button {
+                padding: 4px 0;
+                font-size: 13px;
               }
             }
           }
 
-          .package-cards {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 24px;
-            width: 100%;
-
-            .package-card {
-              width: 100%;
-              transition: all 0.3s ease;
-              border: 1px solid #e5e7eb;
-              border-radius: 8px;
-              overflow: hidden;
-              background: #fff;
+          .name-cell {
+            .name-wrapper {
               display: flex;
-              flex-direction: column;
+              align-items: center;
+              flex-wrap: wrap;
+              gap: 8px;
 
-              .card-header {
-                background: #fff;
-                padding: 16px;
-                border-bottom: 1px solid #e5e7eb;
-                text-align: center;
-                margin-bottom: 0;
-
-                h3 {
-                  margin: 0 0 12px;
-                  font-size: 16px;
-                  color: #333;
-                  font-weight: 600;
-                }
-
-                .tag-group {
-                  display: flex;
-                  gap: 8px;
-                  justify-content: center;
-
-                  .el-tag {
-                    padding: 2px 12px;
-                    font-size: 12px;
-                    border-radius: 4px;
-                    font-weight: 500;
-                  }
-                }
+              .name {
+                font-weight: 500;
+                color: #303133;
+                min-width: 120px;
               }
 
-              .card-content {
-                padding: 16px;
-                background: #fff;
+              .tags {
                 display: flex;
-                flex-direction: column;
-                gap: 12px;
-                flex: 1;
+                flex-wrap: wrap;
+                gap: 4px;
 
-                .info-list {
-                  display: flex;
-                  flex-direction: column;
-                  gap: 10px;
-                  flex: 1;
-
-                  .info-item {
-                    display: flex;
-                    flex-direction: column;
-                    gap: 4px;
-                    padding: 10px;
-                    background: #f9fafb;
-                    border-radius: 6px;
-                    font-size: 13px;
-
-                    .label {
-                      color: #666;
-                      font-size: 12px;
-                    }
-
-                    .value {
-                      color: #333;
-                      font-weight: 500;
-                      font-size: 14px;
-                      word-break: break-all;
-                    }
-
-                    &.api-name {
-                      background: #f5f7fa;
-
-                      .label {
-                        color: #666;
-                      }
-
-                      .value {
-                        color: #409eff;
-                      }
-                    }
-
-                    .progress-wrapper {
-                      padding: 8px 0 4px;
-                    }
-                  }
-                }
-              }
-
-              .card-footer {
-                padding: 14px;
-                border-top: 1px solid #e5e7eb;
-                text-align: center;
-                background: #fff;
-                margin-top: auto;
-
-                .el-button {
-                  width: 90%;
-                  padding: 8px 12px;
-                  font-size: 14px;
-                  font-weight: 500;
+                :deep(.el-tag) {
+                  white-space: nowrap;
+                  border: none;
+                  padding: 0 8px;
+                  height: 22px;
+                  line-height: 22px;
                   border-radius: 4px;
-
-                  &:hover {
-                    transform: translateY(-1px);
-                  }
+                  font-size: 12px;
+                  font-weight: normal;
                 }
               }
+            }
+          }
+
+          .progress-cell {
+            padding: 6px 0;
+          }
+        }
+
+        .empty-state {
+          width: 100%;
+          display: flex;
+          justify-content: center;
+          align-items: center;
+          padding: 40px 0;
+
+          :deep(.el-empty) {
+            padding: 40px;
+            background: #fff;
+            border-radius: 12px;
+            border: 1px solid #e5e7eb;
+
+            .empty-icon {
+              color: #909399;
+              margin-bottom: 20px;
+            }
+
+            .el-empty__description {
+              color: #606266;
+              font-size: 14px;
+              margin-bottom: 20px;
             }
           }
         }
@@ -509,9 +564,62 @@ useHead({
   }
 }
 
-@media screen and (max-width: 1400px) {
-  .package-cards {
-    grid-template-columns: repeat(2, 1fr) !important;
+// 续费对话框样式
+.renew-content {
+  .info-section {
+    background: #f8fafc;
+    border-radius: 8px;
+    padding: 20px;
+    margin-bottom: 20px;
+
+    .info-row {
+      display: flex;
+      align-items: center;
+      margin-bottom: 16px;
+
+      &:last-child {
+        margin-bottom: 0;
+      }
+
+      .label {
+        width: 100px;
+        color: #606266;
+        font-size: 14px;
+      }
+
+      .value {
+        color: #303133;
+        font-size: 14px;
+        font-weight: 500;
+      }
+
+      .price {
+        color: #f56c6c;
+        font-size: 20px;
+        font-weight: 600;
+      }
+    }
+  }
+
+  .tip-section {
+    :deep(.el-alert) {
+      margin: 0;
+      padding: 16px;
+      border-radius: 8px;
+
+      .el-alert__title {
+        font-size: 14px;
+        font-weight: 500;
+      }
+
+      p {
+        color: #606266;
+        font-size: 13px;
+        margin: 8px 0 0;
+        padding: 0;
+        line-height: 1.6;
+      }
+    }
   }
 }
 
@@ -536,12 +644,6 @@ useHead({
               .filter-select {
                 width: 100%;
               }
-            }
-          }
-
-          .package-list {
-            .package-cards {
-              grid-template-columns: 1fr !important;
             }
           }
         }

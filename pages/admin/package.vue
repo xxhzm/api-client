@@ -167,18 +167,6 @@
 
                 <el-row :gutter="20">
                   <el-col :span="12">
-                    <el-form-item label="有效期" required>
-                      <el-input
-                        v-model="packageInfo.duration"
-                        placeholder="请输入有效期(天)"
-                        class="full-width"
-                        @input="validateNumber('duration')"
-                      >
-                        <template #suffix>天</template>
-                      </el-input>
-                    </el-form-item>
-                  </el-col>
-                  <el-col :span="12">
                     <el-form-item
                       label="包含点数"
                       v-if="packageInfo.type === 3"
@@ -193,7 +181,22 @@
                         <template #suffix>点</template>
                       </el-input>
                     </el-form-item>
+                    <el-form-item
+                      label="有效期"
+                      required
+                      v-if="packageInfo.type === 2"
+                    >
+                      <el-input
+                        v-model="packageInfo.duration"
+                        placeholder="请输入有效期(天)"
+                        class="full-width"
+                        @input="validateNumber('duration')"
+                      >
+                        <template #suffix>天</template>
+                      </el-input>
+                    </el-form-item>
                   </el-col>
+                  <el-col :span="12"> </el-col>
                 </el-row>
 
                 <el-form-item label="状态">
@@ -422,7 +425,7 @@ const submit = async () => {
     $msg('价格不能小于0', 'error')
     return
   }
-  if (packageInfo.value.duration < 1) {
+  if (packageInfo.value.type === 2 && packageInfo.value.duration < 1) {
     $msg('有效期不能小于1天', 'error')
     return
   }

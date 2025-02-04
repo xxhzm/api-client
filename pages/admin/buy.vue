@@ -80,14 +80,18 @@
                       <span class="value">{{ pkg.api_name }}</span>
                     </div>
                     <div class="info-item">
+                      <span class="label">调用次数</span>
+                      <span class="value">{{
+                        pkg.type === 2 ? '不限次数' : `${pkg.points}点`
+                      }}</span>
+                    </div>
+                    <div class="info-item" v-if="pkg.type === 3">
+                      <span class="label">有效期</span>
+                      <span class="value">永久使用</span>
+                    </div>
+                    <div class="info-item" v-if="pkg.type === 2">
                       <span class="label">有效期</span>
                       <span class="value">{{ pkg.duration }}天</span>
-                    </div>
-                    <div class="info-item">
-                      <span class="label">点数</span>
-                      <span class="value">{{
-                        pkg.type === 2 ? '不限制' : `${pkg.points}点`
-                      }}</span>
                     </div>
                     <div class="info-item">
                       <span class="label">描述</span>
