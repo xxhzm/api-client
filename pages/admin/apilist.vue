@@ -78,6 +78,8 @@
                     <el-tag
                       :type="scope.row.state === '启用' ? 'success' : 'danger'"
                       size="small"
+                      style="cursor: pointer"
+                      @click="handleStateChange(scope.row)"
                     >
                       {{ scope.row.state }}
                     </el-tag>
@@ -112,6 +114,8 @@
                     <el-tag
                       :type="scope.row.keyState === '开启' ? 'warning' : 'info'"
                       size="small"
+                      style="cursor: pointer"
+                      @click="handleKeyStateChange(scope.row)"
                     >
                       {{ scope.row.keyState }}
                     </el-tag>
@@ -247,6 +251,75 @@ const handleOpen = async (index, row) => {
   })
 
   await getData()
+
+  loading.value = false
+}
+
+// 修改接口状态
+const handleStateChange = async (row) => {
+  loading.value = true
+
+  const bodyValue = new URLSearchParams()
+  bodyValue.append('id', row.id)
+  bodyValue.append('name', row.name)
+  bodyValue.append('alias', row.alias)
+  bodyValue.append('description', row.description)
+  bodyValue.append('keywords', row.keywords)
+  bodyValue.append('url', row.url)
+  bodyValue.append('method', row.method)
+  bodyValue.append('categoryId', row.categoryId)
+  bodyValue.append('oldCategoryId', row.categoryId)
+  bodyValue.append('example', row.example || '')
+  bodyValue.append('exampleUrl', row.example_url || '')
+  bodyValue.append('prefix', row.prefix)
+  bodyValue.append('state', row.state === '启用' ? '关闭' : '启用')
+  bodyValue.append('keyState', row.keyState)
+
+  const res = await $myFetch('ApiUpdate', {
+    method: 'POST',
+    body: bodyValue,
+  })
+
+  if (res.code === 200) {
+    row.state = row.state === '启用' ? '关闭' : '启用'
+    $msg(res.msg, 'success')
+  } else {
+    $msg(res.msg, 'error')
+  }
+
+  loading.value = false
+}
+
+const handleKeyStateChange = async (row) => {
+  loading.value = true
+
+  const bodyValue = new URLSearchParams()
+  bodyValue.append('id', row.id)
+  bodyValue.append('name', row.name)
+  bodyValue.append('alias', row.alias)
+  bodyValue.append('description', row.description)
+  bodyValue.append('keywords', row.keywords)
+  bodyValue.append('url', row.url)
+  bodyValue.append('method', row.method)
+  bodyValue.append('categoryId', row.categoryId)
+  bodyValue.append('oldCategoryId', row.categoryId)
+  bodyValue.append('example', row.example || '')
+  bodyValue.append('exampleUrl', row.example_url || '')
+  bodyValue.append('prefix', row.prefix)
+  bodyValue.append('state', row.state)
+  bodyValue.append('keyState', row.keyState === '开启' ? '关闭' : '开启')
+
+  const res = await $myFetch('ApiUpdate', {
+    method: 'POST',
+    body: bodyValue,
+  })
+
+  if (res.code === 200) {
+    row.keyState = row.keyState === '开启' ? '关闭' : '开启'
+    $msg(res.msg, 'success')
+  } else {
+    $msg(res.msg, 'error')
+  }
 
   loading.value = false
 }

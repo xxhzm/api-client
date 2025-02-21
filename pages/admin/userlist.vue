@@ -87,6 +87,8 @@
                     <el-tag
                       :type="scope.row.status === '启用' ? 'success' : 'danger'"
                       size="small"
+                      style="cursor: pointer"
+                      @click="handleStatusChange(scope.row)"
                     >
                       {{ scope.row.status }}
                     </el-tag>
@@ -485,6 +487,31 @@ const handleUserBindRoleList = async (index, row) => {
 
   userBindRoleListStatus.value = true
   pageLoading.value = false
+}
+
+// 修改用户状态
+const handleStatusChange = async (row) => {
+  loading.value = true
+
+  const apiBodyValue = new URLSearchParams()
+  apiBodyValue.append('id', row.id)
+  apiBodyValue.append('mail', row.mail)
+  apiBodyValue.append('balance', row.balance)
+  apiBodyValue.append('status', row.status === '启用' ? '停用' : '启用')
+
+  const res = await $myFetch('UpdateUser', {
+    method: 'POST',
+    body: apiBodyValue,
+  })
+
+  if (res.code === 200) {
+    row.status = row.status === '启用' ? '停用' : '启用'
+    $msg(res.msg, 'success')
+  } else {
+    $msg(res.msg, 'error')
+  }
+
+  loading.value = false
 }
 
 useHead({
