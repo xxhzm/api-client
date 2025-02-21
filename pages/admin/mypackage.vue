@@ -96,7 +96,11 @@
               <el-table-column label="有效期" min-width="160">
                 <template #default="{ row }">
                   {{
-                    row.type === 3 ? '永久使用' : formatTime(row.expire_time)
+                    row.status === 2
+                      ? '已过期'
+                      : row.type === 3
+                      ? '永久使用'
+                      : formatTime(row.expire_time)
                   }}
                 </template>
               </el-table-column>
@@ -343,6 +347,7 @@ const getStatusTag = (status) => {
 
 // 计算使用百分比
 const getUsagePercentage = (pkg) => {
+  if (pkg.status === 2) return 100 // 已过期状态显示100%
   if (pkg.type !== 3 || !pkg.points) return 0
   const percentage = (pkg.points_used / pkg.points) * 100
   return Math.round(percentage)
@@ -350,6 +355,7 @@ const getUsagePercentage = (pkg) => {
 
 // 获取进度条状态
 const getProgressStatus = (pkg) => {
+  if (pkg.status === 2) return 'exception' // 已过期状态显示红色
   const percentage = getUsagePercentage(pkg)
   if (percentage >= 90) return 'exception'
   if (percentage >= 70) return 'warning'
