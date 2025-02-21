@@ -26,7 +26,12 @@ listSearch.value = res.data
       >
         <nuxt-link :to="'/doc/' + item.alias" class="item">
           <div class="api-card">
-            <div class="api-card__category">{{ item.category }}</div>
+            <div
+              class="api-card__category"
+              :class="{ 'is-top': item.category === '置顶' }"
+            >
+              {{ item.category }}
+            </div>
             <div class="api-card__content">
               <h2 class="api-card__title">{{ item.name }}</h2>
               <p class="api-card__desc">{{ item.description }}</p>
@@ -116,6 +121,10 @@ listSearch.value = res.data
     .api-card__category {
       background: #1890ff;
       color: #fff;
+
+      &.is-top {
+        background: #f56c6c;
+      }
     }
   }
 
@@ -129,6 +138,11 @@ listSearch.value = res.data
     font-size: 12px;
     transform: rotate(45deg);
     transition: all 0.3s ease;
+
+    &.is-top {
+      background: #fef0f0;
+      color: #f56c6c;
+    }
   }
 
   &__content {

@@ -102,6 +102,74 @@
                 </el-form>
               </div>
             </el-tab-pane>
+
+            <el-tab-pane label="接口置顶" name="topApi">
+              <div class="form">
+                <el-form label-position="top" label-width="120px">
+                  <el-form-item label="搜索接口">
+                    <div class="search-input-group">
+                      <el-autocomplete
+                        v-model="searchApiKeyword"
+                        :fetch-suggestions="querySearchAsync"
+                        placeholder="请输入接口名称搜索"
+                        @select="handleApiSelect"
+                        class="search-input"
+                        clearable
+                        :loading="searchLoading"
+                      >
+                        <template #suffix>
+                          <el-icon class="search-icon"><Search /></el-icon>
+                        </template>
+                      </el-autocomplete>
+                      <el-button
+                        type="primary"
+                        @click="handleAddTopApi"
+                        :disabled="!selectedApi"
+                        :loading="addLoading"
+                      >
+                        添加置顶
+                      </el-button>
+                    </div>
+                  </el-form-item>
+                </el-form>
+
+                <div class="top-api-list">
+                  <div class="list-header">
+                    <h3>置顶接口列表</h3>
+                  </div>
+                  <el-table
+                    :data="topApiList"
+                    style="width: 100%"
+                    v-loading="topApiLoading"
+                  >
+                    <el-table-column
+                      type="index"
+                      label="排序"
+                      width="80"
+                      align="center"
+                    />
+                    <el-table-column
+                      prop="name"
+                      label="接口名称"
+                      min-width="150"
+                    >
+                    </el-table-column>
+                    <el-table-column label="操作" width="80">
+                      <template #default="scope">
+                        <el-button
+                          type="danger"
+                          link
+                          style="padding: 0; margin: 0"
+                          @click="removeTopApi(scope.$index, scope.row)"
+                        >
+                          删除
+                        </el-button>
+                      </template>
+                    </el-table-column>
+                  </el-table>
+                </div>
+              </div>
+            </el-tab-pane>
           </el-tabs>
         </div>
       </div>
@@ -110,6 +178,7 @@
 </template>
 
 <script setup>
+import { Connection, Plus, Search, Delete } from '@element-plus/icons-vue'
 const { $msg, $myFetch } = useNuxtApp()
 const activeTab = ref('basic')
 
@@ -136,6 +205,16 @@ const mailInfo = ref({
 
 const testMail = ref('')
 
+// 接口置顶相关
+const searchApiKeyword = ref('')
+const topApiList = ref([])
+const topApiLoading = ref(false)
+const searchLoading = ref(false)
+const searchData = ref([])
+const searchOldValue = ref('')
+const selectedApi = ref(null)
+const addLoading = ref(false)
+
 // 获取网站设置
 const getWebsetInfo = async () => {
   const res = await $myFetch('Options')
@@ -148,9 +227,136 @@ const getMailInfo = async () => {
   mailInfo.value = res.data
 }
 
+// 接口搜索
+const querySearchAsync = async (queryString, cb) => {
+  if (queryString === '') {
+    searchApiKeyword.value = ''
+    selectedApi.value = null
+    cb([])
+    return false
+  }
+
+  if (queryString === searchOldValue.value) {
+    cb(searchData.value)
+    return false
+  }
+
+  searchLoading.value = true
+  try {
+    const res = await $myFetch('ApiSearch', {
+      params: {
+        keyword: queryString,
+      },
+    })
+
+    if (res.code !== 200) {
+      $msg(res.msg, 'error')
+      cb([])
+      return false
+    }
+
+    // 遍历数据，将 name 改为 value
+    res.data = res.data.map((item) => {
+      item.value = item.name
+      return item
+    })
+
+    searchOldValue.value = queryString
+    searchData.value = res.data
+    cb(searchData.value)
+  } catch (error) {
+    cb([])
+  } finally {
+    searchLoading.value = false
+  }
+}
+
+// 选择接口
+const handleApiSelect = (item) => {
+  selectedApi.value = item
+}
+
+// 获取置顶列表
+const getTopApiList = async () => {
+  topApiLoading.value = true
+  try {
+    const res = await $myFetch('ApiTopList')
+    if (res.code === 200) {
+      topApiList.value = res.data || []
+    }
+  } catch (error) {
+    $msg('获取置顶列表失败', 'error')
+  }
+  topApiLoading.value = false
+}
+
+// 取消置顶
+const removeTopApi = async (index, row) => {
+  topApiLoading.value = true
+  try {
+    const res = await $myFetch('RemoveTopApi', {
+      method: 'GET',
+      params: {
+        id: row.id,
+      },
+    })
+
+    if (res.code === 200) {
+      $msg('取消置顶成功', 'success')
+      await getTopApiList()
+    } else {
+      $msg(res.msg, 'error')
+    }
+  } catch (error) {
+    $msg('操作失败，请重试', 'error')
+  }
+  topApiLoading.value = false
+}
+
+// 添加置顶接口
+const handleAddTopApi = async () => {
+  if (!selectedApi.value) {
+    $msg('请先选择接口', 'warning')
+    return
+  }
+
+  // 检查是否已经在置顶列表中
+  const exists = topApiList.value.some((api) => api.id === selectedApi.value.id)
+  if (exists) {
+    $msg('该接口已在置顶列表中', 'warning')
+    searchApiKeyword.value = ''
+    selectedApi.value = null
+    return
+  }
+
+  addLoading.value = true
+  try {
+    const res = await $myFetch('ApiTopAdd', {
+      method: 'GET',
+      params: {
+        id: selectedApi.value.id,
+      },
+    })
+
+    if (res.code === 200) {
+      $msg('添加置顶成功', 'success')
+      await getTopApiList()
+      searchApiKeyword.value = ''
+      selectedApi.value = null
+    } else {
+      $msg(res.msg, 'error')
+    }
+  } catch (error) {
+    $msg('添加失败，请重试', 'error')
+  } finally {
+    addLoading.value = false
+  }
+}
+
 onMounted(() => {
   getWebsetInfo()
   getMailInfo()
+  getTopApiList()
 })
 
 // 提交网站设置
@@ -343,6 +549,35 @@ useHead({
         }
       }
     }
+  }
+}
+
+.top-api-list {
+  margin-top: 24px;
+
+  .list-header {
+    margin-bottom: 16px;
+
+    h3 {
+      font-size: 16px;
+      font-weight: 500;
+      color: #1f2937;
+      margin: 0;
+    }
+  }
+}
+
+.search-input-group {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+
+  .search-input {
+    flex: 1;
+  }
+
+  .el-button {
+    margin-top: 1px;
   }
 }
 </style>
