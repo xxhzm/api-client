@@ -12,6 +12,13 @@
               <span class="title">我的套餐</span>
             </div>
             <div class="header-right">
+              <el-button
+                type="primary"
+                :icon="Refresh"
+                circle
+                @click="getData"
+                :loading="loading"
+              />
               <el-select
                 v-model="selectedApi"
                 placeholder="选择接口"
@@ -59,7 +66,8 @@
                 <template #default="{ row }">
                   <div class="name-cell">
                     <div class="name-wrapper">
-                      <span class="name">{{ row.name }}</span>
+                      <span class="name">{{ row.name }}</span
+                      ><br />
                       <div class="tags">
                         <el-tag
                           :type="getTypeTag(row.type)"
@@ -226,7 +234,7 @@
 </template>
 
 <script setup>
-import { Tickets, Search } from '@element-plus/icons-vue'
+import { Tickets, Search, Refresh } from '@element-plus/icons-vue'
 
 const { $msg, $myFetch } = useNuxtApp()
 
@@ -252,12 +260,18 @@ const selectedStatus = ref(null)
 const getData = async () => {
   loading.value = true
   try {
+    const startTime = Date.now()
     const res = await $myFetch('UserPackageList')
     if (res.code === 200) {
       // 将套餐数据按照api_id分组
       const groupedData = {}
       if (!res.data || !Array.isArray(res.data)) {
         apiList.value = []
+        const endTime = Date.now()
+        const loadingTime = endTime - startTime
+        if (loadingTime < 500) {
+          await new Promise((resolve) => setTimeout(resolve, 500 - loadingTime))
+        }
         loading.value = false
         return
       }
@@ -273,6 +287,13 @@ const getData = async () => {
         groupedData[pkg.api_id].packages.push(pkg)
       })
       apiList.value = Object.values(groupedData)
+
+      // 确保最少显示500ms的loading状态
+      const endTime = Date.now()
+      const loadingTime = endTime - startTime
+      if (loadingTime < 500) {
+        await new Promise((resolve) => setTimeout(resolve, 500 - loadingTime))
+      }
     } else {
       $msg(res.msg, 'error')
     }
