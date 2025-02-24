@@ -162,7 +162,38 @@
         <!-- 响应结果 -->
         <div class="response-container" v-if="response">
           <h3>响应结果</h3>
-          <template v-if="isImageResponse">
+          <template v-if="isVideoResponse">
+            <div class="video-response">
+              <video
+                controls
+                autoplay
+                style="max-width: 100%"
+                controlsList="nodownload"
+                :src="videoUrl"
+              >
+                <source :src="videoUrl" type="video/mp4" />
+                <source :src="videoUrl" type="video/webm" />
+                <source :src="videoUrl" type="video/ogg" />
+                <source :src="videoUrl" type="application/x-mpegURL" />
+                您的浏览器不支持视频播放。
+              </video>
+              <div class="video-actions">
+                <el-button
+                  type="primary"
+                  size="small"
+                  @click="openInNewWindow(videoUrl)"
+                >
+                  <el-icon><VideoPlay /></el-icon>
+                  在新窗口打开
+                </el-button>
+                <el-button size="small" @click="copy(videoUrl)">
+                  <el-icon><CopyDocument /></el-icon>
+                  复制视频链接
+                </el-button>
+              </div>
+            </div>
+          </template>
+          <template v-else-if="isImageResponse">
             <div class="image-response">
               <img :src="imageUrl" alt="接口返回图片" />
               <div class="image-actions">
@@ -319,6 +350,8 @@ const preElement = ref(null)
 // 添加响应类型相关的变量
 const isImageResponse = ref(false)
 const imageUrl = ref('')
+const isVideoResponse = ref(false)
+const videoUrl = ref('')
 
 // 修改发送请求函数
 const sendRequest = async () => {
@@ -381,41 +414,69 @@ const sendRequest = async () => {
     if (res.status === 302) {
       const redirectUrl = res.headers.get('location')
       if (redirectUrl) {
-        isImageResponse.value = true
-        imageUrl.value = redirectUrl
-        response.value = { code: 200, msg: '图片获取成功' }
-        ElMessage.success('请求成功')
-        return
+        // 检查是否是视频URL（扩展支持的格式）
+        if (
+          redirectUrl.match(/\.(mp4|webm|ogg|m3u8|mov|avi)$/i) ||
+          redirectUrl.includes('video')
+        ) {
+          isVideoResponse.value = true
+          isImageResponse.value = false
+          videoUrl.value = redirectUrl
+          response.value = { code: 200, msg: '视频获取成功' }
+          ElMessage.success('请求成功')
+          return
+        } else if (redirectUrl.match(/\.(jpg|jpeg|png|gif|webp)$/i)) {
+          isVideoResponse.value = false
+          isImageResponse.value = true
+          imageUrl.value = redirectUrl
+          response.value = { code: 200, msg: '图片获取成功' }
+          ElMessage.success('请求成功')
+          return
+        }
       }
     }
 
-    // 处理直接返回的图片
-    if (contentType && contentType.includes('image/')) {
-      isImageResponse.value = true
-      const blob = await res.blob()
-      imageUrl.value = URL.createObjectURL(blob)
-      response.value = { code: 200, msg: '图片获取成功' }
-    } else {
-      // 处理 JSON 响应
-      isImageResponse.value = false
-      const data = await res.json()
-      response.value = data
-      imageUrl.value = ''
+    // 处理直接返回的媒体类型
+    if (contentType) {
+      if (
+        contentType.includes('video/') ||
+        contentType.includes('application/x-mpegURL')
+      ) {
+        isVideoResponse.value = true
+        isImageResponse.value = false
+        const blob = await res.blob()
+        videoUrl.value = URL.createObjectURL(blob)
+        response.value = { code: 200, msg: '视频获取成功' }
+      } else if (contentType.includes('image/')) {
+        isVideoResponse.value = false
+        isImageResponse.value = true
+        const blob = await res.blob()
+        imageUrl.value = URL.createObjectURL(blob)
+        response.value = { code: 200, msg: '图片获取成功' }
+      } else {
+        // 处理 JSON 响应
+        isVideoResponse.value = false
+        isImageResponse.value = false
+        const data = await res.json()
+        response.value = data
+        imageUrl.value = ''
+        videoUrl.value = ''
 
-      // 等待 DOM 更新后再进行高亮
-      await nextTick()
-      if (preElement.value && responseCode.value) {
-        const newCode = document.createElement('code')
-        newCode.className = 'json'
-        newCode.textContent = formatResponse.value
+        // 等待 DOM 更新后再进行高亮
+        await nextTick()
+        if (preElement.value && responseCode.value) {
+          const newCode = document.createElement('code')
+          newCode.className = 'json'
+          newCode.textContent = formatResponse.value
 
-        preElement.value.innerHTML = ''
-        preElement.value.appendChild(newCode)
+          preElement.value.innerHTML = ''
+          preElement.value.appendChild(newCode)
 
-        hljs.registerLanguage('json', json)
-        hljs.highlightElement(newCode)
+          hljs.registerLanguage('json', json)
+          hljs.highlightElement(newCode)
 
-        responseCode.value = newCode
+          responseCode.value = newCode
+        }
       }
     }
 
@@ -456,9 +517,14 @@ watch(debugVisible, (val) => {
     debugForm.value = {}
     response.value = null
     isImageResponse.value = false
+    isVideoResponse.value = false
     if (imageUrl.value) {
       URL.revokeObjectURL(imageUrl.value)
       imageUrl.value = ''
+    }
+    if (videoUrl.value) {
+      URL.revokeObjectURL(videoUrl.value)
+      videoUrl.value = ''
     }
   }
 })
@@ -482,6 +548,10 @@ const highlightedExample = computed(() => {
     return apiInfo.value.example
   }
 })
+
+const openInNewWindow = (url) => {
+  window.open(url, '_blank')
+}
 </script>
 
 <style lang="less">
@@ -799,6 +869,36 @@ const highlightedExample = computed(() => {
       margin: 0;
       max-height: 400px;
       overflow: auto;
+    }
+
+    .video-response {
+      background: #f8fafc;
+      border-radius: 8px;
+      border: 1px solid #edf2f7;
+      padding: 16px;
+      margin-top: 16px;
+
+      video {
+        border-radius: 8px;
+        background: #000;
+        width: 100%;
+        max-height: 500px;
+        display: block;
+        margin: 0 auto;
+      }
+
+      .video-actions {
+        margin-top: 16px;
+        display: flex;
+        gap: 12px;
+        justify-content: center;
+
+        .el-button {
+          .el-icon {
+            margin-right: 4px;
+          }
+        }
+      }
     }
 
     .image-response {

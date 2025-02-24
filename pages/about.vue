@@ -32,7 +32,7 @@
                   <User />
                 </el-icon>
                 <span>商务微信：</span>
-                <span>xiaoxiaohaizimen（备注需求）</span>
+                <span>13188880632（备注需求）</span>
               </div>
               <div class="contact-item">
                 <el-icon><ChatDotSquare /></el-icon>
