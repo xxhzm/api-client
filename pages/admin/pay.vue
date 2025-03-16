@@ -284,7 +284,10 @@ const submitForm = async () => {
 const handlePayStatus = (isSuccess) => {
   if (isSuccess) {
     clearInterval(timer)
-    $msg('支付成功', 'success')
+    $msg(
+      '支付完成后，请刷新页面查看余额。若未显示入账，请及时联系客服。',
+      'success'
+    )
   } else {
     clearInterval(timer)
     $msg('如遇支付问题，请联系客服处理', 'warning')
