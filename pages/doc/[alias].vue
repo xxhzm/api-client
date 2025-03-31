@@ -139,15 +139,12 @@
           <h3>请求参数</h3>
           <el-form :model="debugForm" label-width="100px">
             <el-form-item
-              v-for="param in apiInfo.params"
-              :key="param.id"
+              v-for="(param, index) in apiInfo.params"
+              :key="index"
               :label="param.name"
               :required="param.required === '必传'"
             >
-              <el-input
-                v-model="debugForm[param.param]"
-                :placeholder="param.param"
-              />
+              <el-input v-model="debugForm[index]" :placeholder="param.param" />
             </el-form-item>
           </el-form>
         </div>
@@ -360,7 +357,7 @@ const sendRequest = async () => {
     // 检查必填参数
     const missingParams = apiInfo.value.params
       .filter(
-        (param) => param.required === '必传' && !debugForm.value[param.param]
+        (param, index) => param.required === '必传' && !debugForm.value[index]
       )
       .map((param) => param.param)
 
@@ -381,8 +378,9 @@ const sendRequest = async () => {
     // 处理 POST 请求
     if (apiInfo.value.method === 'POST') {
       const formData = new URLSearchParams()
-      for (const param of apiInfo.value.params) {
-        const value = debugForm.value[param.param]
+      for (let i = 0; i < apiInfo.value.params.length; i++) {
+        const param = apiInfo.value.params[i]
+        const value = debugForm.value[i]
         if (value) {
           formData.append(param.name, value)
         }
@@ -391,8 +389,9 @@ const sendRequest = async () => {
     } else {
       // GET 请求，将参数添加到 URL
       const params = new URLSearchParams()
-      for (const param of apiInfo.value.params) {
-        const value = debugForm.value[param.param]
+      for (let i = 0; i < apiInfo.value.params.length; i++) {
+        const param = apiInfo.value.params[i]
+        const value = debugForm.value[i]
         if (value) {
           params.append(param.name, value)
         }
