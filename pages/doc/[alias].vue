@@ -218,6 +218,7 @@
       </div>
     </el-dialog>
 
+    <IndexAi></IndexAi>
     <IndexFooter :options="options"></IndexFooter>
   </div>
 </template>

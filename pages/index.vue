@@ -169,7 +169,7 @@
         </div>
       </div>
     </div>
-
+    <IndexAi></IndexAi>
     <IndexFooter :options="options"></IndexFooter>
   </div>
 </template>
