@@ -23,7 +23,7 @@ useHead({
   ],
   script: [
     {
-      // src: 'https://hm.baidu.com/hm.js?277dc1783564930b9da342049f6ddea9',
+      src: 'https://hm.baidu.com/hm.js?277dc1783564930b9da342049f6ddea9',
     },
   ],
 })
@@ -31,7 +31,8 @@ useHead({
 
 <style>
 /* 全局消息提示样式 */
-.el-message {
+.el-message,
+.el-overlay {
   z-index: 999999999999999999999999 !important;
 }
 </style>
