@@ -1,7 +1,7 @@
 <script setup>
 import * as echarts from 'echarts'
-const { $msg, $myFetch } = useNuxtApp()
-const msg = $msg
+import { Menu } from '@element-plus/icons-vue'
+const { $myFetch } = useNuxtApp()
 
 const { $logout } = useNuxtApp()
 const chartShow = ref(true)
@@ -11,6 +11,29 @@ const todayRequest = ref({
 })
 
 const routeInfo = useCookie('routeInfo')
+
+// 控制左侧边栏显示隐藏
+// 获取页面宽度
+const screenWidth = ref(0)
+const isSidebarShow = ref(true)
+onMounted(() => {
+  screenWidth.value = document.body.clientWidth
+
+  console.log(screenWidth.value)
+  if (screenWidth.value < 768) {
+    isSidebarShow.value = false
+  }
+})
+
+const handleSidebarShow = () => {
+  isSidebarShow.value = !isSidebarShow.value
+  // 禁止页面滑动
+  if (isSidebarShow.value) {
+    document.body.style.overflow = 'hidden'
+  } else {
+    document.body.style.overflow = ''
+  }
+}
 
 // 判断是否拥有权限，动态显示左侧边栏
 const routeShow = (path) => {
@@ -243,8 +266,19 @@ useHead({
 
 <template>
   <div class="container">
-    <AdminSidebar></AdminSidebar>
+    <AdminSidebar v-show="isSidebarShow"></AdminSidebar>
+
     <div class="right">
+      <!-- 遮罩层 -->
+      <div
+        class="overlay"
+        v-show="isSidebarShow"
+        @click="handleSidebarShow"
+      ></div>
+      <!-- 侧边栏控制按钮 -->
+      <div class="control-sidebar" v-show="!isSidebarShow">
+        <el-icon @click="handleSidebarShow"><Menu /></el-icon>
+      </div>
       <AdminHeader></AdminHeader>
       <div class="main-container">
         <div class="info-container">
@@ -438,9 +472,34 @@ useHead({
 
   .right {
     width: 100%;
+    position: relative;
+    .overlay {
+      position: absolute;
+      top: 0;
+      left: 0;
+      z-index: 998;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0, 0, 0, 0.5);
+    }
+    .control-sidebar {
+      position: absolute;
+      width: 35px;
+      height: 35px;
+      top: 10px;
+      left: 10px;
+      z-index: 9999;
+      text-align: center;
+      background: #fff;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+      .el-icon {
+        margin-top: 10px;
+        font-size: 16px;
+      }
+    }
 
     .main-container {
-      height: 100%;
+      min-height: 100vh;
       padding: 0 10px;
       background-color: #f7f7f7;
 

@@ -434,7 +434,7 @@ const formatMessageContent = (content) => {
 .ai-chat-container {
   position: fixed;
   right: 20px;
-  bottom: 20px;
+  bottom: 50px;
   z-index: 999;
 
   .chat-button {
