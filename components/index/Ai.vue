@@ -682,7 +682,8 @@ const formatMessageContent = (content) => {
       width: 90%;
       height: 70vh;
       right: 5%;
-      bottom: 10%;
+      bottom: unset; // 移除底部定位
+      top: 100px; // 设置固定顶部距离，让窗口显示在更高的位置
     }
   }
 }
