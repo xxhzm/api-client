@@ -1,7 +1,14 @@
 <template>
   <div class="container">
-    <AdminSidebar></AdminSidebar>
+    <AdminSidebar v-show="isSidebarShow"></AdminSidebar>
+
     <div class="right">
+      <!-- 遮罩层 -->
+      <div class="overlay" v-show="isoverlay" @click="handleSidebarShow"></div>
+      <!-- 侧边栏控制按钮 -->
+      <div class="control-sidebar" v-show="iscontrolShow">
+        <el-icon @click="handleSidebarShow"><Menu /></el-icon>
+      </div>
       <AdminHeader></AdminHeader>
       <div class="createArticle-container">
         <div class="createArticle-cont">
@@ -80,10 +87,40 @@
 </template>
 
 <script setup>
+import { Menu } from '@element-plus/icons-vue'
+
 import Vditor from 'vditor'
 import 'vditor/dist/index.css'
 const route = useRoute()
 const { $msg, $myFetch } = useNuxtApp()
+
+// 控制左侧边栏显示隐藏
+// 获取页面宽度
+const screenWidth = ref(0)
+const isSidebarShow = ref(true)
+const iscontrolShow = ref(false)
+const isoverlay = ref(false)
+onMounted(() => {
+  screenWidth.value = document.body.clientWidth
+  document.body.style.overflow = ''
+
+  if (screenWidth.value < 768) {
+    iscontrolShow.value = true
+    isSidebarShow.value = false
+  }
+})
+
+const handleSidebarShow = () => {
+  isSidebarShow.value = !isSidebarShow.value
+  iscontrolShow.value = !iscontrolShow.value
+  isoverlay.value = !isoverlay.value
+  // 禁止页面滑动
+  if (isSidebarShow.value) {
+    document.body.style.overflow = 'hidden'
+  } else {
+    document.body.style.overflow = ''
+  }
+}
 
 const updateArticleInfo = ref({
   id: 0,
@@ -203,6 +240,30 @@ useHead({
   display: flex;
   .right {
     width: 100%;
+    .overlay {
+      position: absolute;
+      top: 0;
+      left: 0;
+      z-index: 998;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0, 0, 0, 0.5);
+    }
+    .control-sidebar {
+      position: absolute;
+      width: 35px;
+      height: 35px;
+      top: 10px;
+      left: 10px;
+      z-index: 9999;
+      text-align: center;
+      background: #fff;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+      .el-icon {
+        margin-top: 10px;
+        font-size: 16px;
+      }
+    }
     .createArticle-container {
       position: relative;
       width: 100%;

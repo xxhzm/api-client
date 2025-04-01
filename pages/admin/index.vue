@@ -16,17 +16,22 @@ const routeInfo = useCookie('routeInfo')
 // 获取页面宽度
 const screenWidth = ref(0)
 const isSidebarShow = ref(true)
+const iscontrolShow = ref(false)
+const isoverlay = ref(false)
 onMounted(() => {
   screenWidth.value = document.body.clientWidth
+  document.body.style.overflow = ''
 
-  console.log(screenWidth.value)
   if (screenWidth.value < 768) {
+    iscontrolShow.value = true
     isSidebarShow.value = false
   }
 })
 
 const handleSidebarShow = () => {
   isSidebarShow.value = !isSidebarShow.value
+  iscontrolShow.value = !iscontrolShow.value
+  isoverlay.value = !isoverlay.value
   // 禁止页面滑动
   if (isSidebarShow.value) {
     document.body.style.overflow = 'hidden'
@@ -270,13 +275,9 @@ useHead({
 
     <div class="right">
       <!-- 遮罩层 -->
-      <div
-        class="overlay"
-        v-show="isSidebarShow"
-        @click="handleSidebarShow"
-      ></div>
+      <div class="overlay" v-show="isoverlay" @click="handleSidebarShow"></div>
       <!-- 侧边栏控制按钮 -->
-      <div class="control-sidebar" v-show="!isSidebarShow">
+      <div class="control-sidebar" v-show="iscontrolShow">
         <el-icon @click="handleSidebarShow"><Menu /></el-icon>
       </div>
       <AdminHeader></AdminHeader>

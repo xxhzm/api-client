@@ -1,7 +1,14 @@
 <template>
   <div class="container">
-    <AdminSidebar></AdminSidebar>
+    <AdminSidebar v-show="isSidebarShow"></AdminSidebar>
+
     <div class="right">
+      <!-- 遮罩层 -->
+      <div class="overlay" v-show="isoverlay" @click="handleSidebarShow"></div>
+      <!-- 侧边栏控制按钮 -->
+      <div class="control-sidebar" v-show="iscontrolShow">
+        <el-icon @click="handleSidebarShow"><Menu /></el-icon>
+      </div>
       <AdminHeader></AdminHeader>
       <div class="pay_container">
         <div class="cont">
@@ -153,7 +160,7 @@
 </template>
 
 <script setup>
-import { Refresh, InfoFilled, Wallet } from '@element-plus/icons-vue'
+import { Refresh, InfoFilled, Wallet, Menu } from '@element-plus/icons-vue'
 import { ref, onMounted } from 'vue'
 const { $msg, $myFetch } = useNuxtApp()
 
@@ -161,6 +168,33 @@ const { $msg, $myFetch } = useNuxtApp()
 const loading = ref(false)
 const username = useCookie('username')
 
+// 控制左侧边栏显示隐藏
+// 获取页面宽度
+const screenWidth = ref(0)
+const isSidebarShow = ref(true)
+const iscontrolShow = ref(false)
+const isoverlay = ref(false)
+onMounted(() => {
+  screenWidth.value = document.body.clientWidth
+  document.body.style.overflow = ''
+
+  if (screenWidth.value < 768) {
+    iscontrolShow.value = true
+    isSidebarShow.value = false
+  }
+})
+
+const handleSidebarShow = () => {
+  isSidebarShow.value = !isSidebarShow.value
+  iscontrolShow.value = !iscontrolShow.value
+  isoverlay.value = !isoverlay.value
+  // 禁止页面滑动
+  if (isSidebarShow.value) {
+    document.body.style.overflow = 'hidden'
+  } else {
+    document.body.style.overflow = ''
+  }
+}
 // 账户余额
 const balance = ref(0)
 
@@ -301,23 +335,43 @@ onMounted(() => {
 })
 </script>
 
-<style scoped>
+<style lang="less" scoped>
 .container {
   display: flex;
   width: 100%;
   height: 100vh;
-  overflow: hidden;
 
   .right {
     flex: 1;
     height: 100vh;
-    overflow: hidden;
     background: #f5f5f5;
+    .overlay {
+      position: absolute;
+      top: 0;
+      left: 0;
+      z-index: 998;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0, 0, 0, 0.5);
+    }
+    .control-sidebar {
+      position: absolute;
+      width: 35px;
+      height: 35px;
+      top: 10px;
+      left: 10px;
+      z-index: 9999;
+      text-align: center;
+      background: #fff;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+      .el-icon {
+        margin-top: 10px;
+        font-size: 16px;
+      }
+    }
 
     .pay_container {
-      height: calc(100vh - 60px);
       padding: 20px;
-      overflow-y: auto;
 
       .cont {
         .form {

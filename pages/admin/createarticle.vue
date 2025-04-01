@@ -1,7 +1,14 @@
 <template>
   <div class="container">
-    <AdminSidebar></AdminSidebar>
+    <AdminSidebar v-show="isSidebarShow"></AdminSidebar>
+
     <div class="right">
+      <!-- 遮罩层 -->
+      <div class="overlay" v-show="isoverlay" @click="handleSidebarShow"></div>
+      <!-- 侧边栏控制按钮 -->
+      <div class="control-sidebar" v-show="iscontrolShow">
+        <el-icon @click="handleSidebarShow"><Menu /></el-icon>
+      </div>
       <AdminHeader></AdminHeader>
       <div class="createarticle-container">
         <div class="article-card">
@@ -18,18 +25,32 @@
               <el-row :gutter="24">
                 <el-col :span="24">
                   <el-form-item label="文章标题" required>
-                    <el-input v-model="createArticleInfo.title" maxlength="256" show-word-limit placeholder="请输入文章标题" />
+                    <el-input
+                      v-model="createArticleInfo.title"
+                      maxlength="256"
+                      show-word-limit
+                      placeholder="请输入文章标题"
+                    />
                   </el-form-item>
                 </el-col>
                 <el-col :span="24">
                   <el-form-item label="关键词" required>
-                    <el-input v-model="createArticleInfo.keywords" maxlength="256" show-word-limit
-                      placeholder="请输入关键词，英文逗号隔开" />
+                    <el-input
+                      v-model="createArticleInfo.keywords"
+                      maxlength="256"
+                      show-word-limit
+                      placeholder="请输入关键词，英文逗号隔开"
+                    />
                   </el-form-item>
                 </el-col>
                 <el-col :span="24">
                   <el-form-item label="文章描述" required>
-                    <el-input v-model="createArticleInfo.description" type="textarea" :rows="3" placeholder="请输入文章描述" />
+                    <el-input
+                      v-model="createArticleInfo.description"
+                      type="textarea"
+                      :rows="3"
+                      placeholder="请输入文章描述"
+                    />
                   </el-form-item>
                 </el-col>
                 <el-col :span="24">
@@ -43,8 +64,15 @@
         <!-- 底部操作栏 -->
         <div class="footer-actions">
           <div class="action-buttons">
-            <el-button type="primary" size="large" @click="submit">发布文章</el-button>
-            <el-button type="warning" size="large" @click="navigateTo('/admin/articlelist')">返回列表</el-button>
+            <el-button type="primary" size="large" @click="submit"
+              >发布文章</el-button
+            >
+            <el-button
+              type="warning"
+              size="large"
+              @click="navigateTo('/admin/articlelist')"
+              >返回列表</el-button
+            >
           </div>
         </div>
       </div>
@@ -53,8 +81,38 @@
 </template>
 
 <script setup>
+import { Menu } from '@element-plus/icons-vue'
+
 import Vditor from 'vditor'
 import 'vditor/dist/index.css'
+
+// 控制左侧边栏显示隐藏
+// 获取页面宽度
+const screenWidth = ref(0)
+const isSidebarShow = ref(true)
+const iscontrolShow = ref(false)
+const isoverlay = ref(false)
+onMounted(() => {
+  screenWidth.value = document.body.clientWidth
+  document.body.style.overflow = ''
+
+  if (screenWidth.value < 768) {
+    iscontrolShow.value = true
+    isSidebarShow.value = false
+  }
+})
+
+const handleSidebarShow = () => {
+  isSidebarShow.value = !isSidebarShow.value
+  iscontrolShow.value = !iscontrolShow.value
+  isoverlay.value = !isoverlay.value
+  // 禁止页面滑动
+  if (isSidebarShow.value) {
+    document.body.style.overflow = 'hidden'
+  } else {
+    document.body.style.overflow = ''
+  }
+}
 
 // 初始化富文本编辑器
 const vditor = ref(null)
@@ -163,7 +221,30 @@ useHead({
   .right {
     width: 100%;
     min-width: 0;
-
+    .overlay {
+      position: absolute;
+      top: 0;
+      left: 0;
+      z-index: 998;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0, 0, 0, 0.5);
+    }
+    .control-sidebar {
+      position: absolute;
+      width: 35px;
+      height: 35px;
+      top: 10px;
+      left: 10px;
+      z-index: 9999;
+      text-align: center;
+      background: #fff;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+      .el-icon {
+        margin-top: 10px;
+        font-size: 16px;
+      }
+    }
     .createarticle-container {
       position: relative;
       min-height: 100vh;
