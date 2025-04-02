@@ -293,7 +293,6 @@ const getSecurityInfo = async () => {
     }
 
     securityInfo.value = res.data
-    console.log(securityInfo.value)
   }
 }
 

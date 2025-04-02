@@ -35,7 +35,7 @@
                 style="width: 100%"
                 v-loading="pageLoading"
               >
-                <el-table-column width="160" fixed="right">
+                <el-table-column width="200" fixed="right">
                   <template #header>
                     <div class="search-wrapper">
                       <el-input v-model="search" placeholder="搜索" clearable>
@@ -107,6 +107,17 @@
                     <span class="balance">{{ scope.row.balance }}</span>
                   </template>
                 </el-table-column>
+                <el-table-column label="充值记录" width="100" align="center">
+                  <template #default="scope">
+                    <el-button
+                      type="success"
+                      link
+                      @click="handleUserRechargeRecord(scope.row)"
+                    >
+                      查看记录
+                    </el-button>
+                  </template>
+                </el-table-column>
               </el-table>
 
               <div class="pagination">
@@ -117,7 +128,7 @@
                   v-model:current-page="page"
                   :disabled="pageLoading"
                   background
-                  layout="prev, pager, next"
+                  layout="total, prev, pager, next, jumper"
                 />
               </div>
             </client-only>
@@ -213,6 +224,84 @@
                 show-overflow-tooltip
               />
             </el-table>
+          </el-dialog>
+
+          <!-- 用户充值记录对话框 -->
+          <el-dialog
+            v-model="rechargeRecordDialogVisible"
+            title="用户充值记录"
+            width="800px"
+            destroy-on-close
+          >
+            <div v-loading="rechargeLoading">
+              <el-table :data="rechargeRecords" style="width: 100%">
+                <el-table-column
+                  prop="id"
+                  label="ID"
+                  min-width="180"
+                  show-overflow-tooltip
+                />
+                <el-table-column prop="amount" label="充值金额" width="120">
+                  <template #default="scope">
+                    <span style="color: #f56c6c; font-weight: bold"
+                      >¥{{ scope.row.amount }}</span
+                    >
+                  </template>
+                </el-table-column>
+                <el-table-column prop="method" label="支付方式" width="120">
+                  <template #default="scope">
+                    <el-tag
+                      :type="
+                        scope.row.method === 'alipay' ? 'primary' : 'success'
+                      "
+                      size="small"
+                    >
+                      {{ scope.row.method === 'alipay' ? '支付宝' : '微信' }}
+                    </el-tag>
+                  </template>
+                </el-table-column>
+                <el-table-column prop="status" label="状态" width="100">
+                  <template #default="scope">
+                    <el-tag
+                      :type="scope.row.status === '2' ? 'success' : 'warning'"
+                      size="small"
+                    >
+                      {{ scope.row.status === '2' ? '已支付' : '未支付' }}
+                    </el-tag>
+                  </template>
+                </el-table-column>
+                <el-table-column label="创建时间" min-width="180">
+                  <template #default="scope">
+                    {{ formatTimestamp(scope.row.create_time) }}
+                  </template>
+                </el-table-column>
+                <el-table-column label="支付时间" min-width="180">
+                  <template #default="scope">
+                    {{
+                      scope.row.pay_time && scope.row.pay_time !== 0
+                        ? formatTimestamp(scope.row.pay_time)
+                        : '-'
+                    }}
+                  </template>
+                </el-table-column>
+              </el-table>
+
+              <!-- 分页 -->
+              <div class="pagination" style="margin-top: 20px">
+                <el-pagination
+                  :page-size="rechargePageSize"
+                  :pager-count="5"
+                  :total="rechargeTotalRecords"
+                  v-model:current-page="rechargePage"
+                  :disabled="rechargeLoading"
+                  background
+                  :page-sizes="[10, 20, 30, 50]"
+                  layout="total, sizes, prev, pager, next, jumper"
+                  @current-change="handleRechargePageChange"
+                  @size-change="handleRechargeSizeChange"
+                />
+              </div>
+            </div>
           </el-dialog>
         </div>
       </div>
@@ -547,6 +636,80 @@ const handleStatusChange = async (row) => {
   }
 
   loading.value = false
+}
+
+// 用户充值记录相关
+const rechargeRecordDialogVisible = ref(false)
+const rechargeRecords = ref([])
+const rechargeLoading = ref(false)
+const currentUserId = ref(null)
+const rechargePage = ref(1)
+const rechargePageSize = ref(10)
+const rechargeTotalRecords = ref(0)
+
+// 获取用户充值记录
+const fetchUserRechargeRecords = async () => {
+  rechargeLoading.value = true
+  try {
+    const params = {
+      page: rechargePage.value,
+      limit: rechargePageSize.value,
+      uid: currentUserId.value,
+    }
+
+    const res = await $myFetch('GetRechargeRecords', { params })
+    if (res.code === 200) {
+      rechargeRecords.value = res.data.data || []
+      rechargeTotalRecords.value = res.data.total_records || 0
+    } else {
+      $msg(res.msg || '获取充值记录失败', 'error')
+    }
+  } catch (error) {
+    $msg('获取充值记录失败', 'error')
+  } finally {
+    rechargeLoading.value = false
+  }
+}
+
+// 处理查看用户充值记录
+const handleUserRechargeRecord = (row) => {
+  currentUserId.value = row.id
+  rechargePage.value = 1
+  rechargeRecordDialogVisible.value = true
+  fetchUserRechargeRecords()
+}
+
+// 监听充值记录页码变化
+watch(rechargePage, () => {
+  if (rechargeRecordDialogVisible.value) {
+    fetchUserRechargeRecords()
+  }
+})
+
+// 处理充值记录页面切换
+const handleRechargePageChange = (newPage) => {
+  rechargePage.value = newPage
+  fetchUserRechargeRecords()
+}
+
+// 处理充值记录每页显示数量变化
+const handleRechargeSizeChange = (newSize) => {
+  rechargePageSize.value = newSize
+  rechargePage.value = 1
+  fetchUserRechargeRecords()
+}
+
+// 格式化时间戳为可读日期时间格式
+const formatTimestamp = (timestamp) => {
+  if (!timestamp) return '-'
+  const date = new Date(Number(timestamp))
+  const year = date.getFullYear()
+  const month = String(date.getMonth() + 1).padStart(2, '0')
+  const day = String(date.getDate()).padStart(2, '0')
+  const hours = String(date.getHours()).padStart(2, '0')
+  const minutes = String(date.getMinutes()).padStart(2, '0')
+  const seconds = String(date.getSeconds()).padStart(2, '0')
+  return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`
 }
 
 useHead({

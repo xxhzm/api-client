@@ -112,7 +112,7 @@
                   :disabled="pageLoading"
                   background
                   :page-sizes="[10, 20, 30, 50, 100]"
-                  layout="total, sizes, prev, pager, next"
+                  layout="total, sizes, prev, pager, next, jumper"
                   @current-change="handlePageChange"
                   @size-change="handleSizeChange"
                 />
@@ -237,15 +237,8 @@ const fetchAllRecords = async () => {
       page: page.value,
       limit: pageSize.value, // 添加每页数量参数
     }
-
-    console.log('请求参数:', params) // 添加日志帮助调试
-    console.log('当前页码:', page.value) // 记录当前页码
-    console.log('每页条数:', pageSize.value) // 记录每页条数
-
     // 发送请求获取充值记录数据
     const res = await $myFetch('GetRechargeRecords', { params })
-
-    console.log('API响应:', res) // 添加日志帮助调试
 
     if (res.code === 200) {
       // 保存记录
@@ -254,8 +247,6 @@ const fetchAllRecords = async () => {
       // 设置分页信息
       if (res.data && typeof res.data.total_records === 'number') {
         totalRecords.value = res.data.total_records || 0
-        console.log('总记录数:', totalRecords.value)
-        console.log('总页数:', res.data.total_pages)
       }
     } else {
       $msg(res.msg || '获取充值记录失败', 'error')
@@ -272,7 +263,6 @@ const fetchAllRecords = async () => {
 watch(
   () => page.value,
   (newValue, oldValue) => {
-    console.log(`页码变化: ${oldValue} -> ${newValue}`)
     pageLoading.value = true
     fetchAllRecords() // 页码变化时重新获取数据
   }
@@ -280,14 +270,12 @@ watch(
 
 // 手动处理页面切换
 const handlePageChange = (newPage) => {
-  console.log('手动切换到页码:', newPage)
   page.value = newPage
   fetchAllRecords()
 }
 
 // 处理每页显示数量变化
 const handleSizeChange = (newSize) => {
-  console.log('每页条数变化:', newSize)
   pageSize.value = newSize
   page.value = 1 // 重置到第一页
   fetchAllRecords()
