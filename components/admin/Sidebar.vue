@@ -254,7 +254,7 @@
           <template #title>友情链接</template>
         </el-menu-item>
 
-        <el-menu-item index="9" @click="navigateTo('/')">
+        <el-menu-item index="9" @click="openInNewTab('/')">
           <el-icon>
             <Promotion />
           </el-icon>
@@ -328,6 +328,10 @@ const sitemap = async () => {
   } else {
     $msg(res.msg, 'success')
   }
+}
+
+const openInNewTab = (url) => {
+  window.open(url, '_blank')
 }
 </script>
 
