@@ -177,6 +177,33 @@
                 </div>
               </div>
             </el-tab-pane>
+
+            <el-tab-pane label="支付配置" name="alipay">
+              <div class="form">
+                <el-form
+                  :model="alipayInfo"
+                  label-position="top"
+                  label-width="120px"
+                >
+                  <el-form-item label="支付宝Appid">
+                    <el-input v-model="alipayInfo.Appid" />
+                  </el-form-item>
+                  <el-form-item label="支付宝私钥">
+                    <el-input
+                      v-model="alipayInfo.PrivateKey"
+                      type="textarea"
+                      :rows="5"
+                      placeholder="请输入支付宝私钥"
+                    />
+                  </el-form-item>
+                  <el-form-item>
+                    <el-button type="primary" @click="alipayInfoSubmit"
+                      >提交</el-button
+                    >
+                  </el-form-item>
+                </el-form>
+              </div>
+            </el-tab-pane>
           </el-tabs>
         </div>
       </div>
@@ -208,6 +235,12 @@ const mailInfo = ref({
   setfrom: '',
   port: '',
   name: '',
+})
+
+// 支付宝配置相关
+const alipayInfo = ref({
+  Appid: '',
+  PrivateKey: '',
 })
 
 // 控制左侧边栏显示隐藏
@@ -260,6 +293,14 @@ const getWebsetInfo = async () => {
 const getMailInfo = async () => {
   const res = await $myFetch('MailInfo')
   mailInfo.value = res.data
+}
+
+// 获取支付宝配置
+const getAlipayInfo = async () => {
+  const res = await $myFetch('AlipayInfo')
+  if (res.code === 200) {
+    alipayInfo.value = res.data
+  }
 }
 
 // 接口搜索
@@ -392,6 +433,7 @@ onMounted(() => {
   getWebsetInfo()
   getMailInfo()
   getTopApiList()
+  getAlipayInfo()
 })
 
 // 提交网站设置
@@ -457,6 +499,30 @@ const mailInfoSubmit = async () => {
   if (res.code === 200) {
     $msg(res.msg, 'success')
     getMailInfo()
+  }
+}
+
+// 提交支付宝配置
+const alipayInfoSubmit = async () => {
+  if (!alipayInfo.value.Appid || !alipayInfo.value.PrivateKey) {
+    $msg('请填写完整的支付宝配置信息', 'error')
+    return false
+  }
+
+  const bodyValue = new URLSearchParams()
+  bodyValue.append('appid', alipayInfo.value.Appid)
+  bodyValue.append('privateKey', alipayInfo.value.PrivateKey)
+
+  const res = await $myFetch('AlipayOptionUpdate', {
+    method: 'POST',
+    body: bodyValue,
+  })
+
+  if (res.code === 200) {
+    $msg(res.msg, 'success')
+    getAlipayInfo()
+  } else {
+    $msg(res.msg, 'error')
   }
 }
 
