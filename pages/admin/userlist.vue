@@ -79,16 +79,11 @@
                   width="200"
                   show-overflow-tooltip
                 />
-                <el-table-column
-                  prop="create_time"
-                  label="注册时间"
-                  width="180"
-                />
-                <el-table-column
-                  prop="login_time"
-                  label="上次登录时间"
-                  width="180"
-                />
+                <el-table-column prop="balance" label="账户余额" width="120">
+                  <template #default="scope">
+                    <span class="balance">{{ scope.row.balance }}</span>
+                  </template>
+                </el-table-column>
                 <el-table-column prop="status" label="状态" width="80">
                   <template #default="scope">
                     <el-tag
@@ -99,12 +94,6 @@
                     >
                       {{ scope.row.status }}
                     </el-tag>
-                  </template>
-                </el-table-column>
-                <el-table-column prop="ip" label="IP" width="150" />
-                <el-table-column prop="balance" label="账户余额" width="120">
-                  <template #default="scope">
-                    <span class="balance">{{ scope.row.balance }}</span>
                   </template>
                 </el-table-column>
                 <el-table-column label="充值记录" width="100" align="center">
@@ -118,6 +107,28 @@
                     </el-button>
                   </template>
                 </el-table-column>
+                <el-table-column label="购买记录" width="100" align="center">
+                  <template #default="scope">
+                    <el-button
+                      type="primary"
+                      link
+                      @click="handleUserBuyPackageRecord(scope.row)"
+                    >
+                      查看记录
+                    </el-button>
+                  </template>
+                </el-table-column>
+                <el-table-column
+                  prop="create_time"
+                  label="注册时间"
+                  width="180"
+                />
+                <el-table-column
+                  prop="login_time"
+                  label="上次登录时间"
+                  width="180"
+                />
+                <el-table-column prop="ip" label="IP" width="150" />
               </el-table>
 
               <div class="pagination">
@@ -302,6 +313,203 @@
                 />
               </div>
             </div>
+          </el-dialog>
+
+          <!-- 用户购买记录对话框 -->
+          <el-dialog
+            v-model="buyPackageRecordDialogVisible"
+            title="用户购买记录"
+            width="800px"
+            destroy-on-close
+          >
+            <div v-loading="buyPackageLoading">
+              <el-table :data="buyPackageRecords" style="width: 100%">
+                <el-table-column
+                  prop="id"
+                  label="ID"
+                  min-width="100"
+                  show-overflow-tooltip
+                />
+                <el-table-column prop="name" label="套餐名称" min-width="150">
+                  <template #default="scope">
+                    <span style="font-weight: bold">{{ scope.row.name }}</span>
+                  </template>
+                </el-table-column>
+                <el-table-column prop="amount" label="金额" width="100">
+                  <template #default="scope">
+                    <span style="color: #f56c6c; font-weight: bold"
+                      >¥{{ scope.row.amount }}</span
+                    >
+                  </template>
+                </el-table-column>
+                <el-table-column prop="duration" label="时长" width="100">
+                  <template #default="scope">
+                    <span>{{ scope.row.duration }}天</span>
+                  </template>
+                </el-table-column>
+                <el-table-column prop="type" label="套餐类型" width="120">
+                  <template #default="scope">
+                    <el-tag
+                      :type="scope.row.type === 2 ? 'primary' : 'success'"
+                      size="small"
+                    >
+                      {{ scope.row.type === 2 ? '包月计费' : '点数包' }}
+                    </el-tag>
+                  </template>
+                </el-table-column>
+                <el-table-column prop="status" label="状态" width="100">
+                  <template #default="scope">
+                    <el-tag
+                      :type="scope.row.status === 1 ? 'success' : 'warning'"
+                      size="small"
+                    >
+                      {{ scope.row.status === 1 ? '有效' : '无效' }}
+                    </el-tag>
+                  </template>
+                </el-table-column>
+                <el-table-column label="创建时间" min-width="180">
+                  <template #default="scope">
+                    {{ formatTimestamp(scope.row.create_time) }}
+                  </template>
+                </el-table-column>
+                <el-table-column label="过期时间" min-width="180">
+                  <template #default="scope">
+                    {{ formatTimestamp(scope.row.expire_time) }}
+                  </template>
+                </el-table-column>
+                <el-table-column label="操作" width="120" fixed="right">
+                  <template #default="scope">
+                    <div class="table-actions">
+                      <el-button
+                        type="primary"
+                        link
+                        @click="showBuyPackageDetail(scope.row)"
+                      >
+                        详情
+                      </el-button>
+                    </div>
+                  </template>
+                </el-table-column>
+              </el-table>
+
+              <!-- 分页 -->
+              <div class="pagination" style="margin-top: 20px">
+                <el-pagination
+                  :page-size="buyPackagePageSize"
+                  :pager-count="5"
+                  :total="buyPackageTotalRecords"
+                  v-model:current-page="buyPackagePage"
+                  :disabled="buyPackageLoading"
+                  background
+                  :page-sizes="[10, 20, 30, 50]"
+                  layout="total, sizes, prev, pager, next, jumper"
+                  @current-change="handleBuyPackagePageChange"
+                  @size-change="handleBuyPackageSizeChange"
+                />
+              </div>
+            </div>
+          </el-dialog>
+
+          <!-- 购买记录详情对话框 -->
+          <el-dialog
+            v-model="buyPackageDetailDialogVisible"
+            title="套餐购买详情"
+            width="500px"
+          >
+            <div class="detail-content" v-if="currentBuyPackageRecord">
+              <div class="detail-item">
+                <span class="label">订单ID：</span>
+                <span class="value">{{ currentBuyPackageRecord.id }}</span>
+              </div>
+              <div class="detail-item">
+                <span class="label">用户ID：</span>
+                <span class="value">{{ currentBuyPackageRecord.uid }}</span>
+              </div>
+              <div class="detail-item">
+                <span class="label">接口ID：</span>
+                <span class="value">{{ currentBuyPackageRecord.aid }}</span>
+              </div>
+              <div class="detail-item">
+                <span class="label">套餐名称：</span>
+                <span class="value">{{ currentBuyPackageRecord.name }}</span>
+              </div>
+              <div class="detail-item">
+                <span class="label">套餐ID：</span>
+                <span class="value">{{
+                  currentBuyPackageRecord.package_id
+                }}</span>
+              </div>
+              <div class="detail-item">
+                <span class="label">支付金额：</span>
+                <span class="value amount"
+                  >¥{{ currentBuyPackageRecord.amount }}</span
+                >
+              </div>
+              <div class="detail-item">
+                <span class="label">套餐时长：</span>
+                <span class="value"
+                  >{{ currentBuyPackageRecord.duration }}天</span
+                >
+              </div>
+              <div class="detail-item">
+                <span class="label">订单状态：</span>
+                <span
+                  class="value"
+                  :class="`status-${
+                    currentBuyPackageRecord.status === 1 ? 'success' : 'pending'
+                  }`"
+                >
+                  {{ currentBuyPackageRecord.status === 1 ? '有效' : '无效' }}
+                </span>
+              </div>
+              <div class="detail-item">
+                <span class="label">套餐类型：</span>
+                <span class="value">{{
+                  currentBuyPackageRecord.type === 2 ? '按时间' : '按次数'
+                }}</span>
+              </div>
+              <div
+                class="detail-item"
+                v-if="currentBuyPackageRecord.package_points > 0"
+              >
+                <span class="label">套餐点数：</span>
+                <span class="value">{{
+                  currentBuyPackageRecord.package_points
+                }}</span>
+              </div>
+              <div
+                class="detail-item"
+                v-if="
+                  currentBuyPackageRecord.points > 0 ||
+                  currentBuyPackageRecord.points_used > 0
+                "
+              >
+                <span class="label">剩余/已用：</span>
+                <span class="value"
+                  >{{ currentBuyPackageRecord.points }} /
+                  {{ currentBuyPackageRecord.points_used }}</span
+                >
+              </div>
+              <div class="detail-item">
+                <span class="label">创建时间：</span>
+                <span class="value">{{
+                  formatTimestamp(currentBuyPackageRecord.create_time)
+                }}</span>
+              </div>
+              <div class="detail-item">
+                <span class="label">过期时间：</span>
+                <span class="value">{{
+                  formatTimestamp(currentBuyPackageRecord.expire_time)
+                }}</span>
+              </div>
+            </div>
+            <template #footer>
+              <span class="dialog-footer">
+                <el-button @click="buyPackageDetailDialogVisible = false"
+                  >关闭</el-button
+                >
+              </span>
+            </template>
           </el-dialog>
         </div>
       </div>
@@ -712,6 +920,74 @@ const formatTimestamp = (timestamp) => {
   return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`
 }
 
+// 用户购买记录相关
+const buyPackageRecordDialogVisible = ref(false)
+const buyPackageDetailDialogVisible = ref(false)
+const buyPackageRecords = ref([])
+const buyPackageLoading = ref(false)
+const currentBuyPackageRecord = ref(null)
+const buyPackagePage = ref(1)
+const buyPackagePageSize = ref(10)
+const buyPackageTotalRecords = ref(0)
+
+// 获取用户购买记录
+const fetchUserBuyPackageRecords = async () => {
+  buyPackageLoading.value = true
+  try {
+    const params = {
+      page: buyPackagePage.value,
+      limit: buyPackagePageSize.value,
+      uid: currentUserId.value,
+    }
+
+    const res = await $myFetch('GetBuyPackageRecords', { params })
+    if (res.code === 200) {
+      buyPackageRecords.value = res.data.data || []
+      buyPackageTotalRecords.value = res.data.total_records || 0
+    } else {
+      $msg(res.msg || '获取购买记录失败', 'error')
+    }
+  } catch (error) {
+    $msg('获取购买记录失败', 'error')
+  } finally {
+    buyPackageLoading.value = false
+  }
+}
+
+// 处理查看用户购买记录
+const handleUserBuyPackageRecord = (row) => {
+  currentUserId.value = row.id
+  buyPackagePage.value = 1
+  buyPackageRecordDialogVisible.value = true
+  fetchUserBuyPackageRecords()
+}
+
+// 监听购买记录页码变化
+watch(buyPackagePage, () => {
+  if (buyPackageRecordDialogVisible.value) {
+    fetchUserBuyPackageRecords()
+  }
+})
+
+// 处理购买记录页面切换
+const handleBuyPackagePageChange = (newPage) => {
+  buyPackagePage.value = newPage
+  fetchUserBuyPackageRecords()
+}
+
+// 处理购买记录每页显示数量变化
+const handleBuyPackageSizeChange = (newSize) => {
+  buyPackagePageSize.value = newSize
+  buyPackagePage.value = 1
+  fetchUserBuyPackageRecords()
+}
+
+// 显示购买记录详情
+const showBuyPackageDetail = (record) => {
+  currentBuyPackageRecord.value = record
+  buyPackageDetailDialogVisible.value = true
+}
+
 useHead({
   title: '用户列表',
   viewport:
@@ -855,7 +1131,7 @@ useHead({
   }
 }
 
-// 对话框样式
+/* 对话框样式 */
 :deep(.el-dialog) {
   border-radius: 12px;
 
@@ -916,6 +1192,45 @@ useHead({
       }
     }
   }
+}
+
+/* 详情对话框样式 */
+.detail-content {
+  padding: 10px 0;
+}
+
+.detail-item {
+  margin-bottom: 15px;
+  display: flex;
+}
+
+.detail-item .label {
+  width: 100px;
+  text-align: right;
+  color: #606266;
+  padding-right: 12px;
+}
+
+.detail-item .value {
+  flex: 1;
+  color: #303133;
+}
+
+.detail-item .amount {
+  color: #f56c6c;
+  font-weight: bold;
+}
+
+.status-success {
+  color: #67c23a;
+}
+
+.status-pending {
+  color: #e6a23c;
+}
+
+.status-failed {
+  color: #f56c6c;
 }
 
 @media screen and (max-width: 1200px) {
