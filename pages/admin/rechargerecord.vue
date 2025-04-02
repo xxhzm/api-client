@@ -11,6 +11,7 @@
       </div>
       <AdminHeader></AdminHeader>
       <div class="rechargerecord-container" v-loading="loading">
+        <SystemRecargar :info="recargarInfo"></SystemRecargar>
         <div class="record-card">
           <!-- 标题区域 -->
           <div class="card-header">
@@ -200,6 +201,14 @@ const totalRecords = ref(0) // 总记录数
 const dialogVisible = ref(false)
 const currentRecord = ref(null)
 
+// 上方卡片信息
+const recargarInfo = ref({
+  total_order: 0,
+  total_money: 0,
+  recently_order: 0,
+  recently_money: 0,
+})
+
 // 控制左侧边栏显示隐藏
 // 获取页面宽度
 const screenWidth = ref(0)
@@ -248,6 +257,12 @@ const fetchAllRecords = async () => {
       if (res.data && typeof res.data.total_records === 'number') {
         totalRecords.value = res.data.total_records || 0
       }
+
+      // 设置卡片信息
+      recargarInfo.value.total_order = res.data.total_order || 0
+      recargarInfo.value.total_money = res.data.total_money || 0
+      recargarInfo.value.recently_order = res.data.recently_order || 0
+      recargarInfo.value.recently_money = res.data.recently_money || 0
     } else {
       $msg(res.msg || '获取充值记录失败', 'error')
     }
