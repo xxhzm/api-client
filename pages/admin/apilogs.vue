@@ -36,6 +36,22 @@
 
           <!-- 搜索工具栏 -->
           <div class="search-toolbar">
+            <div class="search-row">
+              <div class="search-input id-search">
+                <span class="label">请求ID：</span>
+                <el-input
+                  v-model="searchId"
+                  placeholder="请输入请求ID"
+                  clearable
+                >
+                  <template #prefix>
+                    <el-icon>
+                      <Search />
+                    </el-icon>
+                  </template>
+                </el-input>
+              </div>
+            </div>
             <div class="search-items">
               <div class="date-picker">
                 <span class="label">选择时间：</span>
@@ -51,8 +67,37 @@
               </div>
               <div class="search-input">
                 <el-input
-                  v-model="searchId"
-                  placeholder="请输入请求ID"
+                  v-model="searchIp"
+                  placeholder="请输入IP地址"
+                  clearable
+                >
+                  <template #prefix>
+                    <el-icon>
+                      <Search />
+                    </el-icon>
+                  </template>
+                </el-input>
+              </div>
+              <div class="search-input">
+                <el-autocomplete
+                  v-model="searchAlias"
+                  :fetch-suggestions="querySearchAsync"
+                  placeholder="请输入接口名称"
+                  clearable
+                  class="full-width"
+                  @select="handleSearchSelect"
+                >
+                  <template #prefix>
+                    <el-icon>
+                      <Search />
+                    </el-icon>
+                  </template>
+                </el-autocomplete>
+              </div>
+              <div class="search-input">
+                <el-input
+                  v-model="searchStatusCode"
+                  placeholder="请输入状态码"
                   clearable
                 >
                   <template #prefix>
@@ -117,7 +162,12 @@
                   <template #default="scope">
                     <el-tag
                       :type="
-                        scope.row.status_code === 200 ? 'success' : 'danger'
+                        scope.row.status_code === 200
+                          ? 'success'
+                          : scope.row.status_code === 302 ||
+                            scope.row.status_code === 301
+                          ? 'primary'
+                          : 'danger'
                       "
                       size="small"
                     >
@@ -125,7 +175,7 @@
                     </el-tag>
                   </template>
                 </el-table-column>
-                <el-table-column prop="client_ip" label="IP" width="130" />
+                <el-table-column prop="client_ip" label="IP" width="140" />
                 <el-table-column
                   prop="address"
                   label="归属地"
@@ -141,6 +191,12 @@
                   prop="ua"
                   label="User Agent"
                   min-width="200"
+                  show-overflow-tooltip
+                />
+                <el-table-column
+                  prop="referer"
+                  label="来源"
+                  min-width="180"
                   show-overflow-tooltip
                 />
               </el-table>
@@ -203,7 +259,13 @@ watch(
     }
     pageLoading.value = true
 
-    if (searchTime.value === undefined) {
+    if (
+      searchTime.value === undefined &&
+      !searchIp.value &&
+      !searchAliasValue.value &&
+      !searchStatusCode.value &&
+      searchId.value === ''
+    ) {
       await getData()
     } else {
       await handleSearch(newValue)
@@ -240,8 +302,9 @@ const getData = async () => {
     // 移除右侧字符串
     res.data.logs[key].path = pathAndParams[0].slice(0, -1)
 
-    const uaArr = res.data.logs[key].url.split('=')
-    res.data.logs[key].ua = uaArr[uaArr.length - 1]
+    // 直接使用API返回的ua字段，不再从URL中解析
+    // const uaArr = res.data.logs[key].url.split('=')
+    // res.data.logs[key].ua = uaArr[uaArr.length - 1]
   })
 
   tableData.value = res.data.logs
@@ -254,19 +317,42 @@ const disabledDate = (time) => {
 }
 
 const handleSearchTime = async (sPage) => {
-  if (searchTime.value === undefined) {
-    $msg('请选择时间或输入ID进行查询', 'error')
+  // 如果没有任何筛选条件，则返回错误
+  if (
+    searchTime.value === undefined &&
+    !searchIp.value &&
+    !searchAliasValue.value &&
+    !searchStatusCode.value
+  ) {
+    $msg('请至少选择一项筛选条件', 'error')
     return false
   }
 
-  const res = await $myFetch('ApiLogSearch', {
-    params: {
-      startTime: searchTime.value[0],
-      endTime: searchTime.value[1],
-      page: sPage,
-      size: 100,
-    },
-  })
+  const params = {
+    page: sPage,
+    size: 100,
+  }
+
+  // 添加时间筛选条件
+  if (searchTime.value) {
+    params.startTime = searchTime.value[0]
+    params.endTime = searchTime.value[1]
+  }
+
+  // 添加其他筛选条件
+  if (searchIp.value) {
+    params.client_ip = searchIp.value
+  }
+
+  if (searchAliasValue.value) {
+    params.alias = searchAliasValue.value
+  }
+
+  if (searchStatusCode.value) {
+    params.status_code = searchStatusCode.value
+  }
+
+  const res = await $myFetch('ApiLogSearch', { params })
 
   if (res.code !== 200) {
     $msg(res.msg, 'warning')
@@ -286,8 +372,9 @@ const handleSearchTime = async (sPage) => {
     // 移除右侧字符串
     res.data.logs[key].path = pathAndParams[0].slice(0, -1)
 
-    const uaArr = res.data.logs[key].url.split('=')
-    res.data.logs[key].ua = uaArr[uaArr.length - 1]
+    // 直接使用API返回的ua字段，不再从URL中解析
+    // const uaArr = res.data.logs[key].url.split('=')
+    // res.data.logs[key].ua = uaArr[uaArr.length - 1]
   })
 
   tableData.value = res.data.logs
@@ -325,8 +412,9 @@ const handleSearchId = async () => {
   // 移除右侧字符串
   res.data.path = pathAndParams[0].slice(0, -1)
 
-  const uaArr = res.data.url.split('=')
-  res.data.ua = uaArr[uaArr.length - 1]
+  // 直接使用API返回的ua字段，不再从URL中解析
+  // const uaArr = res.data.url.split('=')
+  // res.data.ua = uaArr[uaArr.length - 1]
 
   pageLock.value = true
   tableData.value = [res.data]
@@ -348,11 +436,68 @@ onMounted(() => {
 
 const searchTime = ref()
 const searchId = ref('')
+const searchIp = ref('')
+const searchAlias = ref('')
+const searchAliasValue = ref('')
+const searchStatusCode = ref('')
+
+// 接口搜索相关变量
+const searchApiData = ref([])
+const searchApiOldValue = ref('')
+
+// 接口名称搜索
+const querySearchAsync = async (queryString, cb) => {
+  if (queryString === '') {
+    searchAlias.value = ''
+    searchAliasValue.value = ''
+    cb([])
+    return false
+  }
+
+  if (queryString === searchApiOldValue.value) {
+    cb(searchApiData.value)
+    return false
+  }
+
+  const res = await $myFetch('ApiSearch', {
+    params: {
+      keyword: queryString,
+    },
+  })
+
+  if (res.code !== 200) {
+    $msg(res.msg, 'error')
+    cb([])
+    return
+  }
+
+  // 遍历数据，显示name，但保存alias用于搜索
+  const formattedData = res.data.map((item) => {
+    return {
+      value: item.name, // 显示名称
+      alias: item.alias, // 保存真实的alias值用于搜索
+    }
+  })
+
+  searchApiOldValue.value = queryString
+  searchApiData.value = formattedData
+  cb(searchApiData.value)
+}
+
+// 处理接口名称选择
+const handleSearchSelect = (item) => {
+  searchAliasValue.value = item.alias // 保存选中项的alias值用于搜索
+}
 
 const handleReset = () => {
   getData()
   searchTime.value = undefined
   searchId.value = ''
+  searchIp.value = ''
+  searchAlias.value = ''
+  searchAliasValue.value = ''
+  searchStatusCode.value = ''
+  searchApiOldValue.value = ''
 }
 useHead({
   title: '接口日志',
@@ -444,6 +589,33 @@ useHead({
           padding: 20px 24px;
           margin-bottom: 16px;
 
+          .search-row {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            flex-wrap: wrap;
+            margin-bottom: 16px;
+            padding-bottom: 16px;
+            border-bottom: 1px dashed #e2e8f0;
+
+            .id-search {
+              display: flex;
+              align-items: center;
+              width: 100%;
+
+              .label {
+                color: #374151;
+                font-size: 14px;
+                margin-right: 8px;
+                white-space: nowrap;
+              }
+
+              .el-input {
+                flex: 1;
+              }
+            }
+          }
+
           .search-items {
             display: flex;
             align-items: center;
@@ -462,7 +634,15 @@ useHead({
             }
 
             .search-input {
-              width: 240px;
+              width: 220px;
+
+              :deep(.el-autocomplete) {
+                width: 100%;
+              }
+
+              .full-width {
+                width: 100%;
+              }
             }
 
             .search-buttons {
