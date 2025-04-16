@@ -148,7 +148,7 @@ onMounted(async () => {
 
   const res = await $myFetch('TodayRequest')
 
-  if (res.data !== undefined) {
+  if (res.data !== undefined && res.data !== null) {
     res.data.forEach((element) => {
       todayRequest.value.data.push({
         name: element.alias,
