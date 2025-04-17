@@ -232,8 +232,25 @@
           </el-menu-item-group>
         </el-sub-menu>
 
+        <el-sub-menu index="7" v-if="routeShowArr(['/admin/ip-ban'])">
+          <template #title>
+            <el-icon>
+              <Lock />
+            </el-icon>
+            <span>安全管理</span>
+          </template>
+          <el-menu-item-group title="安全管理">
+            <el-menu-item
+              index="7-1"
+              @click="navigateTo('/admin/ip-ban')"
+              v-if="routeShow('/admin/ip-ban')"
+              >IP封禁</el-menu-item
+            >
+          </el-menu-item-group>
+        </el-sub-menu>
+
         <el-menu-item
-          index="7"
+          index="8"
           @click="navigateTo('/admin/key')"
           v-if="routeShow('/admin/key')"
         >
@@ -244,7 +261,7 @@
         </el-menu-item>
 
         <el-menu-item
-          index="8"
+          index="9"
           @click="navigateTo('/admin/links')"
           v-if="routeShow('/admin/links')"
         >
@@ -254,7 +271,7 @@
           <template #title>友情链接</template>
         </el-menu-item>
 
-        <el-menu-item index="9" @click="openInNewTab('/')">
+        <el-menu-item index="10" @click="openInNewTab('/')">
           <el-icon>
             <Promotion />
           </el-icon>
@@ -276,6 +293,7 @@ import {
   Avatar,
   Connection,
   Wallet,
+  Lock,
 } from '@element-plus/icons-vue'
 
 const { $msg, $myFetch } = useNuxtApp()

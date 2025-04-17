@@ -311,7 +311,6 @@ const fetchAttackData = async () => {
       updateTime()
     }
   } catch (error) {
-    console.error('获取攻击数据失败:', error)
     hasError.value = true
   } finally {
     isLoading.value = false
@@ -402,9 +401,7 @@ const initChart = async () => {
 
     // 添加窗口大小改变时的自适应处理
     window.addEventListener('resize', handleResize)
-  } catch (error) {
-    console.error('Failed to initialize chart:', error)
-  }
+  } catch (error) {}
 }
 
 // 处理窗口大小改变

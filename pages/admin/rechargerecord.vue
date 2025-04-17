@@ -267,7 +267,6 @@ const fetchAllRecords = async () => {
       $msg(res.msg || '获取充值记录失败', 'error')
     }
   } catch (error) {
-    console.error('获取充值记录失败:', error)
     $msg('获取充值记录失败', 'error')
   } finally {
     pageLoading.value = false
