@@ -246,6 +246,12 @@
               v-if="routeShow('/admin/ip-ban')"
               >IP封禁</el-menu-item
             >
+            <el-menu-item
+              index="7-2"
+              @click="navigateTo('/admin/api-rate-limit')"
+              v-if="routeShow('/admin/api-rate-limit')"
+              >接口限频</el-menu-item
+            >
           </el-menu-item-group>
         </el-sub-menu>
 

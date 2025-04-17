@@ -86,7 +86,11 @@
                   <template #default="scope">
                     <el-tag
                       :type="
-                        scope.row.status === '已封禁' ? 'danger' : 'success'
+                        scope.row.status === '已封禁'
+                          ? 'danger'
+                          : scope.row.status === 'IP白名单'
+                          ? 'info'
+                          : 'success'
                       "
                       size="small"
                     >
@@ -203,11 +207,11 @@
                     label="已解除"
                     :disabled="!isEdit.value"
                   />
-                  <el-option :value="3" label="白名单" />
+                  <el-option :value="3" label="IP白名单" />
                 </el-select>
                 <div class="status-tip" v-if="!isEdit.value">
                   <el-icon><InfoFilled /></el-icon>
-                  <span>新增IP时只能选择"已封禁"或"白名单"状态</span>
+                  <span>新增IP时可选择"已封禁"或"IP白名单"(信任的IP)</span>
                 </div>
               </el-form-item>
             </el-form>
@@ -336,7 +340,7 @@ const getStatusText = (statusValue) => {
   const statusMap = {
     1: '已封禁',
     2: '已解除',
-    3: '白名单',
+    3: 'IP白名单',
   }
   return statusMap[statusValue] || '已封禁'
 }

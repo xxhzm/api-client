@@ -299,12 +299,11 @@ const getData = async () => {
     res.data.logs[key].method = parts[0]
 
     const pathAndParams = parts[1].split('clientIP=')
-    // 移除右侧字符串
-    res.data.logs[key].path = pathAndParams[0].slice(0, -1)
-
-    // 直接使用API返回的ua字段，不再从URL中解析
-    // const uaArr = res.data.logs[key].url.split('=')
-    // res.data.logs[key].ua = uaArr[uaArr.length - 1]
+    // 如果最右侧为?则移除
+    if (pathAndParams[0].endsWith('?')) {
+      pathAndParams[0] = pathAndParams[0].slice(0, -1)
+    }
+    res.data.logs[key].path = pathAndParams[0]
   })
 
   tableData.value = res.data.logs
