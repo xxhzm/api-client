@@ -22,14 +22,16 @@
             </div>
             <div class="header-right">
               <el-pagination
-                :page-size="100"
-                :pager-count="5"
+      v-model:page-size="pageSize"
+                :page-sizes="[100, 200, 300, 400]"
+                :pager-count="11"
                 :page-count="maxPage"
                 v-model:current-page="page"
                 :disabled="pageLoading"
                 size="small"
                 background
-                layout="prev, pager, next"
+                layout="sizes, prev, pager, next, jumper"
+                @size-change="getData"
               />
             </div>
           </div>
@@ -248,6 +250,8 @@ const pageLock = ref(false)
 const maxPage = ref(50)
 // 页数loading
 const pageLoading = ref(false)
+// 每页显示条数
+const pageSize = ref(100)
 
 // 监听页数变化
 watch(
@@ -283,7 +287,7 @@ const getData = async () => {
   const res = await $myFetch('ApiLogList', {
     params: {
       page: page.value,
-      size: 100,
+      size: pageSize.value,
     },
   })
 
