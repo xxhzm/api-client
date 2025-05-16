@@ -22,7 +22,7 @@
             </div>
             <div class="header-right">
               <el-pagination
-      v-model:page-size="pageSize"
+                v-model:page-size="pageSize"
                 :page-sizes="[100, 200, 300, 400]"
                 :pager-count="11"
                 :page-count="maxPage"
@@ -336,7 +336,7 @@ const handleSearchTime = async (sPage) => {
 
   const params = {
     page: sPage,
-    size: 100,
+    size: pageSize.value,
   }
 
   // 添加时间筛选条件

@@ -188,12 +188,20 @@
                   <el-form-item label="支付宝Appid">
                     <el-input v-model="alipayInfo.Appid" />
                   </el-form-item>
-                  <el-form-item label="支付宝私钥">
+                  <el-form-item label="应用私钥">
                     <el-input
                       v-model="alipayInfo.PrivateKey"
                       type="textarea"
                       :rows="5"
                       placeholder="请输入支付宝私钥"
+                    />
+                  </el-form-item>
+                  <el-form-item label="支付宝公钥">
+                    <el-input
+                      v-model="alipayInfo.PublicKey"
+                      type="textarea"
+                      :rows="5"
+                      placeholder="请输入支付宝公钥"
                     />
                   </el-form-item>
                   <el-form-item>
@@ -241,6 +249,7 @@ const mailInfo = ref({
 const alipayInfo = ref({
   Appid: '',
   PrivateKey: '',
+  PublicKey: '',
 })
 
 // 控制左侧边栏显示隐藏
@@ -512,6 +521,7 @@ const alipayInfoSubmit = async () => {
   const bodyValue = new URLSearchParams()
   bodyValue.append('appid', alipayInfo.value.Appid)
   bodyValue.append('privateKey', alipayInfo.value.PrivateKey)
+  bodyValue.append('publicKey', alipayInfo.value.PublicKey)
 
   const res = await $myFetch('AlipayOptionUpdate', {
     method: 'POST',
