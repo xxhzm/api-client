@@ -7,7 +7,9 @@
       <div class="overlay" v-show="isoverlay" @click="handleSidebarShow"></div>
       <!-- 侧边栏控制按钮 -->
       <div class="control-sidebar" v-show="iscontrolShow">
-        <el-icon @click="handleSidebarShow"><Menu /></el-icon>
+        <el-icon @click="handleSidebarShow">
+          <Menu />
+        </el-icon>
       </div>
       <AdminHeader></AdminHeader>
       <div class="package-container" v-loading="loading">
@@ -15,7 +17,9 @@
           <!-- 标题区域 -->
           <div class="card-header">
             <div class="header-left">
-              <el-icon class="icon"><Tickets /></el-icon>
+              <el-icon class="icon">
+                <Tickets />
+              </el-icon>
               <span class="title">套餐管理</span>
             </div>
             <div class="header-right">
@@ -38,19 +42,11 @@
                   </template>
                   <template #default="scope">
                     <div class="table-actions">
-                      <el-button
-                        type="primary"
-                        link
-                        @click="handleEdit(scope.$index, scope.row)"
-                      >
+                      <el-button type="primary" link @click="handleEdit(scope.$index, scope.row)">
                         编辑
                       </el-button>
-                      <el-popconfirm
-                        confirm-button-text="确定"
-                        cancel-button-text="取消"
-                        title="确定要删除吗？"
-                        @confirm="handleDelete(scope.$index, scope.row)"
-                      >
+                      <el-popconfirm confirm-button-text="确定" cancel-button-text="取消" title="确定要删除吗？"
+                        @confirm="handleDelete(scope.$index, scope.row)">
                         <template #reference>
                           <el-button type="danger" link> 删除 </el-button>
                         </template>
@@ -60,11 +56,7 @@
                 </el-table-column>
                 <el-table-column prop="id" label="ID" width="80" />
                 <el-table-column prop="name" label="套餐名称" min-width="120" />
-                <el-table-column
-                  prop="api_name"
-                  label="接口名称"
-                  min-width="120"
-                />
+                <el-table-column prop="api_name" label="接口名称" min-width="120" />
                 <el-table-column prop="type" label="类型" width="120">
                   <template #default="scope">
                     <el-tag :type="getTypeTag(scope.row.type)">
@@ -89,58 +81,33 @@
                 </el-table-column>
                 <el-table-column prop="status" label="状态" width="100">
                   <template #default="scope">
-                    <el-tag
-                      :type="scope.row.status === 1 ? 'success' : 'danger'"
-                      class="status-tag"
-                      @click="handleStatusChange(scope.row)"
-                      style="cursor: pointer"
-                    >
+                    <el-tag :type="scope.row.status === 1 ? 'success' : 'danger'" class="status-tag"
+                      @click="handleStatusChange(scope.row)" style="cursor: pointer">
                       {{ scope.row.status === 1 ? '启用' : '禁用' }}
                     </el-tag>
                   </template>
                 </el-table-column>
-                <el-table-column
-                  prop="create_time"
-                  label="创建时间"
-                  width="180"
-                />
-                <el-table-column
-                  prop="update_time"
-                  label="修改时间"
-                  width="180"
-                />
+                <el-table-column prop="create_time" label="创建时间" width="180" />
+                <el-table-column prop="update_time" label="修改时间" width="180" />
               </el-table>
             </client-only>
           </div>
 
           <!-- 新增/编辑套餐对话框 -->
-          <el-dialog
-            v-model="dialogStatus"
-            :title="updatePackageStatus ? '修改套餐' : '新增套餐'"
-            width="600px"
-            destroy-on-close
-            class="package-dialog"
-          >
+          <el-dialog v-model="dialogStatus" :title="updatePackageStatus ? '修改套餐' : '新增套餐'" width="600px"
+            destroy-on-close class="package-dialog">
             <div class="dialog-content">
               <el-form :model="packageInfo" label-width="100px">
                 <el-row :gutter="20">
                   <el-col :span="12">
                     <el-form-item label="套餐名称" required>
-                      <el-input
-                        v-model="packageInfo.name"
-                        placeholder="请输入套餐名称"
-                      />
+                      <el-input v-model="packageInfo.name" placeholder="请输入套餐名称" />
                     </el-form-item>
                   </el-col>
                   <el-col :span="12">
                     <el-form-item label="接口名称" required>
-                      <el-autocomplete
-                        v-model="packageInfo.api_name"
-                        :fetch-suggestions="querySearchAsync"
-                        placeholder="请输入接口名称"
-                        @select="handleSearchSelect"
-                        class="full-width"
-                      />
+                      <el-autocomplete v-model="packageInfo.api_name" :fetch-suggestions="querySearchAsync"
+                        placeholder="请输入接口名称" @select="handleSearchSelect" class="full-width" />
                     </el-form-item>
                   </el-col>
                 </el-row>
@@ -148,11 +115,7 @@
                 <el-row :gutter="20">
                   <el-col :span="12">
                     <el-form-item label="套餐类型" required>
-                      <el-select
-                        v-model="packageInfo.type"
-                        placeholder="请选择套餐类型"
-                        class="full-width"
-                      >
+                      <el-select v-model="packageInfo.type" placeholder="请选择套餐类型" class="full-width">
                         <el-option label="包月计费" :value="2" />
                         <el-option label="点数包" :value="3" />
                       </el-select>
@@ -160,12 +123,8 @@
                   </el-col>
                   <el-col :span="12">
                     <el-form-item label="套餐价格" required>
-                      <el-input
-                        v-model="packageInfo.price"
-                        placeholder="请输入价格(整数)"
-                        class="full-width"
-                        @input="validateNumber('price')"
-                      >
+                      <el-input v-model="packageInfo.price" placeholder="请输入价格(整数)" class="full-width"
+                        @input="handleCustomAmount('price')">
                         <template #suffix>¥</template>
                       </el-input>
                     </el-form-item>
@@ -174,31 +133,15 @@
 
                 <el-row :gutter="20">
                   <el-col :span="12">
-                    <el-form-item
-                      label="包含点数"
-                      v-if="packageInfo.type === 3"
-                      required
-                    >
-                      <el-input
-                        v-model="packageInfo.points"
-                        placeholder="请输入点数"
-                        class="full-width"
-                        @input="validateNumber('points')"
-                      >
+                    <el-form-item label="包含点数" v-if="packageInfo.type === 3" required>
+                      <el-input v-model="packageInfo.points" placeholder="请输入点数" class="full-width"
+                        @input="validateNumber('points')">
                         <template #suffix>点</template>
                       </el-input>
                     </el-form-item>
-                    <el-form-item
-                      label="有效期"
-                      required
-                      v-if="packageInfo.type === 2"
-                    >
-                      <el-input
-                        v-model="packageInfo.duration"
-                        placeholder="请输入有效期(天)"
-                        class="full-width"
-                        @input="validateNumber('duration')"
-                      >
+                    <el-form-item label="有效期" required v-if="packageInfo.type === 2">
+                      <el-input v-model="packageInfo.duration" placeholder="请输入有效期(天)" class="full-width"
+                        @input="validateNumber('duration')">
                         <template #suffix>天</template>
                       </el-input>
                     </el-form-item>
@@ -207,20 +150,11 @@
                 </el-row>
 
                 <el-form-item label="状态">
-                  <el-switch
-                    v-model="packageInfo.status"
-                    :active-value="1"
-                    :inactive-value="0"
-                  />
+                  <el-switch v-model="packageInfo.status" :active-value="1" :inactive-value="0" />
                 </el-form-item>
 
                 <el-form-item label="描述">
-                  <el-input
-                    v-model="packageInfo.description"
-                    type="textarea"
-                    :rows="3"
-                    placeholder="请输入套餐描述"
-                  />
+                  <el-input v-model="packageInfo.description" type="textarea" :rows="3" placeholder="请输入套餐描述" />
                 </el-form-item>
               </el-form>
             </div>
@@ -520,6 +454,19 @@ watch(dialogStatus, (newValue) => {
 })
 
 // 数字验证
+// 自定义金额
+const handleCustomAmount = (field) => {
+  if (packageInfo.value[field]) {
+    // 允许输入数字和小数点，但限制只能有一个小数点
+    const numVal = packageInfo.value[field].toString().replace(/[^\d.]/g, '').replace(/(\..*)\./g, '$1')
+    // 只更新显示值，不立即转换为数字
+    packageInfo.value[field] = numVal
+  } else {
+    // 当输入框为空时，设置金额为0
+    packageInfo.value[field] = ''
+  }
+}
+
 const validateNumber = (field) => {
   // 移除非数字字符
   packageInfo.value[field] = packageInfo.value[field]
@@ -548,6 +495,7 @@ useHead({
   .right {
     width: 100%;
     min-width: 0;
+
     .overlay {
       position: absolute;
       top: 0;
@@ -557,6 +505,7 @@ useHead({
       height: 100%;
       background-color: rgba(0, 0, 0, 0.5);
     }
+
     .control-sidebar {
       position: absolute;
       width: 35px;
@@ -567,11 +516,13 @@ useHead({
       text-align: center;
       background: #fff;
       box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+
       .el-icon {
         margin-top: 10px;
         font-size: 16px;
       }
     }
+
     .package-container {
       position: relative;
       min-height: 100vh;
@@ -723,6 +674,7 @@ useHead({
 
         .el-input-number.full-width {
           width: 100%;
+
           .el-input__wrapper {
             padding-left: 8px;
           }

@@ -7,7 +7,9 @@
       <div class="overlay" v-show="isoverlay" @click="handleSidebarShow"></div>
       <!-- 侧边栏控制按钮 -->
       <div class="control-sidebar" v-show="iscontrolShow">
-        <el-icon @click="handleSidebarShow"><Menu /></el-icon>
+        <el-icon @click="handleSidebarShow">
+          <Menu />
+        </el-icon>
       </div>
       <AdminHeader></AdminHeader>
       <div class="pay_container">
@@ -26,14 +28,18 @@
             <!-- 余额卡片 -->
             <el-card class="balance-card">
               <div class="section-title">
-                <el-icon><InfoFilled /></el-icon>
+                <el-icon>
+                  <InfoFilled />
+                </el-icon>
                 可用余额
               </div>
               <div class="balance-amount">
                 <span class="amount">{{ balance }}</span>
                 <span class="unit">元</span>
                 <el-button type="primary" link @click="refreshBalance">
-                  <el-icon><Refresh /></el-icon>
+                  <el-icon>
+                    <Refresh />
+                  </el-icon>
                 </el-button>
               </div>
             </el-card>
@@ -41,7 +47,9 @@
             <!-- 充值卡片 -->
             <el-card class="recharge-card">
               <div class="section-title">
-                <el-icon><Wallet /></el-icon>
+                <el-icon>
+                  <Wallet />
+                </el-icon>
                 在线充值
               </div>
 
@@ -52,10 +60,7 @@
                   <div class="amount-options">
                     <div class="label">快捷金额</div>
                     <div class="options">
-                      <el-radio-group
-                        v-model="form.amount"
-                        class="amount-radio-group"
-                      >
+                      <el-radio-group v-model="form.amount" class="amount-radio-group">
                         <el-radio :value="10" required>
                           <span class="amount-label">
                             <span class="amount">10</span>
@@ -87,11 +92,7 @@
                   <!-- 其他金额 -->
                   <div class="custom-amount-section">
                     <div class="label">其他金额</div>
-                    <el-input
-                      v-model="form.customAmount"
-                      placeholder="请输入充值金额"
-                      @input="handleCustomAmount"
-                    >
+                    <el-input v-model="form.customAmount" placeholder="请输入充值金额" @input="handleCustomAmount">
                       <template #append>元</template>
                     </el-input>
                   </div>
@@ -121,12 +122,7 @@
                       <span class="value">支付宝支付</span>
                     </div>
                   </div>
-                  <el-button
-                    type="primary"
-                    @click="submitForm"
-                    :loading="loading"
-                    class="submit-btn"
-                  >
+                  <el-button type="primary" @click="submitForm" :loading="loading" class="submit-btn">
                     确认支付
                   </el-button>
                   <div class="order-tips">温馨提示：支付成功后5分钟内到账</div>
@@ -138,14 +134,8 @@
       </div>
     </div>
     <!-- 支付状态确认弹窗 -->
-    <el-dialog
-      v-model="payStatusDialogVisible"
-      title="支付确认"
-      width="400px"
-      :close-on-click-modal="false"
-      :show-close="false"
-      class="pay-status-dialog"
-    >
+    <el-dialog v-model="payStatusDialogVisible" title="支付确认" width="400px" :close-on-click-modal="false"
+      :show-close="false" class="pay-status-dialog">
       <div class="pay-status-content">
         <p class="status-tips">请确认支付是否完成</p>
         <div class="status-buttons">
@@ -212,11 +202,11 @@ const payStatusDialogVisible = ref(false)
 // 处理自定义金额输入
 const handleCustomAmount = (val) => {
   if (val) {
-    // 移除非数字字符
-    const numVal = val.replace(/[^\d]/g, '')
+    // 允许输入数字和小数点，但限制只能有一个小数点
+    const numVal = val.replace(/[^\d.]/g, '').replace(/(\..*)\./g, '$1')
     form.value.customAmount = numVal
-    // 直接更新金额，不设置最小值限制
-    form.value.amount = parseInt(numVal) || 0
+    // 转换为数字，保留两位小数
+    form.value.amount = parseFloat(numVal) || 0
   } else {
     // 当输入框为空时，设置金额为0
     form.value.amount = 0
@@ -254,7 +244,7 @@ let timer = null
 
 // 提交充值表单
 const submitForm = async () => {
-  if (form.value.amount < 1) {
+  if (form.value.amount < 0.01) {
     $msg('充值金额不能小于1元', 'error')
     return
   }
@@ -262,6 +252,10 @@ const submitForm = async () => {
     $msg('单次充值金额不能大于100000元', 'error')
     return
   }
+
+  // 先立即打开一个空白窗口（在用户点击事件中）-防止safari浏览器拦截
+  const newWin = window.open('', '_blank');
+
 
   loading.value = true
   try {
@@ -279,7 +273,10 @@ const submitForm = async () => {
     if (res.code === 200) {
       $msg('订单创建成功，正在跳转支付页面', 'success')
       // 在新窗口打开支付链接
-      window.open(res.data.url, '_blank')
+      // window.open(res.data.url, '_blank', 'noopener,noreferrer')
+      newWin.location = res.data.url;
+      newWin.focus();
+
       // 显示支付状态确认弹窗
       payStatusDialogVisible.value = true
       // 查询接口
@@ -310,6 +307,7 @@ const submitForm = async () => {
     }
   } catch (error) {
     $msg(error.message, 'error')
+    newWin.close();
   }
   loading.value = false
 }
@@ -352,6 +350,7 @@ useHead({
     flex: 1;
     height: 100vh;
     background: #f5f5f5;
+
     .overlay {
       position: absolute;
       top: 0;
@@ -361,6 +360,7 @@ useHead({
       height: 100%;
       background-color: rgba(0, 0, 0, 0.5);
     }
+
     .control-sidebar {
       position: absolute;
       width: 35px;
@@ -371,6 +371,7 @@ useHead({
       text-align: center;
       background: #fff;
       box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+
       .el-icon {
         margin-top: 10px;
         font-size: 16px;

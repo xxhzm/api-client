@@ -1,36 +1,18 @@
 <template>
   <div class="sidebar-container">
-    <el-menu
-      class="sidebar-menu"
-      @open="handleOpen"
-      @close="handleClose"
-      :unique-opened="true"
-    >
+    <el-menu class="sidebar-menu" @open="handleOpen" @close="handleClose" :unique-opened="true">
       <el-menu-item index="1" @click="navigateTo('/admin')">
-        <img
-          src="@/assets/images/logo.png"
-          alt="logo"
-          class="logo"
-          style="width: 120px"
-        />
+        <img src="@/assets/images/logo.png" alt="logo" class="logo" style="width: 120px" />
       </el-menu-item>
       <div>
-        <el-menu-item
-          index="1"
-          @click="navigateTo('/admin')"
-          v-if="routeShow('/admin')"
-          style="margin-top: 10px"
-        >
+        <el-menu-item index="1" @click="navigateTo('/admin')" v-if="routeShow('/admin')" style="margin-top: 10px">
           <el-icon>
             <Odometer />
           </el-icon>
           <template #title>控制台</template>
         </el-menu-item>
 
-        <el-sub-menu
-          index="2"
-          v-if="routeShowArr(['/admin/webset', '/admin/sitemap'])"
-        >
+        <el-sub-menu index="2" v-if="routeShowArr(['/admin/webset', '/admin/sitemap'])">
           <template #title>
             <el-icon>
               <Setting />
@@ -38,40 +20,25 @@
             <span>系统设置</span>
           </template>
           <el-menu-item-group title="系统设置">
-            <el-menu-item
-              index="2-1"
-              @click="navigateTo('/admin/webset')"
-              v-if="routeShow('/admin/webset')"
-              >基本设置</el-menu-item
-            >
-            <el-menu-item
-              index="2-2"
-              @click="navigateTo('/admin/ad')"
-              v-if="routeShow('/admin/ad')"
-              >广告位管理</el-menu-item
-            >
-            <el-menu-item
-              index="2-3"
-              @click="sitemap()"
-              v-if="routeShow('/admin/sitemap')"
-              >生成网站地图
+            <el-menu-item index="2-1" @click="navigateTo('/admin/webset')"
+              v-if="routeShow('/admin/webset')">基本设置</el-menu-item>
+            <el-menu-item index="2-2" @click="navigateTo('/admin/ad')"
+              v-if="routeShow('/admin/ad')">广告位管理</el-menu-item>
+            <el-menu-item index="2-3" @click="sitemap()" v-if="routeShow('/admin/sitemap')">生成网站地图
             </el-menu-item>
           </el-menu-item-group>
         </el-sub-menu>
 
-        <el-sub-menu
-          index="3"
-          v-if="
-            routeShowArr([
-              '/admin/apilist',
-              '/admin/createapi',
-              '/admin/addparam',
-              '/admin/categories',
-              '/admin/prefix',
-              '/admin/apilogs',
-            ])
-          "
-        >
+        <el-sub-menu index="3" v-if="
+          routeShowArr([
+            '/admin/apilist',
+            '/admin/createapi',
+            '/admin/addparam',
+            '/admin/categories',
+            '/admin/prefix',
+            '/admin/apilogs',
+          ])
+        ">
           <template #title>
             <el-icon>
               <List />
@@ -79,55 +46,30 @@
             <span>接口管理</span>
           </template>
           <el-menu-item-group title="接口管理">
-            <el-menu-item
-              index="3-1"
-              @click="navigateTo('/admin/apilist')"
-              v-if="routeShow('/admin/apilist')"
-              >接口列表</el-menu-item
-            >
-            <el-menu-item
-              index="3-2"
-              @click="navigateTo('/admin/createapi')"
-              v-if="routeShow('/admin/createapi')"
-              >新增接口</el-menu-item
-            >
-            <el-menu-item
-              index="3-3"
-              @click="navigateTo('/admin/addparam')"
-              v-if="routeShow('/admin/addparam')"
-              >添加参数</el-menu-item
-            >
-            <el-menu-item
-              index="3-4"
-              @click="navigateTo('/admin/categories')"
-              v-if="routeShow('/admin/categories')"
-              >管理分类</el-menu-item
-            >
-            <el-menu-item
-              index="3-5"
-              @click="navigateTo('/admin/prefix')"
-              v-if="routeShow('/admin/prefix')"
-              >管理前缀</el-menu-item
-            >
-            <el-menu-item
-              index="3-6"
-              @click="navigateTo('/admin/apilogs')"
-              v-if="routeShow('/admin/apilogs')"
-              >接口日志</el-menu-item
-            >
+            <el-menu-item index="3-1" @click="navigateTo('/admin/apilist')"
+              v-if="routeShow('/admin/apilist')">接口列表</el-menu-item>
+            <el-menu-item index="3-2" @click="navigateTo('/admin/createapi')"
+              v-if="routeShow('/admin/createapi')">新增接口</el-menu-item>
+            <el-menu-item index="3-3" @click="navigateTo('/admin/addparam')"
+              v-if="routeShow('/admin/addparam')">添加参数</el-menu-item>
+            <el-menu-item index="3-4" @click="navigateTo('/admin/categories')"
+              v-if="routeShow('/admin/categories')">管理分类</el-menu-item>
+            <el-menu-item index="3-5" @click="navigateTo('/admin/prefix')"
+              v-if="routeShow('/admin/prefix')">管理前缀</el-menu-item>
+            <el-menu-item index="3-6" @click="navigateTo('/admin/apilogs')"
+              v-if="routeShow('/admin/apilogs')">接口日志</el-menu-item>
+            <el-menu-item index="3-6" @click="navigateTo('/admin/statistics')"
+              v-if="routeShow('/admin/statistics')">统计分析</el-menu-item>
           </el-menu-item-group>
         </el-sub-menu>
 
-        <el-sub-menu
-          index="4"
-          v-if="
-            routeShowArr([
-              '/admin/userlist',
-              '/admin/rolelist',
-              '/admin/permissionlist',
-            ])
-          "
-        >
+        <el-sub-menu index="4" v-if="
+          routeShowArr([
+            '/admin/userlist',
+            '/admin/rolelist',
+            '/admin/permissionlist',
+          ])
+        ">
           <template #title>
             <el-icon>
               <Avatar />
@@ -135,31 +77,16 @@
             <span>用户管理</span>
           </template>
           <el-menu-item-group title="用户管理">
-            <el-menu-item
-              index="4-1"
-              @click="navigateTo('/admin/userlist')"
-              v-if="routeShow('/admin/userlist')"
-              >用户列表</el-menu-item
-            >
-            <el-menu-item
-              index="4-2"
-              @click="navigateTo('/admin/rolelist')"
-              v-if="routeShow('/admin/rolelist')"
-              >角色列表</el-menu-item
-            >
-            <el-menu-item
-              index="4-3"
-              @click="navigateTo('/admin/permissionlist')"
-              v-if="routeShow('/admin/permissionlist')"
-              >权限列表</el-menu-item
-            >
+            <el-menu-item index="4-1" @click="navigateTo('/admin/userlist')"
+              v-if="routeShow('/admin/userlist')">用户列表</el-menu-item>
+            <el-menu-item index="4-2" @click="navigateTo('/admin/rolelist')"
+              v-if="routeShow('/admin/rolelist')">角色列表</el-menu-item>
+            <el-menu-item index="4-3" @click="navigateTo('/admin/permissionlist')"
+              v-if="routeShow('/admin/permissionlist')">权限列表</el-menu-item>
           </el-menu-item-group>
         </el-sub-menu>
 
-        <el-sub-menu
-          index="5"
-          v-if="routeShowArr(['/admin/articlelist', '/admin/createarticle'])"
-        >
+        <el-sub-menu index="5" v-if="routeShowArr(['/admin/articlelist', '/admin/createarticle'])">
           <template #title>
             <el-icon>
               <Tickets />
@@ -167,25 +94,14 @@
             <span>文章管理</span>
           </template>
           <el-menu-item-group title="文章管理">
-            <el-menu-item
-              index="5-1"
-              @click="navigateTo('/admin/articlelist')"
-              v-if="routeShow('/admin/articlelist')"
-              >文章列表</el-menu-item
-            >
-            <el-menu-item
-              index="5-2"
-              @click="navigateTo('/admin/createarticle')"
-              v-if="routeShow('/admin/createarticle')"
-              >新增文章</el-menu-item
-            >
+            <el-menu-item index="5-1" @click="navigateTo('/admin/articlelist')"
+              v-if="routeShow('/admin/articlelist')">文章列表</el-menu-item>
+            <el-menu-item index="5-2" @click="navigateTo('/admin/createarticle')"
+              v-if="routeShow('/admin/createarticle')">新增文章</el-menu-item>
           </el-menu-item-group>
         </el-sub-menu>
 
-        <el-sub-menu
-          index="6"
-          v-if="routeShowArr(['/admin/pay', '/admin/package'])"
-        >
+        <el-sub-menu index="6" v-if="routeShowArr(['/admin/pay', '/admin/package'])">
           <template #title>
             <el-icon>
               <Wallet />
@@ -193,42 +109,18 @@
             <span>财务功能</span>
           </template>
           <el-menu-item-group title="财务功能">
-            <el-menu-item
-              index="6-1"
-              @click="navigateTo('/admin/pay')"
-              v-if="routeShow('/admin/pay')"
-              >账户充值</el-menu-item
-            >
-            <el-menu-item
-              index="6-2"
-              @click="navigateTo('/admin/rechargerecord')"
-              v-if="routeShow('/admin/rechargerecord')"
-              >充值记录</el-menu-item
-            >
-            <el-menu-item
-              index="6-3"
-              @click="navigateTo('/admin/buypackagerecord')"
-              v-if="routeShow('/admin/buypackagerecord')"
-              >购买记录</el-menu-item
-            >
-            <el-menu-item
-              index="6-4"
-              @click="navigateTo('/admin/package')"
-              v-if="routeShow('/admin/package')"
-              >套餐管理</el-menu-item
-            >
-            <el-menu-item
-              index="6-5"
-              @click="navigateTo('/admin/buy')"
-              v-if="routeShow('/admin/buy')"
-              >购买套餐</el-menu-item
-            >
-            <el-menu-item
-              index="6-6"
-              @click="navigateTo('/admin/mypackage')"
-              v-if="routeShow('/admin/mypackage')"
-              >我的套餐</el-menu-item
-            >
+            <el-menu-item index="6-1" @click="navigateTo('/admin/pay')"
+              v-if="routeShow('/admin/pay')">账户充值</el-menu-item>
+            <el-menu-item index="6-2" @click="navigateTo('/admin/rechargerecord')"
+              v-if="routeShow('/admin/rechargerecord')">充值记录</el-menu-item>
+            <el-menu-item index="6-3" @click="navigateTo('/admin/buypackagerecord')"
+              v-if="routeShow('/admin/buypackagerecord')">购买记录</el-menu-item>
+            <el-menu-item index="6-4" @click="navigateTo('/admin/package')"
+              v-if="routeShow('/admin/package')">套餐管理</el-menu-item>
+            <el-menu-item index="6-5" @click="navigateTo('/admin/buy')"
+              v-if="routeShow('/admin/buy')">购买套餐</el-menu-item>
+            <el-menu-item index="6-6" @click="navigateTo('/admin/mypackage')"
+              v-if="routeShow('/admin/mypackage')">我的套餐</el-menu-item>
           </el-menu-item-group>
         </el-sub-menu>
 
@@ -240,37 +132,21 @@
             <span>安全管理</span>
           </template>
           <el-menu-item-group title="安全管理">
-            <el-menu-item
-              index="7-1"
-              @click="navigateTo('/admin/ip-ban')"
-              v-if="routeShow('/admin/ip-ban')"
-              >IP封禁</el-menu-item
-            >
-            <el-menu-item
-              index="7-2"
-              @click="navigateTo('/admin/api-rate-limit')"
-              v-if="routeShow('/admin/api-rate-limit')"
-              >接口限频</el-menu-item
-            >
+            <el-menu-item index="7-1" @click="navigateTo('/admin/ip-ban')"
+              v-if="routeShow('/admin/ip-ban')">IP封禁</el-menu-item>
+            <el-menu-item index="7-2" @click="navigateTo('/admin/api-rate-limit')"
+              v-if="routeShow('/admin/api-rate-limit')">接口限频</el-menu-item>
           </el-menu-item-group>
         </el-sub-menu>
 
-        <el-menu-item
-          index="8"
-          @click="navigateTo('/admin/key')"
-          v-if="routeShow('/admin/key')"
-        >
+        <el-menu-item index="8" @click="navigateTo('/admin/key')" v-if="routeShow('/admin/key')">
           <el-icon>
             <Connection />
           </el-icon>
           <template #title>API密钥管理</template>
         </el-menu-item>
 
-        <el-menu-item
-          index="9"
-          @click="navigateTo('/admin/links')"
-          v-if="routeShow('/admin/links')"
-        >
+        <el-menu-item index="9" @click="navigateTo('/admin/links')" v-if="routeShow('/admin/links')">
           <el-icon>
             <Connection />
           </el-icon>
@@ -369,6 +245,7 @@ const openInNewTab = (url) => {
     width: 200px;
   }
 }
+
 @media screen and (max-width: 768px) {
   .sidebar-container {
     position: absolute;
