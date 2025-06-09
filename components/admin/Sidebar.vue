@@ -83,6 +83,8 @@
               v-if="routeShow('/admin/rolelist')">角色列表</el-menu-item>
             <el-menu-item index="4-3" @click="navigateTo('/admin/permissionlist')"
               v-if="routeShow('/admin/permissionlist')">权限列表</el-menu-item>
+            <el-menu-item index="4-4" @click="navigateTo('/admin/keylog')"
+              v-if="routeShow('/admin/keylog')">秘钥历史记录</el-menu-item>
           </el-menu-item-group>
         </el-sub-menu>
 
