@@ -160,6 +160,11 @@ onMounted(() => {
         // 获取数据
         getStats()
 
+        // 每1分钟获取一次数据
+        setInterval(() => {
+            getStats()
+        }, 60000)
+
         // 监听窗口大小变化
         window.addEventListener('resize', () => {
             trendChart?.resize()

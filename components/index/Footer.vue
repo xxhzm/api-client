@@ -2,64 +2,35 @@
   <div class="footer-container">
     <div class="footer">
       <p style="text-align: center">
-        <span v-if="props.options.icp"
-          ><a href="https://beian.miit.gov.cn/" target="_blank">{{
-            props.options.icp
-          }}</a> </span
-        ><br />
-        <span v-if="props.options.gongan"
-          ><img
-            src="@/assets/images/gongan.png"
-            width="15"
-            height="15"
-            alt=""
-          /><a
-            target="_blank"
-            :href="
-              'https://beian.mps.gov.cn/#/query/webSearch?code=' +
+        <span v-if="props.options.icp"><a href="https://beian.miit.gov.cn/" target="_blank">{{
+          props.options.icp
+            }}</a> </span><br />
+        <span v-if="props.options.gongan"><img src="@/assets/images/gongan.png" width="15" height="15" alt="" /><a
+            target="_blank" :href="'https://beian.mps.gov.cn/#/query/webSearch?code=' +
               props.options.gongan
-            "
-            >{{ props.options.gongan }}</a
-          ></span
-        >
+              ">{{ props.options.gongan }}</a></span>
       </p>
     </div>
     <nav class="custom-tabbar">
-      <a
-        class="tabbar-item"
-        @click="handleNavigate('/')"
-        :class="{ active: currentPath === '/' }"
-      >
+      <a class="tabbar-item" @click="handleNavigate('/')" :class="{ active: currentPath === '/' }">
         <el-icon>
           <House />
         </el-icon>
         <span>首页</span>
       </a>
-      <a
-        class="tabbar-item"
-        @click="handleNavigate('/links')"
-        :class="{ active: currentPath === '/links' }"
-      >
+      <a class="tabbar-item" @click="handleNavigate('/links')" :class="{ active: currentPath === '/links' }">
         <el-icon>
           <Link />
         </el-icon>
         <span>友情链接</span>
       </a>
-      <a
-        class="tabbar-item"
-        @click="handleNavigate('/articles')"
-        :class="{ active: currentPath === '/articles' }"
-      >
+      <a class="tabbar-item" @click="handleNavigate('/articles')" :class="{ active: currentPath === '/articles' }">
         <el-icon>
           <Document />
         </el-icon>
-        <span>文章</span>
+        <span>新闻</span>
       </a>
-      <a
-        class="tabbar-item"
-        @click="handleNavigate('/about')"
-        :class="{ active: currentPath === '/about' }"
-      >
+      <a class="tabbar-item" @click="handleNavigate('/about')" :class="{ active: currentPath === '/about' }">
         <el-icon>
           <InfoFilled />
         </el-icon>
@@ -71,11 +42,7 @@
         </el-icon>
         <span>实时监控</span>
       </a>
-      <a
-        class="tabbar-item"
-        @click="handleNavigate('/login')"
-        :class="{ active: currentPath === '/login' }"
-      >
+      <a class="tabbar-item" @click="handleNavigate('/login')" :class="{ active: currentPath === '/login' }">
         <el-icon>
           <User />
         </el-icon>
