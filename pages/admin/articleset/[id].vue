@@ -1,91 +1,3 @@
-<template>
-  <div class="container">
-    <AdminSidebar v-show="isSidebarShow"></AdminSidebar>
-
-    <div class="right">
-      <!-- 遮罩层 -->
-      <div class="overlay" v-show="isoverlay" @click="handleSidebarShow"></div>
-      <!-- 侧边栏控制按钮 -->
-      <div class="control-sidebar" v-show="iscontrolShow">
-        <el-icon @click="handleSidebarShow"><Menu /></el-icon>
-      </div>
-      <AdminHeader></AdminHeader>
-      <div class="createArticle-container">
-        <div class="createArticle-cont">
-          <el-form :model="updateArticleInfo" label-width="100px">
-            <el-row :gutter="12">
-              <el-col :xs="24" :sm="24" :md="24" :lg="24" :xl="24">
-                <el-form-item label="文章标题">
-                  <el-input
-                    v-model="updateArticleInfo.title"
-                    maxlength="256"
-                    show-word-limit
-                  /> </el-form-item
-              ></el-col>
-              <el-col :xs="24" :sm="24" :md="24" :lg="24" :xl="24">
-                <el-form-item label="文章状态">
-                  <el-select
-                    v-model="updateArticleInfo.status"
-                    placeholder="请选择状态"
-                  >
-                    <el-option label="开启" value="1"></el-option>
-                    <el-option label="关闭" value="2"></el-option>
-                    <el-option label="草稿" value="3"></el-option>
-                  </el-select> </el-form-item
-              ></el-col>
-              <el-col :xs="24" :sm="24" :md="24" :lg="24" :xl="24">
-                <el-form-item label="文章关键词">
-                  <el-input
-                    v-model="updateArticleInfo.keywords"
-                    maxlength="256"
-                    show-word-limit
-                    placeholder="英文逗号隔开"
-                  /> </el-form-item
-              ></el-col>
-              <el-col :xs="24" :sm="24" :md="24" :lg="24" :xl="24">
-                <el-form-item label="文章描述">
-                  <el-input
-                    v-model="updateArticleInfo.description"
-                  /> </el-form-item
-              ></el-col>
-              <el-col
-                :xs="23"
-                :sm="23"
-                :md="23"
-                :lg="23"
-                :xl="23"
-                style="margin: 0 auto"
-              >
-                <div id="vditor"></div>
-              </el-col>
-            </el-row>
-          </el-form>
-        </div>
-        <div class="createArticle-footer">
-          <div class="button">
-            <el-button
-              size="large"
-              color="#626aef"
-              type="primary"
-              @click="submit"
-              >提交</el-button
-            >
-
-            <el-button
-              size="large"
-              color="#ff9e08"
-              style="color: #fff"
-              type="primary"
-              @click="navigateTo('/admin')"
-              >返回</el-button
-            >
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-</template>
-
 <script setup>
 import { Menu } from '@element-plus/icons-vue'
 
@@ -234,6 +146,93 @@ useHead({
   charset: 'utf-8',
 })
 </script>
+<template>
+  <div class="container">
+    <AdminSidebar v-show="isSidebarShow"></AdminSidebar>
+
+    <div class="right">
+      <!-- 遮罩层 -->
+      <div class="overlay" v-show="isoverlay" @click="handleSidebarShow"></div>
+      <!-- 侧边栏控制按钮 -->
+      <div class="control-sidebar" v-show="iscontrolShow">
+        <el-icon @click="handleSidebarShow"><Menu /></el-icon>
+      </div>
+      <AdminHeader></AdminHeader>
+      <div class="createArticle-container">
+        <div class="createArticle-cont">
+          <el-form :model="updateArticleInfo" label-width="100px">
+            <el-row :gutter="12">
+              <el-col :xs="24" :sm="24" :md="24" :lg="24" :xl="24">
+                <el-form-item label="文章标题">
+                  <el-input
+                    v-model="updateArticleInfo.title"
+                    maxlength="256"
+                    show-word-limit
+                  /> </el-form-item
+              ></el-col>
+              <el-col :xs="24" :sm="24" :md="24" :lg="24" :xl="24">
+                <el-form-item label="文章状态">
+                  <el-select
+                    v-model="updateArticleInfo.status"
+                    placeholder="请选择状态"
+                  >
+                    <el-option label="开启" value="1"></el-option>
+                    <el-option label="关闭" value="2"></el-option>
+                    <el-option label="草稿" value="3"></el-option>
+                  </el-select> </el-form-item
+              ></el-col>
+              <el-col :xs="24" :sm="24" :md="24" :lg="24" :xl="24">
+                <el-form-item label="文章关键词">
+                  <el-input
+                    v-model="updateArticleInfo.keywords"
+                    maxlength="256"
+                    show-word-limit
+                    placeholder="英文逗号隔开"
+                  /> </el-form-item
+              ></el-col>
+              <el-col :xs="24" :sm="24" :md="24" :lg="24" :xl="24">
+                <el-form-item label="文章描述">
+                  <el-input
+                    v-model="updateArticleInfo.description"
+                  /> </el-form-item
+              ></el-col>
+              <el-col
+                :xs="23"
+                :sm="23"
+                :md="23"
+                :lg="23"
+                :xl="23"
+                style="margin: 0 auto"
+              >
+                <div id="vditor"></div>
+              </el-col>
+            </el-row>
+          </el-form>
+        </div>
+        <div class="createArticle-footer">
+          <div class="button">
+            <el-button
+              size="large"
+              color="#626aef"
+              type="primary"
+              @click="submit"
+              >提交</el-button
+            >
+
+            <el-button
+              size="large"
+              color="#ff9e08"
+              style="color: #fff"
+              type="primary"
+              @click="navigateTo('/admin')"
+              >返回</el-button
+            >
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</template>
 
 <style lang="less" scoped>
 .container {

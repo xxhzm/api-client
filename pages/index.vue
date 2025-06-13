@@ -1,3 +1,89 @@
+<script setup>
+import {
+  ChatDotSquare,
+  Search,
+  Right,
+  Connection,
+  View,
+  Star,
+} from '@element-plus/icons-vue'
+
+const { $myFetch } = useNuxtApp()
+
+// 配置项
+const options = ref({})
+const links = ref([])
+
+const {
+  data: { value: res },
+} = await useAsyncData('Options', () => $myFetch('Options'))
+
+options.value = res.data
+
+const {
+  data: { value: linkRes },
+} = await useAsyncData('LinkList', () => $myFetch('LinkList'))
+
+links.value = linkRes.data
+
+useHead({
+  title: options.value.title + ' - ' + options.value.subheading,
+  viewport:
+    'width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0',
+  charset: 'utf-8',
+  meta: [
+    { name: 'description', content: options.value.description },
+    { name: 'keywords', content: options.value.keywords },
+  ],
+})
+
+// 添加搜索相关的数据和方法
+const search = ref('')
+const list = useState('list')
+const listSearch = useState('listSearch')
+
+// 生成随机数的函数
+const getRandomNumber = (min, max) => {
+  return Math.floor(Math.random() * (max - min + 1)) + min
+}
+
+// 格式化数字为带逗号的字符串
+const formatNumber = (num) => {
+  return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',')
+}
+
+// 从API列表中随机选择4个并添加随机统计数据
+const generateHotApis = computed(() => {
+  if (!list.value) return []
+
+  // 随机打乱数组并取前4个
+  const randomApis = [...list.value].sort(() => Math.random() - 0.5).slice(0, 4)
+
+  // 为每个API添加随机的调用量和收藏数
+  return randomApis.map((api) => ({
+    name: api.name,
+    desc: api.description || '暂无描述',
+    views: formatNumber(getRandomNumber(100000, 2000000)), // 10万到200万之间
+    stars: formatNumber(getRandomNumber(1000, 5000)), // 1千到5千之间
+    alias: api.alias, // 添加alias用于跳转
+  }))
+})
+
+// 替换静态的hotApis为计算属性
+const hotApis = computed(() => generateHotApis.value)
+
+watch(
+  () => search.value,
+  () => {
+    listSearch.value = list.value.filter(
+      (data) =>
+        !search.value ||
+        data.name.toLowerCase().includes(search.value.toLowerCase())
+    )
+  }
+)
+</script>
+
 <template>
   <div class="index-container">
     <IndexNotice></IndexNotice>
@@ -173,92 +259,6 @@
     <IndexFooter :options="options"></IndexFooter>
   </div>
 </template>
-
-<script setup>
-import {
-  ChatDotSquare,
-  Search,
-  Right,
-  Connection,
-  View,
-  Star,
-} from '@element-plus/icons-vue'
-
-const { $myFetch } = useNuxtApp()
-
-// 配置项
-const options = ref({})
-const links = ref([])
-
-const {
-  data: { value: res },
-} = await useAsyncData('Options', () => $myFetch('Options'))
-
-options.value = res.data
-
-const {
-  data: { value: linkRes },
-} = await useAsyncData('LinkList', () => $myFetch('LinkList'))
-
-links.value = linkRes.data
-
-useHead({
-  title: options.value.title + ' - ' + options.value.subheading,
-  viewport:
-    'width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0',
-  charset: 'utf-8',
-  meta: [
-    { name: 'description', content: options.value.description },
-    { name: 'keywords', content: options.value.keywords },
-  ],
-})
-
-// 添加搜索相关的数据和方法
-const search = ref('')
-const list = useState('list')
-const listSearch = useState('listSearch')
-
-// 生成随机数的函数
-const getRandomNumber = (min, max) => {
-  return Math.floor(Math.random() * (max - min + 1)) + min
-}
-
-// 格式化数字为带逗号的字符串
-const formatNumber = (num) => {
-  return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',')
-}
-
-// 从API列表中随机选择4个并添加随机统计数据
-const generateHotApis = computed(() => {
-  if (!list.value) return []
-
-  // 随机打乱数组并取前4个
-  const randomApis = [...list.value].sort(() => Math.random() - 0.5).slice(0, 4)
-
-  // 为每个API添加随机的调用量和收藏数
-  return randomApis.map((api) => ({
-    name: api.name,
-    desc: api.description || '暂无描述',
-    views: formatNumber(getRandomNumber(100000, 2000000)), // 10万到200万之间
-    stars: formatNumber(getRandomNumber(1000, 5000)), // 1千到5千之间
-    alias: api.alias, // 添加alias用于跳转
-  }))
-})
-
-// 替换静态的hotApis为计算属性
-const hotApis = computed(() => generateHotApis.value)
-
-watch(
-  () => search.value,
-  () => {
-    listSearch.value = list.value.filter(
-      (data) =>
-        !search.value ||
-        data.name.toLowerCase().includes(search.value.toLowerCase())
-    )
-  }
-)
-</script>
 
 <style lang="less" scoped>
 .index-container {

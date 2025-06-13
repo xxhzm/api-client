@@ -1,305 +1,3 @@
-<template>
-  <div class="container">
-    <AdminSidebar v-show="isSidebarShow"></AdminSidebar>
-
-    <div class="right">
-      <!-- 遮罩层 -->
-      <div class="overlay" v-show="isoverlay" @click="handleSidebarShow"></div>
-      <!-- 侧边栏控制按钮 -->
-      <div class="control-sidebar" v-show="iscontrolShow">
-        <el-icon @click="handleSidebarShow">
-          <Menu />
-        </el-icon>
-      </div>
-      <AdminHeader></AdminHeader>
-      <div class="apiset-container">
-        <div class="apiset-cont">
-          <ClientOnly>
-            <el-tabs v-model="activeName">
-              <el-tab-pane label="基本信息" name="Base">
-                <el-form :model="apiSetInfo">
-                  <el-row :gutter="12">
-                    <el-col :xs="24" :sm="24" :md="24" :lg="24" :xl="24">
-                      <el-form-item label="接口名称"><el-input v-model="apiSetInfo.name" maxlength="25"
-                          show-word-limit /></el-form-item>
-                    </el-col>
-
-                    <el-col :xs="24" :sm="24" :md="24" :lg="24" :xl="24">
-                      <el-form-item label="接口别名">
-                        <el-input v-model="apiSetInfo.alias" maxlength="25" show-word-limit />
-                      </el-form-item>
-                    </el-col>
-
-                    <el-col :xs="24" :sm="24" :md="24" :lg="24" :xl="24">
-                      <el-form-item label="接口地址">
-                        <el-input v-model="apiSetInfo.url" />
-                      </el-form-item>
-                    </el-col>
-
-                    <el-col :xs="24" :sm="24" :md="24" :lg="24" :xl="24">
-                      <el-form-item label="请求类型">
-                        <el-input v-model="apiSetInfo.method" />
-                      </el-form-item>
-                    </el-col>
-
-                    <el-col :xs="24" :sm="24" :md="24" :lg="24" :xl="24">
-                      <el-form-item label="接口示例">
-                        <el-input v-model="apiSetInfo.example_url" />
-                      </el-form-item>
-                    </el-col>
-
-                    <el-col :xs="24" :sm="24" :md="24" :lg="24" :xl="24">
-                      <el-form-item label="接口前缀">
-                        <client-only>
-                          <el-autocomplete v-model="apiSetInfo.prefixValue" :fetch-suggestions="querySearchPrefix"
-                            placeholder="请选择服务" @select="handlePrefixSelect" />
-                        </client-only>
-                      </el-form-item>
-                    </el-col>
-
-                    <el-col :xs="24" :sm="24" :md="24" :lg="24" :xl="24">
-                      <el-form-item label="接口分类">
-                        <el-autocomplete v-model="apiSetInfo.category" :fetch-suggestions="querySearch"
-                          placeholder="请选择分类" @select="handleSelect" />
-                      </el-form-item>
-                    </el-col>
-
-                    <el-col :xs="24" :sm="24" :md="24" :lg="24" :xl="24">
-                      <el-form-item label="接口状态">
-                        <el-select v-model="apiSetInfo.state" placeholder="请选择状态">
-                          <el-option label="启用" :value="true"></el-option>
-                          <el-option label="停用" :value="false"></el-option>
-                        </el-select>
-                      </el-form-item>
-                    </el-col>
-
-                    <el-col :xs="24" :sm="24" :md="24" :lg="24" :xl="24">
-                      <el-form-item label="秘钥验证">
-                        <el-select v-model="apiSetInfo.keyState" placeholder="请选择状态">
-                          <el-option label="开启" :value="true"></el-option>
-                          <el-option label="关闭" :value="false"></el-option>
-                        </el-select>
-                      </el-form-item>
-                    </el-col>
-
-                    <el-col :xs="24" :sm="24" :md="24" :lg="24" :xl="24">
-                      <el-form-item label="返回示例">
-                        <el-input :rows="10" v-model="apiSetInfo.example" type="textarea" />
-                      </el-form-item>
-                    </el-col>
-                  </el-row>
-                </el-form>
-              </el-tab-pane>
-
-              <el-tab-pane label="参数信息" name="Parameter">
-                <el-table :data="paramsArr">
-                  <el-table-column prop="aid" label="id" width="60" />
-                  <el-table-column prop="name" label="接口名称" width="100" />
-                  <el-table-column prop="param" label="传递参数" width="100" />
-                  <el-table-column prop="position" label="传入位置" width="100" />
-                  <el-table-column prop="docs" label="参数描述" width="300" />
-                  <el-table-column prop="required" label="是否必传" width="100" />
-                  <el-table-column prop="create_time" label="创建时间" width="165" />
-                  <el-table-column width="100" label="操作">
-                    <template #default="scope">
-                      <el-popconfirm confirm-button-text="确定" cancel-button-text="取消" title="您确定要删除吗?" width="160px"
-                        @confirm="handleDelete(scope.$index, scope.row)">
-                        <template #reference>
-                          <el-button size="small" type="danger">删除</el-button>
-                        </template>
-                      </el-popconfirm>
-                    </template>
-                  </el-table-column>
-                </el-table>
-              </el-tab-pane>
-
-              <el-tab-pane label="套餐信息" name="Package">
-                <div class="table-container">
-                  <div class="card-header">
-                    <div class="header-left">
-                      <el-icon class="icon">
-                        <Tickets />
-                      </el-icon>
-                      <span class="title">套餐管理</span>
-                    </div>
-                    <div class="header-right">
-                      <el-button type="primary" @click="handleAddPackage">
-                        <span>新增套餐</span>
-                      </el-button>
-                    </div>
-                  </div>
-                  <client-only>
-                    <el-table :data="filterPackageList" style="width: 100%">
-                      <el-table-column width="160" fixed="right">
-                        <template #header>
-                          <div class="search-wrapper">
-                            <el-input v-model="packageSearch" placeholder="搜索" clearable>
-                            </el-input>
-                          </div>
-                        </template>
-                        <template #default="scope">
-                          <div class="table-actions">
-                            <el-button type="primary" link @click="
-                              handlePackageEdit(scope.$index, scope.row)
-                              ">
-                              编辑
-                            </el-button>
-                            <el-popconfirm confirm-button-text="确定" cancel-button-text="取消" title="确定要删除吗？" @confirm="
-                              handlePackageDelete(scope.$index, scope.row)
-                              ">
-                              <template #reference>
-                                <el-button type="danger" link> 删除 </el-button>
-                              </template>
-                            </el-popconfirm>
-                          </div>
-                        </template>
-                      </el-table-column>
-                      <el-table-column prop="id" label="ID" width="80" />
-                      <el-table-column prop="name" label="套餐名称" min-width="120" />
-                      <el-table-column prop="type" label="类型" width="120">
-                        <template #default="scope">
-                          <el-tag :type="getPackageTypeTag(scope.row.type)">
-                            {{ getPackageTypeText(scope.row.type) }}
-                          </el-tag>
-                        </template>
-                      </el-table-column>
-                      <el-table-column prop="price" label="价格" width="100">
-                        <template #default="scope">
-                          <span class="price">¥{{ scope.row.price }}</span>
-                        </template>
-                      </el-table-column>
-                      <el-table-column prop="duration" label="有效期" width="100">
-                        <template #default="scope">
-                          <span class="duration">{{ scope.row.duration }}天</span>
-                        </template>
-                      </el-table-column>
-                      <el-table-column prop="points" label="点数" width="80">
-                        <template #default="scope">
-                          <span class="points">{{ scope.row.points }}</span>
-                        </template>
-                      </el-table-column>
-                      <el-table-column prop="status" label="状态" width="100">
-                        <template #default="scope">
-                          <el-tag :type="scope.row.status === 1 ? 'success' : 'danger'
-                            " class="status-tag" @click="handlePackageStatusChange(scope.row)" style="cursor: pointer">
-                            {{ scope.row.status === 1 ? '启用' : '禁用' }}
-                          </el-tag>
-                        </template>
-                      </el-table-column>
-                      <el-table-column prop="created_time" label="创建时间" width="180">
-                        <template #default="scope">
-                          {{
-                            new Date(
-                              Number(scope.row.created_time)
-                            ).toLocaleString()
-                          }}
-                        </template>
-                      </el-table-column>
-                      <el-table-column prop="updated_time" label="修改时间" width="180">
-                        <template #default="scope">
-                          {{
-                            new Date(
-                              Number(scope.row.updated_time)
-                            ).toLocaleString()
-                          }}
-                        </template>
-                      </el-table-column>
-                    </el-table>
-
-                    <!-- 新增/编辑套餐对话框 -->
-                    <el-dialog v-model="dialogStatus" :title="updatePackageStatus ? '修改套餐' : '新增套餐'" width="600px"
-                      destroy-on-close class="package-dialog">
-                      <div class="dialog-content">
-                        <el-form :model="packageInfo" label-width="100px">
-                          <el-row :gutter="20">
-                            <el-col :span="12">
-                              <el-form-item label="套餐名称" required>
-                                <el-input v-model="packageInfo.name" placeholder="请输入套餐名称" />
-                              </el-form-item>
-                            </el-col>
-                            <el-col :span="12">
-                              <el-form-item label="接口名称" required>
-                                <el-input v-model="packageInfo.api_name" placeholder="请输入接口名称" disabled />
-                              </el-form-item>
-                            </el-col>
-                          </el-row>
-
-                          <el-row :gutter="20">
-                            <el-col :span="12">
-                              <el-form-item label="套餐类型" required>
-                                <el-select v-model="packageInfo.type" placeholder="请选择套餐类型" class="full-width">
-                                  <el-option label="包月计费" :value="2" />
-                                  <el-option label="点数包" :value="3" />
-                                </el-select>
-                              </el-form-item>
-                            </el-col>
-                            <el-col :span="12">
-                              <el-form-item label="套餐价格" required>
-                                <el-input v-model="packageInfo.price" placeholder="请输入价格" class="full-width"
-                                  @input="handleCustomAmount('price')">
-                                  <template #suffix>¥</template>
-                                </el-input>
-                              </el-form-item>
-                            </el-col>
-                          </el-row>
-
-                          <el-row :gutter="20">
-                            <el-col :span="12">
-                              <el-form-item label="包含点数" v-if="packageInfo.type === 3" required>
-                                <el-input v-model="packageInfo.points" placeholder="请输入点数" class="full-width"
-                                  @input="validateNumber('points')">
-                                  <template #suffix>点</template>
-                                </el-input>
-                              </el-form-item>
-                              <el-form-item label="有效期" required v-if="packageInfo.type === 2">
-                                <el-input v-model="packageInfo.duration" placeholder="请输入有效期(天)" class="full-width"
-                                  @input="validateNumber('duration')">
-                                  <template #suffix>天</template>
-                                </el-input>
-                              </el-form-item>
-                            </el-col>
-                            <el-col :span="12"> </el-col>
-                          </el-row>
-
-                          <el-form-item label="状态">
-                            <el-switch v-model="packageInfo.status" :active-value="1" :inactive-value="0" />
-                          </el-form-item>
-
-                          <el-form-item label="描述">
-                            <el-input v-model="packageInfo.description" type="textarea" :rows="3"
-                              placeholder="请输入套餐描述" />
-                          </el-form-item>
-                        </el-form>
-                      </div>
-                      <template #footer>
-                        <div class="dialog-footer">
-                          <el-button @click="dialogStatus = false">取消</el-button>
-                          <el-button type="primary" @click="submitPackage">
-                            {{ updatePackageStatus ? '修改' : '创建' }}
-                          </el-button>
-                        </div>
-                      </template>
-                    </el-dialog>
-                  </client-only>
-                </div>
-              </el-tab-pane>
-            </el-tabs>
-            <div class="apiset-footer">
-              <div class="button">
-                <el-button size="large" color="#626aef" type="primary" :loading="buttonStatus"
-                  @click="updateApiInfo">提交</el-button>
-
-                <el-button size="large" color="#ff9e08" style="color: #fff" type="primary"
-                  @click="navigateTo('/admin/apilist')">返回</el-button>
-              </div>
-            </div>
-          </ClientOnly>
-        </div>
-      </div>
-    </div>
-  </div>
-</template>
-
 <script setup>
 import { Tickets, Menu } from '@element-plus/icons-vue'
 
@@ -749,7 +447,10 @@ watch(dialogStatus, (newValue) => {
 const handleCustomAmount = (field) => {
   if (packageInfo.value[field]) {
     // 允许输入数字和小数点，但限制只能有一个小数点
-    const numVal = packageInfo.value[field].toString().replace(/[^\d.]/g, '').replace(/(\..*)\./g, '$1')
+    const numVal = packageInfo.value[field]
+      .toString()
+      .replace(/[^\d.]/g, '')
+      .replace(/(\..*)\./g, '$1')
     // 只更新显示值，不立即转换为数字
     packageInfo.value[field] = numVal
   } else {
@@ -757,7 +458,6 @@ const handleCustomAmount = (field) => {
     packageInfo.value[field] = ''
   }
 }
-
 
 const validateNumber = (field) => {
   // 移除非数字字符
@@ -796,6 +496,446 @@ useHead({
   charset: 'utf-8',
 })
 </script>
+
+<template>
+  <div class="container">
+    <AdminSidebar v-show="isSidebarShow"></AdminSidebar>
+
+    <div class="right">
+      <!-- 遮罩层 -->
+      <div class="overlay" v-show="isoverlay" @click="handleSidebarShow"></div>
+      <!-- 侧边栏控制按钮 -->
+      <div class="control-sidebar" v-show="iscontrolShow">
+        <el-icon @click="handleSidebarShow">
+          <Menu />
+        </el-icon>
+      </div>
+      <AdminHeader></AdminHeader>
+      <div class="apiset-container">
+        <div class="apiset-cont">
+          <ClientOnly>
+            <el-tabs v-model="activeName">
+              <el-tab-pane label="基本信息" name="Base">
+                <el-form :model="apiSetInfo">
+                  <el-row :gutter="12">
+                    <el-col :xs="24" :sm="24" :md="24" :lg="24" :xl="24">
+                      <el-form-item label="接口名称"
+                        ><el-input
+                          v-model="apiSetInfo.name"
+                          maxlength="25"
+                          show-word-limit
+                      /></el-form-item>
+                    </el-col>
+
+                    <el-col :xs="24" :sm="24" :md="24" :lg="24" :xl="24">
+                      <el-form-item label="接口别名">
+                        <el-input
+                          v-model="apiSetInfo.alias"
+                          maxlength="25"
+                          show-word-limit
+                        />
+                      </el-form-item>
+                    </el-col>
+
+                    <el-col :xs="24" :sm="24" :md="24" :lg="24" :xl="24">
+                      <el-form-item label="接口地址">
+                        <el-input v-model="apiSetInfo.url" />
+                      </el-form-item>
+                    </el-col>
+
+                    <el-col :xs="24" :sm="24" :md="24" :lg="24" :xl="24">
+                      <el-form-item label="请求类型">
+                        <el-input v-model="apiSetInfo.method" />
+                      </el-form-item>
+                    </el-col>
+
+                    <el-col :xs="24" :sm="24" :md="24" :lg="24" :xl="24">
+                      <el-form-item label="接口示例">
+                        <el-input v-model="apiSetInfo.example_url" />
+                      </el-form-item>
+                    </el-col>
+
+                    <el-col :xs="24" :sm="24" :md="24" :lg="24" :xl="24">
+                      <el-form-item label="接口前缀">
+                        <client-only>
+                          <el-autocomplete
+                            v-model="apiSetInfo.prefixValue"
+                            :fetch-suggestions="querySearchPrefix"
+                            placeholder="请选择服务"
+                            @select="handlePrefixSelect"
+                          />
+                        </client-only>
+                      </el-form-item>
+                    </el-col>
+
+                    <el-col :xs="24" :sm="24" :md="24" :lg="24" :xl="24">
+                      <el-form-item label="接口分类">
+                        <el-autocomplete
+                          v-model="apiSetInfo.category"
+                          :fetch-suggestions="querySearch"
+                          placeholder="请选择分类"
+                          @select="handleSelect"
+                        />
+                      </el-form-item>
+                    </el-col>
+
+                    <el-col :xs="24" :sm="24" :md="24" :lg="24" :xl="24">
+                      <el-form-item label="接口状态">
+                        <el-select
+                          v-model="apiSetInfo.state"
+                          placeholder="请选择状态"
+                        >
+                          <el-option label="启用" :value="true"></el-option>
+                          <el-option label="停用" :value="false"></el-option>
+                        </el-select>
+                      </el-form-item>
+                    </el-col>
+
+                    <el-col :xs="24" :sm="24" :md="24" :lg="24" :xl="24">
+                      <el-form-item label="秘钥验证">
+                        <el-select
+                          v-model="apiSetInfo.keyState"
+                          placeholder="请选择状态"
+                        >
+                          <el-option label="开启" :value="true"></el-option>
+                          <el-option label="关闭" :value="false"></el-option>
+                        </el-select>
+                      </el-form-item>
+                    </el-col>
+
+                    <el-col :xs="24" :sm="24" :md="24" :lg="24" :xl="24">
+                      <el-form-item label="返回示例">
+                        <el-input
+                          :rows="10"
+                          v-model="apiSetInfo.example"
+                          type="textarea"
+                        />
+                      </el-form-item>
+                    </el-col>
+                  </el-row>
+                </el-form>
+              </el-tab-pane>
+
+              <el-tab-pane label="参数信息" name="Parameter">
+                <el-table :data="paramsArr">
+                  <el-table-column prop="aid" label="id" width="60" />
+                  <el-table-column prop="name" label="接口名称" width="100" />
+                  <el-table-column prop="param" label="传递参数" width="100" />
+                  <el-table-column
+                    prop="position"
+                    label="传入位置"
+                    width="100"
+                  />
+                  <el-table-column prop="docs" label="参数描述" width="300" />
+                  <el-table-column
+                    prop="required"
+                    label="是否必传"
+                    width="100"
+                  />
+                  <el-table-column
+                    prop="create_time"
+                    label="创建时间"
+                    width="165"
+                  />
+                  <el-table-column width="100" label="操作">
+                    <template #default="scope">
+                      <el-popconfirm
+                        confirm-button-text="确定"
+                        cancel-button-text="取消"
+                        title="您确定要删除吗?"
+                        width="160px"
+                        @confirm="handleDelete(scope.$index, scope.row)"
+                      >
+                        <template #reference>
+                          <el-button size="small" type="danger">删除</el-button>
+                        </template>
+                      </el-popconfirm>
+                    </template>
+                  </el-table-column>
+                </el-table>
+              </el-tab-pane>
+
+              <el-tab-pane label="套餐信息" name="Package">
+                <div class="table-container">
+                  <div class="card-header">
+                    <div class="header-left">
+                      <el-icon class="icon">
+                        <Tickets />
+                      </el-icon>
+                      <span class="title">套餐管理</span>
+                    </div>
+                    <div class="header-right">
+                      <el-button type="primary" @click="handleAddPackage">
+                        <span>新增套餐</span>
+                      </el-button>
+                    </div>
+                  </div>
+                  <client-only>
+                    <el-table :data="filterPackageList" style="width: 100%">
+                      <el-table-column width="160" fixed="right">
+                        <template #header>
+                          <div class="search-wrapper">
+                            <el-input
+                              v-model="packageSearch"
+                              placeholder="搜索"
+                              clearable
+                            >
+                            </el-input>
+                          </div>
+                        </template>
+                        <template #default="scope">
+                          <div class="table-actions">
+                            <el-button
+                              type="primary"
+                              link
+                              @click="
+                                handlePackageEdit(scope.$index, scope.row)
+                              "
+                            >
+                              编辑
+                            </el-button>
+                            <el-popconfirm
+                              confirm-button-text="确定"
+                              cancel-button-text="取消"
+                              title="确定要删除吗？"
+                              @confirm="
+                                handlePackageDelete(scope.$index, scope.row)
+                              "
+                            >
+                              <template #reference>
+                                <el-button type="danger" link> 删除 </el-button>
+                              </template>
+                            </el-popconfirm>
+                          </div>
+                        </template>
+                      </el-table-column>
+                      <el-table-column prop="id" label="ID" width="80" />
+                      <el-table-column
+                        prop="name"
+                        label="套餐名称"
+                        min-width="120"
+                      />
+                      <el-table-column prop="type" label="类型" width="120">
+                        <template #default="scope">
+                          <el-tag :type="getPackageTypeTag(scope.row.type)">
+                            {{ getPackageTypeText(scope.row.type) }}
+                          </el-tag>
+                        </template>
+                      </el-table-column>
+                      <el-table-column prop="price" label="价格" width="100">
+                        <template #default="scope">
+                          <span class="price">¥{{ scope.row.price }}</span>
+                        </template>
+                      </el-table-column>
+                      <el-table-column
+                        prop="duration"
+                        label="有效期"
+                        width="100"
+                      >
+                        <template #default="scope">
+                          <span class="duration"
+                            >{{ scope.row.duration }}天</span
+                          >
+                        </template>
+                      </el-table-column>
+                      <el-table-column prop="points" label="点数" width="80">
+                        <template #default="scope">
+                          <span class="points">{{ scope.row.points }}</span>
+                        </template>
+                      </el-table-column>
+                      <el-table-column prop="status" label="状态" width="100">
+                        <template #default="scope">
+                          <el-tag
+                            :type="
+                              scope.row.status === 1 ? 'success' : 'danger'
+                            "
+                            class="status-tag"
+                            @click="handlePackageStatusChange(scope.row)"
+                            style="cursor: pointer"
+                          >
+                            {{ scope.row.status === 1 ? '启用' : '禁用' }}
+                          </el-tag>
+                        </template>
+                      </el-table-column>
+                      <el-table-column
+                        prop="created_time"
+                        label="创建时间"
+                        width="180"
+                      >
+                        <template #default="scope">
+                          {{
+                            new Date(
+                              Number(scope.row.created_time)
+                            ).toLocaleString()
+                          }}
+                        </template>
+                      </el-table-column>
+                      <el-table-column
+                        prop="updated_time"
+                        label="修改时间"
+                        width="180"
+                      >
+                        <template #default="scope">
+                          {{
+                            new Date(
+                              Number(scope.row.updated_time)
+                            ).toLocaleString()
+                          }}
+                        </template>
+                      </el-table-column>
+                    </el-table>
+
+                    <!-- 新增/编辑套餐对话框 -->
+                    <el-dialog
+                      v-model="dialogStatus"
+                      :title="updatePackageStatus ? '修改套餐' : '新增套餐'"
+                      width="600px"
+                      destroy-on-close
+                      class="package-dialog"
+                    >
+                      <div class="dialog-content">
+                        <el-form :model="packageInfo" label-width="100px">
+                          <el-row :gutter="20">
+                            <el-col :span="12">
+                              <el-form-item label="套餐名称" required>
+                                <el-input
+                                  v-model="packageInfo.name"
+                                  placeholder="请输入套餐名称"
+                                />
+                              </el-form-item>
+                            </el-col>
+                            <el-col :span="12">
+                              <el-form-item label="接口名称" required>
+                                <el-input
+                                  v-model="packageInfo.api_name"
+                                  placeholder="请输入接口名称"
+                                  disabled
+                                />
+                              </el-form-item>
+                            </el-col>
+                          </el-row>
+
+                          <el-row :gutter="20">
+                            <el-col :span="12">
+                              <el-form-item label="套餐类型" required>
+                                <el-select
+                                  v-model="packageInfo.type"
+                                  placeholder="请选择套餐类型"
+                                  class="full-width"
+                                >
+                                  <el-option label="包月计费" :value="2" />
+                                  <el-option label="点数包" :value="3" />
+                                </el-select>
+                              </el-form-item>
+                            </el-col>
+                            <el-col :span="12">
+                              <el-form-item label="套餐价格" required>
+                                <el-input
+                                  v-model="packageInfo.price"
+                                  placeholder="请输入价格"
+                                  class="full-width"
+                                  @input="handleCustomAmount('price')"
+                                >
+                                  <template #suffix>¥</template>
+                                </el-input>
+                              </el-form-item>
+                            </el-col>
+                          </el-row>
+
+                          <el-row :gutter="20">
+                            <el-col :span="12">
+                              <el-form-item
+                                label="包含点数"
+                                v-if="packageInfo.type === 3"
+                                required
+                              >
+                                <el-input
+                                  v-model="packageInfo.points"
+                                  placeholder="请输入点数"
+                                  class="full-width"
+                                  @input="validateNumber('points')"
+                                >
+                                  <template #suffix>点</template>
+                                </el-input>
+                              </el-form-item>
+                              <el-form-item
+                                label="有效期"
+                                required
+                                v-if="packageInfo.type === 2"
+                              >
+                                <el-input
+                                  v-model="packageInfo.duration"
+                                  placeholder="请输入有效期(天)"
+                                  class="full-width"
+                                  @input="validateNumber('duration')"
+                                >
+                                  <template #suffix>天</template>
+                                </el-input>
+                              </el-form-item>
+                            </el-col>
+                            <el-col :span="12"> </el-col>
+                          </el-row>
+
+                          <el-form-item label="状态">
+                            <el-switch
+                              v-model="packageInfo.status"
+                              :active-value="1"
+                              :inactive-value="0"
+                            />
+                          </el-form-item>
+
+                          <el-form-item label="描述">
+                            <el-input
+                              v-model="packageInfo.description"
+                              type="textarea"
+                              :rows="3"
+                              placeholder="请输入套餐描述"
+                            />
+                          </el-form-item>
+                        </el-form>
+                      </div>
+                      <template #footer>
+                        <div class="dialog-footer">
+                          <el-button @click="dialogStatus = false"
+                            >取消</el-button
+                          >
+                          <el-button type="primary" @click="submitPackage">
+                            {{ updatePackageStatus ? '修改' : '创建' }}
+                          </el-button>
+                        </div>
+                      </template>
+                    </el-dialog>
+                  </client-only>
+                </div>
+              </el-tab-pane>
+            </el-tabs>
+            <div class="apiset-footer">
+              <div class="button">
+                <el-button
+                  size="large"
+                  color="#626aef"
+                  type="primary"
+                  :loading="buttonStatus"
+                  @click="updateApiInfo"
+                  >提交</el-button
+                >
+
+                <el-button
+                  size="large"
+                  color="#ff9e08"
+                  style="color: #fff"
+                  type="primary"
+                  @click="navigateTo('/admin/apilist')"
+                  >返回</el-button
+                >
+              </div>
+            </div>
+          </ClientOnly>
+        </div>
+      </div>
+    </div>
+  </div>
+</template>
 
 <style lang="less" scoped>
 .container {

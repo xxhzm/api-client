@@ -1,146 +1,3 @@
-<template>
-  <div class="container">
-    <AdminSidebar v-show="isSidebarShow"></AdminSidebar>
-
-    <div class="right">
-      <!-- 遮罩层 -->
-      <div class="overlay" v-show="isoverlay" @click="handleSidebarShow"></div>
-      <!-- 侧边栏控制按钮 -->
-      <div class="control-sidebar" v-show="iscontrolShow">
-        <el-icon @click="handleSidebarShow"><Menu /></el-icon>
-      </div>
-      <AdminHeader></AdminHeader>
-      <div class="prefix_container">
-        <div class="prefix-card">
-          <div class="card-header">
-            <div class="header-left">
-              <el-icon class="icon">
-                <Connection />
-              </el-icon>
-              <span class="title">前缀管理</span>
-            </div>
-            <div class="header-right">
-              <el-button type="primary" @click="createStatus = true">
-                <span>新增前缀</span>
-              </el-button>
-            </div>
-          </div>
-
-          <div class="table-container">
-            <ClientOnly>
-              <el-table :data="filterTableData" style="width: 100%">
-                <el-table-column width="160" fixed="right">
-                  <template #header>
-                    <div class="search-wrapper">
-                      <el-input
-                        v-model="search"
-                        size="default"
-                        placeholder="搜索"
-                        clearable
-                      >
-                      </el-input>
-                    </div>
-                  </template>
-                  <template #default="scope">
-                    <div class="table-actions">
-                      <el-button
-                        type="primary"
-                        link
-                        @click="handleEdit(scope.$index, scope.row)"
-                      >
-                        编辑
-                      </el-button>
-                      <el-popconfirm
-                        confirm-button-text="确定"
-                        cancel-button-text="取消"
-                        title="确定要删除吗？"
-                        @confirm="handleDelete(scope.$index, scope.row)"
-                      >
-                        <template #reference>
-                          <el-button type="danger" link> 删除 </el-button>
-                        </template>
-                      </el-popconfirm>
-                    </div>
-                  </template>
-                </el-table-column>
-                <el-table-column prop="id" label="ID" width="50" />
-                <el-table-column prop="name" label="前缀名称" width="140" />
-                <el-table-column
-                  prop="prefix"
-                  label="前缀地址"
-                  min-width="180"
-                  show-overflow-tooltip
-                />
-                <el-table-column prop="request_type" label="类型" width="80">
-                  <template #default="scope">
-                    <el-tag
-                      :type="
-                        scope.row.request_type === 'http'
-                          ? 'success'
-                          : 'warning'
-                      "
-                      size="small"
-                    >
-                      {{ scope.row.request_type }}
-                    </el-tag>
-                  </template>
-                </el-table-column>
-              </el-table>
-            </ClientOnly>
-          </div>
-        </div>
-
-        <!-- 新增/编辑对话框 -->
-        <el-dialog
-          v-model="createStatus"
-          :title="disabled ? '修改前缀' : '新增前缀'"
-          width="500px"
-          destroy-on-close
-        >
-          <el-form :model="prefixInfo" label-width="90px">
-            <el-form-item label="前缀名称" required>
-              <el-input
-                v-model="prefixInfo.name"
-                maxlength="32"
-                show-word-limit
-                placeholder="请输入前缀名称"
-              />
-            </el-form-item>
-            <el-form-item label="前缀地址" required>
-              <el-input
-                v-model="prefixInfo.prefix"
-                show-word-limit
-                placeholder="请输入前缀地址"
-              />
-            </el-form-item>
-            <el-form-item label="接口类型" required>
-              <el-select
-                v-model="prefixInfo.requestType"
-                placeholder="请选择接口类型"
-                class="full-width"
-              >
-                <el-option label="HTTP" value="http" />
-                <el-option label="gRPC" value="grpc" />
-              </el-select>
-            </el-form-item>
-          </el-form>
-          <template #footer>
-            <div class="dialog-footer">
-              <el-button @click="createStatus = false">取消</el-button>
-              <el-button
-                type="primary"
-                @click="disabled ? updatePrefix() : createPrefix()"
-              >
-                确定
-              </el-button>
-            </div>
-          </template>
-        </el-dialog>
-      </div>
-    </div>
-  </div>
-</template>
-
 <script setup>
 import { Connection, Menu } from '@element-plus/icons-vue'
 const { $msg, $myFetch } = useNuxtApp()
@@ -328,6 +185,149 @@ useHead({
   charset: 'utf-8',
 })
 </script>
+
+<template>
+  <div class="container">
+    <AdminSidebar v-show="isSidebarShow"></AdminSidebar>
+
+    <div class="right">
+      <!-- 遮罩层 -->
+      <div class="overlay" v-show="isoverlay" @click="handleSidebarShow"></div>
+      <!-- 侧边栏控制按钮 -->
+      <div class="control-sidebar" v-show="iscontrolShow">
+        <el-icon @click="handleSidebarShow"><Menu /></el-icon>
+      </div>
+      <AdminHeader></AdminHeader>
+      <div class="prefix_container">
+        <div class="prefix-card">
+          <div class="card-header">
+            <div class="header-left">
+              <el-icon class="icon">
+                <Connection />
+              </el-icon>
+              <span class="title">前缀管理</span>
+            </div>
+            <div class="header-right">
+              <el-button type="primary" @click="createStatus = true">
+                <span>新增前缀</span>
+              </el-button>
+            </div>
+          </div>
+
+          <div class="table-container">
+            <ClientOnly>
+              <el-table :data="filterTableData" style="width: 100%">
+                <el-table-column width="160" fixed="right">
+                  <template #header>
+                    <div class="search-wrapper">
+                      <el-input
+                        v-model="search"
+                        size="default"
+                        placeholder="搜索"
+                        clearable
+                      >
+                      </el-input>
+                    </div>
+                  </template>
+                  <template #default="scope">
+                    <div class="table-actions">
+                      <el-button
+                        type="primary"
+                        link
+                        @click="handleEdit(scope.$index, scope.row)"
+                      >
+                        编辑
+                      </el-button>
+                      <el-popconfirm
+                        confirm-button-text="确定"
+                        cancel-button-text="取消"
+                        title="确定要删除吗？"
+                        @confirm="handleDelete(scope.$index, scope.row)"
+                      >
+                        <template #reference>
+                          <el-button type="danger" link> 删除 </el-button>
+                        </template>
+                      </el-popconfirm>
+                    </div>
+                  </template>
+                </el-table-column>
+                <el-table-column prop="id" label="ID" width="50" />
+                <el-table-column prop="name" label="前缀名称" width="140" />
+                <el-table-column
+                  prop="prefix"
+                  label="前缀地址"
+                  min-width="180"
+                  show-overflow-tooltip
+                />
+                <el-table-column prop="request_type" label="类型" width="80">
+                  <template #default="scope">
+                    <el-tag
+                      :type="
+                        scope.row.request_type === 'http'
+                          ? 'success'
+                          : 'warning'
+                      "
+                      size="small"
+                    >
+                      {{ scope.row.request_type }}
+                    </el-tag>
+                  </template>
+                </el-table-column>
+              </el-table>
+            </ClientOnly>
+          </div>
+        </div>
+
+        <!-- 新增/编辑对话框 -->
+        <el-dialog
+          v-model="createStatus"
+          :title="disabled ? '修改前缀' : '新增前缀'"
+          width="500px"
+          destroy-on-close
+        >
+          <el-form :model="prefixInfo" label-width="90px">
+            <el-form-item label="前缀名称" required>
+              <el-input
+                v-model="prefixInfo.name"
+                maxlength="32"
+                show-word-limit
+                placeholder="请输入前缀名称"
+              />
+            </el-form-item>
+            <el-form-item label="前缀地址" required>
+              <el-input
+                v-model="prefixInfo.prefix"
+                show-word-limit
+                placeholder="请输入前缀地址"
+              />
+            </el-form-item>
+            <el-form-item label="接口类型" required>
+              <el-select
+                v-model="prefixInfo.requestType"
+                placeholder="请选择接口类型"
+                class="full-width"
+              >
+                <el-option label="HTTP" value="http" />
+                <el-option label="gRPC" value="grpc" />
+              </el-select>
+            </el-form-item>
+          </el-form>
+          <template #footer>
+            <div class="dialog-footer">
+              <el-button @click="createStatus = false">取消</el-button>
+              <el-button
+                type="primary"
+                @click="disabled ? updatePrefix() : createPrefix()"
+              >
+                确定
+              </el-button>
+            </div>
+          </template>
+        </el-dialog>
+      </div>
+    </div>
+  </div>
+</template>
 
 <style lang="less" scoped>
 .container {

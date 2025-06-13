@@ -1,154 +1,3 @@
-<template>
-  <div class="container">
-    <AdminSidebar v-show="isSidebarShow"></AdminSidebar>
-
-    <div class="right">
-      <!-- 遮罩层 -->
-      <div class="overlay" v-show="isoverlay" @click="handleSidebarShow"></div>
-      <!-- 侧边栏控制按钮 -->
-      <div class="control-sidebar" v-show="iscontrolShow">
-        <el-icon @click="handleSidebarShow">
-          <Menu />
-        </el-icon>
-      </div>
-      <AdminHeader></AdminHeader>
-      <div class="pay_container">
-        <div class="cont">
-          <div class="form">
-            <!-- 提示信息卡片 -->
-            <el-card class="tips-card">
-              <div class="tips-info">
-                <ul>
-                  <li>充值最小金额 1 元，充值金额必须为整数</li>
-                  <li>支付过程中如遇到各种问题，请及时联系客服处理</li>
-                </ul>
-              </div>
-            </el-card>
-
-            <!-- 余额卡片 -->
-            <el-card class="balance-card">
-              <div class="section-title">
-                <el-icon>
-                  <InfoFilled />
-                </el-icon>
-                可用余额
-              </div>
-              <div class="balance-amount">
-                <span class="amount">{{ balance }}</span>
-                <span class="unit">元</span>
-                <el-button type="primary" link @click="refreshBalance">
-                  <el-icon>
-                    <Refresh />
-                  </el-icon>
-                </el-button>
-              </div>
-            </el-card>
-
-            <!-- 充值卡片 -->
-            <el-card class="recharge-card">
-              <div class="section-title">
-                <el-icon>
-                  <Wallet />
-                </el-icon>
-                在线充值
-              </div>
-
-              <div class="recharge-content">
-                <!-- 左侧充值表单 -->
-                <div class="recharge-form">
-                  <!-- 快捷金额选择 -->
-                  <div class="amount-options">
-                    <div class="label">快捷金额</div>
-                    <div class="options">
-                      <el-radio-group v-model="form.amount" class="amount-radio-group">
-                        <el-radio :value="10" required>
-                          <span class="amount-label">
-                            <span class="amount">10</span>
-                            <span class="unit">元</span>
-                          </span>
-                        </el-radio>
-                        <el-radio :value="50">
-                          <span class="amount-label">
-                            <span class="amount">50</span>
-                            <span class="unit">元</span>
-                          </span>
-                        </el-radio>
-                        <el-radio :value="100">
-                          <span class="amount-label">
-                            <span class="amount">100</span>
-                            <span class="unit">元</span>
-                          </span>
-                        </el-radio>
-                        <el-radio :value="500">
-                          <span class="amount-label">
-                            <span class="amount">500</span>
-                            <span class="unit">元</span>
-                          </span>
-                        </el-radio>
-                      </el-radio-group>
-                    </div>
-                  </div>
-
-                  <!-- 其他金额 -->
-                  <div class="custom-amount-section">
-                    <div class="label">其他金额</div>
-                    <el-input v-model="form.customAmount" placeholder="请输入充值金额" @input="handleCustomAmount">
-                      <template #append>元</template>
-                    </el-input>
-                  </div>
-
-                  <!-- 支付方式 -->
-                  <div class="payment-method">
-                    <div class="label">支付方式</div>
-                    <div class="methods">
-                      <el-radio-group v-model="form.payMethod">
-                        <el-radio value="alipay"> 支付宝支付 </el-radio>
-                      </el-radio-group>
-                    </div>
-                  </div>
-                </div>
-
-                <!-- 右侧订单确认 -->
-                <div class="order-section">
-                  <div class="order-preview">
-                    <div class="preview-title">订单预览</div>
-                    <div class="preview-amount">
-                      <span class="label">充值金额：</span>
-                      <span class="value">{{ form.amount }}</span>
-                      <span class="unit">元</span>
-                    </div>
-                    <div class="preview-method">
-                      <span class="label">支付方式：</span>
-                      <span class="value">支付宝支付</span>
-                    </div>
-                  </div>
-                  <el-button type="primary" @click="submitForm" :loading="loading" class="submit-btn">
-                    确认支付
-                  </el-button>
-                  <div class="order-tips">温馨提示：支付成功后5分钟内到账</div>
-                </div>
-              </div>
-            </el-card>
-          </div>
-        </div>
-      </div>
-    </div>
-    <!-- 支付状态确认弹窗 -->
-    <el-dialog v-model="payStatusDialogVisible" title="支付确认" width="400px" :close-on-click-modal="false"
-      :show-close="false" class="pay-status-dialog">
-      <div class="pay-status-content">
-        <p class="status-tips">请确认支付是否完成</p>
-        <div class="status-buttons">
-          <el-button @click="handlePayStatus(false)">未完成支付</el-button>
-          <el-button type="primary" @click="handlePayStatus(true)">
-            已完成支付
-          </el-button>
-        </div>
-      </div>
-    </el-dialog>
-  </div>
-</template>
-
 <script setup>
 import { Refresh, InfoFilled, Wallet, Menu } from '@element-plus/icons-vue'
 import { ref, onMounted } from 'vue'
@@ -254,8 +103,7 @@ const submitForm = async () => {
   }
 
   // 先立即打开一个空白窗口（在用户点击事件中）-防止safari浏览器拦截
-  const newWin = window.open('', '_blank');
-
+  const newWin = window.open('', '_blank')
 
   loading.value = true
   try {
@@ -274,8 +122,8 @@ const submitForm = async () => {
       $msg('订单创建成功，正在跳转支付页面', 'success')
       // 在新窗口打开支付链接
       // window.open(res.data.url, '_blank', 'noopener,noreferrer')
-      newWin.location = res.data.url;
-      newWin.focus();
+      newWin.location = res.data.url
+      newWin.focus()
 
       // 显示支付状态确认弹窗
       payStatusDialogVisible.value = true
@@ -307,7 +155,7 @@ const submitForm = async () => {
     }
   } catch (error) {
     $msg(error.message, 'error')
-    newWin.close();
+    newWin.close()
   }
   loading.value = false
 }
@@ -339,6 +187,175 @@ useHead({
   charset: 'utf-8',
 })
 </script>
+
+<template>
+  <div class="container">
+    <AdminSidebar v-show="isSidebarShow"></AdminSidebar>
+
+    <div class="right">
+      <!-- 遮罩层 -->
+      <div class="overlay" v-show="isoverlay" @click="handleSidebarShow"></div>
+      <!-- 侧边栏控制按钮 -->
+      <div class="control-sidebar" v-show="iscontrolShow">
+        <el-icon @click="handleSidebarShow">
+          <Menu />
+        </el-icon>
+      </div>
+      <AdminHeader></AdminHeader>
+      <div class="pay_container">
+        <div class="cont">
+          <div class="form">
+            <!-- 提示信息卡片 -->
+            <el-card class="tips-card">
+              <div class="tips-info">
+                <ul>
+                  <li>充值最小金额 1 元，充值金额必须为整数</li>
+                  <li>支付过程中如遇到各种问题，请及时联系客服处理</li>
+                </ul>
+              </div>
+            </el-card>
+
+            <!-- 余额卡片 -->
+            <el-card class="balance-card">
+              <div class="section-title">
+                <el-icon>
+                  <InfoFilled />
+                </el-icon>
+                可用余额
+              </div>
+              <div class="balance-amount">
+                <span class="amount">{{ balance }}</span>
+                <span class="unit">元</span>
+                <el-button type="primary" link @click="refreshBalance">
+                  <el-icon>
+                    <Refresh />
+                  </el-icon>
+                </el-button>
+              </div>
+            </el-card>
+
+            <!-- 充值卡片 -->
+            <el-card class="recharge-card">
+              <div class="section-title">
+                <el-icon>
+                  <Wallet />
+                </el-icon>
+                在线充值
+              </div>
+
+              <div class="recharge-content">
+                <!-- 左侧充值表单 -->
+                <div class="recharge-form">
+                  <!-- 快捷金额选择 -->
+                  <div class="amount-options">
+                    <div class="label">快捷金额</div>
+                    <div class="options">
+                      <el-radio-group
+                        v-model="form.amount"
+                        class="amount-radio-group"
+                      >
+                        <el-radio :value="10" required>
+                          <span class="amount-label">
+                            <span class="amount">10</span>
+                            <span class="unit">元</span>
+                          </span>
+                        </el-radio>
+                        <el-radio :value="50">
+                          <span class="amount-label">
+                            <span class="amount">50</span>
+                            <span class="unit">元</span>
+                          </span>
+                        </el-radio>
+                        <el-radio :value="100">
+                          <span class="amount-label">
+                            <span class="amount">100</span>
+                            <span class="unit">元</span>
+                          </span>
+                        </el-radio>
+                        <el-radio :value="500">
+                          <span class="amount-label">
+                            <span class="amount">500</span>
+                            <span class="unit">元</span>
+                          </span>
+                        </el-radio>
+                      </el-radio-group>
+                    </div>
+                  </div>
+
+                  <!-- 其他金额 -->
+                  <div class="custom-amount-section">
+                    <div class="label">其他金额</div>
+                    <el-input
+                      v-model="form.customAmount"
+                      placeholder="请输入充值金额"
+                      @input="handleCustomAmount"
+                    >
+                      <template #append>元</template>
+                    </el-input>
+                  </div>
+
+                  <!-- 支付方式 -->
+                  <div class="payment-method">
+                    <div class="label">支付方式</div>
+                    <div class="methods">
+                      <el-radio-group v-model="form.payMethod">
+                        <el-radio value="alipay"> 支付宝支付 </el-radio>
+                      </el-radio-group>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- 右侧订单确认 -->
+                <div class="order-section">
+                  <div class="order-preview">
+                    <div class="preview-title">订单预览</div>
+                    <div class="preview-amount">
+                      <span class="label">充值金额：</span>
+                      <span class="value">{{ form.amount }}</span>
+                      <span class="unit">元</span>
+                    </div>
+                    <div class="preview-method">
+                      <span class="label">支付方式：</span>
+                      <span class="value">支付宝支付</span>
+                    </div>
+                  </div>
+                  <el-button
+                    type="primary"
+                    @click="submitForm"
+                    :loading="loading"
+                    class="submit-btn"
+                  >
+                    确认支付
+                  </el-button>
+                  <div class="order-tips">温馨提示：支付成功后5分钟内到账</div>
+                </div>
+              </div>
+            </el-card>
+          </div>
+        </div>
+      </div>
+    </div>
+    <!-- 支付状态确认弹窗 -->
+    <el-dialog
+      v-model="payStatusDialogVisible"
+      title="支付确认"
+      width="400px"
+      :close-on-click-modal="false"
+      :show-close="false"
+      class="pay-status-dialog"
+    >
+      <div class="pay-status-content">
+        <p class="status-tips">请确认支付是否完成</p>
+        <div class="status-buttons">
+          <el-button @click="handlePayStatus(false)">未完成支付</el-button>
+          <el-button type="primary" @click="handlePayStatus(true)">
+            已完成支付
+          </el-button>
+        </div>
+      </div>
+    </el-dialog>
+  </div>
+</template>
 
 <style lang="less" scoped>
 .container {

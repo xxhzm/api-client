@@ -1,26 +1,3 @@
-<template>
-  <div class="system-info">
-    <div class="system-info__row">
-      <div class="system-info__col" v-for="(item, index) in cards" :key="index">
-        <div class="info-card">
-          <div class="info-card__category">{{ item.tag }}</div>
-          <div class="info-card__content">
-            <h3 class="info-card__title">{{ item.title }}</h3>
-            <div class="info-card__value">
-              <template v-if="item.isCount">
-                <HelpersCount :end="item.value" />
-              </template>
-              <template v-else>
-                {{ item.value }}
-              </template>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-</template>
-
 <script setup>
 const { $myFetch } = useNuxtApp()
 
@@ -113,6 +90,29 @@ systemInfo.value.recent_request.forEach((element) => {
 const recentRequestState = useState('recentRequest')
 recentRequestState.value = recentRequest.value
 </script>
+
+<template>
+  <div class="system-info">
+    <div class="system-info__row">
+      <div class="system-info__col" v-for="(item, index) in cards" :key="index">
+        <div class="info-card">
+          <div class="info-card__category">{{ item.tag }}</div>
+          <div class="info-card__content">
+            <h3 class="info-card__title">{{ item.title }}</h3>
+            <div class="info-card__value">
+              <template v-if="item.isCount">
+                <HelpersCount :end="item.value" />
+              </template>
+              <template v-else>
+                {{ item.value }}
+              </template>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</template>
 
 <style lang="less" scoped>
 .system-info {

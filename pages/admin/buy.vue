@@ -1,3 +1,169 @@
+<script setup>
+import { Search, Menu, InfoFilled, ShoppingCart } from '@element-plus/icons-vue'
+
+const { $msg, $myFetch } = useNuxtApp()
+
+const loading = ref(false)
+const searchKeyword = ref('')
+const apiList = ref([])
+const buyingId = ref(null)
+const dialogVisible = ref(false)
+const confirmLoading = ref(false)
+const selectedPackage = ref({})
+const selectedType = ref(null)
+const selectedApi = ref(null)
+
+// 控制左侧边栏显示隐藏
+// 获取页面宽度
+const screenWidth = ref(0)
+const isSidebarShow = ref(true)
+const iscontrolShow = ref(false)
+const isoverlay = ref(false)
+onMounted(() => {
+  screenWidth.value = document.body.clientWidth
+  document.body.style.overflow = ''
+
+  if (screenWidth.value < 768) {
+    iscontrolShow.value = true
+    isSidebarShow.value = false
+  }
+})
+
+const handleSidebarShow = () => {
+  isSidebarShow.value = !isSidebarShow.value
+  iscontrolShow.value = !iscontrolShow.value
+  isoverlay.value = !isoverlay.value
+  // 禁止页面滑动
+  if (isSidebarShow.value) {
+    document.body.style.overflow = 'hidden'
+  } else {
+    document.body.style.overflow = ''
+  }
+}
+
+// 获取所有接口及其套餐信息
+const getData = async () => {
+  loading.value = true
+  try {
+    const res = await $myFetch('ApiPackageList')
+    if (res.code === 200) {
+      // 将套餐数据按照api_id分组
+      const groupedData = {}
+      res.data.forEach((pkg) => {
+        if (!groupedData[pkg.api_id]) {
+          groupedData[pkg.api_id] = {
+            id: pkg.api_id,
+            name: pkg.api_name,
+            description: pkg.description,
+            packages: [],
+          }
+        }
+        groupedData[pkg.api_id].packages.push(pkg)
+      })
+      apiList.value = Object.values(groupedData)
+    } else {
+      $msg(res.msg, 'error')
+    }
+  } catch (error) {
+    $msg('获取数据失败', 'error')
+  }
+  loading.value = false
+}
+
+// 搜索过滤
+const packages = computed(() => {
+  // 先按接口筛选
+  let filteredByApi = apiList.value.reduce((acc, api) => {
+    if (selectedApi.value && api.id !== selectedApi.value) {
+      return acc
+    }
+    return acc.concat(api.packages)
+  }, [])
+
+  // 再按类型筛选
+  let filteredByType = filteredByApi
+  if (selectedType.value) {
+    filteredByType = filteredByApi.filter(
+      (pkg) => pkg.type === selectedType.value
+    )
+  }
+
+  // 最后按关键字搜索
+  if (searchKeyword.value) {
+    const keyword = searchKeyword.value.toLowerCase()
+    return filteredByType.filter(
+      (pkg) =>
+        pkg.name.toLowerCase().includes(keyword) ||
+        pkg.api_name.toLowerCase().includes(keyword)
+    )
+  }
+
+  return filteredByType
+})
+
+// 获取类型文字
+const getTypeText = (type) => {
+  const types = {
+    2: '包月计费',
+    3: '点数包',
+  }
+  return types[type] || '未知'
+}
+
+// 获取类型标签样式
+const getTypeTag = (type) => {
+  const types = {
+    2: 'success',
+    3: 'primary',
+  }
+  return types[type] || ''
+}
+
+// 点击购买按钮
+const handleBuy = (pkg) => {
+  selectedPackage.value = pkg
+  dialogVisible.value = true
+}
+
+// 确认购买
+const confirmBuy = async () => {
+  confirmLoading.value = true
+  buyingId.value = selectedPackage.value.id
+
+  try {
+    const res = await $myFetch('BuyPackage', {
+      method: 'POST',
+      body: new URLSearchParams({
+        packageId: selectedPackage.value.id,
+      }),
+    })
+
+    if (res.code === 200) {
+      $msg(res.data, 'success')
+      dialogVisible.value = false
+    } else {
+      $msg(res.msg, 'error')
+    }
+  } catch (error) {
+    $msg('购买失败，请重试', 'error')
+  }
+
+  confirmLoading.value = false
+  buyingId.value = null
+}
+
+onMounted(() => {
+  getData()
+})
+
+useHead({
+  title: '购买套餐',
+  viewport:
+    'width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0',
+  charset: 'utf-8',
+})
+</script>
+
 <template>
   <div class="container">
     <AdminSidebar v-show="isSidebarShow"></AdminSidebar>
@@ -180,172 +346,6 @@
     </div>
   </div>
 </template>
-
-<script setup>
-import { Search, Menu, InfoFilled, ShoppingCart } from '@element-plus/icons-vue'
-
-const { $msg, $myFetch } = useNuxtApp()
-
-const loading = ref(false)
-const searchKeyword = ref('')
-const apiList = ref([])
-const buyingId = ref(null)
-const dialogVisible = ref(false)
-const confirmLoading = ref(false)
-const selectedPackage = ref({})
-const selectedType = ref(null)
-const selectedApi = ref(null)
-
-// 控制左侧边栏显示隐藏
-// 获取页面宽度
-const screenWidth = ref(0)
-const isSidebarShow = ref(true)
-const iscontrolShow = ref(false)
-const isoverlay = ref(false)
-onMounted(() => {
-  screenWidth.value = document.body.clientWidth
-  document.body.style.overflow = ''
-
-  if (screenWidth.value < 768) {
-    iscontrolShow.value = true
-    isSidebarShow.value = false
-  }
-})
-
-const handleSidebarShow = () => {
-  isSidebarShow.value = !isSidebarShow.value
-  iscontrolShow.value = !iscontrolShow.value
-  isoverlay.value = !isoverlay.value
-  // 禁止页面滑动
-  if (isSidebarShow.value) {
-    document.body.style.overflow = 'hidden'
-  } else {
-    document.body.style.overflow = ''
-  }
-}
-
-// 获取所有接口及其套餐信息
-const getData = async () => {
-  loading.value = true
-  try {
-    const res = await $myFetch('ApiPackageList')
-    if (res.code === 200) {
-      // 将套餐数据按照api_id分组
-      const groupedData = {}
-      res.data.forEach((pkg) => {
-        if (!groupedData[pkg.api_id]) {
-          groupedData[pkg.api_id] = {
-            id: pkg.api_id,
-            name: pkg.api_name,
-            description: pkg.description,
-            packages: [],
-          }
-        }
-        groupedData[pkg.api_id].packages.push(pkg)
-      })
-      apiList.value = Object.values(groupedData)
-    } else {
-      $msg(res.msg, 'error')
-    }
-  } catch (error) {
-    $msg('获取数据失败', 'error')
-  }
-  loading.value = false
-}
-
-// 搜索过滤
-const packages = computed(() => {
-  // 先按接口筛选
-  let filteredByApi = apiList.value.reduce((acc, api) => {
-    if (selectedApi.value && api.id !== selectedApi.value) {
-      return acc
-    }
-    return acc.concat(api.packages)
-  }, [])
-
-  // 再按类型筛选
-  let filteredByType = filteredByApi
-  if (selectedType.value) {
-    filteredByType = filteredByApi.filter(
-      (pkg) => pkg.type === selectedType.value
-    )
-  }
-
-  // 最后按关键字搜索
-  if (searchKeyword.value) {
-    const keyword = searchKeyword.value.toLowerCase()
-    return filteredByType.filter(
-      (pkg) =>
-        pkg.name.toLowerCase().includes(keyword) ||
-        pkg.api_name.toLowerCase().includes(keyword)
-    )
-  }
-
-  return filteredByType
-})
-
-// 获取类型文字
-const getTypeText = (type) => {
-  const types = {
-    2: '包月计费',
-    3: '点数包',
-  }
-  return types[type] || '未知'
-}
-
-// 获取类型标签样式
-const getTypeTag = (type) => {
-  const types = {
-    2: 'success',
-    3: 'primary',
-  }
-  return types[type] || ''
-}
-
-// 点击购买按钮
-const handleBuy = (pkg) => {
-  selectedPackage.value = pkg
-  dialogVisible.value = true
-}
-
-// 确认购买
-const confirmBuy = async () => {
-  confirmLoading.value = true
-  buyingId.value = selectedPackage.value.id
-
-  try {
-    const res = await $myFetch('BuyPackage', {
-      method: 'POST',
-      body: new URLSearchParams({
-        packageId: selectedPackage.value.id,
-      }),
-    })
-
-    if (res.code === 200) {
-      $msg(res.data, 'success')
-      dialogVisible.value = false
-    } else {
-      $msg(res.msg, 'error')
-    }
-  } catch (error) {
-    $msg('购买失败，请重试', 'error')
-  }
-
-  confirmLoading.value = false
-  buyingId.value = null
-}
-
-onMounted(() => {
-  getData()
-})
-
-useHead({
-  title: '购买套餐',
-  viewport:
-    'width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0',
-  charset: 'utf-8',
-})
-</script>
 
 <style lang="less" scoped>
 .container {

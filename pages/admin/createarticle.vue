@@ -1,85 +1,3 @@
-<template>
-  <div class="container">
-    <AdminSidebar v-show="isSidebarShow"></AdminSidebar>
-
-    <div class="right">
-      <!-- 遮罩层 -->
-      <div class="overlay" v-show="isoverlay" @click="handleSidebarShow"></div>
-      <!-- 侧边栏控制按钮 -->
-      <div class="control-sidebar" v-show="iscontrolShow">
-        <el-icon @click="handleSidebarShow"><Menu /></el-icon>
-      </div>
-      <AdminHeader></AdminHeader>
-      <div class="createarticle-container">
-        <div class="article-card">
-          <!-- 标题区域 -->
-          <div class="card-header">
-            <div class="header-left">
-              <span class="title">新增文章</span>
-            </div>
-          </div>
-
-          <!-- 表单区域 -->
-          <div class="form-container">
-            <el-form :model="createArticleInfo" label-width="90px">
-              <el-row :gutter="24">
-                <el-col :span="24">
-                  <el-form-item label="文章标题" required>
-                    <el-input
-                      v-model="createArticleInfo.title"
-                      maxlength="256"
-                      show-word-limit
-                      placeholder="请输入文章标题"
-                    />
-                  </el-form-item>
-                </el-col>
-                <el-col :span="24">
-                  <el-form-item label="关键词" required>
-                    <el-input
-                      v-model="createArticleInfo.keywords"
-                      maxlength="256"
-                      show-word-limit
-                      placeholder="请输入关键词，英文逗号隔开"
-                    />
-                  </el-form-item>
-                </el-col>
-                <el-col :span="24">
-                  <el-form-item label="文章描述" required>
-                    <el-input
-                      v-model="createArticleInfo.description"
-                      type="textarea"
-                      :rows="3"
-                      placeholder="请输入文章描述"
-                    />
-                  </el-form-item>
-                </el-col>
-                <el-col :span="24">
-                  <div id="vditor" class="editor-container"></div>
-                </el-col>
-              </el-row>
-            </el-form>
-          </div>
-        </div>
-
-        <!-- 底部操作栏 -->
-        <div class="footer-actions">
-          <div class="action-buttons">
-            <el-button type="primary" size="large" @click="submit"
-              >发布文章</el-button
-            >
-            <el-button
-              type="warning"
-              size="large"
-              @click="navigateTo('/admin/articlelist')"
-              >返回列表</el-button
-            >
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-</template>
-
 <script setup>
 import { Menu } from '@element-plus/icons-vue'
 
@@ -212,6 +130,88 @@ useHead({
   charset: 'utf-8',
 })
 </script>
+
+<template>
+  <div class="container">
+    <AdminSidebar v-show="isSidebarShow"></AdminSidebar>
+
+    <div class="right">
+      <!-- 遮罩层 -->
+      <div class="overlay" v-show="isoverlay" @click="handleSidebarShow"></div>
+      <!-- 侧边栏控制按钮 -->
+      <div class="control-sidebar" v-show="iscontrolShow">
+        <el-icon @click="handleSidebarShow"><Menu /></el-icon>
+      </div>
+      <AdminHeader></AdminHeader>
+      <div class="createarticle-container">
+        <div class="article-card">
+          <!-- 标题区域 -->
+          <div class="card-header">
+            <div class="header-left">
+              <span class="title">新增文章</span>
+            </div>
+          </div>
+
+          <!-- 表单区域 -->
+          <div class="form-container">
+            <el-form :model="createArticleInfo" label-width="90px">
+              <el-row :gutter="24">
+                <el-col :span="24">
+                  <el-form-item label="文章标题" required>
+                    <el-input
+                      v-model="createArticleInfo.title"
+                      maxlength="256"
+                      show-word-limit
+                      placeholder="请输入文章标题"
+                    />
+                  </el-form-item>
+                </el-col>
+                <el-col :span="24">
+                  <el-form-item label="关键词" required>
+                    <el-input
+                      v-model="createArticleInfo.keywords"
+                      maxlength="256"
+                      show-word-limit
+                      placeholder="请输入关键词，英文逗号隔开"
+                    />
+                  </el-form-item>
+                </el-col>
+                <el-col :span="24">
+                  <el-form-item label="文章描述" required>
+                    <el-input
+                      v-model="createArticleInfo.description"
+                      type="textarea"
+                      :rows="3"
+                      placeholder="请输入文章描述"
+                    />
+                  </el-form-item>
+                </el-col>
+                <el-col :span="24">
+                  <div id="vditor" class="editor-container"></div>
+                </el-col>
+              </el-row>
+            </el-form>
+          </div>
+        </div>
+
+        <!-- 底部操作栏 -->
+        <div class="footer-actions">
+          <div class="action-buttons">
+            <el-button type="primary" size="large" @click="submit"
+              >发布文章</el-button
+            >
+            <el-button
+              type="warning"
+              size="large"
+              @click="navigateTo('/admin/articlelist')"
+              >返回列表</el-button
+            >
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</template>
 
 <style lang="less" scoped>
 .container {

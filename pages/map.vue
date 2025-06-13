@@ -1,14 +1,3 @@
-<template>
-  <div class="map-container">
-    <div ref="chartRef" class="attack-map"></div>
-    <div v-if="hasError" class="error-message">数据加载失败</div>
-    <div class="attack-info">
-      <div class="attack-count">实时请求: {{ attackCount }}</div>
-      <div class="update-time">更新时间: {{ currentTime }}</div>
-    </div>
-  </div>
-</template>
-
 <script setup>
 import { ref, onMounted, onUnmounted } from 'vue'
 
@@ -427,6 +416,17 @@ useHead({
   title: '实时请求大屏 - 免费API',
 })
 </script>
+
+<template>
+  <div class="map-container">
+    <div ref="chartRef" class="attack-map"></div>
+    <div v-if="hasError" class="error-message">数据加载失败</div>
+    <div class="attack-info">
+      <div class="attack-count">实时请求: {{ attackCount }}</div>
+      <div class="update-time">更新时间: {{ currentTime }}</div>
+    </div>
+  </div>
+</template>
 
 <style lang="less" scoped>
 html,

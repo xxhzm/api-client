@@ -1,132 +1,3 @@
-<template>
-  <div class="container">
-    <AdminSidebar v-show="isSidebarShow"></AdminSidebar>
-
-    <div class="right">
-      <!-- 遮罩层 -->
-      <div class="overlay" v-show="isoverlay" @click="handleSidebarShow"></div>
-      <!-- 侧边栏控制按钮 -->
-      <div class="control-sidebar" v-show="iscontrolShow">
-        <el-icon @click="handleSidebarShow"><Menu /></el-icon>
-      </div>
-      <AdminHeader></AdminHeader>
-      <div class="ad-container" v-loading="loading">
-        <div class="ad-card">
-          <!-- 标题区域 -->
-          <div class="card-header">
-            <div class="header-left">
-              <el-icon class="icon">
-                <Picture />
-              </el-icon>
-              <span class="title">广告位列表</span>
-            </div>
-            <div class="header-right">
-              <el-button type="primary" @click="dialogStatus = true">
-                <span>新增广告位</span>
-              </el-button>
-            </div>
-          </div>
-
-          <!-- 表格区域 -->
-          <div class="table-container">
-            <client-only>
-              <el-table :data="filterTableData" style="width: 100%">
-                <el-table-column width="160" fixed="right">
-                  <template #header>
-                    <div class="search-wrapper">
-                      <el-input v-model="search" placeholder="搜索" clearable>
-                      </el-input>
-                    </div>
-                  </template>
-                  <template #default="scope">
-                    <div class="table-actions">
-                      <el-button
-                        type="primary"
-                        link
-                        @click="handleEdit(scope.$index, scope.row)"
-                      >
-                        编辑
-                      </el-button>
-                      <el-popconfirm
-                        confirm-button-text="确定"
-                        cancel-button-text="取消"
-                        title="确定要删除吗？"
-                        @confirm="handleDelete(scope.$index, scope.row)"
-                      >
-                        <template #reference>
-                          <el-button type="danger" link> 删除 </el-button>
-                        </template>
-                      </el-popconfirm>
-                    </div>
-                  </template>
-                </el-table-column>
-                <el-table-column prop="id" label="ID" width="50" />
-                <el-table-column
-                  prop="url"
-                  label="广告地址"
-                  min-width="200"
-                  show-overflow-tooltip
-                />
-                <el-table-column
-                  prop="image"
-                  label="图像地址"
-                  min-width="200"
-                  show-overflow-tooltip
-                />
-                <el-table-column
-                  prop="create_time"
-                  label="添加时间"
-                  width="180"
-                />
-                <el-table-column
-                  prop="expiration_time"
-                  label="到期时间"
-                  width="180"
-                />
-              </el-table>
-            </client-only>
-          </div>
-
-          <!-- 新增/编辑广告对话框 -->
-          <el-dialog
-            v-model="dialogStatus"
-            :title="updateAdStatus ? '修改广告' : '新增广告'"
-            width="500px"
-            destroy-on-close
-          >
-            <el-form :model="adInfo" label-width="90px">
-              <el-form-item label="广告地址" required>
-                <el-input v-model="adInfo.url" placeholder="请输入广告地址" />
-              </el-form-item>
-              <el-form-item label="广告图像" required>
-                <el-input v-model="adInfo.image" placeholder="请输入图像地址" />
-              </el-form-item>
-              <el-form-item label="到期时间" required>
-                <el-date-picker
-                  v-model="adInfo.expiration_time"
-                  type="date"
-                  format="YYYY/MM/DD"
-                  value-format="x"
-                  placeholder="请选择日期"
-                  class="full-width"
-                />
-              </el-form-item>
-            </el-form>
-            <template #footer>
-              <div class="dialog-footer">
-                <el-button @click="dialogStatus = false">取消</el-button>
-                <el-button type="primary" @click="submit">{{
-                  updateAdStatus ? '修改' : '创建'
-                }}</el-button>
-              </div>
-            </template>
-          </el-dialog>
-        </div>
-      </div>
-    </div>
-  </div>
-</template>
-
 <script setup>
 import { Picture, Menu } from '@element-plus/icons-vue'
 const { $msg, $myFetch } = useNuxtApp()
@@ -304,6 +175,135 @@ useHead({
   charset: 'utf-8',
 })
 </script>
+
+<template>
+  <div class="container">
+    <AdminSidebar v-show="isSidebarShow"></AdminSidebar>
+
+    <div class="right">
+      <!-- 遮罩层 -->
+      <div class="overlay" v-show="isoverlay" @click="handleSidebarShow"></div>
+      <!-- 侧边栏控制按钮 -->
+      <div class="control-sidebar" v-show="iscontrolShow">
+        <el-icon @click="handleSidebarShow"><Menu /></el-icon>
+      </div>
+      <AdminHeader></AdminHeader>
+      <div class="ad-container" v-loading="loading">
+        <div class="ad-card">
+          <!-- 标题区域 -->
+          <div class="card-header">
+            <div class="header-left">
+              <el-icon class="icon">
+                <Picture />
+              </el-icon>
+              <span class="title">广告位列表</span>
+            </div>
+            <div class="header-right">
+              <el-button type="primary" @click="dialogStatus = true">
+                <span>新增广告位</span>
+              </el-button>
+            </div>
+          </div>
+
+          <!-- 表格区域 -->
+          <div class="table-container">
+            <client-only>
+              <el-table :data="filterTableData" style="width: 100%">
+                <el-table-column width="160" fixed="right">
+                  <template #header>
+                    <div class="search-wrapper">
+                      <el-input v-model="search" placeholder="搜索" clearable>
+                      </el-input>
+                    </div>
+                  </template>
+                  <template #default="scope">
+                    <div class="table-actions">
+                      <el-button
+                        type="primary"
+                        link
+                        @click="handleEdit(scope.$index, scope.row)"
+                      >
+                        编辑
+                      </el-button>
+                      <el-popconfirm
+                        confirm-button-text="确定"
+                        cancel-button-text="取消"
+                        title="确定要删除吗？"
+                        @confirm="handleDelete(scope.$index, scope.row)"
+                      >
+                        <template #reference>
+                          <el-button type="danger" link> 删除 </el-button>
+                        </template>
+                      </el-popconfirm>
+                    </div>
+                  </template>
+                </el-table-column>
+                <el-table-column prop="id" label="ID" width="50" />
+                <el-table-column
+                  prop="url"
+                  label="广告地址"
+                  min-width="200"
+                  show-overflow-tooltip
+                />
+                <el-table-column
+                  prop="image"
+                  label="图像地址"
+                  min-width="200"
+                  show-overflow-tooltip
+                />
+                <el-table-column
+                  prop="create_time"
+                  label="添加时间"
+                  width="180"
+                />
+                <el-table-column
+                  prop="expiration_time"
+                  label="到期时间"
+                  width="180"
+                />
+              </el-table>
+            </client-only>
+          </div>
+
+          <!-- 新增/编辑广告对话框 -->
+          <el-dialog
+            v-model="dialogStatus"
+            :title="updateAdStatus ? '修改广告' : '新增广告'"
+            width="500px"
+            destroy-on-close
+          >
+            <el-form :model="adInfo" label-width="90px">
+              <el-form-item label="广告地址" required>
+                <el-input v-model="adInfo.url" placeholder="请输入广告地址" />
+              </el-form-item>
+              <el-form-item label="广告图像" required>
+                <el-input v-model="adInfo.image" placeholder="请输入图像地址" />
+              </el-form-item>
+              <el-form-item label="到期时间" required>
+                <el-date-picker
+                  v-model="adInfo.expiration_time"
+                  type="date"
+                  format="YYYY/MM/DD"
+                  value-format="x"
+                  placeholder="请选择日期"
+                  class="full-width"
+                />
+              </el-form-item>
+            </el-form>
+            <template #footer>
+              <div class="dialog-footer">
+                <el-button @click="dialogStatus = false">取消</el-button>
+                <el-button type="primary" @click="submit">{{
+                  updateAdStatus ? '修改' : '创建'
+                }}</el-button>
+              </div>
+            </template>
+          </el-dialog>
+        </div>
+      </div>
+    </div>
+  </div>
+</template>
 
 <style lang="less" scoped>
 .container {

@@ -1,224 +1,3 @@
-<template>
-  <div class="container">
-    <AdminSidebar v-show="isSidebarShow"></AdminSidebar>
-
-    <div class="right">
-      <!-- 遮罩层 -->
-      <div class="overlay" v-show="isoverlay" @click="handleSidebarShow"></div>
-      <!-- 侧边栏控制按钮 -->
-      <div class="control-sidebar" v-show="iscontrolShow">
-        <el-icon @click="handleSidebarShow"><Menu /></el-icon>
-      </div>
-      <AdminHeader></AdminHeader>
-      <div class="webset_container">
-        <div class="cont">
-          <el-tabs v-model="activeTab" class="setting-tabs">
-            <el-tab-pane label="基本设置" name="basic">
-              <div class="form">
-                <el-form
-                  :model="websetInfo"
-                  label-position="top"
-                  label-width="120px"
-                >
-                  <el-form-item label="网站标题">
-                    <el-input v-model="websetInfo.title" />
-                  </el-form-item>
-                  <el-form-item label="网站副标题">
-                    <el-input v-model="websetInfo.subheading" />
-                  </el-form-item>
-                  <el-form-item label="网站关键词">
-                    <el-input v-model="websetInfo.keywords" />
-                  </el-form-item>
-                  <el-form-item label="网站描述">
-                    <el-input v-model="websetInfo.description" />
-                  </el-form-item>
-                  <el-form-item label="建站时间">
-                    <el-date-picker
-                      v-model="websetInfo.create_time"
-                      type="datetime"
-                      placeholder="选择建站时间"
-                      format="YYYY/MM/DD HH:mm:ss"
-                      value-format="YYYY/MM/DD HH:mm:ss"
-                      :disabled-date="disabledDate"
-                    />
-                  </el-form-item>
-                  <el-form-item label="ICP备案号">
-                    <el-input v-model="websetInfo.icp" />
-                  </el-form-item>
-                  <el-form-item label="公安备案号">
-                    <el-input v-model="websetInfo.gongan" />
-                  </el-form-item>
-                  <el-form-item>
-                    <el-button type="primary" @click="websetInfoSubmit"
-                      >提交</el-button
-                    >
-                  </el-form-item>
-                </el-form>
-              </div>
-            </el-tab-pane>
-
-            <el-tab-pane label="邮件设置" name="mail">
-              <div class="form">
-                <el-form
-                  :model="mailInfo"
-                  label-position="top"
-                  label-width="120px"
-                >
-                  <el-form-item label="SMTP服务器地址">
-                    <el-input v-model="mailInfo.smtp" />
-                  </el-form-item>
-                  <el-form-item label="邮箱账户">
-                    <el-input v-model="mailInfo.user" />
-                  </el-form-item>
-                  <el-form-item label="密码">
-                    <el-input
-                      v-model="mailInfo.password"
-                      type="password"
-                      show-password
-                    />
-                  </el-form-item>
-                  <el-form-item label="发件人">
-                    <el-input v-model="mailInfo.setfrom" />
-                  </el-form-item>
-                  <el-form-item label="服务器端口">
-                    <el-input v-model="mailInfo.port" />
-                  </el-form-item>
-                  <el-form-item label="发信名称">
-                    <el-input v-model="mailInfo.name" />
-                  </el-form-item>
-                  <el-form-item>
-                    <el-button type="primary" @click="mailInfoSubmit"
-                      >提交</el-button
-                    >
-                  </el-form-item>
-                </el-form>
-              </div>
-            </el-tab-pane>
-
-            <el-tab-pane label="发信测试" name="test">
-              <div class="form">
-                <el-form label-position="top" label-width="120px">
-                  <el-form-item label="测试邮箱">
-                    <el-input v-model="testMail" placeholder="请输入测试邮箱" />
-                  </el-form-item>
-                  <el-form-item>
-                    <el-button type="primary" @click="sendTestMail"
-                      >发送测试</el-button
-                    >
-                  </el-form-item>
-                </el-form>
-              </div>
-            </el-tab-pane>
-
-            <el-tab-pane label="接口置顶" name="topApi">
-              <div class="form">
-                <el-form label-position="top" label-width="120px">
-                  <el-form-item label="搜索接口">
-                    <div class="search-input-group">
-                      <el-autocomplete
-                        v-model="searchApiKeyword"
-                        :fetch-suggestions="querySearchAsync"
-                        placeholder="请输入接口名称搜索"
-                        @select="handleApiSelect"
-                        class="search-input"
-                        clearable
-                        :loading="searchLoading"
-                      >
-                        <template #suffix>
-                          <el-icon class="search-icon"><Search /></el-icon>
-                        </template>
-                      </el-autocomplete>
-                      <el-button
-                        type="primary"
-                        @click="handleAddTopApi"
-                        :disabled="!selectedApi"
-                        :loading="addLoading"
-                      >
-                        添加置顶
-                      </el-button>
-                    </div>
-                  </el-form-item>
-                </el-form>
-
-                <div class="top-api-list">
-                  <div class="list-header">
-                    <h3>置顶接口列表</h3>
-                  </div>
-                  <el-table
-                    :data="topApiList"
-                    style="width: 100%"
-                    v-loading="topApiLoading"
-                  >
-                    <el-table-column
-                      type="index"
-                      label="排序"
-                      width="80"
-                      align="center"
-                    />
-                    <el-table-column
-                      prop="name"
-                      label="接口名称"
-                      min-width="150"
-                    >
-                    </el-table-column>
-                    <el-table-column label="操作" width="80">
-                      <template #default="scope">
-                        <el-button
-                          type="danger"
-                          link
-                          style="padding: 0; margin: 0"
-                          @click="removeTopApi(scope.$index, scope.row)"
-                        >
-                          删除
-                        </el-button>
-                      </template>
-                    </el-table-column>
-                  </el-table>
-                </div>
-              </div>
-            </el-tab-pane>
-
-            <el-tab-pane label="支付配置" name="alipay">
-              <div class="form">
-                <el-form
-                  :model="alipayInfo"
-                  label-position="top"
-                  label-width="120px"
-                >
-                  <el-form-item label="支付宝Appid">
-                    <el-input v-model="alipayInfo.Appid" />
-                  </el-form-item>
-                  <el-form-item label="应用私钥">
-                    <el-input
-                      v-model="alipayInfo.PrivateKey"
-                      type="textarea"
-                      :rows="5"
-                      placeholder="请输入支付宝私钥"
-                    />
-                  </el-form-item>
-                  <el-form-item label="支付宝公钥">
-                    <el-input
-                      v-model="alipayInfo.PublicKey"
-                      type="textarea"
-                      :rows="5"
-                      placeholder="请输入支付宝公钥"
-                    />
-                  </el-form-item>
-                  <el-form-item>
-                    <el-button type="primary" @click="alipayInfoSubmit"
-                      >提交</el-button
-                    >
-                  </el-form-item>
-                </el-form>
-              </div>
-            </el-tab-pane>
-          </el-tabs>
-        </div>
-      </div>
-    </div>
-  </div>
-</template>
-
 <script setup>
 import { Menu, Search } from '@element-plus/icons-vue'
 const { $msg, $myFetch } = useNuxtApp()
@@ -569,6 +348,227 @@ useHead({
   charset: 'utf-8',
 })
 </script>
+
+<template>
+  <div class="container">
+    <AdminSidebar v-show="isSidebarShow"></AdminSidebar>
+
+    <div class="right">
+      <!-- 遮罩层 -->
+      <div class="overlay" v-show="isoverlay" @click="handleSidebarShow"></div>
+      <!-- 侧边栏控制按钮 -->
+      <div class="control-sidebar" v-show="iscontrolShow">
+        <el-icon @click="handleSidebarShow"><Menu /></el-icon>
+      </div>
+      <AdminHeader></AdminHeader>
+      <div class="webset_container">
+        <div class="cont">
+          <el-tabs v-model="activeTab" class="setting-tabs">
+            <el-tab-pane label="基本设置" name="basic">
+              <div class="form">
+                <el-form
+                  :model="websetInfo"
+                  label-position="top"
+                  label-width="120px"
+                >
+                  <el-form-item label="网站标题">
+                    <el-input v-model="websetInfo.title" />
+                  </el-form-item>
+                  <el-form-item label="网站副标题">
+                    <el-input v-model="websetInfo.subheading" />
+                  </el-form-item>
+                  <el-form-item label="网站关键词">
+                    <el-input v-model="websetInfo.keywords" />
+                  </el-form-item>
+                  <el-form-item label="网站描述">
+                    <el-input v-model="websetInfo.description" />
+                  </el-form-item>
+                  <el-form-item label="建站时间">
+                    <el-date-picker
+                      v-model="websetInfo.create_time"
+                      type="datetime"
+                      placeholder="选择建站时间"
+                      format="YYYY/MM/DD HH:mm:ss"
+                      value-format="YYYY/MM/DD HH:mm:ss"
+                      :disabled-date="disabledDate"
+                    />
+                  </el-form-item>
+                  <el-form-item label="ICP备案号">
+                    <el-input v-model="websetInfo.icp" />
+                  </el-form-item>
+                  <el-form-item label="公安备案号">
+                    <el-input v-model="websetInfo.gongan" />
+                  </el-form-item>
+                  <el-form-item>
+                    <el-button type="primary" @click="websetInfoSubmit"
+                      >提交</el-button
+                    >
+                  </el-form-item>
+                </el-form>
+              </div>
+            </el-tab-pane>
+
+            <el-tab-pane label="邮件设置" name="mail">
+              <div class="form">
+                <el-form
+                  :model="mailInfo"
+                  label-position="top"
+                  label-width="120px"
+                >
+                  <el-form-item label="SMTP服务器地址">
+                    <el-input v-model="mailInfo.smtp" />
+                  </el-form-item>
+                  <el-form-item label="邮箱账户">
+                    <el-input v-model="mailInfo.user" />
+                  </el-form-item>
+                  <el-form-item label="密码">
+                    <el-input
+                      v-model="mailInfo.password"
+                      type="password"
+                      show-password
+                    />
+                  </el-form-item>
+                  <el-form-item label="发件人">
+                    <el-input v-model="mailInfo.setfrom" />
+                  </el-form-item>
+                  <el-form-item label="服务器端口">
+                    <el-input v-model="mailInfo.port" />
+                  </el-form-item>
+                  <el-form-item label="发信名称">
+                    <el-input v-model="mailInfo.name" />
+                  </el-form-item>
+                  <el-form-item>
+                    <el-button type="primary" @click="mailInfoSubmit"
+                      >提交</el-button
+                    >
+                  </el-form-item>
+                </el-form>
+              </div>
+            </el-tab-pane>
+
+            <el-tab-pane label="发信测试" name="test">
+              <div class="form">
+                <el-form label-position="top" label-width="120px">
+                  <el-form-item label="测试邮箱">
+                    <el-input v-model="testMail" placeholder="请输入测试邮箱" />
+                  </el-form-item>
+                  <el-form-item>
+                    <el-button type="primary" @click="sendTestMail"
+                      >发送测试</el-button
+                    >
+                  </el-form-item>
+                </el-form>
+              </div>
+            </el-tab-pane>
+
+            <el-tab-pane label="接口置顶" name="topApi">
+              <div class="form">
+                <el-form label-position="top" label-width="120px">
+                  <el-form-item label="搜索接口">
+                    <div class="search-input-group">
+                      <el-autocomplete
+                        v-model="searchApiKeyword"
+                        :fetch-suggestions="querySearchAsync"
+                        placeholder="请输入接口名称搜索"
+                        @select="handleApiSelect"
+                        class="search-input"
+                        clearable
+                        :loading="searchLoading"
+                      >
+                        <template #suffix>
+                          <el-icon class="search-icon"><Search /></el-icon>
+                        </template>
+                      </el-autocomplete>
+                      <el-button
+                        type="primary"
+                        @click="handleAddTopApi"
+                        :disabled="!selectedApi"
+                        :loading="addLoading"
+                      >
+                        添加置顶
+                      </el-button>
+                    </div>
+                  </el-form-item>
+                </el-form>
+
+                <div class="top-api-list">
+                  <div class="list-header">
+                    <h3>置顶接口列表</h3>
+                  </div>
+                  <el-table
+                    :data="topApiList"
+                    style="width: 100%"
+                    v-loading="topApiLoading"
+                  >
+                    <el-table-column
+                      type="index"
+                      label="排序"
+                      width="80"
+                      align="center"
+                    />
+                    <el-table-column
+                      prop="name"
+                      label="接口名称"
+                      min-width="150"
+                    >
+                    </el-table-column>
+                    <el-table-column label="操作" width="80">
+                      <template #default="scope">
+                        <el-button
+                          type="danger"
+                          link
+                          style="padding: 0; margin: 0"
+                          @click="removeTopApi(scope.$index, scope.row)"
+                        >
+                          删除
+                        </el-button>
+                      </template>
+                    </el-table-column>
+                  </el-table>
+                </div>
+              </div>
+            </el-tab-pane>
+
+            <el-tab-pane label="支付配置" name="alipay">
+              <div class="form">
+                <el-form
+                  :model="alipayInfo"
+                  label-position="top"
+                  label-width="120px"
+                >
+                  <el-form-item label="支付宝Appid">
+                    <el-input v-model="alipayInfo.Appid" />
+                  </el-form-item>
+                  <el-form-item label="应用私钥">
+                    <el-input
+                      v-model="alipayInfo.PrivateKey"
+                      type="textarea"
+                      :rows="5"
+                      placeholder="请输入支付宝私钥"
+                    />
+                  </el-form-item>
+                  <el-form-item label="支付宝公钥">
+                    <el-input
+                      v-model="alipayInfo.PublicKey"
+                      type="textarea"
+                      :rows="5"
+                      placeholder="请输入支付宝公钥"
+                    />
+                  </el-form-item>
+                  <el-form-item>
+                    <el-button type="primary" @click="alipayInfoSubmit"
+                      >提交</el-button
+                    >
+                  </el-form-item>
+                </el-form>
+              </div>
+            </el-tab-pane>
+          </el-tabs>
+        </div>
+      </div>
+    </div>
+  </div>
+</template>
 
 <style lang="less" scoped>
 .container {

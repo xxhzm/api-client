@@ -1,3 +1,150 @@
+<script setup>
+import { Wallet, Search, Menu } from '@element-plus/icons-vue'
+
+const { $myFetch, $msg } = useNuxtApp()
+
+// 加载状态
+const loading = ref(false)
+const pageLoading = ref(false)
+
+// 表格数据
+const filteredData = ref([]) // 存储记录数据
+
+// 分页相关
+const page = ref(1) // 当前页数
+const pageSize = ref(20) // 每页显示数量，默认20条
+const totalRecords = ref(0) // 总记录数
+
+// 详情对话框
+const dialogVisible = ref(false)
+const currentRecord = ref(null)
+
+// 上方卡片信息
+const recargarInfo = ref({
+  total_order: 0,
+  total_money: 0,
+  recently_order: 0,
+  recently_money: 0,
+})
+
+// 控制左侧边栏显示隐藏
+// 获取页面宽度
+const screenWidth = ref(0)
+const isSidebarShow = ref(true)
+const iscontrolShow = ref(false)
+const isoverlay = ref(false)
+onMounted(() => {
+  screenWidth.value = document.body.clientWidth
+  document.body.style.overflow = ''
+
+  if (screenWidth.value < 768) {
+    iscontrolShow.value = true
+    isSidebarShow.value = false
+  }
+})
+
+const handleSidebarShow = () => {
+  isSidebarShow.value = !isSidebarShow.value
+  iscontrolShow.value = !iscontrolShow.value
+  isoverlay.value = !isoverlay.value
+  // 禁止页面滑动
+  if (isSidebarShow.value) {
+    document.body.style.overflow = 'hidden'
+  } else {
+    document.body.style.overflow = ''
+  }
+}
+
+// 获取充值记录数据
+const fetchAllRecords = async () => {
+  pageLoading.value = true
+  try {
+    // 构建查询参数，包含分页参数
+    const params = {
+      page: page.value,
+      limit: pageSize.value, // 添加每页数量参数
+    }
+    // 发送请求获取充值记录数据
+    const res = await $myFetch('GetRechargeRecords', { params })
+
+    if (res.code === 200) {
+      // 保存记录
+      filteredData.value = res.data.data || []
+
+      // 设置分页信息
+      if (res.data && typeof res.data.total_records === 'number') {
+        totalRecords.value = res.data.total_records || 0
+      }
+
+      // 设置卡片信息
+      recargarInfo.value.total_order = res.data.total_order || 0
+      recargarInfo.value.total_money = res.data.total_money || 0
+      recargarInfo.value.recently_order = res.data.recently_order || 0
+      recargarInfo.value.recently_money = res.data.recently_money || 0
+    } else {
+      $msg(res.msg || '获取充值记录失败', 'error')
+    }
+  } catch (error) {
+    $msg('获取充值记录失败', 'error')
+  } finally {
+    pageLoading.value = false
+  }
+}
+
+// 页码变化时获取对应页的数据
+watch(
+  () => page.value,
+  (newValue, oldValue) => {
+    pageLoading.value = true
+    fetchAllRecords() // 页码变化时重新获取数据
+  }
+)
+
+// 手动处理页面切换
+const handlePageChange = (newPage) => {
+  page.value = newPage
+  fetchAllRecords()
+}
+
+// 处理每页显示数量变化
+const handleSizeChange = (newSize) => {
+  pageSize.value = newSize
+  page.value = 1 // 重置到第一页
+  fetchAllRecords()
+}
+
+// 显示详情
+const showDetail = (row) => {
+  currentRecord.value = row
+  dialogVisible.value = true
+}
+
+// 格式化时间戳为可读日期时间格式
+const formatTimestamp = (timestamp) => {
+  if (!timestamp) return '-'
+  const date = new Date(Number(timestamp))
+  const year = date.getFullYear()
+  const month = String(date.getMonth() + 1).padStart(2, '0')
+  const day = String(date.getDate()).padStart(2, '0')
+  const hours = String(date.getHours()).padStart(2, '0')
+  const minutes = String(date.getMinutes()).padStart(2, '0')
+  const seconds = String(date.getSeconds()).padStart(2, '0')
+  return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`
+}
+
+// 页面加载时获取数据
+onMounted(() => {
+  fetchAllRecords()
+})
+
+useHead({
+  title: '充值记录',
+  viewport:
+    'width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0',
+  charset: 'utf-8',
+})
+</script>
+
 <template>
   <div class="container">
     <AdminSidebar v-show="isSidebarShow"></AdminSidebar>
@@ -179,153 +326,6 @@
     </div>
   </div>
 </template>
-
-<script setup>
-import { Wallet, Search, Menu } from '@element-plus/icons-vue'
-
-const { $myFetch, $msg } = useNuxtApp()
-
-// 加载状态
-const loading = ref(false)
-const pageLoading = ref(false)
-
-// 表格数据
-const filteredData = ref([]) // 存储记录数据
-
-// 分页相关
-const page = ref(1) // 当前页数
-const pageSize = ref(20) // 每页显示数量，默认20条
-const totalRecords = ref(0) // 总记录数
-
-// 详情对话框
-const dialogVisible = ref(false)
-const currentRecord = ref(null)
-
-// 上方卡片信息
-const recargarInfo = ref({
-  total_order: 0,
-  total_money: 0,
-  recently_order: 0,
-  recently_money: 0,
-})
-
-// 控制左侧边栏显示隐藏
-// 获取页面宽度
-const screenWidth = ref(0)
-const isSidebarShow = ref(true)
-const iscontrolShow = ref(false)
-const isoverlay = ref(false)
-onMounted(() => {
-  screenWidth.value = document.body.clientWidth
-  document.body.style.overflow = ''
-
-  if (screenWidth.value < 768) {
-    iscontrolShow.value = true
-    isSidebarShow.value = false
-  }
-})
-
-const handleSidebarShow = () => {
-  isSidebarShow.value = !isSidebarShow.value
-  iscontrolShow.value = !iscontrolShow.value
-  isoverlay.value = !isoverlay.value
-  // 禁止页面滑动
-  if (isSidebarShow.value) {
-    document.body.style.overflow = 'hidden'
-  } else {
-    document.body.style.overflow = ''
-  }
-}
-
-// 获取充值记录数据
-const fetchAllRecords = async () => {
-  pageLoading.value = true
-  try {
-    // 构建查询参数，包含分页参数
-    const params = {
-      page: page.value,
-      limit: pageSize.value, // 添加每页数量参数
-    }
-    // 发送请求获取充值记录数据
-    const res = await $myFetch('GetRechargeRecords', { params })
-
-    if (res.code === 200) {
-      // 保存记录
-      filteredData.value = res.data.data || []
-
-      // 设置分页信息
-      if (res.data && typeof res.data.total_records === 'number') {
-        totalRecords.value = res.data.total_records || 0
-      }
-
-      // 设置卡片信息
-      recargarInfo.value.total_order = res.data.total_order || 0
-      recargarInfo.value.total_money = res.data.total_money || 0
-      recargarInfo.value.recently_order = res.data.recently_order || 0
-      recargarInfo.value.recently_money = res.data.recently_money || 0
-    } else {
-      $msg(res.msg || '获取充值记录失败', 'error')
-    }
-  } catch (error) {
-    $msg('获取充值记录失败', 'error')
-  } finally {
-    pageLoading.value = false
-  }
-}
-
-// 页码变化时获取对应页的数据
-watch(
-  () => page.value,
-  (newValue, oldValue) => {
-    pageLoading.value = true
-    fetchAllRecords() // 页码变化时重新获取数据
-  }
-)
-
-// 手动处理页面切换
-const handlePageChange = (newPage) => {
-  page.value = newPage
-  fetchAllRecords()
-}
-
-// 处理每页显示数量变化
-const handleSizeChange = (newSize) => {
-  pageSize.value = newSize
-  page.value = 1 // 重置到第一页
-  fetchAllRecords()
-}
-
-// 显示详情
-const showDetail = (row) => {
-  currentRecord.value = row
-  dialogVisible.value = true
-}
-
-// 格式化时间戳为可读日期时间格式
-const formatTimestamp = (timestamp) => {
-  if (!timestamp) return '-'
-  const date = new Date(Number(timestamp))
-  const year = date.getFullYear()
-  const month = String(date.getMonth() + 1).padStart(2, '0')
-  const day = String(date.getDate()).padStart(2, '0')
-  const hours = String(date.getHours()).padStart(2, '0')
-  const minutes = String(date.getMinutes()).padStart(2, '0')
-  const seconds = String(date.getSeconds()).padStart(2, '0')
-  return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`
-}
-
-// 页面加载时获取数据
-onMounted(() => {
-  fetchAllRecords()
-})
-
-useHead({
-  title: '充值记录',
-  viewport:
-    'width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0',
-  charset: 'utf-8',
-})
-</script>
 
 <style lang="less" scoped>
 .container {

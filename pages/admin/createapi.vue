@@ -1,214 +1,3 @@
-<template>
-  <div class="container">
-    <AdminSidebar v-show="isSidebarShow"></AdminSidebar>
-
-    <div class="right">
-      <!-- 遮罩层 -->
-      <div class="overlay" v-show="isoverlay" @click="handleSidebarShow"></div>
-      <!-- 侧边栏控制按钮 -->
-      <div class="control-sidebar" v-show="iscontrolShow">
-        <el-icon @click="handleSidebarShow"><Menu /></el-icon>
-      </div>
-      <AdminHeader></AdminHeader>
-      <div class="createapi-container">
-        <!-- 接口信息卡片 -->
-        <div class="createapi-cont">
-          <div class="card-header">
-            <div class="header-left">
-              <el-icon class="icon">
-                <Connection />
-              </el-icon>
-              <span class="title">接口基础信息</span>
-            </div>
-            <div class="header-right">
-              <el-tag size="small" effect="plain" type="info">必填项</el-tag>
-            </div>
-          </div>
-
-          <!-- 表单内容保持不变，但调整样式 -->
-          <el-form :model="createapiInfo" label-width="120px" class="main-form">
-            <el-row :gutter="12">
-              <el-col :xs="24" :sm="12" :md="12" :lg="8" :xl="8">
-                <el-form-item label="接口名称">
-                  <el-input
-                    v-model="createapiInfo.name"
-                    maxlength="32"
-                    show-word-limit
-                  /> </el-form-item
-              ></el-col>
-
-              <el-col :xs="24" :sm="12" :md="12" :lg="8" :xl="8">
-                <el-form-item label="接口别名">
-                  <el-input
-                    v-model="createapiInfo.alias"
-                    maxlength="32"
-                    show-word-limit
-                  /> </el-form-item
-              ></el-col>
-
-              <el-col :xs="24" :sm="12" :md="12" :lg="8" :xl="8">
-                <el-form-item label="接口描述">
-                  <el-input
-                    v-model="createapiInfo.description"
-                  /> </el-form-item
-              ></el-col>
-
-              <el-col :xs="24" :sm="12" :md="12" :lg="8" :xl="8">
-                <el-form-item label="接口关键词">
-                  <el-input
-                    v-model="createapiInfo.keywords"
-                    maxlength="128"
-                    show-word-limit
-                    placeholder="英文逗号隔开"
-                  /> </el-form-item
-              ></el-col>
-
-              <el-col :xs="24" :sm="12" :md="12" :lg="8" :xl="8">
-                <el-form-item label="接口地址">
-                  <el-input
-                    v-model="createapiInfo.url"
-                    maxlength="128"
-                    show-word-limit
-                  />
-                </el-form-item>
-              </el-col>
-
-              <el-col :xs="24" :sm="12" :md="12" :lg="8" :xl="8">
-                <el-form-item label="接口示例">
-                  <el-input
-                    v-model="createapiInfo.exampleUrl"
-                    maxlength="128"
-                    show-word-limit
-                  />
-                </el-form-item>
-              </el-col>
-
-              <el-col :xs="24" :sm="8" :md="8" :lg="8" :xl="8">
-                <el-form-item label="接口前缀URL">
-                  <client-only>
-                    <el-autocomplete
-                      v-model="createapiInfo.prefixValue"
-                      :fetch-suggestions="querySearchPrefix"
-                      placeholder="请选择服务"
-                      @select="handlePrefixSelect"
-                    />
-                  </client-only>
-                </el-form-item>
-              </el-col>
-
-              <el-col :xs="24" :sm="8" :md="8" :lg="8" :xl="8">
-                <el-form-item label="接口分类">
-                  <client-only>
-                    <el-autocomplete
-                      v-model="createapiInfo.category"
-                      :fetch-suggestions="querySearch"
-                      placeholder="请选择分类"
-                      @select="handleSelect"
-                    />
-                  </client-only>
-                </el-form-item>
-              </el-col>
-
-              <el-col :xs="24" :sm="12" :md="12" :lg="8" :xl="8">
-                <el-form-item label="请求类型">
-                  <el-input
-                    v-model="createapiInfo.method"
-                    maxlength="12"
-                    show-word-limit
-                    placeholder="GET 建议使用大写"
-                  />
-                </el-form-item>
-              </el-col>
-
-              <el-col :xs="24" :sm="16" :md="16" :lg="16" :xl="16">
-                <el-form-item label="返回示例">
-                  <el-input
-                    v-model="createapiInfo.example"
-                    type="textarea"
-                    :rows="8"
-                  /> </el-form-item
-              ></el-col>
-            </el-row>
-
-            <el-form-item label="是否启用">
-              <el-switch v-model="createapiInfo.state" />
-            </el-form-item>
-          </el-form>
-        </div>
-
-        <!-- 参数信息卡片 -->
-        <div class="createapi-cont">
-          <div class="card-header">
-            <div class="header-left">
-              <el-icon class="icon">
-                <Setting />
-              </el-icon>
-              <span class="title">参数配置信息</span>
-            </div>
-            <div class="header-right">
-              <el-tag size="small" effect="plain" type="warning">选填项</el-tag>
-            </div>
-          </div>
-
-          <!-- 原有参数表单 -->
-          <el-form :model="addparameter" label-width="120px" class="param-form">
-            <el-form-item label="参数名称">
-              <el-input v-model="addparameter.name" placeholder="return" />
-            </el-form-item>
-            <el-form-item label="可传参数">
-              <el-input v-model="addparameter.param" placeholder="json | 302" />
-            </el-form-item>
-            <client-only>
-              <el-form-item label="传入位置">
-                <el-select
-                  v-model="addparameter.position"
-                  placeholder="传入位置"
-                >
-                  <el-option
-                    v-for="item in position"
-                    :key="item.value"
-                    :label="item.label"
-                    :value="item.value"
-                  />
-                </el-select>
-              </el-form-item>
-            </client-only>
-            <el-form-item label="参数描述">
-              <el-input
-                v-model="addparameter.docs"
-                placeholder="返回json数据 | 重定义到图片"
-              />
-            </el-form-item>
-            <el-form-item label="是否必传">
-              <el-switch v-model="addparameter.required" />
-            </el-form-item>
-          </el-form>
-        </div>
-
-        <!-- 底部操作栏 -->
-        <div class="createapi-footer">
-          <div class="footer-content">
-            <div class="left-info">
-              <el-icon>
-                <InfoFilled />
-              </el-icon>
-              <span>请仔细检查信息后再提交</span>
-            </div>
-            <div class="right-buttons">
-              <el-button type="primary" size="large" @click="create"
-                >提交</el-button
-              >
-              <el-button plain size="large" @click="navigateTo('/admin')"
-                >取消</el-button
-              >
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-</template>
-
 <script setup>
 import { InfoFilled, Setting, Connection, Menu } from '@element-plus/icons-vue'
 const username = useCookie('username')
@@ -448,6 +237,217 @@ useHead({
   charset: 'utf-8',
 })
 </script>
+
+<template>
+  <div class="container">
+    <AdminSidebar v-show="isSidebarShow"></AdminSidebar>
+
+    <div class="right">
+      <!-- 遮罩层 -->
+      <div class="overlay" v-show="isoverlay" @click="handleSidebarShow"></div>
+      <!-- 侧边栏控制按钮 -->
+      <div class="control-sidebar" v-show="iscontrolShow">
+        <el-icon @click="handleSidebarShow"><Menu /></el-icon>
+      </div>
+      <AdminHeader></AdminHeader>
+      <div class="createapi-container">
+        <!-- 接口信息卡片 -->
+        <div class="createapi-cont">
+          <div class="card-header">
+            <div class="header-left">
+              <el-icon class="icon">
+                <Connection />
+              </el-icon>
+              <span class="title">接口基础信息</span>
+            </div>
+            <div class="header-right">
+              <el-tag size="small" effect="plain" type="info">必填项</el-tag>
+            </div>
+          </div>
+
+          <!-- 表单内容保持不变，但调整样式 -->
+          <el-form :model="createapiInfo" label-width="120px" class="main-form">
+            <el-row :gutter="12">
+              <el-col :xs="24" :sm="12" :md="12" :lg="8" :xl="8">
+                <el-form-item label="接口名称">
+                  <el-input
+                    v-model="createapiInfo.name"
+                    maxlength="32"
+                    show-word-limit
+                  /> </el-form-item
+              ></el-col>
+
+              <el-col :xs="24" :sm="12" :md="12" :lg="8" :xl="8">
+                <el-form-item label="接口别名">
+                  <el-input
+                    v-model="createapiInfo.alias"
+                    maxlength="32"
+                    show-word-limit
+                  /> </el-form-item
+              ></el-col>
+
+              <el-col :xs="24" :sm="12" :md="12" :lg="8" :xl="8">
+                <el-form-item label="接口描述">
+                  <el-input
+                    v-model="createapiInfo.description"
+                  /> </el-form-item
+              ></el-col>
+
+              <el-col :xs="24" :sm="12" :md="12" :lg="8" :xl="8">
+                <el-form-item label="接口关键词">
+                  <el-input
+                    v-model="createapiInfo.keywords"
+                    maxlength="128"
+                    show-word-limit
+                    placeholder="英文逗号隔开"
+                  /> </el-form-item
+              ></el-col>
+
+              <el-col :xs="24" :sm="12" :md="12" :lg="8" :xl="8">
+                <el-form-item label="接口地址">
+                  <el-input
+                    v-model="createapiInfo.url"
+                    maxlength="128"
+                    show-word-limit
+                  />
+                </el-form-item>
+              </el-col>
+
+              <el-col :xs="24" :sm="12" :md="12" :lg="8" :xl="8">
+                <el-form-item label="接口示例">
+                  <el-input
+                    v-model="createapiInfo.exampleUrl"
+                    maxlength="128"
+                    show-word-limit
+                  />
+                </el-form-item>
+              </el-col>
+
+              <el-col :xs="24" :sm="8" :md="8" :lg="8" :xl="8">
+                <el-form-item label="接口前缀URL">
+                  <client-only>
+                    <el-autocomplete
+                      v-model="createapiInfo.prefixValue"
+                      :fetch-suggestions="querySearchPrefix"
+                      placeholder="请选择服务"
+                      @select="handlePrefixSelect"
+                    />
+                  </client-only>
+                </el-form-item>
+              </el-col>
+
+              <el-col :xs="24" :sm="8" :md="8" :lg="8" :xl="8">
+                <el-form-item label="接口分类">
+                  <client-only>
+                    <el-autocomplete
+                      v-model="createapiInfo.category"
+                      :fetch-suggestions="querySearch"
+                      placeholder="请选择分类"
+                      @select="handleSelect"
+                    />
+                  </client-only>
+                </el-form-item>
+              </el-col>
+
+              <el-col :xs="24" :sm="12" :md="12" :lg="8" :xl="8">
+                <el-form-item label="请求类型">
+                  <el-input
+                    v-model="createapiInfo.method"
+                    maxlength="12"
+                    show-word-limit
+                    placeholder="GET 建议使用大写"
+                  />
+                </el-form-item>
+              </el-col>
+
+              <el-col :xs="24" :sm="16" :md="16" :lg="16" :xl="16">
+                <el-form-item label="返回示例">
+                  <el-input
+                    v-model="createapiInfo.example"
+                    type="textarea"
+                    :rows="8"
+                  /> </el-form-item
+              ></el-col>
+            </el-row>
+
+            <el-form-item label="是否启用">
+              <el-switch v-model="createapiInfo.state" />
+            </el-form-item>
+          </el-form>
+        </div>
+
+        <!-- 参数信息卡片 -->
+        <div class="createapi-cont">
+          <div class="card-header">
+            <div class="header-left">
+              <el-icon class="icon">
+                <Setting />
+              </el-icon>
+              <span class="title">参数配置信息</span>
+            </div>
+            <div class="header-right">
+              <el-tag size="small" effect="plain" type="warning">选填项</el-tag>
+            </div>
+          </div>
+
+          <!-- 原有参数表单 -->
+          <el-form :model="addparameter" label-width="120px" class="param-form">
+            <el-form-item label="参数名称">
+              <el-input v-model="addparameter.name" placeholder="return" />
+            </el-form-item>
+            <el-form-item label="可传参数">
+              <el-input v-model="addparameter.param" placeholder="json | 302" />
+            </el-form-item>
+            <client-only>
+              <el-form-item label="传入位置">
+                <el-select
+                  v-model="addparameter.position"
+                  placeholder="传入位置"
+                >
+                  <el-option
+                    v-for="item in position"
+                    :key="item.value"
+                    :label="item.label"
+                    :value="item.value"
+                  />
+                </el-select>
+              </el-form-item>
+            </client-only>
+            <el-form-item label="参数描述">
+              <el-input
+                v-model="addparameter.docs"
+                placeholder="返回json数据 | 重定义到图片"
+              />
+            </el-form-item>
+            <el-form-item label="是否必传">
+              <el-switch v-model="addparameter.required" />
+            </el-form-item>
+          </el-form>
+        </div>
+
+        <!-- 底部操作栏 -->
+        <div class="createapi-footer">
+          <div class="footer-content">
+            <div class="left-info">
+              <el-icon>
+                <InfoFilled />
+              </el-icon>
+              <span>请仔细检查信息后再提交</span>
+            </div>
+            <div class="right-buttons">
+              <el-button type="primary" size="large" @click="create"
+                >提交</el-button
+              >
+              <el-button plain size="large" @click="navigateTo('/admin')"
+                >取消</el-button
+              >
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</template>
 
 <style lang="less" scoped>
 .container {

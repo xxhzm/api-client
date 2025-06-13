@@ -1,120 +1,3 @@
-<template>
-  <div class="login-container">
-    <div class="login-card" :class="{ 'is-register': !LoginIsRegister }">
-      <div class="card-header">
-        <span class="back-btn" @click="goBack">
-          <img src="@/assets/images/goback.svg" alt="返回" />
-          返回首页
-        </span>
-        <div class="header-content">
-          <h2 class="title">{{ LoginIsRegister ? '账号登录' : '注册账号' }}</h2>
-          <p class="subtitle">
-            {{ LoginIsRegister ? '欢迎使用小小API，请登录您的账号' : '欢迎加入小小API，请完成注册' }}
-          </p>
-        </div>
-      </div>
-
-      <div v-if="LoginIsRegister" class="form-container">
-        <el-form :model="info" size="large">
-          <el-form-item>
-            <el-input 
-              v-model="info.username" 
-              placeholder="请输入用户名"
-              prefix-icon="el-icon-user"
-            />
-          </el-form-item>
-          <el-form-item>
-            <el-input
-              v-model="info.password"
-              type="password"
-              placeholder="请输入密码"
-              prefix-icon="el-icon-lock"
-              show-password
-            />
-          </el-form-item>
-          <el-button
-            type="primary"
-            class="submit-btn"
-            @click="login"
-            :loading="loginAndRegisterButtonStatus"
-          >
-            登录
-          </el-button>
-        </el-form>
-        <div class="form-footer">
-          <span>还没有账号？</span>
-          <a @click="LoginIsRegisterChange">立即注册</a>
-        </div>
-      </div>
-      <div v-else class="form-container">
-        <el-form :model="info" size="large">
-          <el-form-item>
-            <el-input 
-              v-model="info.username" 
-              placeholder="请输入用户名"
-              prefix-icon="el-icon-user"
-            />
-          </el-form-item>
-          <el-form-item>
-            <el-input
-              v-model="info.password"
-              type="password"
-              placeholder="请输入密码"
-              prefix-icon="el-icon-lock"
-              show-password
-            />
-          </el-form-item>
-          <el-form-item>
-            <el-input 
-              v-model="info.mail" 
-              placeholder="请输入电子邮箱"
-              prefix-icon="el-icon-message"
-            />
-          </el-form-item>
-          <el-form-item>
-            <div class="captcha-container">
-              <el-input
-                v-model="info.captcha"
-                placeholder="图片验证码"
-                prefix-icon="el-icon-picture"
-              />
-              <img
-                :src="captchaInfo.url"
-                alt="验证码"
-                class="captcha-img"
-                @click="getCaptchaInfo()"
-              />
-            </div>
-          </el-form-item>
-          <el-form-item>
-            <div class="verify-code-container">
-              <el-input 
-                v-model="info.mailCode" 
-                placeholder="邮件验证码"
-                prefix-icon="el-icon-key"
-              />
-              <el-button 
-                @click="getMailCode"
-                :loading="getVerifyCodeButtonState"
-                class="verify-code-btn"
-              >
-                获取验证码
-              </el-button>
-            </div>
-          </el-form-item>
-          <el-button type="primary" class="submit-btn" @click="register">
-            注册
-          </el-button>
-        </el-form>
-        <div class="form-footer">
-          <span>已有账号？</span>
-          <a @click="LoginIsRegisterChange">立即登录</a>
-        </div>
-      </div>
-    </div>
-  </div>
-</template>
-
 <script setup>
 // 引入加密算法
 const { $enCode, $msg, $myFetch } = useNuxtApp()
@@ -309,6 +192,127 @@ useHead({
 })
 </script>
 
+<template>
+  <div class="login-container">
+    <div class="login-card" :class="{ 'is-register': !LoginIsRegister }">
+      <div class="card-header">
+        <span class="back-btn" @click="goBack">
+          <img src="@/assets/images/goback.svg" alt="返回" />
+          返回首页
+        </span>
+        <div class="header-content">
+          <h2 class="title">{{ LoginIsRegister ? '账号登录' : '注册账号' }}</h2>
+          <p class="subtitle">
+            {{
+              LoginIsRegister
+                ? '欢迎使用小小API，请登录您的账号'
+                : '欢迎加入小小API，请完成注册'
+            }}
+          </p>
+        </div>
+      </div>
+
+      <div v-if="LoginIsRegister" class="form-container">
+        <el-form :model="info" size="large">
+          <el-form-item>
+            <el-input
+              v-model="info.username"
+              placeholder="请输入用户名"
+              prefix-icon="el-icon-user"
+            />
+          </el-form-item>
+          <el-form-item>
+            <el-input
+              v-model="info.password"
+              type="password"
+              placeholder="请输入密码"
+              prefix-icon="el-icon-lock"
+              show-password
+            />
+          </el-form-item>
+          <el-button
+            type="primary"
+            class="submit-btn"
+            @click="login"
+            :loading="loginAndRegisterButtonStatus"
+          >
+            登录
+          </el-button>
+        </el-form>
+        <div class="form-footer">
+          <span>还没有账号？</span>
+          <a @click="LoginIsRegisterChange">立即注册</a>
+        </div>
+      </div>
+      <div v-else class="form-container">
+        <el-form :model="info" size="large">
+          <el-form-item>
+            <el-input
+              v-model="info.username"
+              placeholder="请输入用户名"
+              prefix-icon="el-icon-user"
+            />
+          </el-form-item>
+          <el-form-item>
+            <el-input
+              v-model="info.password"
+              type="password"
+              placeholder="请输入密码"
+              prefix-icon="el-icon-lock"
+              show-password
+            />
+          </el-form-item>
+          <el-form-item>
+            <el-input
+              v-model="info.mail"
+              placeholder="请输入电子邮箱"
+              prefix-icon="el-icon-message"
+            />
+          </el-form-item>
+          <el-form-item>
+            <div class="captcha-container">
+              <el-input
+                v-model="info.captcha"
+                placeholder="图片验证码"
+                prefix-icon="el-icon-picture"
+              />
+              <img
+                :src="captchaInfo.url"
+                alt="验证码"
+                class="captcha-img"
+                @click="getCaptchaInfo()"
+              />
+            </div>
+          </el-form-item>
+          <el-form-item>
+            <div class="verify-code-container">
+              <el-input
+                v-model="info.mailCode"
+                placeholder="邮件验证码"
+                prefix-icon="el-icon-key"
+              />
+              <el-button
+                @click="getMailCode"
+                :loading="getVerifyCodeButtonState"
+                class="verify-code-btn"
+              >
+                获取验证码
+              </el-button>
+            </div>
+          </el-form-item>
+          <el-button type="primary" class="submit-btn" @click="register">
+            注册
+          </el-button>
+        </el-form>
+        <div class="form-footer">
+          <span>已有账号？</span>
+          <a @click="LoginIsRegisterChange">立即登录</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</template>
+
 <style lang="less" scoped>
 .login-container {
   min-height: 100vh;
@@ -396,10 +400,10 @@ useHead({
 
       .el-input {
         --el-input-height: 40px;
-        
+
         :deep(.el-input__wrapper) {
           box-shadow: 0 0 0 1px #dcdfe6 inset;
-          
+
           &.is-focus {
             box-shadow: 0 0 0 1px #409eff inset;
           }
@@ -453,7 +457,7 @@ useHead({
         color: #409eff;
         margin-left: 4px;
         cursor: pointer;
-        
+
         &:hover {
           text-decoration: underline;
         }

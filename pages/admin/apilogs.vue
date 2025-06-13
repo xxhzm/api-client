@@ -1,215 +1,3 @@
-<template>
-  <div class="container">
-    <AdminSidebar v-show="isSidebarShow"></AdminSidebar>
-
-    <div class="right">
-      <!-- 遮罩层 -->
-      <div class="overlay" v-show="isoverlay" @click="handleSidebarShow"></div>
-      <!-- 侧边栏控制按钮 -->
-      <div class="control-sidebar" v-show="iscontrolShow">
-        <el-icon @click="handleSidebarShow"><Menu /></el-icon>
-      </div>
-      <AdminHeader></AdminHeader>
-      <div class="apilogs-container" v-loading="loading">
-        <div class="logs-card">
-          <!-- 搜索区域 -->
-          <div class="card-header">
-            <div class="header-left">
-              <el-icon class="icon">
-                <Document />
-              </el-icon>
-              <span class="title">接口日志</span>
-            </div>
-            <div class="header-right">
-              <el-pagination
-                v-model:page-size="pageSize"
-                :page-sizes="[100, 200, 300, 400]"
-                :pager-count="11"
-                :page-count="maxPage"
-                v-model:current-page="page"
-                :disabled="pageLoading"
-                size="small"
-                background
-                layout="sizes, prev, pager, next, jumper"
-                @size-change="getData"
-              />
-            </div>
-          </div>
-
-          <!-- 搜索工具栏 -->
-          <div class="search-toolbar">
-            <div class="search-row">
-              <div class="search-input id-search">
-                <span class="label">请求ID：</span>
-                <el-input
-                  v-model="searchId"
-                  placeholder="请输入请求ID"
-                  clearable
-                >
-                  <template #prefix>
-                    <el-icon>
-                      <Search />
-                    </el-icon>
-                  </template>
-                </el-input>
-              </div>
-            </div>
-            <div class="search-items">
-              <div class="date-picker">
-                <span class="label">选择时间：</span>
-                <el-date-picker
-                  v-model="searchTime"
-                  type="datetimerange"
-                  range-separator="至"
-                  start-placeholder="起始时间"
-                  end-placeholder="结束时间"
-                  :disabled-date="disabledDate"
-                  value-format="x"
-                />
-              </div>
-              <div class="search-input">
-                <el-input
-                  v-model="searchIp"
-                  placeholder="请输入IP地址"
-                  clearable
-                >
-                  <template #prefix>
-                    <el-icon>
-                      <Search />
-                    </el-icon>
-                  </template>
-                </el-input>
-              </div>
-              <div class="search-input">
-                <el-autocomplete
-                  v-model="searchAlias"
-                  :fetch-suggestions="querySearchAsync"
-                  placeholder="请输入接口名称"
-                  clearable
-                  class="full-width"
-                  @select="handleSearchSelect"
-                >
-                  <template #prefix>
-                    <el-icon>
-                      <Search />
-                    </el-icon>
-                  </template>
-                </el-autocomplete>
-              </div>
-              <div class="search-input">
-                <el-input
-                  v-model="searchStatusCode"
-                  placeholder="请输入状态码"
-                  clearable
-                >
-                  <template #prefix>
-                    <el-icon>
-                      <Search />
-                    </el-icon>
-                  </template>
-                </el-input>
-              </div>
-              <div class="search-buttons">
-                <el-button type="primary" @click="handleSearch(1)"
-                  >查询</el-button
-                >
-                <el-button @click="handleReset">重置</el-button>
-              </div>
-            </div>
-          </div>
-
-          <!-- 表格区域 -->
-          <div class="table-container">
-            <client-only>
-              <el-table
-                :data="tableData"
-                style="width: 100%"
-                v-loading="pageLoading"
-              >
-                <el-table-column prop="key" label="序号" width="60" />
-                <el-table-column
-                  prop="id"
-                  label="请求ID"
-                  min-width="180"
-                  show-overflow-tooltip
-                />
-                <el-table-column
-                  prop="alias"
-                  label="接口名称"
-                  width="120"
-                  show-overflow-tooltip
-                />
-                <el-table-column prop="method" label="请求方法" width="90">
-                  <template #default="scope">
-                    <el-tag
-                      :type="scope.row.method === 'GET' ? 'success' : 'warning'"
-                      size="small"
-                    >
-                      {{ scope.row.method }}
-                    </el-tag>
-                  </template>
-                </el-table-column>
-                <el-table-column
-                  prop="path"
-                  label="请求路径"
-                  min-width="200"
-                  show-overflow-tooltip
-                />
-                <el-table-column
-                  prop="response_time"
-                  label="响应时间"
-                  width="90"
-                />
-                <el-table-column prop="status_code" label="状态码" width="80">
-                  <template #default="scope">
-                    <el-tag
-                      :type="
-                        scope.row.status_code === 200
-                          ? 'success'
-                          : scope.row.status_code === 302 ||
-                            scope.row.status_code === 301
-                          ? 'primary'
-                          : 'danger'
-                      "
-                      size="small"
-                    >
-                      {{ scope.row.status_code }}
-                    </el-tag>
-                  </template>
-                </el-table-column>
-                <el-table-column prop="client_ip" label="IP" width="140" />
-                <el-table-column
-                  prop="address"
-                  label="归属地"
-                  width="130"
-                  show-overflow-tooltip
-                />
-                <el-table-column
-                  prop="timestamp"
-                  label="请求时间"
-                  width="180"
-                />
-                <el-table-column
-                  prop="ua"
-                  label="User Agent"
-                  min-width="200"
-                  show-overflow-tooltip
-                />
-                <el-table-column
-                  prop="referer"
-                  label="来源"
-                  min-width="180"
-                  show-overflow-tooltip
-                />
-              </el-table>
-            </client-only>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-</template>
-
 <script setup>
 import { Search, Document, Menu } from '@element-plus/icons-vue'
 
@@ -512,6 +300,218 @@ useHead({
   charset: 'utf-8',
 })
 </script>
+
+<template>
+  <div class="container">
+    <AdminSidebar v-show="isSidebarShow"></AdminSidebar>
+
+    <div class="right">
+      <!-- 遮罩层 -->
+      <div class="overlay" v-show="isoverlay" @click="handleSidebarShow"></div>
+      <!-- 侧边栏控制按钮 -->
+      <div class="control-sidebar" v-show="iscontrolShow">
+        <el-icon @click="handleSidebarShow"><Menu /></el-icon>
+      </div>
+      <AdminHeader></AdminHeader>
+      <div class="apilogs-container" v-loading="loading">
+        <div class="logs-card">
+          <!-- 搜索区域 -->
+          <div class="card-header">
+            <div class="header-left">
+              <el-icon class="icon">
+                <Document />
+              </el-icon>
+              <span class="title">接口日志</span>
+            </div>
+            <div class="header-right">
+              <el-pagination
+                v-model:page-size="pageSize"
+                :page-sizes="[100, 200, 300, 400]"
+                :pager-count="11"
+                :page-count="maxPage"
+                v-model:current-page="page"
+                :disabled="pageLoading"
+                size="small"
+                background
+                layout="sizes, prev, pager, next, jumper"
+                @size-change="getData"
+              />
+            </div>
+          </div>
+
+          <!-- 搜索工具栏 -->
+          <div class="search-toolbar">
+            <div class="search-row">
+              <div class="search-input id-search">
+                <span class="label">请求ID：</span>
+                <el-input
+                  v-model="searchId"
+                  placeholder="请输入请求ID"
+                  clearable
+                >
+                  <template #prefix>
+                    <el-icon>
+                      <Search />
+                    </el-icon>
+                  </template>
+                </el-input>
+              </div>
+            </div>
+            <div class="search-items">
+              <div class="date-picker">
+                <span class="label">选择时间：</span>
+                <el-date-picker
+                  v-model="searchTime"
+                  type="datetimerange"
+                  range-separator="至"
+                  start-placeholder="起始时间"
+                  end-placeholder="结束时间"
+                  :disabled-date="disabledDate"
+                  value-format="x"
+                />
+              </div>
+              <div class="search-input">
+                <el-input
+                  v-model="searchIp"
+                  placeholder="请输入IP地址"
+                  clearable
+                >
+                  <template #prefix>
+                    <el-icon>
+                      <Search />
+                    </el-icon>
+                  </template>
+                </el-input>
+              </div>
+              <div class="search-input">
+                <el-autocomplete
+                  v-model="searchAlias"
+                  :fetch-suggestions="querySearchAsync"
+                  placeholder="请输入接口名称"
+                  clearable
+                  class="full-width"
+                  @select="handleSearchSelect"
+                >
+                  <template #prefix>
+                    <el-icon>
+                      <Search />
+                    </el-icon>
+                  </template>
+                </el-autocomplete>
+              </div>
+              <div class="search-input">
+                <el-input
+                  v-model="searchStatusCode"
+                  placeholder="请输入状态码"
+                  clearable
+                >
+                  <template #prefix>
+                    <el-icon>
+                      <Search />
+                    </el-icon>
+                  </template>
+                </el-input>
+              </div>
+              <div class="search-buttons">
+                <el-button type="primary" @click="handleSearch(1)"
+                  >查询</el-button
+                >
+                <el-button @click="handleReset">重置</el-button>
+              </div>
+            </div>
+          </div>
+
+          <!-- 表格区域 -->
+          <div class="table-container">
+            <client-only>
+              <el-table
+                :data="tableData"
+                style="width: 100%"
+                v-loading="pageLoading"
+              >
+                <el-table-column prop="key" label="序号" width="60" />
+                <el-table-column
+                  prop="id"
+                  label="请求ID"
+                  min-width="180"
+                  show-overflow-tooltip
+                />
+                <el-table-column
+                  prop="alias"
+                  label="接口名称"
+                  width="120"
+                  show-overflow-tooltip
+                />
+                <el-table-column prop="method" label="请求方法" width="90">
+                  <template #default="scope">
+                    <el-tag
+                      :type="scope.row.method === 'GET' ? 'success' : 'warning'"
+                      size="small"
+                    >
+                      {{ scope.row.method }}
+                    </el-tag>
+                  </template>
+                </el-table-column>
+                <el-table-column
+                  prop="path"
+                  label="请求路径"
+                  min-width="200"
+                  show-overflow-tooltip
+                />
+                <el-table-column
+                  prop="response_time"
+                  label="响应时间"
+                  width="90"
+                />
+                <el-table-column prop="status_code" label="状态码" width="80">
+                  <template #default="scope">
+                    <el-tag
+                      :type="
+                        scope.row.status_code === 200
+                          ? 'success'
+                          : scope.row.status_code === 302 ||
+                            scope.row.status_code === 301
+                          ? 'primary'
+                          : 'danger'
+                      "
+                      size="small"
+                    >
+                      {{ scope.row.status_code }}
+                    </el-tag>
+                  </template>
+                </el-table-column>
+                <el-table-column prop="client_ip" label="IP" width="140" />
+                <el-table-column
+                  prop="address"
+                  label="归属地"
+                  width="130"
+                  show-overflow-tooltip
+                />
+                <el-table-column
+                  prop="timestamp"
+                  label="请求时间"
+                  width="180"
+                />
+                <el-table-column
+                  prop="ua"
+                  label="User Agent"
+                  min-width="200"
+                  show-overflow-tooltip
+                />
+                <el-table-column
+                  prop="referer"
+                  label="来源"
+                  min-width="180"
+                  show-overflow-tooltip
+                />
+              </el-table>
+            </client-only>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</template>
 
 <style lang="less" scoped>
 .container {

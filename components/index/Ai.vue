@@ -1,107 +1,3 @@
-<template>
-  <div class="ai-chat-container">
-    <!-- 聊天悬浮按钮 -->
-    <div class="chat-button" @click="toggleChat" v-if="!chatVisible">
-      <el-badge :value="unreadCount" :hidden="unreadCount === 0">
-        <el-button type="primary" circle>
-          <el-icon><ChatDotRound /></el-icon>
-        </el-button>
-      </el-badge>
-    </div>
-
-    <!-- 聊天窗口 -->
-    <div class="chat-window" v-if="chatVisible">
-      <!-- 聊天窗口标题栏 -->
-      <div
-        class="chat-header"
-        @mousedown="handleMouseDown"
-        :style="{ cursor: 'ns-resize' }"
-      >
-        <div class="title">
-          <el-icon><Service /></el-icon>
-          <span>AI 智能助手</span>
-        </div>
-        <div class="actions">
-          <el-button type="text" @click="toggleChat" class="close-button">
-            <el-icon><Close /></el-icon>
-          </el-button>
-        </div>
-      </div>
-
-      <!-- 聊天消息区域 -->
-      <div class="chat-messages" ref="chatMessagesContainer">
-        <el-empty
-          v-if="chatMessages.length === 0"
-          description="开始与AI助手聊天吧！"
-          :image-size="100"
-        />
-        <div
-          v-for="(message, index) in chatMessages"
-          :key="index"
-          :class="[
-            'message',
-            message.role === 'user' ? 'user-message' : 'ai-message',
-          ]"
-        >
-          <div class="message-content">
-            <div class="message-avatar">
-              <el-avatar
-                :icon="message.role === 'user' ? UserFilled : Service"
-                :size="36"
-                :color="message.role === 'user' ? '#409EFF' : '#67C23A'"
-              />
-            </div>
-            <div class="message-text">
-              <div class="message-bubble">
-                <div
-                  v-if="message.role === 'assistant'"
-                  class="formatted-content"
-                  v-html="formatMessageContent(message.content)"
-                ></div>
-                <p v-else>{{ message.content }}</p>
-              </div>
-              <div class="message-time">{{ message.time }}</div>
-            </div>
-          </div>
-        </div>
-
-        <!-- 加载指示器 -->
-        <div class="loading-indicator" v-if="isLoading">
-          <el-icon class="is-loading"><Loading /></el-icon>
-          <span>AI正在思考中...</span>
-        </div>
-      </div>
-
-      <!-- AI免责声明提示 -->
-      <div class="ai-disclaimer">
-        <el-icon><InfoFilled /></el-icon>
-        <span>AI生成的内容仅供参考，不对其准确性或完整性做保证</span>
-      </div>
-
-      <!-- 输入框区域 -->
-      <div class="chat-input">
-        <el-input
-          v-model="userInput"
-          type="textarea"
-          :rows="2"
-          placeholder="请输入您的问题..."
-          @keyup.enter.exact="sendMessage"
-          resize="none"
-        />
-        <el-button
-          type="primary"
-          :disabled="!userInput.trim() || isLoading"
-          @click="sendMessage"
-          class="send-button"
-        >
-          <el-icon><Position /></el-icon>
-          发送
-        </el-button>
-      </div>
-    </div>
-  </div>
-</template>
-
 <script setup>
 import { ref, reactive, onMounted, nextTick, watch, onBeforeUnmount } from 'vue'
 import {
@@ -429,6 +325,110 @@ const formatMessageContent = (content) => {
   return formattedContent
 }
 </script>
+
+<template>
+  <div class="ai-chat-container">
+    <!-- 聊天悬浮按钮 -->
+    <div class="chat-button" @click="toggleChat" v-if="!chatVisible">
+      <el-badge :value="unreadCount" :hidden="unreadCount === 0">
+        <el-button type="primary" circle>
+          <el-icon><ChatDotRound /></el-icon>
+        </el-button>
+      </el-badge>
+    </div>
+
+    <!-- 聊天窗口 -->
+    <div class="chat-window" v-if="chatVisible">
+      <!-- 聊天窗口标题栏 -->
+      <div
+        class="chat-header"
+        @mousedown="handleMouseDown"
+        :style="{ cursor: 'ns-resize' }"
+      >
+        <div class="title">
+          <el-icon><Service /></el-icon>
+          <span>AI 智能助手</span>
+        </div>
+        <div class="actions">
+          <el-button type="text" @click="toggleChat" class="close-button">
+            <el-icon><Close /></el-icon>
+          </el-button>
+        </div>
+      </div>
+
+      <!-- 聊天消息区域 -->
+      <div class="chat-messages" ref="chatMessagesContainer">
+        <el-empty
+          v-if="chatMessages.length === 0"
+          description="开始与AI助手聊天吧！"
+          :image-size="100"
+        />
+        <div
+          v-for="(message, index) in chatMessages"
+          :key="index"
+          :class="[
+            'message',
+            message.role === 'user' ? 'user-message' : 'ai-message',
+          ]"
+        >
+          <div class="message-content">
+            <div class="message-avatar">
+              <el-avatar
+                :icon="message.role === 'user' ? UserFilled : Service"
+                :size="36"
+                :color="message.role === 'user' ? '#409EFF' : '#67C23A'"
+              />
+            </div>
+            <div class="message-text">
+              <div class="message-bubble">
+                <div
+                  v-if="message.role === 'assistant'"
+                  class="formatted-content"
+                  v-html="formatMessageContent(message.content)"
+                ></div>
+                <p v-else>{{ message.content }}</p>
+              </div>
+              <div class="message-time">{{ message.time }}</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 加载指示器 -->
+        <div class="loading-indicator" v-if="isLoading">
+          <el-icon class="is-loading"><Loading /></el-icon>
+          <span>AI正在思考中...</span>
+        </div>
+      </div>
+
+      <!-- AI免责声明提示 -->
+      <div class="ai-disclaimer">
+        <el-icon><InfoFilled /></el-icon>
+        <span>AI生成的内容仅供参考，不对其准确性或完整性做保证</span>
+      </div>
+
+      <!-- 输入框区域 -->
+      <div class="chat-input">
+        <el-input
+          v-model="userInput"
+          type="textarea"
+          :rows="2"
+          placeholder="请输入您的问题..."
+          @keyup.enter.exact="sendMessage"
+          resize="none"
+        />
+        <el-button
+          type="primary"
+          :disabled="!userInput.trim() || isLoading"
+          @click="sendMessage"
+          class="send-button"
+        >
+          <el-icon><Position /></el-icon>
+          发送
+        </el-button>
+      </div>
+    </div>
+  </div>
+</template>
 
 <style lang="less" scoped>
 .ai-chat-container {

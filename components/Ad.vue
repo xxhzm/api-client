@@ -1,3 +1,15 @@
+<script setup>
+const { $myFetch } = useNuxtApp()
+
+const adDate = ref([])
+
+const res = await $myFetch('AdListForFrontend', {
+  method: 'GET',
+})
+
+adDate.value = res.data
+</script>
+
 <template>
   <div class="ad">
     <el-row :gutter="20">
@@ -17,18 +29,6 @@
     </el-row>
   </div>
 </template>
-
-<script setup>
-const { $myFetch } = useNuxtApp()
-
-const adDate = ref([])
-
-const res = await $myFetch('AdListForFrontend', {
-  method: 'GET',
-})
-
-adDate.value = res.data
-</script>
 
 <style lang="less" scoped>
 .ad {

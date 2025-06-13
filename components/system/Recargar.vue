@@ -1,30 +1,3 @@
-<template>
-  <div class="recargar-info">
-    <div class="recargar-info__row">
-      <div
-        class="recargar-info__col"
-        v-for="(item, index) in cards"
-        :key="index"
-      >
-        <div class="info-card">
-          <div class="info-card__category">{{ item.tag }}</div>
-          <div class="info-card__content">
-            <h3 class="info-card__title">{{ item.title }}</h3>
-            <div class="info-card__value">
-              <template v-if="item.isCount">
-                <HelpersCount :end="item.value" />
-              </template>
-              <template v-else>
-                {{ item.value }}
-              </template>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-</template>
-
 <script setup>
 const recargarInfo = ref({
   total_order: 0,
@@ -65,6 +38,33 @@ const cards = computed(() => [
   },
 ])
 </script>
+
+<template>
+  <div class="recargar-info">
+    <div class="recargar-info__row">
+      <div
+        class="recargar-info__col"
+        v-for="(item, index) in cards"
+        :key="index"
+      >
+        <div class="info-card">
+          <div class="info-card__category">{{ item.tag }}</div>
+          <div class="info-card__content">
+            <h3 class="info-card__title">{{ item.title }}</h3>
+            <div class="info-card__value">
+              <template v-if="item.isCount">
+                <HelpersCount :end="item.value" />
+              </template>
+              <template v-else>
+                {{ item.value }}
+              </template>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</template>
 
 <style lang="less" scoped>
 .recargar-info {

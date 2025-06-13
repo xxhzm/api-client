@@ -1,111 +1,3 @@
-<template>
-  <div class="container">
-    <AdminSidebar v-show="isSidebarShow"></AdminSidebar>
-
-    <div class="right">
-      <!-- 遮罩层 -->
-      <div class="overlay" v-show="isoverlay" @click="handleSidebarShow"></div>
-      <!-- 侧边栏控制按钮 -->
-      <div class="control-sidebar" v-show="iscontrolShow">
-        <el-icon @click="handleSidebarShow"><Menu /></el-icon>
-      </div>
-      <AdminHeader></AdminHeader>
-      <div class="addparam_container">
-        <div class="param-card">
-          <div class="card-header">
-            <div class="header-left">
-              <el-icon class="icon">
-                <Setting />
-              </el-icon>
-              <span class="title">参数配置</span>
-            </div>
-            <div class="header-right">
-              <el-tag size="small" effect="plain" type="info">必填项</el-tag>
-            </div>
-          </div>
-
-          <div class="form">
-            <el-form
-              :model="addparameter"
-              label-position="top"
-              label-width="120px"
-            >
-              <el-form-item label="接口名称">
-                <el-autocomplete
-                  v-model="addparameter.apiName"
-                  :fetch-suggestions="querySearchAsync"
-                  placeholder="请输入接口名称"
-                  @select="handleSearchSelect"
-                  class="full-width"
-                />
-              </el-form-item>
-              <el-form-item label="参数名称">
-                <el-input v-model="addparameter.name" placeholder="return" />
-              </el-form-item>
-              <el-form-item label="可传参数">
-                <el-input
-                  v-model="addparameter.param"
-                  placeholder="json | 302"
-                />
-              </el-form-item>
-              <client-only>
-                <el-form-item label="传入位置">
-                  <el-select
-                    v-model="addparameter.position"
-                    placeholder="传入位置"
-                    class="full-width"
-                  >
-                    <el-option
-                      v-for="item in position"
-                      :key="item.value"
-                      :label="item.label"
-                      :value="item.value"
-                    />
-                  </el-select>
-                </el-form-item>
-              </client-only>
-              <el-form-item label="参数描述">
-                <el-input
-                  v-model="addparameter.docs"
-                  type="textarea"
-                  :rows="3"
-                  placeholder="返回json数据 | 重定义到图片"
-                />
-              </el-form-item>
-              <el-form-item label="是否必传">
-                <el-switch v-model="addparameter.required" />
-              </el-form-item>
-            </el-form>
-          </div>
-        </div>
-
-        <!-- 底部操作栏 -->
-        <div class="param-footer">
-          <div class="footer-content">
-            <div class="left-info">
-              <el-icon>
-                <InfoFilled />
-              </el-icon>
-              <span>请仔细检查信息后再提交</span>
-            </div>
-            <div class="right-buttons">
-              <el-button type="primary" size="large" @click="onSubmit"
-                >提交</el-button
-              >
-              <el-button
-                plain
-                size="large"
-                @click="navigateTo('/admin/apilist')"
-                >取消</el-button
-              >
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-</template>
-
 <script setup>
 import { Setting, InfoFilled, Menu } from '@element-plus/icons-vue'
 const { $msg, $myFetch } = useNuxtApp()
@@ -249,6 +141,114 @@ useHead({
   charset: 'utf-8',
 })
 </script>
+
+<template>
+  <div class="container">
+    <AdminSidebar v-show="isSidebarShow"></AdminSidebar>
+
+    <div class="right">
+      <!-- 遮罩层 -->
+      <div class="overlay" v-show="isoverlay" @click="handleSidebarShow"></div>
+      <!-- 侧边栏控制按钮 -->
+      <div class="control-sidebar" v-show="iscontrolShow">
+        <el-icon @click="handleSidebarShow"><Menu /></el-icon>
+      </div>
+      <AdminHeader></AdminHeader>
+      <div class="addparam_container">
+        <div class="param-card">
+          <div class="card-header">
+            <div class="header-left">
+              <el-icon class="icon">
+                <Setting />
+              </el-icon>
+              <span class="title">参数配置</span>
+            </div>
+            <div class="header-right">
+              <el-tag size="small" effect="plain" type="info">必填项</el-tag>
+            </div>
+          </div>
+
+          <div class="form">
+            <el-form
+              :model="addparameter"
+              label-position="top"
+              label-width="120px"
+            >
+              <el-form-item label="接口名称">
+                <el-autocomplete
+                  v-model="addparameter.apiName"
+                  :fetch-suggestions="querySearchAsync"
+                  placeholder="请输入接口名称"
+                  @select="handleSearchSelect"
+                  class="full-width"
+                />
+              </el-form-item>
+              <el-form-item label="参数名称">
+                <el-input v-model="addparameter.name" placeholder="return" />
+              </el-form-item>
+              <el-form-item label="可传参数">
+                <el-input
+                  v-model="addparameter.param"
+                  placeholder="json | 302"
+                />
+              </el-form-item>
+              <client-only>
+                <el-form-item label="传入位置">
+                  <el-select
+                    v-model="addparameter.position"
+                    placeholder="传入位置"
+                    class="full-width"
+                  >
+                    <el-option
+                      v-for="item in position"
+                      :key="item.value"
+                      :label="item.label"
+                      :value="item.value"
+                    />
+                  </el-select>
+                </el-form-item>
+              </client-only>
+              <el-form-item label="参数描述">
+                <el-input
+                  v-model="addparameter.docs"
+                  type="textarea"
+                  :rows="3"
+                  placeholder="返回json数据 | 重定义到图片"
+                />
+              </el-form-item>
+              <el-form-item label="是否必传">
+                <el-switch v-model="addparameter.required" />
+              </el-form-item>
+            </el-form>
+          </div>
+        </div>
+
+        <!-- 底部操作栏 -->
+        <div class="param-footer">
+          <div class="footer-content">
+            <div class="left-info">
+              <el-icon>
+                <InfoFilled />
+              </el-icon>
+              <span>请仔细检查信息后再提交</span>
+            </div>
+            <div class="right-buttons">
+              <el-button type="primary" size="large" @click="onSubmit"
+                >提交</el-button
+              >
+              <el-button
+                plain
+                size="large"
+                @click="navigateTo('/admin/apilist')"
+                >取消</el-button
+              >
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</template>
 
 <style lang="less" scoped>
 .container {

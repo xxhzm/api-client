@@ -1,48 +1,3 @@
-<template>
-  <div class="container">
-    <AdminSidebar v-show="isSidebarShow"></AdminSidebar>
-
-    <div class="right">
-      <!-- 遮罩层 -->
-      <div class="overlay" v-show="isoverlay" @click="handleSidebarShow"></div>
-      <!-- 侧边栏控制按钮 -->
-      <div class="control-sidebar" v-show="iscontrolShow">
-        <el-icon @click="handleSidebarShow"><Menu /></el-icon>
-      </div>
-      <AdminHeader></AdminHeader>
-      <div class="password-container">
-        <div class="cont">
-          <div class="form">
-            <el-form
-              :model="passwordInfo"
-              label-position="top"
-              label-width="120px"
-            >
-              <el-form-item label="请输入旧密码">
-                <el-input
-                  v-model="passwordInfo.oldPassword"
-                  type="password"
-                  show-password
-                />
-              </el-form-item>
-              <el-form-item label="请输入新密码">
-                <el-input
-                  v-model="passwordInfo.newPassword"
-                  type="password"
-                  show-password
-                />
-              </el-form-item>
-              <el-form-item>
-                <el-button type="primary" @click="onSubmit">修改</el-button>
-              </el-form-item>
-            </el-form>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-</template>
-
 <script setup>
 import { Menu } from '@element-plus/icons-vue'
 const { $enCode, $msg, $myFetch } = useNuxtApp()
@@ -119,6 +74,51 @@ const onSubmit = async () => {
   }
 }
 </script>
+
+<template>
+  <div class="container">
+    <AdminSidebar v-show="isSidebarShow"></AdminSidebar>
+
+    <div class="right">
+      <!-- 遮罩层 -->
+      <div class="overlay" v-show="isoverlay" @click="handleSidebarShow"></div>
+      <!-- 侧边栏控制按钮 -->
+      <div class="control-sidebar" v-show="iscontrolShow">
+        <el-icon @click="handleSidebarShow"><Menu /></el-icon>
+      </div>
+      <AdminHeader></AdminHeader>
+      <div class="password-container">
+        <div class="cont">
+          <div class="form">
+            <el-form
+              :model="passwordInfo"
+              label-position="top"
+              label-width="120px"
+            >
+              <el-form-item label="请输入旧密码">
+                <el-input
+                  v-model="passwordInfo.oldPassword"
+                  type="password"
+                  show-password
+                />
+              </el-form-item>
+              <el-form-item label="请输入新密码">
+                <el-input
+                  v-model="passwordInfo.newPassword"
+                  type="password"
+                  show-password
+                />
+              </el-form-item>
+              <el-form-item>
+                <el-button type="primary" @click="onSubmit">修改</el-button>
+              </el-form-item>
+            </el-form>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</template>
 
 <style lang="less" scoped>
 .container {

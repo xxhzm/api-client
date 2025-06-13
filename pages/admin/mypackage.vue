@@ -1,3 +1,229 @@
+<script setup>
+import { Tickets, Menu, Refresh } from '@element-plus/icons-vue'
+
+const { $msg, $myFetch } = useNuxtApp()
+
+// 时间戳转换函数
+const formatTime = (timestamp) => {
+  if (!timestamp) return '暂无'
+  const date = new Date(Number(timestamp))
+  const year = date.getFullYear()
+  const month = String(date.getMonth() + 1).padStart(2, '0')
+  const day = String(date.getDate()).padStart(2, '0')
+  const hour = String(date.getHours()).padStart(2, '0')
+  const minute = String(date.getMinutes()).padStart(2, '0')
+  return `${year}-${month}-${day} ${hour}:${minute}`
+}
+
+const loading = ref(false)
+const apiList = ref([])
+const selectedApi = ref(null)
+const selectedType = ref(null)
+const selectedStatus = ref(null)
+
+// 控制左侧边栏显示隐藏
+// 获取页面宽度
+const screenWidth = ref(0)
+const isSidebarShow = ref(true)
+const iscontrolShow = ref(false)
+const isoverlay = ref(false)
+onMounted(() => {
+  screenWidth.value = document.body.clientWidth
+  document.body.style.overflow = ''
+
+  if (screenWidth.value < 768) {
+    iscontrolShow.value = true
+    isSidebarShow.value = false
+  }
+})
+
+const handleSidebarShow = () => {
+  isSidebarShow.value = !isSidebarShow.value
+  iscontrolShow.value = !iscontrolShow.value
+  isoverlay.value = !isoverlay.value
+  // 禁止页面滑动
+  if (isSidebarShow.value) {
+    document.body.style.overflow = 'hidden'
+  } else {
+    document.body.style.overflow = ''
+  }
+}
+
+// 获取我的套餐列表
+const getData = async () => {
+  loading.value = true
+  try {
+    const startTime = Date.now()
+    const res = await $myFetch('UserPackageList')
+    if (res.code === 200) {
+      // 将套餐数据按照api_id分组
+      const groupedData = {}
+      if (!res.data || !Array.isArray(res.data)) {
+        apiList.value = []
+        const endTime = Date.now()
+        const loadingTime = endTime - startTime
+        if (loadingTime < 500) {
+          await new Promise((resolve) => setTimeout(resolve, 500 - loadingTime))
+        }
+        loading.value = false
+        return
+      }
+
+      res.data.forEach((pkg) => {
+        if (!groupedData[pkg.api_id]) {
+          groupedData[pkg.api_id] = {
+            id: pkg.api_id || 0, // 确保id有值
+            name: pkg.api_name || '未知接口', // 确保name有值
+            packages: [],
+          }
+        }
+        groupedData[pkg.api_id].packages.push(pkg)
+      })
+      apiList.value = Object.values(groupedData)
+
+      // 确保最少显示500ms的loading状态
+      const endTime = Date.now()
+      const loadingTime = endTime - startTime
+      if (loadingTime < 500) {
+        await new Promise((resolve) => setTimeout(resolve, 500 - loadingTime))
+      }
+    } else {
+      $msg(res.msg, 'error')
+    }
+  } catch (error) {
+    $msg('获取数据失败', 'error')
+  }
+  loading.value = false
+}
+
+// 搜索过滤
+const packages = computed(() => {
+  // 先按接口筛选
+  let filteredByApi = apiList.value.reduce((acc, api) => {
+    if (selectedApi.value && api.id !== selectedApi.value) {
+      return acc
+    }
+    return acc.concat(api.packages)
+  }, [])
+
+  // 再按类型筛选
+  if (selectedType.value) {
+    filteredByApi = filteredByApi.filter(
+      (pkg) => pkg.type === selectedType.value
+    )
+  }
+
+  // 最后按状态筛选
+  if (selectedStatus.value) {
+    filteredByApi = filteredByApi.filter(
+      (pkg) => pkg.status === selectedStatus.value
+    )
+  }
+
+  return filteredByApi
+})
+
+// 获取类型文字
+const getTypeText = (type) => {
+  const types = {
+    2: '包月计费',
+    3: '点数包',
+  }
+  return types[type] || '未知'
+}
+
+// 获取类型标签样式
+const getTypeTag = (type) => {
+  const types = {
+    2: 'success',
+    3: 'primary',
+  }
+  return types[type] || ''
+}
+
+// 获取状态文字
+const getStatusText = (status) => {
+  const statuses = {
+    1: '使用中',
+    2: '已过期',
+  }
+  return statuses[status] || '未知'
+}
+
+// 获取状态标签样式
+const getStatusTag = (status) => {
+  const statuses = {
+    1: 'success',
+    2: 'danger',
+  }
+  return statuses[status] || ''
+}
+
+// 计算使用百分比
+const getUsagePercentage = (pkg) => {
+  if (pkg.status === 2) return 100 // 已过期状态显示100%
+  if (pkg.type !== 3 || !pkg.points) return 0
+  const percentage = (pkg.points_used / pkg.points) * 100
+  return Math.round(percentage)
+}
+
+// 获取进度条状态
+const getProgressStatus = (pkg) => {
+  if (pkg.status === 2) return 'exception' // 已过期状态显示红色
+  const percentage = getUsagePercentage(pkg)
+  if (percentage >= 90) return 'exception'
+  if (percentage >= 70) return 'warning'
+  return 'success'
+}
+
+// 续费套餐
+const handleRenew = (pkg) => {
+  selectedPackage.value = {
+    ...pkg,
+    amount: Number(pkg.amount || 0), // 使用amount参数
+  }
+  renewalAmount.value = Number(pkg.amount || 0) // 使用amount参数
+  dialogVisible.value = true
+}
+
+// 确认续费
+const confirmRenew = async () => {
+  try {
+    const res = await $myFetch('RenewalPackage', {
+      method: 'POST',
+      body: new URLSearchParams({
+        packageId: selectedPackage.value.id,
+      }),
+    })
+
+    if (res.code === 200) {
+      $msg(res.msg, 'success')
+      dialogVisible.value = false
+      await getData()
+    } else {
+      $msg(res.msg, 'error')
+    }
+  } catch (error) {
+    $msg('续费失败，请重试', 'error')
+  }
+}
+
+const dialogVisible = ref(false)
+const selectedPackage = ref(null)
+const renewalAmount = ref(0)
+
+onMounted(() => {
+  getData()
+})
+
+useHead({
+  title: '我的套餐',
+  viewport:
+    'width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0',
+  charset: 'utf-8',
+})
+</script>
+
 <template>
   <div class="container">
     <AdminSidebar v-show="isSidebarShow"></AdminSidebar>
@@ -239,232 +465,6 @@
     </el-dialog>
   </div>
 </template>
-
-<script setup>
-import { Tickets, Menu, Refresh } from '@element-plus/icons-vue'
-
-const { $msg, $myFetch } = useNuxtApp()
-
-// 时间戳转换函数
-const formatTime = (timestamp) => {
-  if (!timestamp) return '暂无'
-  const date = new Date(Number(timestamp))
-  const year = date.getFullYear()
-  const month = String(date.getMonth() + 1).padStart(2, '0')
-  const day = String(date.getDate()).padStart(2, '0')
-  const hour = String(date.getHours()).padStart(2, '0')
-  const minute = String(date.getMinutes()).padStart(2, '0')
-  return `${year}-${month}-${day} ${hour}:${minute}`
-}
-
-const loading = ref(false)
-const apiList = ref([])
-const selectedApi = ref(null)
-const selectedType = ref(null)
-const selectedStatus = ref(null)
-
-// 控制左侧边栏显示隐藏
-// 获取页面宽度
-const screenWidth = ref(0)
-const isSidebarShow = ref(true)
-const iscontrolShow = ref(false)
-const isoverlay = ref(false)
-onMounted(() => {
-  screenWidth.value = document.body.clientWidth
-  document.body.style.overflow = ''
-
-  if (screenWidth.value < 768) {
-    iscontrolShow.value = true
-    isSidebarShow.value = false
-  }
-})
-
-const handleSidebarShow = () => {
-  isSidebarShow.value = !isSidebarShow.value
-  iscontrolShow.value = !iscontrolShow.value
-  isoverlay.value = !isoverlay.value
-  // 禁止页面滑动
-  if (isSidebarShow.value) {
-    document.body.style.overflow = 'hidden'
-  } else {
-    document.body.style.overflow = ''
-  }
-}
-
-// 获取我的套餐列表
-const getData = async () => {
-  loading.value = true
-  try {
-    const startTime = Date.now()
-    const res = await $myFetch('UserPackageList')
-    if (res.code === 200) {
-      // 将套餐数据按照api_id分组
-      const groupedData = {}
-      if (!res.data || !Array.isArray(res.data)) {
-        apiList.value = []
-        const endTime = Date.now()
-        const loadingTime = endTime - startTime
-        if (loadingTime < 500) {
-          await new Promise((resolve) => setTimeout(resolve, 500 - loadingTime))
-        }
-        loading.value = false
-        return
-      }
-
-      res.data.forEach((pkg) => {
-        if (!groupedData[pkg.api_id]) {
-          groupedData[pkg.api_id] = {
-            id: pkg.api_id || 0, // 确保id有值
-            name: pkg.api_name || '未知接口', // 确保name有值
-            packages: [],
-          }
-        }
-        groupedData[pkg.api_id].packages.push(pkg)
-      })
-      apiList.value = Object.values(groupedData)
-
-      // 确保最少显示500ms的loading状态
-      const endTime = Date.now()
-      const loadingTime = endTime - startTime
-      if (loadingTime < 500) {
-        await new Promise((resolve) => setTimeout(resolve, 500 - loadingTime))
-      }
-    } else {
-      $msg(res.msg, 'error')
-    }
-  } catch (error) {
-    $msg('获取数据失败', 'error')
-  }
-  loading.value = false
-}
-
-// 搜索过滤
-const packages = computed(() => {
-  // 先按接口筛选
-  let filteredByApi = apiList.value.reduce((acc, api) => {
-    if (selectedApi.value && api.id !== selectedApi.value) {
-      return acc
-    }
-    return acc.concat(api.packages)
-  }, [])
-
-  // 再按类型筛选
-  if (selectedType.value) {
-    filteredByApi = filteredByApi.filter(
-      (pkg) => pkg.type === selectedType.value
-    )
-  }
-
-  // 最后按状态筛选
-  if (selectedStatus.value) {
-    filteredByApi = filteredByApi.filter(
-      (pkg) => pkg.status === selectedStatus.value
-    )
-  }
-
-  return filteredByApi
-})
-
-// 获取类型文字
-const getTypeText = (type) => {
-  const types = {
-    2: '包月计费',
-    3: '点数包',
-  }
-  return types[type] || '未知'
-}
-
-// 获取类型标签样式
-const getTypeTag = (type) => {
-  const types = {
-    2: 'success',
-    3: 'primary',
-  }
-  return types[type] || ''
-}
-
-// 获取状态文字
-const getStatusText = (status) => {
-  const statuses = {
-    1: '使用中',
-    2: '已过期',
-  }
-  return statuses[status] || '未知'
-}
-
-// 获取状态标签样式
-const getStatusTag = (status) => {
-  const statuses = {
-    1: 'success',
-    2: 'danger',
-  }
-  return statuses[status] || ''
-}
-
-// 计算使用百分比
-const getUsagePercentage = (pkg) => {
-  if (pkg.status === 2) return 100 // 已过期状态显示100%
-  if (pkg.type !== 3 || !pkg.points) return 0
-  const percentage = (pkg.points_used / pkg.points) * 100
-  return Math.round(percentage)
-}
-
-// 获取进度条状态
-const getProgressStatus = (pkg) => {
-  if (pkg.status === 2) return 'exception' // 已过期状态显示红色
-  const percentage = getUsagePercentage(pkg)
-  if (percentage >= 90) return 'exception'
-  if (percentage >= 70) return 'warning'
-  return 'success'
-}
-
-// 续费套餐
-const handleRenew = (pkg) => {
-  selectedPackage.value = {
-    ...pkg,
-    amount: Number(pkg.amount || 0), // 使用amount参数
-  }
-  renewalAmount.value = Number(pkg.amount || 0) // 使用amount参数
-  dialogVisible.value = true
-}
-
-// 确认续费
-const confirmRenew = async () => {
-  try {
-    const res = await $myFetch('RenewalPackage', {
-      method: 'POST',
-      body: new URLSearchParams({
-        packageId: selectedPackage.value.id,
-      }),
-    })
-
-    if (res.code === 200) {
-      $msg(res.msg, 'success')
-      dialogVisible.value = false
-      await getData()
-    } else {
-      $msg(res.msg, 'error')
-    }
-  } catch (error) {
-    $msg('续费失败，请重试', 'error')
-  }
-}
-
-const dialogVisible = ref(false)
-const selectedPackage = ref(null)
-const renewalAmount = ref(0)
-
-onMounted(() => {
-  getData()
-})
-
-useHead({
-  title: '我的套餐',
-  viewport:
-    'width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0',
-  charset: 'utf-8',
-})
-</script>
 
 <style lang="less" scoped>
 .container {

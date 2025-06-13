@@ -1,39 +1,3 @@
-<template>
-  <div class="article-container">
-    <IndexNotice></IndexNotice>
-    <div class="container">
-      <div class="section">
-        <h2 class="section-title">企业新闻</h2>
-        <div class="article-grid">
-          <nuxt-link v-for="item in list" :key="item.id" :to="'/article/' + item.id" class="article-card">
-            <div class="article-content">
-              <div class="article-meta">
-                <span class="article-author">
-                  <el-icon>
-                    <User />
-                  </el-icon>
-                  {{ item.author }}
-                </span>
-              </div>
-              <h3 class="article-title">{{ item.title }}</h3>
-              <p class="article-desc">{{ item.description }}</p>
-              <div class="article-footer">
-                <span class="read-more">
-                  阅读全文
-                  <el-icon>
-                    <Right />
-                  </el-icon>
-                </span>
-              </div>
-            </div>
-          </nuxt-link>
-        </div>
-      </div>
-    </div>
-    <IndexFooter :options="options"></IndexFooter>
-  </div>
-</template>
-
 <script setup>
 import { User, Timer, Right } from '@element-plus/icons-vue'
 
@@ -65,6 +29,47 @@ useHead({
   meta: [{ name: 'description', content: '小小API-关于我们' }],
 })
 </script>
+
+<template>
+  <div class="article-container">
+    <IndexNotice></IndexNotice>
+    <div class="container">
+      <div class="section">
+        <h2 class="section-title">企业新闻</h2>
+        <div class="article-grid">
+          <nuxt-link
+            v-for="item in list"
+            :key="item.id"
+            :to="'/article/' + item.id"
+            class="article-card"
+          >
+            <div class="article-content">
+              <div class="article-meta">
+                <span class="article-author">
+                  <el-icon>
+                    <User />
+                  </el-icon>
+                  {{ item.author }}
+                </span>
+              </div>
+              <h3 class="article-title">{{ item.title }}</h3>
+              <p class="article-desc">{{ item.description }}</p>
+              <div class="article-footer">
+                <span class="read-more">
+                  阅读全文
+                  <el-icon>
+                    <Right />
+                  </el-icon>
+                </span>
+              </div>
+            </div>
+          </nuxt-link>
+        </div>
+      </div>
+    </div>
+    <IndexFooter :options="options"></IndexFooter>
+  </div>
+</template>
 
 <style lang="less" scoped>
 .article-container {

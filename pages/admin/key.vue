@@ -1,3 +1,168 @@
+<script setup>
+import {
+  Key,
+  Refresh,
+  Document,
+  InfoFilled,
+  Menu,
+} from '@element-plus/icons-vue'
+const { $msg, $myFetch } = useNuxtApp()
+
+const activeTab = ref('referer')
+const username = useCookie('username')
+const token = useCookie('token')
+
+// 控制左侧边栏显示隐藏
+// 获取页面宽度
+const screenWidth = ref(0)
+const isSidebarShow = ref(true)
+const iscontrolShow = ref(false)
+const isoverlay = ref(false)
+onMounted(() => {
+  screenWidth.value = document.body.clientWidth
+  document.body.style.overflow = ''
+
+  if (screenWidth.value < 768) {
+    iscontrolShow.value = true
+    isSidebarShow.value = false
+  }
+})
+
+const handleSidebarShow = () => {
+  isSidebarShow.value = !isSidebarShow.value
+  iscontrolShow.value = !iscontrolShow.value
+  isoverlay.value = !isoverlay.value
+  // 禁止页面滑动
+  if (isSidebarShow.value) {
+    document.body.style.overflow = 'hidden'
+  } else {
+    document.body.style.overflow = ''
+  }
+}
+
+// Key信息
+const keyInfo = ref({
+  key: '',
+})
+
+// 安全设置信息
+const securityInfo = ref({
+  referer: '',
+  ip: '',
+  signed: false,
+  appid: '',
+})
+
+const signMethodVisible = ref(false)
+
+// 获取Key信息
+const getKeyInfo = async () => {
+  if (username.value && token.value) {
+    const res = await $myFetch('GetUserKey', {
+      params: {
+        username: username.value,
+      },
+    })
+
+    if (res.code === 200) {
+      keyInfo.value.key = res.data.access_key
+    } else {
+      $msg(res.msg, 'error')
+    }
+  }
+}
+
+// 获取安全设置
+const getSecurityInfo = async () => {
+  const res = await $myFetch('GetKeySecurity', {
+    params: {
+      username: username.value,
+    },
+  })
+
+  if (res.code === 200) {
+    if (res.data.signed == 1) {
+      res.data.signed = true
+    } else {
+      res.data.signed = false
+    }
+
+    securityInfo.value = res.data
+  }
+}
+
+// 刷新Key
+const refreshKey = async () => {
+  if (!username.value || !token.value) {
+    $msg('请先登录', 'error')
+    return
+  }
+
+  const res = await $myFetch('RefreshKey', {
+    method: 'post',
+    params: {
+      username: username.value,
+      userKey: keyInfo.value.key,
+    },
+  })
+
+  if (res.code === 200) {
+    $msg(res.msg, 'success')
+    getKeyInfo()
+    getSecurityInfo()
+  } else {
+    $msg(res.msg, 'error')
+  }
+}
+
+// 复制Key
+const copyKey = () => {
+  const textArea = document.createElement('textarea')
+  textArea.value = keyInfo.value.key
+  document.body.appendChild(textArea)
+  textArea.select()
+  document.execCommand('copy')
+  document.body.removeChild(textArea)
+
+  $msg('复制成功', 'success')
+}
+
+// 保存Referer设置
+const saveSecurityInfo = async () => {
+  const res = await $myFetch('UpdateKeySecurity', {
+    method: 'POST',
+    params: {
+      username: username.value,
+      referer: securityInfo.value.allowed_referers || '',
+      ip: securityInfo.value.allowed_ips || '',
+      signed: securityInfo.value.signed ? 1 : 0,
+    },
+  })
+
+  if (res.code === 200) {
+    $msg('保存成功', 'success')
+  } else {
+    $msg(res.msg, 'error')
+  }
+}
+
+const showSignMethod = () => {
+  signMethodVisible.value = true
+}
+
+onMounted(() => {
+  getKeyInfo()
+  getSecurityInfo()
+})
+
+useHead({
+  title: 'API密钥管理',
+  viewport:
+    'width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0',
+  charset: 'utf-8',
+})
+</script>
+
 <template>
   <div class="container">
     <AdminSidebar v-show="isSidebarShow"></AdminSidebar>
@@ -202,171 +367,6 @@
     </div>
   </el-dialog>
 </template>
-
-<script setup>
-import {
-  Key,
-  Refresh,
-  Document,
-  InfoFilled,
-  Menu,
-} from '@element-plus/icons-vue'
-const { $msg, $myFetch } = useNuxtApp()
-
-const activeTab = ref('referer')
-const username = useCookie('username')
-const token = useCookie('token')
-
-// 控制左侧边栏显示隐藏
-// 获取页面宽度
-const screenWidth = ref(0)
-const isSidebarShow = ref(true)
-const iscontrolShow = ref(false)
-const isoverlay = ref(false)
-onMounted(() => {
-  screenWidth.value = document.body.clientWidth
-  document.body.style.overflow = ''
-
-  if (screenWidth.value < 768) {
-    iscontrolShow.value = true
-    isSidebarShow.value = false
-  }
-})
-
-const handleSidebarShow = () => {
-  isSidebarShow.value = !isSidebarShow.value
-  iscontrolShow.value = !iscontrolShow.value
-  isoverlay.value = !isoverlay.value
-  // 禁止页面滑动
-  if (isSidebarShow.value) {
-    document.body.style.overflow = 'hidden'
-  } else {
-    document.body.style.overflow = ''
-  }
-}
-
-// Key信息
-const keyInfo = ref({
-  key: '',
-})
-
-// 安全设置信息
-const securityInfo = ref({
-  referer: '',
-  ip: '',
-  signed: false,
-  appid: '',
-})
-
-const signMethodVisible = ref(false)
-
-// 获取Key信息
-const getKeyInfo = async () => {
-  if (username.value && token.value) {
-    const res = await $myFetch('GetUserKey', {
-      params: {
-        username: username.value,
-      },
-    })
-
-    if (res.code === 200) {
-      keyInfo.value.key = res.data.access_key
-    } else {
-      $msg(res.msg, 'error')
-    }
-  }
-}
-
-// 获取安全设置
-const getSecurityInfo = async () => {
-  const res = await $myFetch('GetKeySecurity', {
-    params: {
-      username: username.value,
-    },
-  })
-
-  if (res.code === 200) {
-    if (res.data.signed == 1) {
-      res.data.signed = true
-    } else {
-      res.data.signed = false
-    }
-
-    securityInfo.value = res.data
-  }
-}
-
-// 刷新Key
-const refreshKey = async () => {
-  if (!username.value || !token.value) {
-    $msg('请先登录', 'error')
-    return
-  }
-
-  const res = await $myFetch('RefreshKey', {
-    method: 'post',
-    params: {
-      username: username.value,
-      userKey: keyInfo.value.key,
-    },
-  })
-
-  if (res.code === 200) {
-    $msg(res.msg, 'success')
-    getKeyInfo()
-    getSecurityInfo()
-  } else {
-    $msg(res.msg, 'error')
-  }
-}
-
-// 复制Key
-const copyKey = () => {
-  const textArea = document.createElement('textarea')
-  textArea.value = keyInfo.value.key
-  document.body.appendChild(textArea)
-  textArea.select()
-  document.execCommand('copy')
-  document.body.removeChild(textArea)
-
-  $msg('复制成功', 'success')
-}
-
-// 保存Referer设置
-const saveSecurityInfo = async () => {
-  const res = await $myFetch('UpdateKeySecurity', {
-    method: 'POST',
-    params: {
-      username: username.value,
-      referer: securityInfo.value.allowed_referers || '',
-      ip: securityInfo.value.allowed_ips || '',
-      signed: securityInfo.value.signed ? 1 : 0,
-    },
-  })
-
-  if (res.code === 200) {
-    $msg('保存成功', 'success')
-  } else {
-    $msg(res.msg, 'error')
-  }
-}
-
-const showSignMethod = () => {
-  signMethodVisible.value = true
-}
-
-onMounted(() => {
-  getKeyInfo()
-  getSecurityInfo()
-})
-
-useHead({
-  title: 'API密钥管理',
-  viewport:
-    'width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0',
-  charset: 'utf-8',
-})
-</script>
 
 <style lang="less" scoped>
 .container {

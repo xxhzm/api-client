@@ -1,3 +1,7 @@
+<script setup>
+const props = defineProps(['link', 'title', 'time', 'author'])
+</script>
+
 <template>
   <a :href="props.link">
     <div class="article_box">
@@ -9,10 +13,6 @@
     </div>
   </a>
 </template>
-
-<script setup>
-const props = defineProps(['link', 'title', 'time', 'author'])
-</script>
 
 <style lang="less" scoped>
 .article_box {

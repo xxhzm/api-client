@@ -1,43 +1,3 @@
-<template>
-  <div class="article-container">
-    <IndexNotice></IndexNotice>
-    <div class="container">
-      <div class="article-card">
-        <div class="article-header">
-          <div class="title-section">
-            <h1 class="article-title">{{ info.title }}</h1>
-          </div>
-        </div>
-
-        <div class="article-divider"></div>
-
-        <div class="article-content">
-          <div class="content-wrapper" v-html="info.content"></div>
-        </div>
-
-        <div class="article-divider"></div>
-
-        <div class="article-footer">
-          <div class="keywords" v-if="info.keywords">
-            <span class="keyword-label">
-              <el-icon><CollectionTag /></el-icon>
-              关键词：
-            </span>
-            <span
-              v-for="keyword in info.keywords.split(',')"
-              :key="keyword"
-              class="keyword-tag"
-            >
-              {{ keyword.trim() }}
-            </span>
-          </div>
-        </div>
-      </div>
-    </div>
-    <IndexFooter :options="options"></IndexFooter>
-  </div>
-</template>
-
 <script setup>
 import { CollectionTag } from '@element-plus/icons-vue'
 
@@ -84,6 +44,46 @@ useHead({
   ],
 })
 </script>
+
+<template>
+  <div class="article-container">
+    <IndexNotice></IndexNotice>
+    <div class="container">
+      <div class="article-card">
+        <div class="article-header">
+          <div class="title-section">
+            <h1 class="article-title">{{ info.title }}</h1>
+          </div>
+        </div>
+
+        <div class="article-divider"></div>
+
+        <div class="article-content">
+          <div class="content-wrapper" v-html="info.content"></div>
+        </div>
+
+        <div class="article-divider"></div>
+
+        <div class="article-footer">
+          <div class="keywords" v-if="info.keywords">
+            <span class="keyword-label">
+              <el-icon><CollectionTag /></el-icon>
+              关键词：
+            </span>
+            <span
+              v-for="keyword in info.keywords.split(',')"
+              :key="keyword"
+              class="keyword-tag"
+            >
+              {{ keyword.trim() }}
+            </span>
+          </div>
+        </div>
+      </div>
+    </div>
+    <IndexFooter :options="options"></IndexFooter>
+  </div>
+</template>
 
 <style lang="less" scoped>
 .article-container {

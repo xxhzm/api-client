@@ -1,228 +1,3 @@
-<template>
-  <div class="doc-container">
-    <!-- 公告 -->
-    <IndexNotice></IndexNotice>
-
-    <div class="apiinfo-container">
-      <div class="box">
-        <h1>{{ apiInfo.name }}</h1>
-      </div>
-
-      <div class="box">
-        <el-tag type="success">{{ apiInfo.method }}</el-tag>
-
-        <el-tooltip effect="dark" content="点击复制" placement="top">
-          <span class="url" @click="copy(apiInfo.url)" ref="urlDom">{{
-            apiInfo.url
-          }}</span>
-        </el-tooltip>
-
-        <el-button type="primary" size="small" @click="openDebugDialog">
-          <el-icon>
-            <VideoPlay />
-          </el-icon>
-          调试
-        </el-button>
-      </div>
-
-      <el-divider border-style="dashed" />
-
-      <div class="box">
-        <h2>接口描述</h2>
-        <span>{{ apiInfo.description }}</span>
-      </div>
-
-      <el-divider border-style="dashed" />
-
-      <div class="box">
-        <h2>请求参数</h2>
-        <el-table :data="apiInfo.params" border style="width: 100%">
-          <el-table-column prop="name" label="参数名" width="180" />
-          <el-table-column prop="param" label="传递参数" width="180" />
-          <el-table-column prop="position" label="传入位置" width="120" />
-          <el-table-column prop="required" label="类型" width="100" />
-          <el-table-column prop="docs" label="参数说明" />
-        </el-table>
-      </div>
-
-      <client-only>
-        <Ad></Ad>
-      </client-only>
-
-      <div class="box">
-        <h2>请求示例</h2>
-        <el-tabs v-model="activeName" type="card">
-          <el-tab-pane label="axios" name="axios">
-            <pre class="example mac_light mac_pre"><client-only><el-tooltip
-            class="box-item"
-            effect="dark"
-            content="复制"
-            placement="left"
-          ><div class="copy" @click="copy(apiInfo.axios)"><el-icon size="14"><CopyDocument /></el-icon></div
-          ></el-tooltip></client-only><code class="javascript.js" v-text="apiInfo.axios"></code></pre>
-          </el-tab-pane>
-
-          <el-tab-pane label="ajax" name="ajax">
-            <pre class="example mac_light mac_pre"><client-only><el-tooltip
-            class="box-item"
-            effect="dark"
-            content="复制"
-            placement="left"
-          ><div class="copy" @click="copy(apiInfo.ajax)"><el-icon size="14"><CopyDocument /></el-icon></div
-          ></el-tooltip></client-only><code class="javascript.js" v-text="apiInfo.ajax"></code></pre>
-          </el-tab-pane>
-
-          <el-tab-pane label="fetch" name="fetch">
-            <pre class="example mac_light mac_pre"><client-only><el-tooltip
-            class="box-item"
-            effect="dark"
-            content="复制"
-            placement="left"
-          ><div class="copy" @click="copy(apiInfo.fetch)"><el-icon size="14"><CopyDocument /></el-icon></div
-          ></el-tooltip></client-only><code class="javascript.js" v-text="apiInfo.fetch"></code></pre>
-          </el-tab-pane>
-
-          <el-tab-pane label="xhr" name="xhr">
-            <pre class="example mac_light mac_pre"><client-only><el-tooltip
-            class="box-item"
-            effect="dark"
-            content="复制"
-            placement="left"
-          ><div class="copy" @click="copy(apiInfo.xhr)"><el-icon size="14"><CopyDocument /></el-icon></div
-          ></el-tooltip></client-only><code class="javascript.js" v-text="apiInfo.xhr"></code></pre>
-          </el-tab-pane>
-
-          <el-tab-pane label="php" name="php">
-            <pre class="example mac_light mac_pre"><client-only><el-tooltip
-            class="box-item"
-            effect="dark"
-            content="复制"
-            placement="left"
-          ><div class="copy" @click="copy(apiInfo.php)"><el-icon size="14"><CopyDocument /></el-icon></div
-          ></el-tooltip></client-only><code class="php" v-text="apiInfo.php"></code></pre>
-          </el-tab-pane>
-
-          <el-tab-pane label="python" name="python">
-            <pre class="example mac_light mac_pre"><client-only><el-tooltip
-            class="box-item"
-            effect="dark"
-            content="复制"
-            placement="left"
-          ><div class="copy" @click="copy(apiInfo.python)"><el-icon size="14"><CopyDocument /></el-icon></div
-          ></el-tooltip></client-only><code class="python" v-text="apiInfo.python"></code></pre>
-          </el-tab-pane>
-        </el-tabs>
-      </div>
-
-      <div class="box">
-        <h2>返回示例</h2>
-        <pre class="example mac_light mac_pre"><client-only><el-tooltip
-        class="box-item"
-        effect="dark"
-        content="复制"
-        placement="left"
-      ><div class="copy" @click="copy(apiInfo.example)"><el-icon size="14"><CopyDocument /></el-icon></div
-      ></el-tooltip></client-only><code class="json" v-text="apiInfo.example"></code></pre>
-      </div>
-    </div>
-
-    <!-- 调试对话框 -->
-    <el-dialog
-      v-model="debugVisible"
-      title="接口调试"
-      width="60%"
-      :close-on-click-modal="false"
-    >
-      <div class="debug-container">
-        <!-- 请求参数表单 -->
-        <div class="params-form">
-          <h3>请求参数</h3>
-          <el-form :model="debugForm" label-width="100px">
-            <el-form-item
-              v-for="(param, index) in apiInfo.params"
-              :key="index"
-              :label="param.name"
-              :required="param.required === '必传'"
-            >
-              <el-input v-model="debugForm[index]" :placeholder="param.param" />
-            </el-form-item>
-          </el-form>
-        </div>
-
-        <!-- 发送按钮 -->
-        <div class="debug-actions">
-          <el-button type="primary" @click="sendRequest" :loading="loading">
-            发送请求
-          </el-button>
-        </div>
-
-        <!-- 响应结果 -->
-        <div class="response-container" v-if="response">
-          <h3>响应结果</h3>
-          <template v-if="isVideoResponse">
-            <div class="video-response">
-              <video
-                controls
-                autoplay
-                style="max-width: 100%"
-                controlsList="nodownload"
-                :src="videoUrl"
-              >
-                <source :src="videoUrl" type="video/mp4" />
-                <source :src="videoUrl" type="video/webm" />
-                <source :src="videoUrl" type="video/ogg" />
-                <source :src="videoUrl" type="application/x-mpegURL" />
-                您的浏览器不支持视频播放。
-              </video>
-              <div class="video-actions">
-                <el-button
-                  type="primary"
-                  size="small"
-                  @click="openInNewWindow(videoUrl)"
-                >
-                  <el-icon><VideoPlay /></el-icon>
-                  在新窗口打开
-                </el-button>
-                <el-button size="small" @click="copy(videoUrl)">
-                  <el-icon><CopyDocument /></el-icon>
-                  复制视频链接
-                </el-button>
-              </div>
-            </div>
-          </template>
-          <template v-else-if="isImageResponse">
-            <div class="image-response">
-              <img :src="imageUrl" alt="接口返回图片" />
-              <div class="image-actions">
-                <el-button type="primary" size="small" @click="downloadImage">
-                  <el-icon>
-                    <Download />
-                  </el-icon>
-                  下载图片
-                </el-button>
-                <el-button size="small" @click="copyImageUrl">
-                  <el-icon>
-                    <CopyDocument />
-                  </el-icon>
-                  复制图片链接
-                </el-button>
-              </div>
-            </div>
-          </template>
-          <template v-else>
-            <pre class="example mac_light mac_pre" ref="preElement">
-              <code class="json" ref="responseCode">{{ formatResponse }}</code>
-            </pre>
-          </template>
-        </div>
-      </div>
-    </el-dialog>
-
-    <IndexAi></IndexAi>
-    <IndexFooter :options="options"></IndexFooter>
-  </div>
-</template>
-
 <script setup>
 const { $myFetch } = useNuxtApp()
 import { ElMessage } from 'element-plus'
@@ -553,6 +328,231 @@ const openInNewWindow = (url) => {
   window.open(url, '_blank')
 }
 </script>
+
+<template>
+  <div class="doc-container">
+    <!-- 公告 -->
+    <IndexNotice></IndexNotice>
+
+    <div class="apiinfo-container">
+      <div class="box">
+        <h1>{{ apiInfo.name }}</h1>
+      </div>
+
+      <div class="box">
+        <el-tag type="success">{{ apiInfo.method }}</el-tag>
+
+        <el-tooltip effect="dark" content="点击复制" placement="top">
+          <span class="url" @click="copy(apiInfo.url)" ref="urlDom">{{
+            apiInfo.url
+          }}</span>
+        </el-tooltip>
+
+        <el-button type="primary" size="small" @click="openDebugDialog">
+          <el-icon>
+            <VideoPlay />
+          </el-icon>
+          调试
+        </el-button>
+      </div>
+
+      <el-divider border-style="dashed" />
+
+      <div class="box">
+        <h2>接口描述</h2>
+        <span>{{ apiInfo.description }}</span>
+      </div>
+
+      <el-divider border-style="dashed" />
+
+      <div class="box">
+        <h2>请求参数</h2>
+        <el-table :data="apiInfo.params" border style="width: 100%">
+          <el-table-column prop="name" label="参数名" width="180" />
+          <el-table-column prop="param" label="传递参数" width="180" />
+          <el-table-column prop="position" label="传入位置" width="120" />
+          <el-table-column prop="required" label="类型" width="100" />
+          <el-table-column prop="docs" label="参数说明" />
+        </el-table>
+      </div>
+
+      <client-only>
+        <Ad></Ad>
+      </client-only>
+
+      <div class="box">
+        <h2>请求示例</h2>
+        <el-tabs v-model="activeName" type="card">
+          <el-tab-pane label="axios" name="axios">
+            <pre class="example mac_light mac_pre"><client-only><el-tooltip
+            class="box-item"
+            effect="dark"
+            content="复制"
+            placement="left"
+          ><div class="copy" @click="copy(apiInfo.axios)"><el-icon size="14"><CopyDocument /></el-icon></div
+          ></el-tooltip></client-only><code class="javascript.js" v-text="apiInfo.axios"></code></pre>
+          </el-tab-pane>
+
+          <el-tab-pane label="ajax" name="ajax">
+            <pre class="example mac_light mac_pre"><client-only><el-tooltip
+            class="box-item"
+            effect="dark"
+            content="复制"
+            placement="left"
+          ><div class="copy" @click="copy(apiInfo.ajax)"><el-icon size="14"><CopyDocument /></el-icon></div
+          ></el-tooltip></client-only><code class="javascript.js" v-text="apiInfo.ajax"></code></pre>
+          </el-tab-pane>
+
+          <el-tab-pane label="fetch" name="fetch">
+            <pre class="example mac_light mac_pre"><client-only><el-tooltip
+            class="box-item"
+            effect="dark"
+            content="复制"
+            placement="left"
+          ><div class="copy" @click="copy(apiInfo.fetch)"><el-icon size="14"><CopyDocument /></el-icon></div
+          ></el-tooltip></client-only><code class="javascript.js" v-text="apiInfo.fetch"></code></pre>
+          </el-tab-pane>
+
+          <el-tab-pane label="xhr" name="xhr">
+            <pre class="example mac_light mac_pre"><client-only><el-tooltip
+            class="box-item"
+            effect="dark"
+            content="复制"
+            placement="left"
+          ><div class="copy" @click="copy(apiInfo.xhr)"><el-icon size="14"><CopyDocument /></el-icon></div
+          ></el-tooltip></client-only><code class="javascript.js" v-text="apiInfo.xhr"></code></pre>
+          </el-tab-pane>
+
+          <el-tab-pane label="php" name="php">
+            <pre class="example mac_light mac_pre"><client-only><el-tooltip
+            class="box-item"
+            effect="dark"
+            content="复制"
+            placement="left"
+          ><div class="copy" @click="copy(apiInfo.php)"><el-icon size="14"><CopyDocument /></el-icon></div
+          ></el-tooltip></client-only><code class="php" v-text="apiInfo.php"></code></pre>
+          </el-tab-pane>
+
+          <el-tab-pane label="python" name="python">
+            <pre class="example mac_light mac_pre"><client-only><el-tooltip
+            class="box-item"
+            effect="dark"
+            content="复制"
+            placement="left"
+          ><div class="copy" @click="copy(apiInfo.python)"><el-icon size="14"><CopyDocument /></el-icon></div
+          ></el-tooltip></client-only><code class="python" v-text="apiInfo.python"></code></pre>
+          </el-tab-pane>
+        </el-tabs>
+      </div>
+
+      <div class="box">
+        <h2>返回示例</h2>
+        <pre class="example mac_light mac_pre"><client-only><el-tooltip
+        class="box-item"
+        effect="dark"
+        content="复制"
+        placement="left"
+      ><div class="copy" @click="copy(apiInfo.example)"><el-icon size="14"><CopyDocument /></el-icon></div
+      ></el-tooltip></client-only><code class="json" v-text="apiInfo.example"></code></pre>
+      </div>
+    </div>
+
+    <!-- 调试对话框 -->
+    <el-dialog
+      v-model="debugVisible"
+      title="接口调试"
+      width="60%"
+      :close-on-click-modal="false"
+    >
+      <div class="debug-container">
+        <!-- 请求参数表单 -->
+        <div class="params-form">
+          <h3>请求参数</h3>
+          <el-form :model="debugForm" label-width="100px">
+            <el-form-item
+              v-for="(param, index) in apiInfo.params"
+              :key="index"
+              :label="param.name"
+              :required="param.required === '必传'"
+            >
+              <el-input v-model="debugForm[index]" :placeholder="param.param" />
+            </el-form-item>
+          </el-form>
+        </div>
+
+        <!-- 发送按钮 -->
+        <div class="debug-actions">
+          <el-button type="primary" @click="sendRequest" :loading="loading">
+            发送请求
+          </el-button>
+        </div>
+
+        <!-- 响应结果 -->
+        <div class="response-container" v-if="response">
+          <h3>响应结果</h3>
+          <template v-if="isVideoResponse">
+            <div class="video-response">
+              <video
+                controls
+                autoplay
+                style="max-width: 100%"
+                controlsList="nodownload"
+                :src="videoUrl"
+              >
+                <source :src="videoUrl" type="video/mp4" />
+                <source :src="videoUrl" type="video/webm" />
+                <source :src="videoUrl" type="video/ogg" />
+                <source :src="videoUrl" type="application/x-mpegURL" />
+                您的浏览器不支持视频播放。
+              </video>
+              <div class="video-actions">
+                <el-button
+                  type="primary"
+                  size="small"
+                  @click="openInNewWindow(videoUrl)"
+                >
+                  <el-icon><VideoPlay /></el-icon>
+                  在新窗口打开
+                </el-button>
+                <el-button size="small" @click="copy(videoUrl)">
+                  <el-icon><CopyDocument /></el-icon>
+                  复制视频链接
+                </el-button>
+              </div>
+            </div>
+          </template>
+          <template v-else-if="isImageResponse">
+            <div class="image-response">
+              <img :src="imageUrl" alt="接口返回图片" />
+              <div class="image-actions">
+                <el-button type="primary" size="small" @click="downloadImage">
+                  <el-icon>
+                    <Download />
+                  </el-icon>
+                  下载图片
+                </el-button>
+                <el-button size="small" @click="copyImageUrl">
+                  <el-icon>
+                    <CopyDocument />
+                  </el-icon>
+                  复制图片链接
+                </el-button>
+              </div>
+            </div>
+          </template>
+          <template v-else>
+            <pre class="example mac_light mac_pre" ref="preElement">
+              <code class="json" ref="responseCode">{{ formatResponse }}</code>
+            </pre>
+          </template>
+        </div>
+      </div>
+    </el-dialog>
+
+    <IndexAi></IndexAi>
+    <IndexFooter :options="options"></IndexFooter>
+  </div>
+</template>
 
 <style lang="less">
 .el-message {

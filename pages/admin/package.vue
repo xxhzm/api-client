@@ -1,178 +1,3 @@
-<template>
-  <div class="container">
-    <AdminSidebar v-show="isSidebarShow"></AdminSidebar>
-
-    <div class="right">
-      <!-- 遮罩层 -->
-      <div class="overlay" v-show="isoverlay" @click="handleSidebarShow"></div>
-      <!-- 侧边栏控制按钮 -->
-      <div class="control-sidebar" v-show="iscontrolShow">
-        <el-icon @click="handleSidebarShow">
-          <Menu />
-        </el-icon>
-      </div>
-      <AdminHeader></AdminHeader>
-      <div class="package-container" v-loading="loading">
-        <div class="package-card">
-          <!-- 标题区域 -->
-          <div class="card-header">
-            <div class="header-left">
-              <el-icon class="icon">
-                <Tickets />
-              </el-icon>
-              <span class="title">套餐管理</span>
-            </div>
-            <div class="header-right">
-              <el-button type="primary" @click="dialogStatus = true">
-                <span>新增套餐</span>
-              </el-button>
-            </div>
-          </div>
-
-          <!-- 表格区域 -->
-          <div class="table-container">
-            <client-only>
-              <el-table :data="filterTableData" style="width: 100%">
-                <el-table-column width="160" fixed="right">
-                  <template #header>
-                    <div class="search-wrapper">
-                      <el-input v-model="search" placeholder="搜索" clearable>
-                      </el-input>
-                    </div>
-                  </template>
-                  <template #default="scope">
-                    <div class="table-actions">
-                      <el-button type="primary" link @click="handleEdit(scope.$index, scope.row)">
-                        编辑
-                      </el-button>
-                      <el-popconfirm confirm-button-text="确定" cancel-button-text="取消" title="确定要删除吗？"
-                        @confirm="handleDelete(scope.$index, scope.row)">
-                        <template #reference>
-                          <el-button type="danger" link> 删除 </el-button>
-                        </template>
-                      </el-popconfirm>
-                    </div>
-                  </template>
-                </el-table-column>
-                <el-table-column prop="id" label="ID" width="80" />
-                <el-table-column prop="name" label="套餐名称" min-width="120" />
-                <el-table-column prop="api_name" label="接口名称" min-width="120" />
-                <el-table-column prop="type" label="类型" width="120">
-                  <template #default="scope">
-                    <el-tag :type="getTypeTag(scope.row.type)">
-                      {{ getTypeText(scope.row.type) }}
-                    </el-tag>
-                  </template>
-                </el-table-column>
-                <el-table-column prop="price" label="价格" width="100">
-                  <template #default="scope">
-                    <span class="price">¥{{ scope.row.price }}</span>
-                  </template>
-                </el-table-column>
-                <el-table-column prop="duration" label="有效期" width="100">
-                  <template #default="scope">
-                    <span class="duration">{{ scope.row.duration }}天</span>
-                  </template>
-                </el-table-column>
-                <el-table-column prop="points" label="点数" width="80">
-                  <template #default="scope">
-                    <span class="points">{{ scope.row.points }}</span>
-                  </template>
-                </el-table-column>
-                <el-table-column prop="status" label="状态" width="100">
-                  <template #default="scope">
-                    <el-tag :type="scope.row.status === 1 ? 'success' : 'danger'" class="status-tag"
-                      @click="handleStatusChange(scope.row)" style="cursor: pointer">
-                      {{ scope.row.status === 1 ? '启用' : '禁用' }}
-                    </el-tag>
-                  </template>
-                </el-table-column>
-                <el-table-column prop="create_time" label="创建时间" width="180" />
-                <el-table-column prop="update_time" label="修改时间" width="180" />
-              </el-table>
-            </client-only>
-          </div>
-
-          <!-- 新增/编辑套餐对话框 -->
-          <el-dialog v-model="dialogStatus" :title="updatePackageStatus ? '修改套餐' : '新增套餐'" width="600px"
-            destroy-on-close class="package-dialog">
-            <div class="dialog-content">
-              <el-form :model="packageInfo" label-width="100px">
-                <el-row :gutter="20">
-                  <el-col :span="12">
-                    <el-form-item label="套餐名称" required>
-                      <el-input v-model="packageInfo.name" placeholder="请输入套餐名称" />
-                    </el-form-item>
-                  </el-col>
-                  <el-col :span="12">
-                    <el-form-item label="接口名称" required>
-                      <el-autocomplete v-model="packageInfo.api_name" :fetch-suggestions="querySearchAsync"
-                        placeholder="请输入接口名称" @select="handleSearchSelect" class="full-width" />
-                    </el-form-item>
-                  </el-col>
-                </el-row>
-
-                <el-row :gutter="20">
-                  <el-col :span="12">
-                    <el-form-item label="套餐类型" required>
-                      <el-select v-model="packageInfo.type" placeholder="请选择套餐类型" class="full-width">
-                        <el-option label="包月计费" :value="2" />
-                        <el-option label="点数包" :value="3" />
-                      </el-select>
-                    </el-form-item>
-                  </el-col>
-                  <el-col :span="12">
-                    <el-form-item label="套餐价格" required>
-                      <el-input v-model="packageInfo.price" placeholder="请输入价格(整数)" class="full-width"
-                        @input="handleCustomAmount('price')">
-                        <template #suffix>¥</template>
-                      </el-input>
-                    </el-form-item>
-                  </el-col>
-                </el-row>
-
-                <el-row :gutter="20">
-                  <el-col :span="12">
-                    <el-form-item label="包含点数" v-if="packageInfo.type === 3" required>
-                      <el-input v-model="packageInfo.points" placeholder="请输入点数" class="full-width"
-                        @input="validateNumber('points')">
-                        <template #suffix>点</template>
-                      </el-input>
-                    </el-form-item>
-                    <el-form-item label="有效期" required v-if="packageInfo.type === 2">
-                      <el-input v-model="packageInfo.duration" placeholder="请输入有效期(天)" class="full-width"
-                        @input="validateNumber('duration')">
-                        <template #suffix>天</template>
-                      </el-input>
-                    </el-form-item>
-                  </el-col>
-                  <el-col :span="12"> </el-col>
-                </el-row>
-
-                <el-form-item label="状态">
-                  <el-switch v-model="packageInfo.status" :active-value="1" :inactive-value="0" />
-                </el-form-item>
-
-                <el-form-item label="描述">
-                  <el-input v-model="packageInfo.description" type="textarea" :rows="3" placeholder="请输入套餐描述" />
-                </el-form-item>
-              </el-form>
-            </div>
-            <template #footer>
-              <div class="dialog-footer">
-                <el-button @click="dialogStatus = false">取消</el-button>
-                <el-button type="primary" @click="submit">
-                  {{ updatePackageStatus ? '修改' : '创建' }}
-                </el-button>
-              </div>
-            </template>
-          </el-dialog>
-        </div>
-      </div>
-    </div>
-  </div>
-</template>
-
 <script setup>
 import { Tickets, Menu } from '@element-plus/icons-vue'
 const { $msg, $myFetch } = useNuxtApp()
@@ -458,7 +283,10 @@ watch(dialogStatus, (newValue) => {
 const handleCustomAmount = (field) => {
   if (packageInfo.value[field]) {
     // 允许输入数字和小数点，但限制只能有一个小数点
-    const numVal = packageInfo.value[field].toString().replace(/[^\d.]/g, '').replace(/(\..*)\./g, '$1')
+    const numVal = packageInfo.value[field]
+      .toString()
+      .replace(/[^\d.]/g, '')
+      .replace(/(\..*)\./g, '$1')
     // 只更新显示值，不立即转换为数字
     packageInfo.value[field] = numVal
   } else {
@@ -486,6 +314,251 @@ useHead({
   charset: 'utf-8',
 })
 </script>
+
+<template>
+  <div class="container">
+    <AdminSidebar v-show="isSidebarShow"></AdminSidebar>
+
+    <div class="right">
+      <!-- 遮罩层 -->
+      <div class="overlay" v-show="isoverlay" @click="handleSidebarShow"></div>
+      <!-- 侧边栏控制按钮 -->
+      <div class="control-sidebar" v-show="iscontrolShow">
+        <el-icon @click="handleSidebarShow">
+          <Menu />
+        </el-icon>
+      </div>
+      <AdminHeader></AdminHeader>
+      <div class="package-container" v-loading="loading">
+        <div class="package-card">
+          <!-- 标题区域 -->
+          <div class="card-header">
+            <div class="header-left">
+              <el-icon class="icon">
+                <Tickets />
+              </el-icon>
+              <span class="title">套餐管理</span>
+            </div>
+            <div class="header-right">
+              <el-button type="primary" @click="dialogStatus = true">
+                <span>新增套餐</span>
+              </el-button>
+            </div>
+          </div>
+
+          <!-- 表格区域 -->
+          <div class="table-container">
+            <client-only>
+              <el-table :data="filterTableData" style="width: 100%">
+                <el-table-column width="160" fixed="right">
+                  <template #header>
+                    <div class="search-wrapper">
+                      <el-input v-model="search" placeholder="搜索" clearable>
+                      </el-input>
+                    </div>
+                  </template>
+                  <template #default="scope">
+                    <div class="table-actions">
+                      <el-button
+                        type="primary"
+                        link
+                        @click="handleEdit(scope.$index, scope.row)"
+                      >
+                        编辑
+                      </el-button>
+                      <el-popconfirm
+                        confirm-button-text="确定"
+                        cancel-button-text="取消"
+                        title="确定要删除吗？"
+                        @confirm="handleDelete(scope.$index, scope.row)"
+                      >
+                        <template #reference>
+                          <el-button type="danger" link> 删除 </el-button>
+                        </template>
+                      </el-popconfirm>
+                    </div>
+                  </template>
+                </el-table-column>
+                <el-table-column prop="id" label="ID" width="80" />
+                <el-table-column prop="name" label="套餐名称" min-width="120" />
+                <el-table-column
+                  prop="api_name"
+                  label="接口名称"
+                  min-width="120"
+                />
+                <el-table-column prop="type" label="类型" width="120">
+                  <template #default="scope">
+                    <el-tag :type="getTypeTag(scope.row.type)">
+                      {{ getTypeText(scope.row.type) }}
+                    </el-tag>
+                  </template>
+                </el-table-column>
+                <el-table-column prop="price" label="价格" width="100">
+                  <template #default="scope">
+                    <span class="price">¥{{ scope.row.price }}</span>
+                  </template>
+                </el-table-column>
+                <el-table-column prop="duration" label="有效期" width="100">
+                  <template #default="scope">
+                    <span class="duration">{{ scope.row.duration }}天</span>
+                  </template>
+                </el-table-column>
+                <el-table-column prop="points" label="点数" width="80">
+                  <template #default="scope">
+                    <span class="points">{{ scope.row.points }}</span>
+                  </template>
+                </el-table-column>
+                <el-table-column prop="status" label="状态" width="100">
+                  <template #default="scope">
+                    <el-tag
+                      :type="scope.row.status === 1 ? 'success' : 'danger'"
+                      class="status-tag"
+                      @click="handleStatusChange(scope.row)"
+                      style="cursor: pointer"
+                    >
+                      {{ scope.row.status === 1 ? '启用' : '禁用' }}
+                    </el-tag>
+                  </template>
+                </el-table-column>
+                <el-table-column
+                  prop="create_time"
+                  label="创建时间"
+                  width="180"
+                />
+                <el-table-column
+                  prop="update_time"
+                  label="修改时间"
+                  width="180"
+                />
+              </el-table>
+            </client-only>
+          </div>
+
+          <!-- 新增/编辑套餐对话框 -->
+          <el-dialog
+            v-model="dialogStatus"
+            :title="updatePackageStatus ? '修改套餐' : '新增套餐'"
+            width="600px"
+            destroy-on-close
+            class="package-dialog"
+          >
+            <div class="dialog-content">
+              <el-form :model="packageInfo" label-width="100px">
+                <el-row :gutter="20">
+                  <el-col :span="12">
+                    <el-form-item label="套餐名称" required>
+                      <el-input
+                        v-model="packageInfo.name"
+                        placeholder="请输入套餐名称"
+                      />
+                    </el-form-item>
+                  </el-col>
+                  <el-col :span="12">
+                    <el-form-item label="接口名称" required>
+                      <el-autocomplete
+                        v-model="packageInfo.api_name"
+                        :fetch-suggestions="querySearchAsync"
+                        placeholder="请输入接口名称"
+                        @select="handleSearchSelect"
+                        class="full-width"
+                      />
+                    </el-form-item>
+                  </el-col>
+                </el-row>
+
+                <el-row :gutter="20">
+                  <el-col :span="12">
+                    <el-form-item label="套餐类型" required>
+                      <el-select
+                        v-model="packageInfo.type"
+                        placeholder="请选择套餐类型"
+                        class="full-width"
+                      >
+                        <el-option label="包月计费" :value="2" />
+                        <el-option label="点数包" :value="3" />
+                      </el-select>
+                    </el-form-item>
+                  </el-col>
+                  <el-col :span="12">
+                    <el-form-item label="套餐价格" required>
+                      <el-input
+                        v-model="packageInfo.price"
+                        placeholder="请输入价格(整数)"
+                        class="full-width"
+                        @input="handleCustomAmount('price')"
+                      >
+                        <template #suffix>¥</template>
+                      </el-input>
+                    </el-form-item>
+                  </el-col>
+                </el-row>
+
+                <el-row :gutter="20">
+                  <el-col :span="12">
+                    <el-form-item
+                      label="包含点数"
+                      v-if="packageInfo.type === 3"
+                      required
+                    >
+                      <el-input
+                        v-model="packageInfo.points"
+                        placeholder="请输入点数"
+                        class="full-width"
+                        @input="validateNumber('points')"
+                      >
+                        <template #suffix>点</template>
+                      </el-input>
+                    </el-form-item>
+                    <el-form-item
+                      label="有效期"
+                      required
+                      v-if="packageInfo.type === 2"
+                    >
+                      <el-input
+                        v-model="packageInfo.duration"
+                        placeholder="请输入有效期(天)"
+                        class="full-width"
+                        @input="validateNumber('duration')"
+                      >
+                        <template #suffix>天</template>
+                      </el-input>
+                    </el-form-item>
+                  </el-col>
+                  <el-col :span="12"> </el-col>
+                </el-row>
+
+                <el-form-item label="状态">
+                  <el-switch
+                    v-model="packageInfo.status"
+                    :active-value="1"
+                    :inactive-value="0"
+                  />
+                </el-form-item>
+
+                <el-form-item label="描述">
+                  <el-input
+                    v-model="packageInfo.description"
+                    type="textarea"
+                    :rows="3"
+                    placeholder="请输入套餐描述"
+                  />
+                </el-form-item>
+              </el-form>
+            </div>
+            <template #footer>
+              <div class="dialog-footer">
+                <el-button @click="dialogStatus = false">取消</el-button>
+                <el-button type="primary" @click="submit">
+                  {{ updatePackageStatus ? '修改' : '创建' }}
+                </el-button>
+              </div>
+            </template>
+          </el-dialog>
+        </div>
+      </div>
+    </div>
+  </div>
+</template>
 
 <style lang="less" scoped>
 .container {

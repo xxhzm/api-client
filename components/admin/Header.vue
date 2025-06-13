@@ -1,3 +1,21 @@
+<script setup>
+const { $logout } = useNuxtApp()
+
+const username = useCookie('username')
+
+const handleSelect = (key) => {
+  // 更改密码
+  if (key === '0-1') {
+    navigateTo('/admin/password')
+  }
+
+  // 退出登录
+  if (key === '0-2') {
+    $logout()
+  }
+}
+</script>
+
 <template>
   <div class="header-container">
     <el-menu
@@ -17,24 +35,6 @@
     </el-menu>
   </div>
 </template>
-
-<script setup>
-const { $logout } = useNuxtApp()
-
-const username = useCookie('username')
-
-const handleSelect = (key) => {
-  // 更改密码
-  if (key === '0-1') {
-    navigateTo('/admin/password')
-  }
-
-  // 退出登录
-  if (key === '0-2') {
-    $logout()
-  }
-}
-</script>
 
 <style lang="less" scoped>
 .flex-grow {

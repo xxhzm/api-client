@@ -1,3 +1,482 @@
+<script setup>
+import { User, Menu } from '@element-plus/icons-vue'
+const { $msg, $myFetch } = useNuxtApp()
+
+// 控制左侧边栏显示隐藏
+// 获取页面宽度
+const screenWidth = ref(0)
+const isSidebarShow = ref(true)
+const iscontrolShow = ref(false)
+const isoverlay = ref(false)
+onMounted(() => {
+  screenWidth.value = document.body.clientWidth
+  document.body.style.overflow = ''
+
+  if (screenWidth.value < 768) {
+    iscontrolShow.value = true
+    isSidebarShow.value = false
+  }
+})
+
+const handleSidebarShow = () => {
+  isSidebarShow.value = !isSidebarShow.value
+  iscontrolShow.value = !iscontrolShow.value
+  isoverlay.value = !isoverlay.value
+  // 禁止页面滑动
+  if (isSidebarShow.value) {
+    document.body.style.overflow = 'hidden'
+  } else {
+    document.body.style.overflow = ''
+  }
+}
+
+const loading = ref(false)
+const tableData = ref([])
+const search = ref('')
+
+// 当前页数
+const page = ref(1)
+// 总页数
+const totalPages = ref(1)
+// 总记录
+const totalRecords = ref(50)
+// 页数loading
+const pageLoading = ref(false)
+
+// 抽屉显示状态
+const createUserStatus = ref(false)
+const disabled = ref(false)
+
+const userInfo = ref({
+  id: 0,
+  username: '',
+  password: '',
+  mail: '',
+  balance: 0,
+  status: '',
+})
+
+const getData = async () => {
+  const res = await $myFetch('UserList', {
+    params: {
+      page: page.value,
+    },
+  })
+
+  if (res.code !== 200) {
+    return
+  }
+
+  res.data.userList.forEach((element, key) => {
+    if (element.status === '0') {
+      res.data.userList[key].status = '启用'
+    } else {
+      res.data.userList[key].status = '停用'
+    }
+
+    res.data.userList[key].login_time = new Date(
+      element.login_time
+    ).toLocaleString()
+    res.data.userList[key].create_time = new Date(
+      element.create_time
+    ).toLocaleString()
+  })
+
+  tableData.value = res.data.userList
+  totalPages.value = res.data.totalPages
+  totalRecords.value = res.data.totalRecords
+}
+
+onMounted(() => {
+  getData()
+})
+
+// 搜索框
+const filterTableData = computed(() =>
+  tableData.value.filter(
+    (data) =>
+      !search.value ||
+      data.username.toLowerCase().includes(search.value.toLowerCase()) ||
+      data.mail.toLowerCase().includes(search.value.toLowerCase())
+  )
+)
+// 当前选择的角色
+const bindRoleInfo = ref({})
+// 角色列表
+const roleList = ref({})
+// 修改用户
+const handleEdit = async (index, row) => {
+  createUserStatus.value = true
+  disabled.value = true
+
+  userInfo.value.id = row.id
+  userInfo.value.username = row.username
+  userInfo.value.password = row.password
+  userInfo.value.mail = row.mail
+  userInfo.value.balance = row.balance
+  userInfo.value.status = row.status
+
+  // 向服务器获取角色列表
+  const { data: res } = await $myFetch('RoleList')
+  roleList.value = res
+}
+
+// 监听修改用户弹窗是否关闭
+watch(createUserStatus, (newValue) => {
+  if (newValue === false) {
+    bindRoleInfo.value = []
+  }
+})
+
+// 删除用户按钮
+const handleDelete = async (index, row) => {
+  loading.value = true
+
+  const res = await $myFetch('DeleteUser', {
+    params: {
+      id: row.id,
+    },
+  })
+
+  $msg(res.msg, 'success')
+  await getData()
+  loading.value = false
+}
+
+// 显示用户归属地
+const getAddress = async () => {
+  tableData.value.forEach(async (element, key) => {
+    const { data: ip } = await $myFetch('https://v2.xxapi.cn/api/ip', {
+      params: {
+        ip: element.ip,
+      },
+    })
+
+    tableData.value[key].address = ip.data.address
+  })
+}
+
+const submit = () => {
+  if (disabled.value === true) {
+    updateUser()
+  } else {
+    createUser()
+  }
+}
+
+// 创建用户
+const createUser = async () => {
+  if (
+    !userInfo.value.username ||
+    !userInfo.value.password ||
+    !userInfo.value.mail
+  ) {
+    $msg('请填写内容', 'error')
+    return false
+  }
+
+  const apiBodyValue = new URLSearchParams()
+  apiBodyValue.append('username', userInfo.value.username)
+  apiBodyValue.append('password', userInfo.value.password)
+  apiBodyValue.append('mail', userInfo.value.mail)
+
+  const res = await $myFetch('CreateUser', {
+    method: 'POST',
+    body: apiBodyValue,
+  })
+
+  createUserStatus.value = false
+  getData()
+
+  if (res.code === 200) {
+    $msg(res.msg, 'success')
+  } else {
+    $msg(res.msg, 'error')
+  }
+}
+
+// 修改用户
+const updateUser = async () => {
+  if (!userInfo.value.username || !userInfo.value.mail) {
+    $msg('请填写内容', 'error')
+    createUserStatus.value = false
+    return false
+  }
+
+  if (userInfo.value.balance > 4294967295) {
+    $msg('余额过大，超出限制', 'error')
+    createUserStatus.value = false
+    return false
+  }
+
+  if (userInfo.value.balance < 0) {
+    $msg('余额不能小于0', 'error')
+    createUserStatus.value = false
+    return false
+  }
+
+  // 绑定角色
+  if ((Object.keys(bindRoleInfo.value).length !== 0) === true) {
+    const res = await $myFetch('UserBindRole', {
+      params: {
+        info: JSON.stringify(bindRoleInfo.value),
+        userId: userInfo.value.id,
+      },
+    })
+    if (res.code !== 200) {
+      $msg(res.msg, 'error')
+    }
+
+    bindRoleInfo.value = []
+  }
+
+  // 修改用户信息
+  const apiBodyValue = new URLSearchParams()
+  apiBodyValue.append('id', userInfo.value.id)
+  if (userInfo.value.password) {
+    apiBodyValue.append('password', userInfo.value.password)
+  }
+  apiBodyValue.append('mail', userInfo.value.mail)
+  apiBodyValue.append('balance', userInfo.value.balance)
+  apiBodyValue.append('status', userInfo.value.status)
+
+  const res = await $myFetch('UpdateUser', {
+    method: 'POST',
+    body: apiBodyValue,
+  })
+
+  if (res.code === 200) {
+    $msg(res.msg, 'success')
+  } else {
+    $msg(res.msg, 'error')
+  }
+
+  createUserStatus.value = false
+  getData()
+}
+
+// 监听抽屉是否关闭
+watch(createUserStatus, (newValue) => {
+  if (newValue === false) {
+    disabled.value = false
+    userInfo.value.id = 0
+    userInfo.value.username = ''
+    userInfo.value.password = ''
+    userInfo.value.mail = ''
+    userInfo.value.balance = 0
+  }
+})
+
+// 监听页数变化
+watch(
+  () => page.value,
+  async (newValue) => {
+    pageLoading.value = true
+    await getData()
+    setTimeout(() => {
+      pageLoading.value = false
+    }, 300)
+  }
+)
+
+// 查询用户拥有的角色
+const userBindRoleListStatus = ref(false)
+const userBindRoleList = ref({})
+
+const handleUserBindRoleList = async (index, row) => {
+  pageLoading.value = true
+
+  const res = await $myFetch('UserBindRoleList', {
+    params: {
+      id: row.id,
+    },
+  })
+
+  if (typeof res.data === 'string') {
+    userBindRoleList.value = []
+  } else {
+    userBindRoleList.value = res.data
+  }
+
+  userBindRoleListStatus.value = true
+  pageLoading.value = false
+}
+
+// 修改用户状态
+const handleStatusChange = async (row) => {
+  loading.value = true
+
+  const apiBodyValue = new URLSearchParams()
+  apiBodyValue.append('id', row.id)
+  apiBodyValue.append('mail', row.mail)
+  apiBodyValue.append('balance', row.balance)
+  apiBodyValue.append('status', row.status === '启用' ? '停用' : '启用')
+
+  const res = await $myFetch('UpdateUser', {
+    method: 'POST',
+    body: apiBodyValue,
+  })
+
+  if (res.code === 200) {
+    row.status = row.status === '启用' ? '停用' : '启用'
+    $msg(res.msg, 'success')
+  } else {
+    $msg(res.msg, 'error')
+  }
+
+  loading.value = false
+}
+
+// 用户充值记录相关
+const rechargeRecordDialogVisible = ref(false)
+const rechargeRecords = ref([])
+const rechargeLoading = ref(false)
+const currentUserId = ref(null)
+const rechargePage = ref(1)
+const rechargePageSize = ref(10)
+const rechargeTotalRecords = ref(0)
+
+// 获取用户充值记录
+const fetchUserRechargeRecords = async () => {
+  rechargeLoading.value = true
+  try {
+    const params = {
+      page: rechargePage.value,
+      limit: rechargePageSize.value,
+      uid: currentUserId.value,
+    }
+
+    const res = await $myFetch('GetRechargeRecords', { params })
+    if (res.code === 200) {
+      rechargeRecords.value = res.data.data || []
+      rechargeTotalRecords.value = res.data.total_records || 0
+    } else {
+      $msg(res.msg || '获取充值记录失败', 'error')
+    }
+  } catch (error) {
+    $msg('获取充值记录失败', 'error')
+  } finally {
+    rechargeLoading.value = false
+  }
+}
+
+// 处理查看用户充值记录
+const handleUserRechargeRecord = (row) => {
+  currentUserId.value = row.id
+  rechargePage.value = 1
+  rechargeRecordDialogVisible.value = true
+  fetchUserRechargeRecords()
+}
+
+// 监听充值记录页码变化
+watch(rechargePage, () => {
+  if (rechargeRecordDialogVisible.value) {
+    fetchUserRechargeRecords()
+  }
+})
+
+// 处理充值记录页面切换
+const handleRechargePageChange = (newPage) => {
+  rechargePage.value = newPage
+  fetchUserRechargeRecords()
+}
+
+// 处理充值记录每页显示数量变化
+const handleRechargeSizeChange = (newSize) => {
+  rechargePageSize.value = newSize
+  rechargePage.value = 1
+  fetchUserRechargeRecords()
+}
+
+// 格式化时间戳为可读日期时间格式
+const formatTimestamp = (timestamp) => {
+  if (!timestamp) return '-'
+  const date = new Date(Number(timestamp))
+  const year = date.getFullYear()
+  const month = String(date.getMonth() + 1).padStart(2, '0')
+  const day = String(date.getDate()).padStart(2, '0')
+  const hours = String(date.getHours()).padStart(2, '0')
+  const minutes = String(date.getMinutes()).padStart(2, '0')
+  const seconds = String(date.getSeconds()).padStart(2, '0')
+  return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`
+}
+
+// 用户购买记录相关
+const buyPackageRecordDialogVisible = ref(false)
+const buyPackageDetailDialogVisible = ref(false)
+const buyPackageRecords = ref([])
+const buyPackageLoading = ref(false)
+const currentBuyPackageRecord = ref(null)
+const buyPackagePage = ref(1)
+const buyPackagePageSize = ref(10)
+const buyPackageTotalRecords = ref(0)
+
+// 获取用户购买记录
+const fetchUserBuyPackageRecords = async () => {
+  buyPackageLoading.value = true
+  try {
+    const params = {
+      page: buyPackagePage.value,
+      limit: buyPackagePageSize.value,
+      uid: currentUserId.value,
+    }
+
+    const res = await $myFetch('GetBuyPackageRecords', { params })
+    if (res.code === 200) {
+      buyPackageRecords.value = res.data.data || []
+      buyPackageTotalRecords.value = res.data.total_records || 0
+    } else {
+      $msg(res.msg || '获取购买记录失败', 'error')
+    }
+  } catch (error) {
+    $msg('获取购买记录失败', 'error')
+  } finally {
+    buyPackageLoading.value = false
+  }
+}
+
+// 处理查看用户购买记录
+const handleUserBuyPackageRecord = (row) => {
+  currentUserId.value = row.id
+  buyPackagePage.value = 1
+  buyPackageRecordDialogVisible.value = true
+  fetchUserBuyPackageRecords()
+}
+
+// 监听购买记录页码变化
+watch(buyPackagePage, () => {
+  if (buyPackageRecordDialogVisible.value) {
+    fetchUserBuyPackageRecords()
+  }
+})
+
+// 处理购买记录页面切换
+const handleBuyPackagePageChange = (newPage) => {
+  buyPackagePage.value = newPage
+  fetchUserBuyPackageRecords()
+}
+
+// 处理购买记录每页显示数量变化
+const handleBuyPackageSizeChange = (newSize) => {
+  buyPackagePageSize.value = newSize
+  buyPackagePage.value = 1
+  fetchUserBuyPackageRecords()
+}
+
+// 显示购买记录详情
+const showBuyPackageDetail = (record) => {
+  currentBuyPackageRecord.value = record
+  buyPackageDetailDialogVisible.value = true
+}
+
+useHead({
+  title: '用户列表',
+  viewport:
+    'width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0',
+  charset: 'utf-8',
+})
+</script>
+
 <template>
   <div class="container">
     <AdminSidebar v-show="isSidebarShow"></AdminSidebar>
@@ -516,485 +995,6 @@
     </div>
   </div>
 </template>
-
-<script setup>
-import { User, Menu } from '@element-plus/icons-vue'
-const { $msg, $myFetch } = useNuxtApp()
-
-// 控制左侧边栏显示隐藏
-// 获取页面宽度
-const screenWidth = ref(0)
-const isSidebarShow = ref(true)
-const iscontrolShow = ref(false)
-const isoverlay = ref(false)
-onMounted(() => {
-  screenWidth.value = document.body.clientWidth
-  document.body.style.overflow = ''
-
-  if (screenWidth.value < 768) {
-    iscontrolShow.value = true
-    isSidebarShow.value = false
-  }
-})
-
-const handleSidebarShow = () => {
-  isSidebarShow.value = !isSidebarShow.value
-  iscontrolShow.value = !iscontrolShow.value
-  isoverlay.value = !isoverlay.value
-  // 禁止页面滑动
-  if (isSidebarShow.value) {
-    document.body.style.overflow = 'hidden'
-  } else {
-    document.body.style.overflow = ''
-  }
-}
-
-const loading = ref(false)
-const tableData = ref([])
-const search = ref('')
-
-// 当前页数
-const page = ref(1)
-// 总页数
-const totalPages = ref(1)
-// 总记录
-const totalRecords = ref(50)
-// 页数loading
-const pageLoading = ref(false)
-
-// 抽屉显示状态
-const createUserStatus = ref(false)
-const disabled = ref(false)
-
-const userInfo = ref({
-  id: 0,
-  username: '',
-  password: '',
-  mail: '',
-  balance: 0,
-  status: '',
-})
-
-const getData = async () => {
-  const res = await $myFetch('UserList', {
-    params: {
-      page: page.value,
-    },
-  })
-
-  if (res.code !== 200) {
-    return
-  }
-
-  res.data.userList.forEach((element, key) => {
-    if (element.status === '0') {
-      res.data.userList[key].status = '启用'
-    } else {
-      res.data.userList[key].status = '停用'
-    }
-
-    res.data.userList[key].login_time = new Date(
-      element.login_time
-    ).toLocaleString()
-    res.data.userList[key].create_time = new Date(
-      element.create_time
-    ).toLocaleString()
-  })
-
-  tableData.value = res.data.userList
-  totalPages.value = res.data.totalPages
-  totalRecords.value = res.data.totalRecords
-}
-
-onMounted(() => {
-  getData()
-})
-
-// 搜索框
-const filterTableData = computed(() =>
-  tableData.value.filter(
-    (data) =>
-      !search.value ||
-      data.username.toLowerCase().includes(search.value.toLowerCase()) ||
-      data.mail.toLowerCase().includes(search.value.toLowerCase())
-  )
-)
-// 当前选择的角色
-const bindRoleInfo = ref({})
-// 角色列表
-const roleList = ref({})
-// 修改用户
-const handleEdit = async (index, row) => {
-  createUserStatus.value = true
-  disabled.value = true
-
-  userInfo.value.id = row.id
-  userInfo.value.username = row.username
-  userInfo.value.password = row.password
-  userInfo.value.mail = row.mail
-  userInfo.value.balance = row.balance
-  userInfo.value.status = row.status
-
-  // 向服务器获取角色列表
-  const { data: res } = await $myFetch('RoleList')
-  roleList.value = res
-}
-
-// 监听修改用户弹窗是否关闭
-watch(createUserStatus, (newValue) => {
-  if (newValue === false) {
-    bindRoleInfo.value = []
-  }
-})
-
-// 删除用户按钮
-const handleDelete = async (index, row) => {
-  loading.value = true
-
-  const res = await $myFetch('DeleteUser', {
-    params: {
-      id: row.id,
-    },
-  })
-
-  $msg(res.msg, 'success')
-  await getData()
-  loading.value = false
-}
-
-// 显示用户归属地
-const getAddress = async () => {
-  tableData.value.forEach(async (element, key) => {
-    const { data: ip } = await $myFetch('https://v2.xxapi.cn/api/ip', {
-      params: {
-        ip: element.ip,
-      },
-    })
-
-    tableData.value[key].address = ip.data.address
-  })
-}
-
-const submit = () => {
-  if (disabled.value === true) {
-    updateUser()
-  } else {
-    createUser()
-  }
-}
-
-// 创建用户
-const createUser = async () => {
-  if (
-    !userInfo.value.username ||
-    !userInfo.value.password ||
-    !userInfo.value.mail
-  ) {
-    $msg('请填写内容', 'error')
-    return false
-  }
-
-  const apiBodyValue = new URLSearchParams()
-  apiBodyValue.append('username', userInfo.value.username)
-  apiBodyValue.append('password', userInfo.value.password)
-  apiBodyValue.append('mail', userInfo.value.mail)
-
-  const res = await $myFetch('CreateUser', {
-    method: 'POST',
-    body: apiBodyValue,
-  })
-
-  createUserStatus.value = false
-  getData()
-
-  if (res.code === 200) {
-    $msg(res.msg, 'success')
-  } else {
-    $msg(res.msg, 'error')
-  }
-}
-
-// 修改用户
-const updateUser = async () => {
-  if (!userInfo.value.username || !userInfo.value.mail) {
-    $msg('请填写内容', 'error')
-    createUserStatus.value = false
-    return false
-  }
-
-  if (userInfo.value.balance > 4294967295) {
-    $msg('余额过大，超出限制', 'error')
-    createUserStatus.value = false
-    return false
-  }
-
-  if (userInfo.value.balance < 0) {
-    $msg('余额不能小于0', 'error')
-    createUserStatus.value = false
-    return false
-  }
-
-  // 绑定角色
-  if ((Object.keys(bindRoleInfo.value).length !== 0) === true) {
-    const res = await $myFetch('UserBindRole', {
-      params: {
-        info: JSON.stringify(bindRoleInfo.value),
-        userId: userInfo.value.id,
-      },
-    })
-    if (res.code !== 200) {
-      $msg(res.msg, 'error')
-    }
-
-    bindRoleInfo.value = []
-  }
-
-  // 修改用户信息
-  const apiBodyValue = new URLSearchParams()
-  apiBodyValue.append('id', userInfo.value.id)
-  if (userInfo.value.password) {
-    apiBodyValue.append('password', userInfo.value.password)
-  }
-  apiBodyValue.append('mail', userInfo.value.mail)
-  apiBodyValue.append('balance', userInfo.value.balance)
-  apiBodyValue.append('status', userInfo.value.status)
-
-  const res = await $myFetch('UpdateUser', {
-    method: 'POST',
-    body: apiBodyValue,
-  })
-
-  if (res.code === 200) {
-    $msg(res.msg, 'success')
-  } else {
-    $msg(res.msg, 'error')
-  }
-
-  createUserStatus.value = false
-  getData()
-}
-
-// 监听抽屉是否关闭
-watch(createUserStatus, (newValue) => {
-  if (newValue === false) {
-    disabled.value = false
-    userInfo.value.id = 0
-    userInfo.value.username = ''
-    userInfo.value.password = ''
-    userInfo.value.mail = ''
-    userInfo.value.balance = 0
-  }
-})
-
-// 监听页数变化
-watch(
-  () => page.value,
-  async (newValue) => {
-    pageLoading.value = true
-    await getData()
-    setTimeout(() => {
-      pageLoading.value = false
-    }, 300)
-  }
-)
-
-// 查询用户拥有的角色
-const userBindRoleListStatus = ref(false)
-const userBindRoleList = ref({})
-
-const handleUserBindRoleList = async (index, row) => {
-  pageLoading.value = true
-
-  const res = await $myFetch('UserBindRoleList', {
-    params: {
-      id: row.id,
-    },
-  })
-
-  if (typeof res.data === 'string') {
-    userBindRoleList.value = []
-  } else {
-    userBindRoleList.value = res.data
-  }
-
-  userBindRoleListStatus.value = true
-  pageLoading.value = false
-}
-
-// 修改用户状态
-const handleStatusChange = async (row) => {
-  loading.value = true
-
-  const apiBodyValue = new URLSearchParams()
-  apiBodyValue.append('id', row.id)
-  apiBodyValue.append('mail', row.mail)
-  apiBodyValue.append('balance', row.balance)
-  apiBodyValue.append('status', row.status === '启用' ? '停用' : '启用')
-
-  const res = await $myFetch('UpdateUser', {
-    method: 'POST',
-    body: apiBodyValue,
-  })
-
-  if (res.code === 200) {
-    row.status = row.status === '启用' ? '停用' : '启用'
-    $msg(res.msg, 'success')
-  } else {
-    $msg(res.msg, 'error')
-  }
-
-  loading.value = false
-}
-
-// 用户充值记录相关
-const rechargeRecordDialogVisible = ref(false)
-const rechargeRecords = ref([])
-const rechargeLoading = ref(false)
-const currentUserId = ref(null)
-const rechargePage = ref(1)
-const rechargePageSize = ref(10)
-const rechargeTotalRecords = ref(0)
-
-// 获取用户充值记录
-const fetchUserRechargeRecords = async () => {
-  rechargeLoading.value = true
-  try {
-    const params = {
-      page: rechargePage.value,
-      limit: rechargePageSize.value,
-      uid: currentUserId.value,
-    }
-
-    const res = await $myFetch('GetRechargeRecords', { params })
-    if (res.code === 200) {
-      rechargeRecords.value = res.data.data || []
-      rechargeTotalRecords.value = res.data.total_records || 0
-    } else {
-      $msg(res.msg || '获取充值记录失败', 'error')
-    }
-  } catch (error) {
-    $msg('获取充值记录失败', 'error')
-  } finally {
-    rechargeLoading.value = false
-  }
-}
-
-// 处理查看用户充值记录
-const handleUserRechargeRecord = (row) => {
-  currentUserId.value = row.id
-  rechargePage.value = 1
-  rechargeRecordDialogVisible.value = true
-  fetchUserRechargeRecords()
-}
-
-// 监听充值记录页码变化
-watch(rechargePage, () => {
-  if (rechargeRecordDialogVisible.value) {
-    fetchUserRechargeRecords()
-  }
-})
-
-// 处理充值记录页面切换
-const handleRechargePageChange = (newPage) => {
-  rechargePage.value = newPage
-  fetchUserRechargeRecords()
-}
-
-// 处理充值记录每页显示数量变化
-const handleRechargeSizeChange = (newSize) => {
-  rechargePageSize.value = newSize
-  rechargePage.value = 1
-  fetchUserRechargeRecords()
-}
-
-// 格式化时间戳为可读日期时间格式
-const formatTimestamp = (timestamp) => {
-  if (!timestamp) return '-'
-  const date = new Date(Number(timestamp))
-  const year = date.getFullYear()
-  const month = String(date.getMonth() + 1).padStart(2, '0')
-  const day = String(date.getDate()).padStart(2, '0')
-  const hours = String(date.getHours()).padStart(2, '0')
-  const minutes = String(date.getMinutes()).padStart(2, '0')
-  const seconds = String(date.getSeconds()).padStart(2, '0')
-  return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`
-}
-
-// 用户购买记录相关
-const buyPackageRecordDialogVisible = ref(false)
-const buyPackageDetailDialogVisible = ref(false)
-const buyPackageRecords = ref([])
-const buyPackageLoading = ref(false)
-const currentBuyPackageRecord = ref(null)
-const buyPackagePage = ref(1)
-const buyPackagePageSize = ref(10)
-const buyPackageTotalRecords = ref(0)
-
-// 获取用户购买记录
-const fetchUserBuyPackageRecords = async () => {
-  buyPackageLoading.value = true
-  try {
-    const params = {
-      page: buyPackagePage.value,
-      limit: buyPackagePageSize.value,
-      uid: currentUserId.value,
-    }
-
-    const res = await $myFetch('GetBuyPackageRecords', { params })
-    if (res.code === 200) {
-      buyPackageRecords.value = res.data.data || []
-      buyPackageTotalRecords.value = res.data.total_records || 0
-    } else {
-      $msg(res.msg || '获取购买记录失败', 'error')
-    }
-  } catch (error) {
-    $msg('获取购买记录失败', 'error')
-  } finally {
-    buyPackageLoading.value = false
-  }
-}
-
-// 处理查看用户购买记录
-const handleUserBuyPackageRecord = (row) => {
-  currentUserId.value = row.id
-  buyPackagePage.value = 1
-  buyPackageRecordDialogVisible.value = true
-  fetchUserBuyPackageRecords()
-}
-
-// 监听购买记录页码变化
-watch(buyPackagePage, () => {
-  if (buyPackageRecordDialogVisible.value) {
-    fetchUserBuyPackageRecords()
-  }
-})
-
-// 处理购买记录页面切换
-const handleBuyPackagePageChange = (newPage) => {
-  buyPackagePage.value = newPage
-  fetchUserBuyPackageRecords()
-}
-
-// 处理购买记录每页显示数量变化
-const handleBuyPackageSizeChange = (newSize) => {
-  buyPackagePageSize.value = newSize
-  buyPackagePage.value = 1
-  fetchUserBuyPackageRecords()
-}
-
-// 显示购买记录详情
-const showBuyPackageDetail = (record) => {
-  currentBuyPackageRecord.value = record
-  buyPackageDetailDialogVisible.value = true
-}
-
-useHead({
-  title: '用户列表',
-  viewport:
-    'width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0',
-  charset: 'utf-8',
-})
-</script>
 
 <style lang="less" scoped>
 .container {

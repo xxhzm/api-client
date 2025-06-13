@@ -1,3 +1,136 @@
+<script setup>
+import { Menu, Warning, Clock, Remove, Timer } from '@element-plus/icons-vue'
+const { $msg, $myFetch } = useNuxtApp()
+
+// 控制左侧边栏显示隐藏
+const screenWidth = ref(0)
+const isSidebarShow = ref(true)
+const iscontrolShow = ref(false)
+const isoverlay = ref(false)
+onMounted(() => {
+  screenWidth.value = document.body.clientWidth
+  document.body.style.overflow = ''
+
+  if (screenWidth.value < 768) {
+    iscontrolShow.value = true
+    isSidebarShow.value = false
+  }
+})
+
+const handleSidebarShow = () => {
+  isSidebarShow.value = !isSidebarShow.value
+  iscontrolShow.value = !iscontrolShow.value
+  isoverlay.value = !isoverlay.value
+
+  if (isSidebarShow.value) {
+    document.body.style.overflow = 'hidden'
+  } else {
+    document.body.style.overflow = ''
+  }
+}
+
+// 限频规则信息
+const loading = ref(false)
+const limitInfo = ref({
+  RequestLimit: '60',
+  TimeFrame: '60',
+  BlacklistDuration: '300',
+})
+
+// 验证输入为数字
+const validateNumber = (field) => {
+  // 移除非数字字符
+  limitInfo.value[field] = limitInfo.value[field]
+    .toString()
+    .replace(/[^\d]/g, '')
+  // 确保不为空
+  if (limitInfo.value[field] === '') {
+    limitInfo.value[field] = '0'
+  }
+}
+
+// 获取限频规则
+const getRateLimitSettings = async () => {
+  loading.value = true
+
+  try {
+    const res = await $myFetch('GetRateLimitSettings', {
+      method: 'GET',
+    })
+
+    if (res.code === 200 && res.data) {
+      limitInfo.value = {
+        RequestLimit: (res.data.request_limit || 60).toString(),
+        TimeFrame: (res.data.time_frame || 60).toString(),
+        BlacklistDuration: (res.data.blacklist_duration || 300).toString(),
+      }
+    } else {
+      $msg('获取限频规则设置失败', 'error')
+    }
+  } catch (error) {
+    $msg('获取限频规则设置失败', 'error')
+  } finally {
+    loading.value = false
+  }
+}
+
+// 保存限频规则
+const handleSaveLimit = async () => {
+  if (!limitInfo.value.RequestLimit || limitInfo.value.RequestLimit === '0') {
+    return $msg('请输入限制次数', 'warning')
+  }
+
+  if (!limitInfo.value.TimeFrame || limitInfo.value.TimeFrame === '0') {
+    return $msg('请输入时间窗口', 'warning')
+  }
+
+  if (
+    !limitInfo.value.BlacklistDuration ||
+    limitInfo.value.BlacklistDuration === '0'
+  ) {
+    return $msg('请输入拉黑时长', 'warning')
+  }
+
+  loading.value = true
+
+  try {
+    // 准备请求参数
+    const body = new URLSearchParams()
+
+    body.append('requestLimit', limitInfo.value.RequestLimit)
+    body.append('timeFrame', limitInfo.value.TimeFrame)
+    body.append('blacklistDuration', limitInfo.value.BlacklistDuration)
+
+    // 实际API调用
+    const res = await $myFetch('UpdateRateLimitSettings', {
+      method: 'POST',
+      body,
+    })
+
+    if (res.code === 200) {
+      $msg('保存设置成功', 'success')
+    } else {
+      $msg(res.msg || '保存设置失败', 'error')
+    }
+  } catch (error) {
+    $msg('保存设置失败', 'error')
+  } finally {
+    loading.value = false
+  }
+}
+
+onMounted(() => {
+  getRateLimitSettings()
+})
+
+useHead({
+  title: '接口限频设置',
+  viewport:
+    'width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0',
+  charset: 'utf-8',
+})
+</script>
+
 <template>
   <div class="container">
     <AdminSidebar v-show="isSidebarShow"></AdminSidebar>
@@ -136,139 +269,6 @@
     </div>
   </div>
 </template>
-
-<script setup>
-import { Menu, Warning, Clock, Remove, Timer } from '@element-plus/icons-vue'
-const { $msg, $myFetch } = useNuxtApp()
-
-// 控制左侧边栏显示隐藏
-const screenWidth = ref(0)
-const isSidebarShow = ref(true)
-const iscontrolShow = ref(false)
-const isoverlay = ref(false)
-onMounted(() => {
-  screenWidth.value = document.body.clientWidth
-  document.body.style.overflow = ''
-
-  if (screenWidth.value < 768) {
-    iscontrolShow.value = true
-    isSidebarShow.value = false
-  }
-})
-
-const handleSidebarShow = () => {
-  isSidebarShow.value = !isSidebarShow.value
-  iscontrolShow.value = !iscontrolShow.value
-  isoverlay.value = !isoverlay.value
-
-  if (isSidebarShow.value) {
-    document.body.style.overflow = 'hidden'
-  } else {
-    document.body.style.overflow = ''
-  }
-}
-
-// 限频规则信息
-const loading = ref(false)
-const limitInfo = ref({
-  RequestLimit: '60',
-  TimeFrame: '60',
-  BlacklistDuration: '300',
-})
-
-// 验证输入为数字
-const validateNumber = (field) => {
-  // 移除非数字字符
-  limitInfo.value[field] = limitInfo.value[field]
-    .toString()
-    .replace(/[^\d]/g, '')
-  // 确保不为空
-  if (limitInfo.value[field] === '') {
-    limitInfo.value[field] = '0'
-  }
-}
-
-// 获取限频规则
-const getRateLimitSettings = async () => {
-  loading.value = true
-
-  try {
-    const res = await $myFetch('GetRateLimitSettings', {
-      method: 'GET',
-    })
-
-    if (res.code === 200 && res.data) {
-      limitInfo.value = {
-        RequestLimit: (res.data.request_limit || 60).toString(),
-        TimeFrame: (res.data.time_frame || 60).toString(),
-        BlacklistDuration: (res.data.blacklist_duration || 300).toString(),
-      }
-    } else {
-      $msg('获取限频规则设置失败', 'error')
-    }
-  } catch (error) {
-    $msg('获取限频规则设置失败', 'error')
-  } finally {
-    loading.value = false
-  }
-}
-
-// 保存限频规则
-const handleSaveLimit = async () => {
-  if (!limitInfo.value.RequestLimit || limitInfo.value.RequestLimit === '0') {
-    return $msg('请输入限制次数', 'warning')
-  }
-
-  if (!limitInfo.value.TimeFrame || limitInfo.value.TimeFrame === '0') {
-    return $msg('请输入时间窗口', 'warning')
-  }
-
-  if (
-    !limitInfo.value.BlacklistDuration ||
-    limitInfo.value.BlacklistDuration === '0'
-  ) {
-    return $msg('请输入拉黑时长', 'warning')
-  }
-
-  loading.value = true
-
-  try {
-    // 准备请求参数
-    const body = new URLSearchParams()
-
-    body.append('requestLimit', limitInfo.value.RequestLimit)
-    body.append('timeFrame', limitInfo.value.TimeFrame)
-    body.append('blacklistDuration', limitInfo.value.BlacklistDuration)
-
-    // 实际API调用
-    const res = await $myFetch('UpdateRateLimitSettings', {
-      method: 'POST',
-      body,
-    })
-
-    if (res.code === 200) {
-      $msg('保存设置成功', 'success')
-    } else {
-      $msg(res.msg || '保存设置失败', 'error')
-    }
-  } catch (error) {
-    $msg('保存设置失败', 'error')
-  } finally {
-    loading.value = false
-  }
-}
-
-onMounted(() => {
-  getRateLimitSettings()
-})
-
-useHead({
-  title: '接口限频设置',
-  viewport:
-    'width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0',
-  charset: 'utf-8',
-})
-</script>
 
 <style lang="less" scoped>
 .container {

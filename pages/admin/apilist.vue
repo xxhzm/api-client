@@ -1,172 +1,3 @@
-<template>
-  <div class="container">
-    <AdminSidebar v-show="isSidebarShow"></AdminSidebar>
-
-    <div class="right">
-      <!-- 遮罩层 -->
-      <div class="overlay" v-show="isoverlay" @click="handleSidebarShow"></div>
-      <!-- 侧边栏控制按钮 -->
-      <div class="control-sidebar" v-show="iscontrolShow">
-        <el-icon @click="handleSidebarShow"><Menu /></el-icon>
-      </div>
-      <AdminHeader></AdminHeader>
-      <div class="apilist-container" v-loading="loading">
-        <div class="api-card">
-          <!-- 标题区域 -->
-          <div class="card-header">
-            <div class="header-left">
-              <el-icon class="icon">
-                <Connection />
-              </el-icon>
-              <span class="title">接口列表</span>
-            </div>
-            <div class="header-right">
-              <el-button type="primary" @click="navigateTo('/admin/createapi')">
-                <el-icon>
-                  <Plus />
-                </el-icon>
-                <span>新增接口</span>
-              </el-button>
-            </div>
-          </div>
-
-          <!-- 表格区域 -->
-          <div class="table-container">
-            <client-only>
-              <el-table
-                :data="filterTableData"
-                style="width: 100%"
-                v-loading="pageLoading"
-              >
-                <el-table-column width="160" fixed="right">
-                  <template #header>
-                    <div class="search-wrapper">
-                      <el-input v-model="search" placeholder="搜索" clearable>
-                      </el-input>
-                    </div>
-                  </template>
-                  <template #default="scope">
-                    <div class="table-actions">
-                      <el-button
-                        type="primary"
-                        link
-                        @click="handleEdit(scope.$index, scope.row)"
-                      >
-                        编辑
-                      </el-button>
-                      <el-popconfirm
-                        confirm-button-text="确定"
-                        cancel-button-text="取消"
-                        title="确定要删除吗？"
-                        @confirm="handleDelete(scope.$index, scope.row)"
-                      >
-                        <template #reference>
-                          <el-button type="danger" link> 删除 </el-button>
-                        </template>
-                      </el-popconfirm>
-                    </div>
-                  </template>
-                </el-table-column>
-                <el-table-column prop="id" label="ID" width="50" />
-                <el-table-column
-                  prop="name"
-                  label="接口名称"
-                  width="150"
-                  show-overflow-tooltip
-                />
-                <el-table-column
-                  prop="alias"
-                  label="别名"
-                  width="120"
-                  show-overflow-tooltip
-                />
-                <el-table-column prop="state" label="状态" width="80">
-                  <template #default="scope">
-                    <el-tag
-                      :type="scope.row.state === '启用' ? 'success' : 'danger'"
-                      size="small"
-                      style="cursor: pointer"
-                      @click="handleStateChange(scope.row)"
-                    >
-                      {{ scope.row.state }}
-                    </el-tag>
-                  </template>
-                </el-table-column>
-                <el-table-column
-                  prop="prefixUrl"
-                  label="前缀地址"
-                  min-width="180"
-                  show-overflow-tooltip
-                />
-                <el-table-column
-                  prop="url"
-                  label="地址"
-                  width="80"
-                  show-overflow-tooltip
-                />
-                <el-table-column prop="method" label="请求方法" width="90">
-                  <template #default="scope">
-                    <el-tag
-                      :type="scope.row.method === 'GET' ? 'success' : 'warning'"
-                      size="small"
-                    >
-                      {{ scope.row.method }}
-                    </el-tag>
-                  </template>
-                </el-table-column>
-                <el-table-column prop="uname" label="创建人" width="100" />
-                <el-table-column prop="category" label="分类" width="100" />
-                <el-table-column prop="keyState" label="Key验证" width="90">
-                  <template #default="scope">
-                    <el-tag
-                      :type="scope.row.keyState === '开启' ? 'warning' : 'info'"
-                      size="small"
-                      style="cursor: pointer"
-                      @click="handleKeyStateChange(scope.row)"
-                    >
-                      {{ scope.row.keyState }}
-                    </el-tag>
-                  </template>
-                </el-table-column>
-                <el-table-column
-                  prop="create_time"
-                  label="创建时间"
-                  width="180"
-                />
-                <el-table-column prop="count" label="调用次数" width="100" />
-                <el-table-column
-                  prop="description"
-                  label="描述"
-                  min-width="200"
-                  show-overflow-tooltip
-                />
-                <el-table-column
-                  prop="keywords"
-                  label="接口关键词"
-                  min-width="200"
-                  show-overflow-tooltip
-                />
-              </el-table>
-
-              <div class="pagination">
-                <el-pagination
-                  :page-size="15"
-                  :pager-count="5"
-                  :total="totalRecords"
-                  v-model:current-page="page"
-                  :disabled="pageLoading"
-                  background
-                  layout="prev, pager, next"
-                />
-              </div>
-            </client-only>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-</template>
-
 <script setup>
 import { Connection, Plus, Menu } from '@element-plus/icons-vue'
 const { $msg, $myFetch } = useNuxtApp()
@@ -366,6 +197,175 @@ useHead({
   charset: 'utf-8',
 })
 </script>
+
+<template>
+  <div class="container">
+    <AdminSidebar v-show="isSidebarShow"></AdminSidebar>
+
+    <div class="right">
+      <!-- 遮罩层 -->
+      <div class="overlay" v-show="isoverlay" @click="handleSidebarShow"></div>
+      <!-- 侧边栏控制按钮 -->
+      <div class="control-sidebar" v-show="iscontrolShow">
+        <el-icon @click="handleSidebarShow"><Menu /></el-icon>
+      </div>
+      <AdminHeader></AdminHeader>
+      <div class="apilist-container" v-loading="loading">
+        <div class="api-card">
+          <!-- 标题区域 -->
+          <div class="card-header">
+            <div class="header-left">
+              <el-icon class="icon">
+                <Connection />
+              </el-icon>
+              <span class="title">接口列表</span>
+            </div>
+            <div class="header-right">
+              <el-button type="primary" @click="navigateTo('/admin/createapi')">
+                <el-icon>
+                  <Plus />
+                </el-icon>
+                <span>新增接口</span>
+              </el-button>
+            </div>
+          </div>
+
+          <!-- 表格区域 -->
+          <div class="table-container">
+            <client-only>
+              <el-table
+                :data="filterTableData"
+                style="width: 100%"
+                v-loading="pageLoading"
+              >
+                <el-table-column width="160" fixed="right">
+                  <template #header>
+                    <div class="search-wrapper">
+                      <el-input v-model="search" placeholder="搜索" clearable>
+                      </el-input>
+                    </div>
+                  </template>
+                  <template #default="scope">
+                    <div class="table-actions">
+                      <el-button
+                        type="primary"
+                        link
+                        @click="handleEdit(scope.$index, scope.row)"
+                      >
+                        编辑
+                      </el-button>
+                      <el-popconfirm
+                        confirm-button-text="确定"
+                        cancel-button-text="取消"
+                        title="确定要删除吗？"
+                        @confirm="handleDelete(scope.$index, scope.row)"
+                      >
+                        <template #reference>
+                          <el-button type="danger" link> 删除 </el-button>
+                        </template>
+                      </el-popconfirm>
+                    </div>
+                  </template>
+                </el-table-column>
+                <el-table-column prop="id" label="ID" width="50" />
+                <el-table-column
+                  prop="name"
+                  label="接口名称"
+                  width="150"
+                  show-overflow-tooltip
+                />
+                <el-table-column
+                  prop="alias"
+                  label="别名"
+                  width="120"
+                  show-overflow-tooltip
+                />
+                <el-table-column prop="state" label="状态" width="80">
+                  <template #default="scope">
+                    <el-tag
+                      :type="scope.row.state === '启用' ? 'success' : 'danger'"
+                      size="small"
+                      style="cursor: pointer"
+                      @click="handleStateChange(scope.row)"
+                    >
+                      {{ scope.row.state }}
+                    </el-tag>
+                  </template>
+                </el-table-column>
+                <el-table-column
+                  prop="prefixUrl"
+                  label="前缀地址"
+                  min-width="180"
+                  show-overflow-tooltip
+                />
+                <el-table-column
+                  prop="url"
+                  label="地址"
+                  width="80"
+                  show-overflow-tooltip
+                />
+                <el-table-column prop="method" label="请求方法" width="90">
+                  <template #default="scope">
+                    <el-tag
+                      :type="scope.row.method === 'GET' ? 'success' : 'warning'"
+                      size="small"
+                    >
+                      {{ scope.row.method }}
+                    </el-tag>
+                  </template>
+                </el-table-column>
+                <el-table-column prop="uname" label="创建人" width="100" />
+                <el-table-column prop="category" label="分类" width="100" />
+                <el-table-column prop="keyState" label="Key验证" width="90">
+                  <template #default="scope">
+                    <el-tag
+                      :type="scope.row.keyState === '开启' ? 'warning' : 'info'"
+                      size="small"
+                      style="cursor: pointer"
+                      @click="handleKeyStateChange(scope.row)"
+                    >
+                      {{ scope.row.keyState }}
+                    </el-tag>
+                  </template>
+                </el-table-column>
+                <el-table-column
+                  prop="create_time"
+                  label="创建时间"
+                  width="180"
+                />
+                <el-table-column prop="count" label="调用次数" width="100" />
+                <el-table-column
+                  prop="description"
+                  label="描述"
+                  min-width="200"
+                  show-overflow-tooltip
+                />
+                <el-table-column
+                  prop="keywords"
+                  label="接口关键词"
+                  min-width="200"
+                  show-overflow-tooltip
+                />
+              </el-table>
+
+              <div class="pagination">
+                <el-pagination
+                  :page-size="15"
+                  :pager-count="5"
+                  :total="totalRecords"
+                  v-model:current-page="page"
+                  :disabled="pageLoading"
+                  background
+                  layout="prev, pager, next"
+                />
+              </div>
+            </client-only>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</template>
 
 <style lang="less" scoped>
 .container {

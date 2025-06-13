@@ -1,3 +1,115 @@
+<script setup>
+import { Menu } from '@element-plus/icons-vue'
+
+const { $msg, $myFetch } = useNuxtApp()
+const msg = $msg
+
+// 控制左侧边栏显示隐藏
+// 获取页面宽度
+const screenWidth = ref(0)
+const isSidebarShow = ref(true)
+const iscontrolShow = ref(false)
+const isoverlay = ref(false)
+onMounted(() => {
+  screenWidth.value = document.body.clientWidth
+  document.body.style.overflow = ''
+
+  if (screenWidth.value < 768) {
+    iscontrolShow.value = true
+    isSidebarShow.value = false
+  }
+})
+
+const handleSidebarShow = () => {
+  isSidebarShow.value = !isSidebarShow.value
+  iscontrolShow.value = !iscontrolShow.value
+  isoverlay.value = !isoverlay.value
+  // 禁止页面滑动
+  if (isSidebarShow.value) {
+    document.body.style.overflow = 'hidden'
+  } else {
+    document.body.style.overflow = ''
+  }
+}
+
+const loading = ref(false)
+const tableData = ref([])
+const search = ref('')
+
+const getData = async () => {
+  const res = await $myFetch('CategoryList')
+
+  res.data = res.data.map((item) => {
+    return {
+      id: item.id,
+      alias: item.alias,
+      name: item.name,
+      default: item.default === 1 ? '是' : '否',
+      count: item.count,
+      createTime: new Date(Number(item.createTime)).toLocaleString(),
+    }
+  })
+
+  tableData.value = res.data
+}
+
+onMounted(() => {
+  getData()
+})
+
+const filterTableData = computed(() =>
+  tableData.value.filter(
+    (data) =>
+      !search.value ||
+      data.name.toLowerCase().includes(search.value.toLowerCase())
+  )
+)
+
+const handleDelete = async (index, row) => {
+  loading.value = true
+
+  const { data: res } = await $myFetch('CategoryDelete', {
+    params: {
+      id: row.id,
+    },
+  })
+
+  await getData()
+
+  loading.value = false
+}
+
+const addcategoryInfo = reactive({
+  name: '',
+  alias: '',
+})
+
+const onSubmit = async () => {
+  if (!addcategoryInfo.name || !addcategoryInfo.alias) {
+    msg('请填写内容', 'error')
+    return false
+  }
+
+  const bodyValue = new URLSearchParams()
+  bodyValue.append('name', addcategoryInfo.name)
+  bodyValue.append('alias', addcategoryInfo.alias)
+
+  const { data: res } = await $myFetch('CategoryCreate', {
+    method: 'POST',
+    body: bodyValue,
+  })
+
+  getData()
+}
+
+useHead({
+  title: '管理分类',
+  viewport:
+    'width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0',
+  charset: 'utf-8',
+})
+</script>
+
 <template>
   <div class="container">
     <AdminSidebar v-show="isSidebarShow"></AdminSidebar>
@@ -114,118 +226,6 @@
     </div>
   </div>
 </template>
-
-<script setup>
-import { Menu } from '@element-plus/icons-vue'
-
-const { $msg, $myFetch } = useNuxtApp()
-const msg = $msg
-
-// 控制左侧边栏显示隐藏
-// 获取页面宽度
-const screenWidth = ref(0)
-const isSidebarShow = ref(true)
-const iscontrolShow = ref(false)
-const isoverlay = ref(false)
-onMounted(() => {
-  screenWidth.value = document.body.clientWidth
-  document.body.style.overflow = ''
-
-  if (screenWidth.value < 768) {
-    iscontrolShow.value = true
-    isSidebarShow.value = false
-  }
-})
-
-const handleSidebarShow = () => {
-  isSidebarShow.value = !isSidebarShow.value
-  iscontrolShow.value = !iscontrolShow.value
-  isoverlay.value = !isoverlay.value
-  // 禁止页面滑动
-  if (isSidebarShow.value) {
-    document.body.style.overflow = 'hidden'
-  } else {
-    document.body.style.overflow = ''
-  }
-}
-
-const loading = ref(false)
-const tableData = ref([])
-const search = ref('')
-
-const getData = async () => {
-  const res = await $myFetch('CategoryList')
-
-  res.data = res.data.map((item) => {
-    return {
-      id: item.id,
-      alias: item.alias,
-      name: item.name,
-      default: item.default === 1 ? '是' : '否',
-      count: item.count,
-      createTime: new Date(Number(item.createTime)).toLocaleString(),
-    }
-  })
-
-  tableData.value = res.data
-}
-
-onMounted(() => {
-  getData()
-})
-
-const filterTableData = computed(() =>
-  tableData.value.filter(
-    (data) =>
-      !search.value ||
-      data.name.toLowerCase().includes(search.value.toLowerCase())
-  )
-)
-
-const handleDelete = async (index, row) => {
-  loading.value = true
-
-  const { data: res } = await $myFetch('CategoryDelete', {
-    params: {
-      id: row.id,
-    },
-  })
-
-  await getData()
-
-  loading.value = false
-}
-
-const addcategoryInfo = reactive({
-  name: '',
-  alias: '',
-})
-
-const onSubmit = async () => {
-  if (!addcategoryInfo.name || !addcategoryInfo.alias) {
-    msg('请填写内容', 'error')
-    return false
-  }
-
-  const bodyValue = new URLSearchParams()
-  bodyValue.append('name', addcategoryInfo.name)
-  bodyValue.append('alias', addcategoryInfo.alias)
-
-  const { data: res } = await $myFetch('CategoryCreate', {
-    method: 'POST',
-    body: bodyValue,
-  })
-
-  getData()
-}
-
-useHead({
-  title: '管理分类',
-  viewport:
-    'width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0',
-  charset: 'utf-8',
-})
-</script>
 
 <style lang="less" scoped>
 .container {

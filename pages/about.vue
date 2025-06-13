@@ -1,3 +1,48 @@
+<script setup>
+import {
+  Message,
+  User,
+  ChatDotSquare,
+  Lightning,
+  DataLine,
+  Service,
+  Lock,
+  Medal,
+  TrendCharts,
+  Platform,
+  Connection,
+  Promotion,
+  OfficeBuilding,
+  Cpu,
+  Cloudy,
+  Monitor,
+  Document,
+  Picture,
+  DataAnalysis,
+  Reading,
+  ChatLineRound,
+  Opportunity,
+} from '@element-plus/icons-vue'
+const { $myFetch } = useNuxtApp()
+
+// 配置项
+const options = ref({})
+
+const {
+  data: { value: res },
+} = await useAsyncData('Options', () => $myFetch('Options'))
+
+options.value = res.data
+
+useHead({
+  title: '关于我们' + ' - ' + options.value.title,
+  viewport:
+    'width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0',
+  charset: 'utf-8',
+  meta: [{ name: 'description', content: '小小API-关于我们' }],
+})
+</script>
+
 <template>
   <div class="about-container">
     <IndexNotice></IndexNotice>
@@ -398,51 +443,6 @@
     <IndexFooter :options="options"></IndexFooter>
   </div>
 </template>
-
-<script setup>
-import {
-  Message,
-  User,
-  ChatDotSquare,
-  Lightning,
-  DataLine,
-  Service,
-  Lock,
-  Medal,
-  TrendCharts,
-  Platform,
-  Connection,
-  Promotion,
-  OfficeBuilding,
-  Cpu,
-  Cloudy,
-  Monitor,
-  Document,
-  Picture,
-  DataAnalysis,
-  Reading,
-  ChatLineRound,
-  Opportunity,
-} from '@element-plus/icons-vue'
-const { $myFetch } = useNuxtApp()
-
-// 配置项
-const options = ref({})
-
-const {
-  data: { value: res },
-} = await useAsyncData('Options', () => $myFetch('Options'))
-
-options.value = res.data
-
-useHead({
-  title: '关于我们' + ' - ' + options.value.title,
-  viewport:
-    'width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0',
-  charset: 'utf-8',
-  meta: [{ name: 'description', content: '小小API-关于我们' }],
-})
-</script>
 
 <style lang="less" scoped>
 .about-container {

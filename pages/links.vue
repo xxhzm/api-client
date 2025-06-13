@@ -1,28 +1,3 @@
-<template>
-  <div class="links-container">
-    <IndexNotice></IndexNotice>
-    <div class="container">
-      <div class="section">
-        <h2 class="section-title">友情链接</h2>
-        <div class="link-grid">
-          <div class="link-card" v-for="item in links" :key="item.id">
-            <a :href="item.url + '?ref=xxapi.cn'" target="_blank">
-              <div class="link-card__image-wrapper">
-                <img :src="item.image" :alt="item.name" class="link-card__image" @error="handleImageError" />
-              </div>
-              <div class="link-card__content">
-                <h3 class="link-card__title">{{ item.name }}</h3>
-                <p class="link-card__desc">{{ item.description }}</p>
-              </div>
-            </a>
-          </div>
-        </div>
-      </div>
-    </div>
-    <IndexFooter :options="options"></IndexFooter>
-  </div>
-</template>
-
 <script setup>
 const { $myFetch } = useNuxtApp()
 
@@ -54,12 +29,43 @@ useHead({
 const handleImageError = (e) => {
   const img = e.target
   // 直接使用透明图片
-  img.src = 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7'
+  img.src =
+    'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7'
   // 添加灰色背景
   img.style.background = '#f5f7fa'
   img.style.padding = '8px'
 }
 </script>
+
+<template>
+  <div class="links-container">
+    <IndexNotice></IndexNotice>
+    <div class="container">
+      <div class="section">
+        <h2 class="section-title">友情链接</h2>
+        <div class="link-grid">
+          <div class="link-card" v-for="item in links" :key="item.id">
+            <a :href="item.url + '?ref=xxapi.cn'" target="_blank">
+              <div class="link-card__image-wrapper">
+                <img
+                  :src="item.image"
+                  :alt="item.name"
+                  class="link-card__image"
+                  @error="handleImageError"
+                />
+              </div>
+              <div class="link-card__content">
+                <h3 class="link-card__title">{{ item.name }}</h3>
+                <p class="link-card__desc">{{ item.description }}</p>
+              </div>
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+    <IndexFooter :options="options"></IndexFooter>
+  </div>
+</template>
 
 <style lang="less" scoped>
 .links-container {
