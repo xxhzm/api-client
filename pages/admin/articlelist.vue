@@ -85,6 +85,7 @@ const getData = async () => {
 
   tableData.value = res.data.list
   totalPages.value = res.data.totalPages
+  totalRecords.value = res.data.totalRecords
 }
 
 onMounted(() => {

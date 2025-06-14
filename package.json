@@ -15,9 +15,11 @@
     "highlight.js": "^11.7.0",
     "less": "^4.1.3",
     "less-loader": "^11.1.0",
-    "nuxt": "^3.16.2"
+    "nuxt": "^3.16.2",
+    "tinymce-langs": "^1.0.0"
   },
   "dependencies": {
-    "vditor": "^3.10.7"
+    "@tinymce/tinymce-vue": "^6.2.0",
+    "tinymce": "^7.9.1"
   }
 }

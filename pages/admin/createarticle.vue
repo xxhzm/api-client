@@ -1,15 +1,17 @@
 <script setup>
 import { Menu } from '@element-plus/icons-vue'
 
-import Vditor from 'vditor'
-import 'vditor/dist/index.css'
-
 // 控制左侧边栏显示隐藏
 // 获取页面宽度
 const screenWidth = ref(0)
 const isSidebarShow = ref(true)
 const iscontrolShow = ref(false)
 const isoverlay = ref(false)
+const editorInstance = ref(null)
+const editorError = ref(null)
+const editorInitialized = ref(false)
+const editorReady = ref(false)
+
 onMounted(() => {
   screenWidth.value = document.body.clientWidth
   document.body.style.overflow = ''
@@ -17,6 +19,21 @@ onMounted(() => {
   if (screenWidth.value < 768) {
     iscontrolShow.value = true
     isSidebarShow.value = false
+  }
+})
+
+// 使用nextTick确保DOM已渲染
+onMounted(() => {
+  // 延迟初始化编辑器，确保DOM已完全渲染
+  setTimeout(() => {
+    editorReady.value = true
+  }, 500)
+})
+
+// 监听editorReady变化，当准备好时初始化编辑器
+watch(editorReady, (isReady) => {
+  if (isReady) {
+    initEditor()
   }
 })
 
@@ -32,53 +49,6 @@ const handleSidebarShow = () => {
   }
 }
 
-// 初始化富文本编辑器
-const vditor = ref(null)
-onMounted(() => {
-  vditor.value = new Vditor('vditor', {
-    after: () => {
-      vditor.value.setValue('')
-    },
-    height: 640,
-    toolbarConfig: {
-      pin: false,
-    },
-    toolbar: [
-      'emoji',
-      'headings',
-      'bold',
-      'italic',
-      'strike',
-      'link',
-      '|',
-      'list',
-      'ordered-list',
-      'check',
-      'outdent',
-      'indent',
-      '|',
-      'quote',
-      'line',
-      'code',
-      'inline-code',
-      'insert-before',
-      'insert-after',
-      '|',
-      'table',
-      '|',
-      'undo',
-      'redo',
-      '|',
-      'fullscreen',
-      'edit-mode',
-      {
-        name: 'more',
-        toolbar: ['export', 'outline', 'preview'],
-      },
-    ],
-  })
-})
-
 const username = useCookie('username')
 const { $msg, $myFetch } = useNuxtApp()
 
@@ -86,6 +56,148 @@ const createArticleInfo = reactive({
   title: '',
   description: '',
   keywords: '',
+  content: '',
+})
+
+// 加载TinyMCE脚本
+const loadTinyMCEScript = () => {
+  return new Promise((resolve, reject) => {
+    // 如果已经加载过，直接返回
+    if (window.tinymce) {
+      resolve(window.tinymce)
+      return
+    }
+
+    // 检查是否已存在脚本标签
+    const existingScript = document.querySelector(
+      'script[src="/tinymce/tinymce.min.js"]'
+    )
+    if (existingScript) {
+      existingScript.addEventListener('load', () => resolve(window.tinymce))
+      existingScript.addEventListener('error', (e) => reject(e))
+      return
+    }
+
+    // 创建新的脚本标签
+    const script = document.createElement('script')
+    script.src = '/tinymce/tinymce.min.js'
+    script.async = true
+    script.defer = true
+
+    script.addEventListener('load', () => {
+      resolve(window.tinymce)
+    })
+
+    script.addEventListener('error', (e) => {
+      reject(new Error('Failed to load TinyMCE script'))
+    })
+
+    document.head.appendChild(script)
+  })
+}
+
+// 初始化编辑器
+const initEditor = async () => {
+  // 确保在客户端环境
+  if (process.client) {
+    try {
+      // 检查DOM元素是否存在
+      const editorElement = document.getElementById('editor')
+      if (!editorElement) {
+        editorError.value = 'Editor element not found'
+        return
+      }
+
+      // 如果已有编辑器实例，先移除
+      if (window.tinymce && window.tinymce.get('editor')) {
+        window.tinymce.remove('#editor')
+      }
+
+      // 加载TinyMCE脚本
+      await loadTinyMCEScript()
+
+      // 初始化TinyMCE
+      initTinyMCE()
+    } catch (error) {
+      editorError.value = `Error initializing TinyMCE: ${error.message}`
+    }
+  }
+}
+
+// 初始化TinyMCE
+const initTinyMCE = () => {
+  try {
+    if (!window.tinymce) {
+      editorError.value = 'TinyMCE is not loaded'
+      return
+    }
+
+    // 配置TinyMCE
+    window.tinymce
+      .init({
+        selector: '#editor',
+        license_key: '',
+        height: 600,
+        menubar: true,
+        promotion: false,
+        plugins: [
+          'advlist',
+          'autolink',
+          'lists',
+          'link',
+          'image',
+          'charmap',
+          'preview',
+          'anchor',
+          'searchreplace',
+          'visualblocks',
+          'code',
+          'fullscreen',
+          'insertdatetime',
+          'media',
+          'table',
+          'help',
+          'wordcount',
+        ],
+        toolbar:
+          'undo redo | formatselect | ' +
+          'bold italic backcolor | alignleft aligncenter ' +
+          'alignright alignjustify | bullist numlist outdent indent | ' +
+          'removeformat | image | help',
+        language: 'zh_CN',
+        language_url: '/tinymce/zh_CN.js',
+        content_style:
+          'body { font-family:Helvetica,Arial,sans-serif; font-size:14px }',
+        branding: false,
+        base_url: '/tinymce',
+        suffix: '.min',
+        setup: function (editor) {
+          editorInstance.value = editor
+          editor.on('init', function () {
+            editor.setContent(createArticleInfo.content)
+            editorInitialized.value = true
+          })
+          editor.on('change', function () {
+            createArticleInfo.content = editor.getContent()
+          })
+        },
+      })
+      .then((editors) => {})
+      .catch((err) => {
+        editorError.value = `编辑器加载失败: ${err.message || '未知错误'}`
+      })
+  } catch (error) {
+    editorError.value = `Error in TinyMCE initialization: ${error.message}`
+  }
+}
+
+// 组件卸载时销毁编辑器
+onBeforeUnmount(() => {
+  if (window.tinymce && editorInstance.value) {
+    try {
+      window.tinymce.remove(editorInstance.value)
+    } catch (error) {}
+  }
 })
 
 const submit = async () => {
@@ -93,16 +205,20 @@ const submit = async () => {
     !createArticleInfo.title ||
     !createArticleInfo.description ||
     !createArticleInfo.keywords ||
-    !vditor.value.getHTML()
+    !createArticleInfo.content
   ) {
     $msg('请填写内容', 'error')
     return false
   }
 
-  const content = window.encodeURIComponent(vditor.value.getHTML())
+  // 确保获取最新内容
+  if (editorInstance.value) {
+    createArticleInfo.content = editorInstance.value.getContent()
+  }
+
   const body = new URLSearchParams()
   body.append('title', createArticleInfo.title)
-  body.append('content', content)
+  body.append('content', createArticleInfo.content)
   body.append('description', createArticleInfo.description)
   body.append('keywords', createArticleInfo.keywords)
   body.append('username', username.value)
@@ -187,7 +303,14 @@ useHead({
                   </el-form-item>
                 </el-col>
                 <el-col :span="24">
-                  <div id="vditor" class="editor-container"></div>
+                  <div class="editor-container">
+                    <client-only>
+                      <div v-if="editorError" class="editor-error">
+                        {{ editorError }}
+                      </div>
+                      <textarea id="editor"></textarea>
+                    </client-only>
+                  </div>
                 </el-col>
               </el-row>
             </el-form>
@@ -217,7 +340,6 @@ useHead({
 .container {
   display: flex;
   background: #f5f7fa;
-
   .right {
     width: 100%;
     min-width: 0;
@@ -252,12 +374,9 @@ useHead({
       padding-bottom: 100px;
       display: flex;
       justify-content: center;
-
       .article-card {
         width: 100%;
-        max-width: 1400px;
         margin: 0 auto;
-
         .card-header {
           display: flex;
           justify-content: space-between;
@@ -315,16 +434,18 @@ useHead({
             border: 1px solid #eaecf0;
             border-radius: 12px;
             overflow: hidden;
+            min-height: 400px;
+            background-color: #f9fafb;
 
-            :deep(.vditor-toolbar) {
-              border-bottom: 1px solid #eaecf0;
-              background: #f8fafc;
-              padding: 8px 16px;
+            .editor-error {
+              padding: 20px;
+              color: #ef4444;
+              font-weight: 500;
             }
 
-            :deep(.vditor-reset) {
-              padding: 20px;
-              min-height: 500px;
+            :deep(.tox-tinymce) {
+              border: none;
+              border-radius: 12px;
             }
           }
         }
