@@ -33,6 +33,7 @@ const handleSidebarShow = () => {
 const loading = ref(false)
 const tableData = ref([])
 const search = ref('')
+const isSearching = ref(false)
 
 // 当前页数
 const page = ref(1)
@@ -91,15 +92,73 @@ onMounted(() => {
   getData()
 })
 
-// 搜索框
-const filterTableData = computed(() =>
-  tableData.value.filter(
-    (data) =>
-      !search.value ||
-      data.username.toLowerCase().includes(search.value.toLowerCase()) ||
-      data.mail.toLowerCase().includes(search.value.toLowerCase())
-  )
-)
+// 搜索用户
+const searchUser = async () => {
+  if (!search.value.trim()) {
+    isSearching.value = false
+    await getData()
+    return
+  }
+
+  pageLoading.value = true
+  isSearching.value = true
+  try {
+    const res = await $myFetch('SearchUser', {
+      params: {
+        keyword: search.value.trim(),
+      },
+    })
+
+    if (res.code !== 200) {
+      $msg(res.msg || '搜索失败', 'error')
+      return
+    }
+
+    // 搜索结果是一个数组，不是对象
+    const userList = Array.isArray(res.data) ? res.data : []
+
+    userList.forEach((element, key) => {
+      if (element.status === '0') {
+        userList[key].status = '启用'
+      } else {
+        userList[key].status = '停用'
+      }
+
+      userList[key].login_time = new Date(element.login_time).toLocaleString()
+      userList[key].create_time = new Date(element.create_time).toLocaleString()
+    })
+
+    tableData.value = userList
+    totalRecords.value = userList.length
+    totalPages.value = 1 // 搜索结果没有分页
+    page.value = 1 // 重置到第一页
+  } catch (error) {
+    $msg('搜索失败', 'error')
+  } finally {
+    pageLoading.value = false
+  }
+}
+
+// 监听搜索输入
+const debouncedSearch = ref(null)
+watch(search, (newValue) => {
+  if (debouncedSearch.value) {
+    clearTimeout(debouncedSearch.value)
+  }
+
+  if (!newValue.trim() && isSearching.value) {
+    isSearching.value = false
+    getData()
+    return
+  }
+
+  debouncedSearch.value = setTimeout(() => {
+    if (newValue.trim()) {
+      searchUser()
+    }
+  }, 500)
+})
+
 // 当前选择的角色
 const bindRoleInfo = ref({})
 // 角色列表
@@ -141,19 +200,6 @@ const handleDelete = async (index, row) => {
   $msg(res.msg, 'success')
   await getData()
   loading.value = false
-}
-
-// 显示用户归属地
-const getAddress = async () => {
-  tableData.value.forEach(async (element, key) => {
-    const { data: ip } = await $myFetch('https://v2.xxapi.cn/api/ip', {
-      params: {
-        ip: element.ip,
-      },
-    })
-
-    tableData.value[key].address = ip.data.address
-  })
 }
 
 const submit = () => {
@@ -271,6 +317,11 @@ watch(createUserStatus, (newValue) => {
 watch(
   () => page.value,
   async (newValue) => {
+    // 如果是搜索状态，不需要重新请求，因为搜索结果没有分页
+    if (isSearching.value) {
+      return
+    }
+
     pageLoading.value = true
     await getData()
     setTimeout(() => {
@@ -469,6 +520,13 @@ const showBuyPackageDetail = (record) => {
   buyPackageDetailDialogVisible.value = true
 }
 
+// 清除搜索
+const clearSearch = () => {
+  search.value = ''
+  isSearching.value = false
+  getData()
+}
+
 useHead({
   title: '用户列表',
   viewport:
@@ -510,14 +568,19 @@ useHead({
           <div class="table-container">
             <client-only>
               <el-table
-                :data="filterTableData"
+                :data="tableData"
                 style="width: 100%"
                 v-loading="pageLoading"
               >
-                <el-table-column fixed="right">
+                <el-table-column fixed="right" width="150">
                   <template #header>
                     <div class="search-wrapper">
-                      <el-input v-model="search" placeholder="搜索" clearable>
+                      <el-input
+                        v-model="search"
+                        placeholder="搜索"
+                        clearable
+                        style="width: 100%"
+                      >
                       </el-input>
                     </div>
                   </template>
@@ -550,19 +613,19 @@ useHead({
                     </div>
                   </template>
                 </el-table-column>
-                <el-table-column prop="id" label="ID" />
+                <el-table-column prop="id" label="ID" width="70" />
                 <el-table-column prop="username" label="用户名称" />
                 <el-table-column
                   prop="mail"
                   label="邮箱地址"
                   show-overflow-tooltip
                 />
-                <el-table-column prop="balance" label="账户余额">
+                <el-table-column prop="balance" label="账户余额" width="85">
                   <template #default="scope">
                     <span class="balance">{{ scope.row.balance }}</span>
                   </template>
                 </el-table-column>
-                <el-table-column prop="status" label="状态">
+                <el-table-column prop="status" label="状态" width="65">
                   <template #default="scope">
                     <el-tag
                       :type="scope.row.status === '启用' ? 'success' : 'danger'"
@@ -574,7 +637,7 @@ useHead({
                     </el-tag>
                   </template>
                 </el-table-column>
-                <el-table-column label="充值记录" align="center">
+                <el-table-column label="充值记录" align="center" width="90">
                   <template #default="scope">
                     <el-button
                       type="success"
@@ -585,7 +648,7 @@ useHead({
                     </el-button>
                   </template>
                 </el-table-column>
-                <el-table-column label="购买记录" align="center">
+                <el-table-column label="购买记录" align="center" width="90">
                   <template #default="scope">
                     <el-button
                       type="primary"
@@ -607,10 +670,16 @@ useHead({
                   width="180"
                 />
                 <el-table-column prop="ip" label="IP" />
+                <el-table-column
+                  prop="key.access_key"
+                  label="Key"
+                  width="160"
+                />
               </el-table>
 
               <div class="pagination">
                 <el-pagination
+                  v-if="!isSearching"
                   :page-size="25"
                   :pager-count="5"
                   :total="totalRecords"
@@ -619,6 +688,13 @@ useHead({
                   background
                   layout="total, prev, pager, next, jumper"
                 />
+                <div v-else class="search-info">
+                  共找到
+                  <span class="search-count">{{ totalRecords }}</span> 条结果
+                  <el-button type="primary" link @click="clearSearch"
+                    >返回全部</el-button
+                  >
+                </div>
               </div>
             </client-only>
           </div>
@@ -1093,7 +1169,7 @@ useHead({
             }
 
             .el-input {
-              width: 140px;
+              width: 220px;
               margin: 0;
             }
 
@@ -1122,6 +1198,19 @@ useHead({
             margin-top: 24px;
             display: flex;
             justify-content: flex-end;
+
+            .search-info {
+              display: flex;
+              align-items: center;
+              color: #606266;
+              font-size: 14px;
+
+              .search-count {
+                color: #409eff;
+                font-weight: bold;
+                margin: 0 5px;
+              }
+            }
           }
         }
       }
