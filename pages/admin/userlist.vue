@@ -514,7 +514,7 @@ useHead({
                 style="width: 100%"
                 v-loading="pageLoading"
               >
-                <el-table-column width="200" fixed="right">
+                <el-table-column fixed="right">
                   <template #header>
                     <div class="search-wrapper">
                       <el-input v-model="search" placeholder="搜索" clearable>
@@ -550,20 +550,19 @@ useHead({
                     </div>
                   </template>
                 </el-table-column>
-                <el-table-column prop="id" label="ID" width="55" />
-                <el-table-column prop="username" label="用户名称" width="130" />
+                <el-table-column prop="id" label="ID" />
+                <el-table-column prop="username" label="用户名称" />
                 <el-table-column
                   prop="mail"
                   label="邮箱地址"
-                  width="200"
                   show-overflow-tooltip
                 />
-                <el-table-column prop="balance" label="账户余额" width="120">
+                <el-table-column prop="balance" label="账户余额">
                   <template #default="scope">
                     <span class="balance">{{ scope.row.balance }}</span>
                   </template>
                 </el-table-column>
-                <el-table-column prop="status" label="状态" width="80">
+                <el-table-column prop="status" label="状态">
                   <template #default="scope">
                     <el-tag
                       :type="scope.row.status === '启用' ? 'success' : 'danger'"
@@ -575,7 +574,7 @@ useHead({
                     </el-tag>
                   </template>
                 </el-table-column>
-                <el-table-column label="充值记录" width="100" align="center">
+                <el-table-column label="充值记录" align="center">
                   <template #default="scope">
                     <el-button
                       type="success"
@@ -586,7 +585,7 @@ useHead({
                     </el-button>
                   </template>
                 </el-table-column>
-                <el-table-column label="购买记录" width="100" align="center">
+                <el-table-column label="购买记录" align="center">
                   <template #default="scope">
                     <el-button
                       type="primary"
@@ -607,7 +606,7 @@ useHead({
                   label="上次登录时间"
                   width="180"
                 />
-                <el-table-column prop="ip" label="IP" width="150" />
+                <el-table-column prop="ip" label="IP" />
               </el-table>
 
               <div class="pagination">
@@ -1037,7 +1036,6 @@ useHead({
 
       .user-card {
         width: 100%;
-        max-width: 1400px;
         border-radius: 12px;
         margin: 0 auto;
 

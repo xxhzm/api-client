@@ -466,7 +466,6 @@ useHead({
           display: flex;
           justify-content: flex-end;
           gap: 12px;
-          max-width: 1400px;
           margin: 0 auto;
 
           .el-button {

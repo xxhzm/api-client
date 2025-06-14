@@ -408,7 +408,6 @@ useHead({
 
       .permission-card {
         width: 100%;
-        max-width: 1400px;
         border-radius: 12px;
         margin: 0 auto;
 

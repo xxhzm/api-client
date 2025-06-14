@@ -135,7 +135,7 @@ useHead({
           <div class="table-container">
             <client-only>
               <el-table :data="filterTableData" style="width: 100%">
-                <el-table-column width="160" fixed="right">
+                <el-table-column fixed="right">
                   <template #header>
                     <div class="search-wrapper">
                       <el-input v-model="search" placeholder="搜索" clearable>
@@ -157,26 +157,20 @@ useHead({
                     </div>
                   </template>
                 </el-table-column>
-                <el-table-column prop="id" label="ID" width="100" />
+                <el-table-column prop="id" label="ID" />
                 <el-table-column
                   prop="name"
                   label="分类名称"
-                  width="180"
                   show-overflow-tooltip
                 />
                 <el-table-column
                   prop="alias"
                   label="别名"
-                  width="120"
                   show-overflow-tooltip
                 />
-                <el-table-column prop="count" label="接口数" width="100" />
-                <el-table-column
-                  prop="createTime"
-                  label="创建时间"
-                  width="180"
-                />
-                <el-table-column prop="default" label="默认分类" width="100">
+                <el-table-column prop="count" label="接口数" />
+                <el-table-column prop="createTime" label="创建时间" />
+                <el-table-column prop="default" label="默认分类">
                   <template #default="scope">
                     <el-tag
                       :type="scope.row.default === '是' ? 'success' : 'info'"
@@ -268,7 +262,6 @@ useHead({
 
       .categories-card {
         width: 100%;
-        max-width: 1400px;
         margin: 0 auto;
 
         .card-header {
