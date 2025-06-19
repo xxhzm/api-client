@@ -284,30 +284,48 @@ const openInNewTab = (url) => {
             >
             <el-menu-item
               index="6-2"
+              @click="navigateTo('/admin/createRechargeCard')"
+              v-if="routeShow('/admin/createRechargeCard')"
+              >生成充值卡</el-menu-item
+            >
+            <el-menu-item
+              index="6-3"
+              @click="navigateTo('/admin/useRechargeCard')"
+              v-if="routeShow('/admin/useRechargeCard')"
+              >使用充值卡</el-menu-item
+            >
+            <el-menu-item
+              index="6-4"
+              @click="navigateTo('/admin/rechargeCardHistory')"
+              v-if="routeShow('/admin/rechargeCardHistory')"
+              >充值卡记录</el-menu-item
+            >
+            <el-menu-item
+              index="6-5"
               @click="navigateTo('/admin/rechargerecord')"
               v-if="routeShow('/admin/rechargerecord')"
               >充值记录</el-menu-item
             >
             <el-menu-item
-              index="6-3"
+              index="6-6"
               @click="navigateTo('/admin/buypackagerecord')"
               v-if="routeShow('/admin/buypackagerecord')"
               >购买记录</el-menu-item
             >
             <el-menu-item
-              index="6-4"
+              index="6-7"
               @click="navigateTo('/admin/package')"
               v-if="routeShow('/admin/package')"
               >套餐管理</el-menu-item
             >
             <el-menu-item
-              index="6-5"
+              index="6-8"
               @click="navigateTo('/admin/buy')"
               v-if="routeShow('/admin/buy')"
               >购买套餐</el-menu-item
             >
             <el-menu-item
-              index="6-6"
+              index="6-9"
               @click="navigateTo('/admin/mypackage')"
               v-if="routeShow('/admin/mypackage')"
               >我的套餐</el-menu-item
