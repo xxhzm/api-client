@@ -5,10 +5,14 @@ const msg = $msg
 
 // 当前页数
 const page = ref(1)
+// 总页数
+const totalPages = ref(1)
 // 总记录
 const totalRecords = ref(50)
 // 页数loading
 const pageLoading = ref(false)
+// 搜索状态
+const isSearching = ref(false)
 
 // 控制左侧边栏显示隐藏
 // 获取页面宽度
@@ -42,6 +46,11 @@ const handleSidebarShow = () => {
 watch(
   () => page.value,
   async (newValue) => {
+    // 如果是搜索状态，不需要重新请求，因为搜索结果没有分页
+    if (isSearching.value) {
+      return
+    }
+
     pageLoading.value = true
     await getData()
     setTimeout(() => {
@@ -73,20 +82,81 @@ const getData = async () => {
 
   tableData.value = res.data.list
   totalRecords.value = res.data.count
+  totalPages.value = Math.ceil(res.data.count / 15)
 }
 
 onMounted(() => {
   getData()
 })
 
-const filterTableData = computed(() =>
-  tableData.value.filter(
-    (data) =>
-      !search.value ||
-      data.name.toLowerCase().includes(search.value.toLowerCase()) ||
-      data.alias.toLowerCase().includes(search.value.toLowerCase())
-  )
-)
+// 搜索接口
+const searchApi = async () => {
+  if (!search.value.trim()) {
+    isSearching.value = false
+    await getData()
+    return
+  }
+
+  pageLoading.value = true
+  isSearching.value = true
+  try {
+    const res = await $myFetch('SearchAPI', {
+      params: {
+        keyword: search.value.trim(),
+      },
+    })
+
+    if (res.code !== 200) {
+      $msg(res.msg || '搜索失败', 'error')
+      return
+    }
+
+    // 搜索结果是一个数组，不是对象
+    const apiList = Array.isArray(res.data) ? res.data : []
+
+    apiList.forEach((element, key) => {
+      apiList[key].create_time = new Date(
+        Number(element.create_time)
+      ).toLocaleString()
+    })
+
+    tableData.value = apiList
+    totalRecords.value = apiList.length
+    totalPages.value = 1 // 搜索结果没有分页
+    page.value = 1 // 重置到第一页
+  } catch (error) {
+    $msg('搜索失败', 'error')
+  } finally {
+    pageLoading.value = false
+  }
+}
+
+// 监听搜索输入
+const debouncedSearch = ref(null)
+watch(search, (newValue) => {
+  if (debouncedSearch.value) {
+    clearTimeout(debouncedSearch.value)
+  }
+
+  if (!newValue.trim() && isSearching.value) {
+    isSearching.value = false
+    getData()
+    return
+  }
+
+  debouncedSearch.value = setTimeout(() => {
+    if (newValue.trim()) {
+      searchApi()
+    }
+  }, 500)
+})
+
+// 清除搜索
+const clearSearch = () => {
+  search.value = ''
+  isSearching.value = false
+  getData()
+}
 
 const handleEdit = (index, row) => {
   navigateTo('/admin/apiset/' + row.id)
@@ -234,7 +304,7 @@ useHead({
           <div class="table-container">
             <client-only>
               <el-table
-                :data="filterTableData"
+                :data="tableData"
                 style="width: 100%"
                 v-loading="pageLoading"
               >
@@ -350,14 +420,22 @@ useHead({
 
               <div class="pagination">
                 <el-pagination
+                  v-if="!isSearching"
                   :page-size="15"
                   :pager-count="5"
                   :total="totalRecords"
                   v-model:current-page="page"
                   :disabled="pageLoading"
                   background
-                  layout="prev, pager, next"
+                  layout="total, prev, pager, next"
                 />
+                <div v-else class="search-info">
+                  共找到
+                  <span class="search-count">{{ totalRecords }}</span> 条结果
+                  <el-button type="primary" link @click="clearSearch"
+                    >返回全部</el-button
+                  >
+                </div>
               </div>
             </client-only>
           </div>
@@ -489,6 +567,19 @@ useHead({
             margin-top: 24px;
             display: flex;
             justify-content: flex-end;
+
+            .search-info {
+              display: flex;
+              align-items: center;
+              color: #606266;
+              font-size: 14px;
+
+              .search-count {
+                color: #409eff;
+                font-weight: bold;
+                margin: 0 5px;
+              }
+            }
           }
         }
       }
