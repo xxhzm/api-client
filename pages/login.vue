@@ -24,6 +24,7 @@ const info = reactive({
 })
 
 const LoginIsRegister = ref(true)
+const isForgotPassword = ref(false)
 const loginAndRegisterButtonStatus = ref(false)
 
 const goBack = () => {
@@ -187,6 +188,67 @@ const register = async () => {
     $msg(res.msg, 'error')
   }
 }
+
+// 切换到忘记密码卡片
+const toggleForgotPassword = () => {
+  isForgotPassword.value = !isForgotPassword.value
+  LoginIsRegister.value = true
+  info.captcha = ''
+  getCaptchaInfo()
+}
+
+// 发送重置密码邮件
+const resetPassword = async () => {
+  if (info.username === '' || info.mail === '' || info.captcha === '') {
+    $msg('请填写完整信息', 'error')
+    return false
+  }
+
+  if (rule.test(info.mail) === false) {
+    $msg('请填写正确的邮箱地址', 'error')
+    return false
+  }
+
+  loginAndRegisterButtonStatus.value = true
+
+  const body = new URLSearchParams()
+  body.append('username', info.username)
+  body.append('mail', info.mail)
+  body.append('id', captchaInfo.value.id)
+  body.append('key', info.captcha)
+
+  try {
+    const res = await $myFetch('ResetPassword', {
+      method: 'POST',
+      body,
+    })
+
+    if (res.code === 200) {
+      $msg('重置密码邮件已发送，请查收邮件', 'success')
+      toggleForgotPassword()
+    } else {
+      $msg(res.msg, 'error')
+      getCaptchaInfo()
+      info.captcha = ''
+    }
+  } catch (error) {
+    $msg('请求失败，请稍后重试', 'error')
+  } finally {
+    loginAndRegisterButtonStatus.value = false
+  }
+}
+
+// 监听忘记密码状态变化
+watch(isForgotPassword, (newValue) => {
+  if (newValue) {
+    info.username = ''
+    info.password = ''
+    info.mail = ''
+    info.captcha = ''
+    getCaptchaInfo()
+  }
+})
+
 useHead({
   title: '用户登录',
   viewport:
@@ -197,17 +259,36 @@ useHead({
 
 <template>
   <div class="login-container">
-    <div class="login-card" :class="{ 'is-register': !LoginIsRegister }">
+    <div
+      class="login-card"
+      :class="{
+        'is-register': !LoginIsRegister && !isForgotPassword,
+        'is-forgot': isForgotPassword,
+      }"
+    >
       <div class="card-header">
-        <span class="back-btn" @click="goBack">
+        <span
+          class="back-btn"
+          @click="isForgotPassword ? toggleForgotPassword() : goBack()"
+        >
           <img src="@/assets/images/goback.svg" alt="返回" />
-          返回首页
+          {{ isForgotPassword ? '返回登录' : '返回首页' }}
         </span>
         <div class="header-content">
-          <h2 class="title">{{ LoginIsRegister ? '账号登录' : '注册账号' }}</h2>
+          <h2 class="title">
+            {{
+              isForgotPassword
+                ? '找回密码'
+                : LoginIsRegister
+                ? '账号登录'
+                : '注册账号'
+            }}
+          </h2>
           <p class="subtitle">
             {{
-              LoginIsRegister
+              isForgotPassword
+                ? '输入您的用户名和邮箱找回密码'
+                : LoginIsRegister
                 ? '欢迎使用小小API，请登录您的账号'
                 : '欢迎加入小小API，请完成注册'
             }}
@@ -215,7 +296,7 @@ useHead({
         </div>
       </div>
 
-      <div v-if="LoginIsRegister" class="form-container">
+      <div v-if="LoginIsRegister && !isForgotPassword" class="form-container">
         <el-form :model="info" size="large">
           <el-form-item>
             <el-input
@@ -260,6 +341,54 @@ useHead({
         <div class="form-footer">
           <span>还没有账号？</span>
           <a @click="LoginIsRegisterChange">立即注册</a>
+          <div class="forgot-link">
+            <a @click="toggleForgotPassword">忘记密码？</a>
+          </div>
+        </div>
+      </div>
+      <div v-else-if="isForgotPassword" class="form-container">
+        <el-form :model="info" size="large">
+          <el-form-item>
+            <el-input
+              v-model="info.username"
+              placeholder="请输入用户名"
+              prefix-icon="el-icon-user"
+            />
+          </el-form-item>
+          <el-form-item>
+            <el-input
+              v-model="info.mail"
+              placeholder="请输入注册时使用的电子邮箱"
+              prefix-icon="el-icon-message"
+            />
+          </el-form-item>
+          <el-form-item>
+            <div class="captcha-container">
+              <el-input
+                v-model="info.captcha"
+                placeholder="图片验证码"
+                prefix-icon="el-icon-picture"
+              />
+              <img
+                :src="captchaInfo.url"
+                alt="验证码"
+                class="captcha-img"
+                @click="getCaptchaInfo()"
+              />
+            </div>
+          </el-form-item>
+          <el-button
+            type="primary"
+            class="submit-btn"
+            @click="resetPassword"
+            :loading="loginAndRegisterButtonStatus"
+          >
+            发送重置链接
+          </el-button>
+        </el-form>
+        <div class="form-footer">
+          <span>记起密码了？</span>
+          <a @click="toggleForgotPassword">返回登录</a>
         </div>
       </div>
       <div v-else class="form-container">
@@ -354,6 +483,10 @@ useHead({
 
     &.is-register {
       height: 620px;
+    }
+
+    &.is-forgot {
+      height: 520px;
     }
 
     .card-header {
@@ -478,6 +611,18 @@ useHead({
 
         &:hover {
           text-decoration: underline;
+        }
+      }
+
+      .forgot-link {
+        margin-top: 12px;
+
+        a {
+          color: #909399;
+
+          &:hover {
+            color: #409eff;
+          }
         }
       }
     }
