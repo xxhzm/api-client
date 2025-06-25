@@ -33,7 +33,8 @@ const goBack = () => {
 const routeInfo = useCookie('routeInfo')
 
 const login = async () => {
-  if (info.username === '' || info.password === '') {
+  if (info.username === '' || info.password === '' || info.captcha === '') {
+    $msg('请填写完整的登录信息', 'error')
     return false
   }
 
@@ -44,6 +45,8 @@ const login = async () => {
 
   const bodyValue = new URLSearchParams()
   bodyValue.append('username', info.username)
+  bodyValue.append('id', captchaInfo.value.id)
+  bodyValue.append('key', info.captcha)
 
   // 使用加密算法对数据进行加密
   bodyValue.append('password', $enCode(info.password))
@@ -69,6 +72,9 @@ const login = async () => {
   }
 
   $msg(res.msg, 'error')
+  // 验证码错误时重新获取验证码
+  getCaptchaInfo()
+  info.captcha = ''
 }
 
 // 登录注册切换
@@ -89,10 +95,9 @@ const captchaInfo = ref({
 
 // 获取图片验证码
 const getCaptchaInfo = async () => {
-  // 接口文档 https://xxapi.cn/doc/captcha
-  const res = await $fetch(
-    'https://v2.xxapi.cn/api/captcha?type=math&options=3'
-  )
+  const res = await $myFetch('Captcha', {
+    method: 'GET',
+  })
   captchaInfo.value = res.data
 }
 
@@ -100,10 +105,8 @@ const getCaptchaInfo = async () => {
 watch(
   LoginIsRegister,
   (newValue) => {
-    if (newValue === false) {
-      info.captcha = ''
-      getCaptchaInfo()
-    }
+    info.captcha = ''
+    getCaptchaInfo()
   },
   {
     immediate: true,
@@ -230,6 +233,21 @@ useHead({
               show-password
             />
           </el-form-item>
+          <el-form-item>
+            <div class="captcha-container">
+              <el-input
+                v-model="info.captcha"
+                placeholder="图片验证码"
+                prefix-icon="el-icon-picture"
+              />
+              <img
+                :src="captchaInfo.url"
+                alt="验证码"
+                class="captcha-img"
+                @click="getCaptchaInfo()"
+              />
+            </div>
+          </el-form-item>
           <el-button
             type="primary"
             class="submit-btn"
@@ -325,7 +343,7 @@ useHead({
   .login-card {
     width: 100%;
     max-width: 420px;
-    height: 440px;
+    height: 520px;
     background: #fff;
     border-radius: 12px;
     box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
@@ -471,7 +489,7 @@ useHead({
     padding: 16px;
 
     .login-card {
-      height: 420px;
+      height: 500px;
 
       &.is-register {
         height: 580px;
