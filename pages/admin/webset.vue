@@ -31,6 +31,17 @@ const alipayInfo = ref({
   PublicKey: '',
 })
 
+// 新增：微信支付配置相关
+const wechatPayInfo = ref({
+  apiV3Key: '',
+  appid: '',
+  mchid: '',
+  privateKey: '',
+  serialNo: '',
+  wxPublicKeyContent: '',
+  wxPublicKeyID: '',
+})
+
 // 控制左侧边栏显示隐藏
 // 获取页面宽度
 const screenWidth = ref(0)
@@ -88,6 +99,20 @@ const getAlipayInfo = async () => {
   const res = await $myFetch('AlipayInfo')
   if (res.code === 200) {
     alipayInfo.value = res.data
+  }
+}
+
+// 新增：获取微信支付配置
+const getWechatPayInfo = async () => {
+  const res = await $myFetch('WechatPayInfo')
+  if (res.code === 200) {
+    wechatPayInfo.value.apiV3Key = res.data.api_v_3_key
+    wechatPayInfo.value.appid = res.data.appid
+    wechatPayInfo.value.mchid = res.data.mchid
+    wechatPayInfo.value.privateKey = res.data.private_key
+    wechatPayInfo.value.serialNo = res.data.serial_no
+    wechatPayInfo.value.wxPublicKeyContent = res.data.wx_public_key_content
+    wechatPayInfo.value.wxPublicKeyID = res.data.wx_public_key_id
   }
 }
 
@@ -222,6 +247,7 @@ onMounted(() => {
   getMailInfo()
   getTopApiList()
   getAlipayInfo()
+  getWechatPayInfo()
 })
 
 // 提交网站设置
@@ -292,15 +318,10 @@ const mailInfoSubmit = async () => {
 
 // 提交支付宝配置
 const alipayInfoSubmit = async () => {
-  if (!alipayInfo.value.Appid || !alipayInfo.value.PrivateKey) {
-    $msg('请填写完整的支付宝配置信息', 'error')
-    return false
-  }
-
   const bodyValue = new URLSearchParams()
-  bodyValue.append('appid', alipayInfo.value.Appid)
-  bodyValue.append('privateKey', alipayInfo.value.PrivateKey)
-  bodyValue.append('publicKey', alipayInfo.value.PublicKey)
+  bodyValue.append('appid', alipayInfo.value.Appid || '')
+  bodyValue.append('privateKey', alipayInfo.value.PrivateKey || '')
+  bodyValue.append('publicKey', alipayInfo.value.PublicKey || '')
 
   const res = await $myFetch('AlipayOptionUpdate', {
     method: 'POST',
@@ -310,6 +331,33 @@ const alipayInfoSubmit = async () => {
   if (res.code === 200) {
     $msg(res.msg, 'success')
     getAlipayInfo()
+  } else {
+    $msg(res.msg, 'error')
+  }
+}
+
+// 新增：提交微信支付配置
+const wechatPayInfoSubmit = async () => {
+  const bodyValue = new URLSearchParams()
+  bodyValue.append('apiV3Key', wechatPayInfo.value.apiV3Key || '')
+  bodyValue.append('appid', wechatPayInfo.value.appid || '')
+  bodyValue.append('mchid', wechatPayInfo.value.mchid || '')
+  bodyValue.append('privateKey', wechatPayInfo.value.privateKey || '')
+  bodyValue.append('serialNo', wechatPayInfo.value.serialNo || '')
+  bodyValue.append(
+    'wxPublicKeyContent',
+    wechatPayInfo.value.wxPublicKeyContent || ''
+  )
+  bodyValue.append('wxPublicKeyID', wechatPayInfo.value.wxPublicKeyID || '')
+
+  const res = await $myFetch('WechatPayOptionUpdate', {
+    method: 'POST',
+    body: bodyValue,
+  })
+
+  if (res.code === 200) {
+    $msg(res.msg, 'success')
+    getWechatPayInfo()
   } else {
     $msg(res.msg, 'error')
   }
@@ -529,7 +577,7 @@ useHead({
               </div>
             </el-tab-pane>
 
-            <el-tab-pane label="支付配置" name="alipay">
+            <el-tab-pane label="支付宝配置" name="alipay">
               <div class="form">
                 <el-form
                   :model="alipayInfo"
@@ -537,7 +585,10 @@ useHead({
                   label-width="120px"
                 >
                   <el-form-item label="支付宝Appid">
-                    <el-input v-model="alipayInfo.Appid" />
+                    <el-input
+                      v-model="alipayInfo.Appid"
+                      placeholder="请输入支付宝Appid"
+                    />
                   </el-form-item>
                   <el-form-item label="应用私钥">
                     <el-input
@@ -557,6 +608,68 @@ useHead({
                   </el-form-item>
                   <el-form-item>
                     <el-button type="primary" @click="alipayInfoSubmit"
+                      >提交</el-button
+                    >
+                  </el-form-item>
+                </el-form>
+              </div>
+            </el-tab-pane>
+
+            <el-tab-pane label="微信支付配置" name="wechatpay">
+              <div class="form">
+                <el-form
+                  :model="wechatPayInfo"
+                  label-position="top"
+                  label-width="120px"
+                >
+                  <el-form-item label="API V3密钥">
+                    <el-input
+                      v-model="wechatPayInfo.apiV3Key"
+                      placeholder="请输入微信支付API V3密钥"
+                    />
+                  </el-form-item>
+                  <el-form-item label="应用ID(AppId)">
+                    <el-input
+                      v-model="wechatPayInfo.appid"
+                      placeholder="请输入微信小程序/公众号AppId"
+                    />
+                  </el-form-item>
+                  <el-form-item label="商户号(MchId)">
+                    <el-input
+                      v-model="wechatPayInfo.mchid"
+                      placeholder="请输入微信支付商户号"
+                    />
+                  </el-form-item>
+                  <el-form-item label="商户私钥">
+                    <el-input
+                      v-model="wechatPayInfo.privateKey"
+                      type="textarea"
+                      :rows="8"
+                      placeholder="请输入商户API证书私钥（完整的PEM格式）"
+                    />
+                  </el-form-item>
+                  <el-form-item label="证书序列号">
+                    <el-input
+                      v-model="wechatPayInfo.serialNo"
+                      placeholder="请输入商户API证书序列号"
+                    />
+                  </el-form-item>
+                  <el-form-item label="微信公钥内容">
+                    <el-input
+                      v-model="wechatPayInfo.wxPublicKeyContent"
+                      type="textarea"
+                      :rows="8"
+                      placeholder="请输入微信支付平台公钥内容（完整的PEM格式）"
+                    />
+                  </el-form-item>
+                  <el-form-item label="微信公钥ID">
+                    <el-input
+                      v-model="wechatPayInfo.wxPublicKeyID"
+                      placeholder="请输入微信支付平台公钥ID"
+                    />
+                  </el-form-item>
+                  <el-form-item>
+                    <el-button type="primary" @click="wechatPayInfoSubmit"
                       >提交</el-button
                     >
                   </el-form-item>

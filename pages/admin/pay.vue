@@ -37,6 +37,12 @@ const handleSidebarShow = () => {
 // 账户余额
 const balance = ref(0)
 
+// 新增：支付通道配置
+const payChannels = ref({
+  alipay: false,
+  weixin: false,
+})
+
 // 表单数据
 const formRef = ref(null)
 const form = ref({
@@ -47,6 +53,11 @@ const form = ref({
 
 // 支付状态弹窗
 const payStatusDialogVisible = ref(false)
+
+// 新增：微信支付二维码弹窗
+const wechatPayDialogVisible = ref(false)
+const wechatQrCode = ref('')
+const currentOrderId = ref('')
 
 // 处理自定义金额输入
 const handleCustomAmount = (val) => {
@@ -83,6 +94,32 @@ const getBalance = async (showTip = false) => {
   }
 }
 
+// 新增：获取支付通道配置
+const getPayChannels = async () => {
+  try {
+    const res = await $myFetch('GetPayChannels')
+    if (res.code === 200) {
+      payChannels.value = res.data
+
+      // 如果当前选择的支付方式不可用，自动切换到可用的支付方式
+      if (form.value.payMethod === 'alipay' && !payChannels.value.alipay) {
+        if (payChannels.value.weixin) {
+          form.value.payMethod = 'wechat'
+        }
+      } else if (
+        form.value.payMethod === 'wechat' &&
+        !payChannels.value.weixin
+      ) {
+        if (payChannels.value.alipay) {
+          form.value.payMethod = 'alipay'
+        }
+      }
+    }
+  } catch (error) {
+    console.error('获取支付通道失败:', error)
+  }
+}
+
 // 手动刷新余额
 const refreshBalance = () => {
   getBalance(true)
@@ -94,7 +131,7 @@ let timer = null
 // 提交充值表单
 const submitForm = async () => {
   if (form.value.amount < 0.01) {
-    $msg('充值金额不能小于1元', 'error')
+    $msg('充值金额不能小于0.01元', 'error')
     return
   }
   if (form.value.amount > 100000) {
@@ -102,15 +139,34 @@ const submitForm = async () => {
     return
   }
 
-  // 先立即打开一个空白窗口（在用户点击事件中）-防止safari浏览器拦截
-  const newWin = window.open('', '_blank')
+  // 检查支付方式是否可用
+  if (!payChannels.value.alipay && !payChannels.value.weixin) {
+    $msg('暂无可用的支付方式，请联系客服', 'error')
+    return
+  }
+
+  if (form.value.payMethod === 'alipay' && !payChannels.value.alipay) {
+    $msg('支付宝支付暂不可用，请选择其他支付方式', 'error')
+    return
+  }
+
+  if (form.value.payMethod === 'wechat' && !payChannels.value.weixin) {
+    $msg('微信支付暂不可用，请选择其他支付方式', 'error')
+    return
+  }
 
   loading.value = true
   try {
     const body = new URLSearchParams()
     body.append('amount', form.value.amount)
 
-    const res = await $myFetch('AlipayWebPayment', {
+    // 根据支付方式选择不同的接口
+    const apiEndpoint =
+      form.value.payMethod === 'wechat'
+        ? 'WeixinWebPayment'
+        : 'AlipayWebPayment'
+
+    const res = await $myFetch(apiEndpoint, {
       method: 'POST',
       body,
       params: {
@@ -119,45 +175,61 @@ const submitForm = async () => {
     })
 
     if (res.code === 200) {
-      $msg('订单创建成功，正在跳转支付页面', 'success')
-      // 在新窗口打开支付链接
-      // window.open(res.data.url, '_blank', 'noopener,noreferrer')
-      newWin.location = res.data.url
-      newWin.focus()
+      $msg('订单创建成功', 'success')
+      currentOrderId.value = res.data.id
 
-      // 显示支付状态确认弹窗
-      payStatusDialogVisible.value = true
-      // 查询接口
-      timer = setInterval(async () => {
-        const queryRes = await $myFetch('AlipayTradeQuery', {
-          params: {
-            id: res.data.id,
-            username: username.value,
-          },
-        })
+      if (form.value.payMethod === 'wechat') {
+        // 微信支付：显示二维码
+        wechatQrCode.value = res.data.image_url
+        wechatPayDialogVisible.value = true
+      } else {
+        // 支付宝支付：跳转页面
+        // 先立即打开一个空白窗口（在用户点击事件中）-防止safari浏览器拦截
+        const newWin = window.open('', '_blank')
+        newWin.location = res.data.url
+        newWin.focus()
 
-        if (queryRes.code === 200 && queryRes.data === '订单已支付') {
-          $msg('支付成功', 'success')
-          // 刷新余额
-          getBalance(false)
-          // 关闭弹窗
-          payStatusDialogVisible.value = false
-          clearInterval(timer)
-        }
-      }, 2000)
+        // 显示支付状态确认弹窗
+        payStatusDialogVisible.value = true
+      }
 
-      // 5分钟后关闭定时器
-      setTimeout(() => {
-        clearInterval(timer)
-        payStatusDialogVisible.value = false
-        getBalance(false)
-      }, 5 * 60 * 1000)
+      // 开始查询支付状态
+      startPaymentQuery(res.data.id)
     }
   } catch (error) {
     $msg(error.message, 'error')
-    newWin.close()
   }
   loading.value = false
+}
+
+// 新增：开始支付状态查询
+const startPaymentQuery = (orderId) => {
+  timer = setInterval(async () => {
+    const queryRes = await $myFetch('TradeQuery', {
+      params: {
+        id: orderId,
+        username: username.value,
+      },
+    })
+
+    if (queryRes.code === 200 && queryRes.data === '订单已支付') {
+      $msg('支付成功', 'success')
+      // 刷新余额
+      getBalance(false)
+      // 关闭所有弹窗
+      payStatusDialogVisible.value = false
+      wechatPayDialogVisible.value = false
+      clearInterval(timer)
+    }
+  }, 2000)
+
+  // 5分钟后关闭定时器
+  setTimeout(() => {
+    clearInterval(timer)
+    payStatusDialogVisible.value = false
+    wechatPayDialogVisible.value = false
+    getBalance(false)
+  }, 5 * 60 * 1000)
 }
 
 // 处理支付状态
@@ -175,9 +247,17 @@ const handlePayStatus = (isSuccess) => {
   payStatusDialogVisible.value = false
 }
 
+// 新增：关闭微信支付弹窗
+const closeWechatPayDialog = () => {
+  clearInterval(timer)
+  wechatPayDialogVisible.value = false
+  $msg('如遇支付问题，请联系客服处理', 'warning')
+}
+
 // 页面加载时获取数据
 onMounted(() => {
   getBalance(false)
+  getPayChannels()
 })
 
 useHead({
@@ -209,7 +289,8 @@ useHead({
             <el-card class="tips-card">
               <div class="tips-info">
                 <ul>
-                  <li>充值最小金额 1 元，充值金额必须为整数</li>
+                  <li>充值最小金额 0.01 元</li>
+                  <li>支持支付宝和微信支付，请选择合适的支付方式</li>
                   <li>支付过程中如遇到各种问题，请及时联系客服处理</li>
                 </ul>
               </div>
@@ -299,8 +380,25 @@ useHead({
                     <div class="label">支付方式</div>
                     <div class="methods">
                       <el-radio-group v-model="form.payMethod">
-                        <el-radio value="alipay"> 支付宝支付 </el-radio>
+                        <el-radio value="alipay" v-if="payChannels.alipay">
+                          支付宝支付
+                        </el-radio>
+                        <el-radio value="wechat" v-if="payChannels.weixin">
+                          微信支付
+                        </el-radio>
                       </el-radio-group>
+                      <!-- 无可用支付方式时的提示 -->
+                      <div
+                        v-if="!payChannels.alipay && !payChannels.weixin"
+                        class="no-payment-tips"
+                      >
+                        <el-alert
+                          title="暂无可用的支付方式"
+                          type="warning"
+                          :closable="false"
+                          show-icon
+                        />
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -316,13 +414,16 @@ useHead({
                     </div>
                     <div class="preview-method">
                       <span class="label">支付方式：</span>
-                      <span class="value">支付宝支付</span>
+                      <span class="value">{{
+                        form.payMethod === 'alipay' ? '支付宝支付' : '微信支付'
+                      }}</span>
                     </div>
                   </div>
                   <el-button
                     type="primary"
                     @click="submitForm"
                     :loading="loading"
+                    :disabled="!payChannels.alipay && !payChannels.weixin"
                     class="submit-btn"
                   >
                     确认支付
@@ -352,6 +453,35 @@ useHead({
             已完成支付
           </el-button>
         </div>
+      </div>
+    </el-dialog>
+    <!-- 微信支付二维码弹窗 -->
+    <el-dialog
+      v-model="wechatPayDialogVisible"
+      title="微信支付二维码"
+      width="400px"
+      :close-on-click-modal="false"
+      :show-close="false"
+      class="wechat-pay-dialog"
+    >
+      <div class="wechat-pay-content">
+        <p class="qr-code-tips">请使用微信扫描二维码进行支付</p>
+        <div class="qr-code">
+          <img :src="wechatQrCode" alt="微信支付二维码" />
+        </div>
+        <div class="qr-tips">
+          <p>使用说明：</p>
+          <p>1. 打开微信，使用"扫一扫"功能扫描二维码</p>
+          <p>2. 确认支付金额，点击"确认"完成支付</p>
+          <p>3. 支付成功后系统将自动检测并更新余额</p>
+        </div>
+        <el-button
+          type="primary"
+          @click="closeWechatPayDialog"
+          class="close-btn"
+        >
+          关闭
+        </el-button>
       </div>
     </el-dialog>
   </div>
@@ -574,14 +704,19 @@ useHead({
                 .payment-method {
                   .methods {
                     :deep(.el-radio-group) {
+                      display: flex;
+                      gap: 15px;
+
                       .el-radio {
                         margin: 0;
+                        width: 130px;
                         height: 50px;
                         border: 1px solid #dcdfe6;
                         border-radius: 4px;
-                        padding: 0 25px;
+                        padding: 0 20px;
                         display: flex;
                         align-items: center;
+                        justify-content: center;
                         transition: all 0.3s;
                         background: #fff;
 
@@ -604,6 +739,22 @@ useHead({
                           color: #606266;
                           font-size: 15px;
                           font-weight: 500;
+                        }
+
+                        &:hover {
+                          border-color: #409eff;
+                        }
+                      }
+                    }
+
+                    .no-payment-tips {
+                      margin-top: 10px;
+
+                      :deep(.el-alert) {
+                        border-radius: 4px;
+
+                        .el-alert__content {
+                          font-size: 14px;
                         }
                       }
                     }
@@ -703,6 +854,21 @@ useHead({
   }
 }
 
+@media screen and (max-width: 768px) {
+  .payment-method {
+    .methods {
+      :deep(.el-radio-group) {
+        flex-direction: column;
+        gap: 10px;
+
+        .el-radio {
+          width: 100% !important;
+        }
+      }
+    }
+  }
+}
+
 .pay-dialog,
 .pay-dialog-content {
   display: none;
@@ -734,6 +900,62 @@ useHead({
       .el-button {
         min-width: 120px;
       }
+    }
+  }
+}
+
+.wechat-pay-dialog {
+  :deep(.el-dialog__header) {
+    margin-right: 0;
+    text-align: center;
+    border-bottom: 1px solid #ebeef5;
+    padding-bottom: 15px;
+  }
+
+  .wechat-pay-content {
+    padding: 20px 0;
+    text-align: center;
+
+    .qr-code-tips {
+      font-size: 16px;
+      color: #606266;
+      margin-bottom: 30px;
+      font-weight: 500;
+    }
+
+    .qr-code {
+      margin-bottom: 20px;
+      display: flex;
+      justify-content: center;
+
+      img {
+        max-width: 260px;
+        width: 100%;
+        height: auto;
+        border: 1px solid #ebeef5;
+        border-radius: 8px;
+        padding: 10px;
+        background: #fff;
+      }
+    }
+
+    .qr-tips {
+      font-size: 13px;
+      color: #909399;
+      margin-bottom: 30px;
+      text-align: left;
+
+      p {
+        margin: 8px 0;
+        line-height: 1.6;
+      }
+    }
+
+    .close-btn {
+      width: 100%;
+      height: 44px;
+      font-size: 16px;
+      font-weight: 500;
     }
   }
 }
