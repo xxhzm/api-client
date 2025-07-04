@@ -113,6 +113,7 @@ const getData = async () => {
 
 onMounted(async () => {
   await getData()
+  await getRateLimitSettings()
 })
 
 const updateApiInfo = async () => {
@@ -471,6 +472,108 @@ const validateNumber = (field) => {
   }
 }
 
+// QPS限制相关
+const rateLimitInfo = ref({
+  requestLimit: '',
+  timeFrame: '',
+  blacklistDuration: '',
+})
+
+const rateLimitLoading = ref(false)
+const isRateLimitSet = ref(false)
+
+// 获取QPS限制设置
+const getRateLimitSettings = async () => {
+  try {
+    const res = await $myFetch('GetApiRateLimitSettings', {
+      params: {
+        id: route.params.id,
+      },
+    })
+
+    if (res.code === 200 && res.data) {
+      rateLimitInfo.value = {
+        requestLimit: res.data.request_limit || '',
+        timeFrame: res.data.time_frame || '',
+        blacklistDuration: res.data.blacklist_duration || '',
+      }
+      isRateLimitSet.value = !!(
+        res.data.request_limit &&
+        res.data.time_frame &&
+        res.data.blacklist_duration
+      )
+    } else {
+      // 接口返回空或无数据，表示未设置
+      isRateLimitSet.value = false
+    }
+  } catch (error) {
+    console.error('获取QPS限制设置失败:', error)
+    isRateLimitSet.value = false
+  }
+}
+
+// 更新QPS限制设置
+const updateRateLimitSettings = async () => {
+  if (
+    !rateLimitInfo.value.requestLimit ||
+    rateLimitInfo.value.requestLimit <= 0
+  ) {
+    msg('请求限制必须大于0', 'error')
+    return
+  }
+  if (!rateLimitInfo.value.timeFrame || rateLimitInfo.value.timeFrame <= 0) {
+    msg('时间窗口必须大于0', 'error')
+    return
+  }
+  if (
+    rateLimitInfo.value.blacklistDuration === '' ||
+    rateLimitInfo.value.blacklistDuration < 0
+  ) {
+    msg('黑名单时长不能小于0', 'error')
+    return
+  }
+
+  rateLimitLoading.value = true
+
+  const bodyValue = new URLSearchParams()
+  bodyValue.append('apiId', route.params.id)
+  bodyValue.append('requestLimit', rateLimitInfo.value.requestLimit)
+  bodyValue.append('timeFrame', rateLimitInfo.value.timeFrame)
+  bodyValue.append('blacklistDuration', rateLimitInfo.value.blacklistDuration)
+
+  try {
+    const res = await $myFetch('UpdateApiRateLimitSettings', {
+      method: 'POST',
+      body: bodyValue,
+    })
+
+    if (res.code === 200) {
+      msg(res.msg || 'QPS限制设置更新成功', 'success')
+      // 更新设置状态
+      isRateLimitSet.value = true
+    } else {
+      msg(res.msg || 'QPS限制设置更新失败', 'error')
+    }
+  } catch (error) {
+    msg('QPS限制设置更新失败', 'error')
+  } finally {
+    rateLimitLoading.value = false
+  }
+}
+
+// 验证QPS限制相关数字输入
+const validateRateLimitNumber = (field) => {
+  // 移除非数字字符
+  rateLimitInfo.value[field] = rateLimitInfo.value[field]
+    .toString()
+    .replace(/[^\d]/g, '')
+
+  // 转换为数字
+  if (rateLimitInfo.value[field] !== '') {
+    rateLimitInfo.value[field] = parseInt(rateLimitInfo.value[field])
+  }
+}
+
 // 新增套餐
 const handleAddPackage = () => {
   dialogStatus.value = true
@@ -653,6 +756,108 @@ useHead({
                     </template>
                   </el-table-column>
                 </el-table>
+              </el-tab-pane>
+
+              <el-tab-pane label="QPS限制" name="RateLimit">
+                <div class="rate-limit-container">
+                  <el-form :model="rateLimitInfo" label-width="120px">
+                    <el-row :gutter="24">
+                      <el-col :xs="24" :sm="12" :md="8">
+                        <el-form-item label="请求限制" required>
+                          <el-input
+                            v-model="rateLimitInfo.requestLimit"
+                            placeholder="请输入每个时间窗口内的最大请求数"
+                            @input="validateRateLimitNumber('requestLimit')"
+                          >
+                            <template #suffix>次</template>
+                          </el-input>
+                          <div class="form-help">
+                            每个时间窗口内允许的最大请求次数
+                          </div>
+                        </el-form-item>
+                      </el-col>
+
+                      <el-col :xs="24" :sm="12" :md="8">
+                        <el-form-item label="时间窗口" required>
+                          <el-input
+                            v-model="rateLimitInfo.timeFrame"
+                            placeholder="请输入时间窗口"
+                            @input="validateRateLimitNumber('timeFrame')"
+                          >
+                            <template #suffix>秒</template>
+                          </el-input>
+                          <div class="form-help">
+                            统计请求次数的时间窗口长度
+                          </div>
+                        </el-form-item>
+                      </el-col>
+
+                      <el-col :xs="24" :sm="12" :md="8">
+                        <el-form-item label="黑名单时长" required>
+                          <el-input
+                            v-model="rateLimitInfo.blacklistDuration"
+                            placeholder="请输入黑名单时长"
+                            @input="
+                              validateRateLimitNumber('blacklistDuration')
+                            "
+                          >
+                            <template #suffix>秒</template>
+                          </el-input>
+                          <div class="form-help">超限后被加入黑名单的时间</div>
+                        </el-form-item>
+                      </el-col>
+                    </el-row>
+
+                    <el-row>
+                      <el-col :span="24">
+                        <div class="rate-limit-example">
+                          <h4>当前设置说明：</h4>
+                          <p v-if="!isRateLimitSet">
+                            <span class="no-setting"
+                              >该接口尚未设置QPS限制</span
+                            >
+                          </p>
+                          <p
+                            v-else-if="
+                              rateLimitInfo.requestLimit &&
+                              rateLimitInfo.timeFrame &&
+                              rateLimitInfo.blacklistDuration
+                            "
+                          >
+                            用户在
+                            <strong>{{ rateLimitInfo.timeFrame }}秒</strong>
+                            内最多可以请求
+                            <strong>{{ rateLimitInfo.requestLimit }}次</strong
+                            >， 超过限制后将被加入黑名单
+                            <strong
+                              >{{ rateLimitInfo.blacklistDuration }}秒</strong
+                            >
+                          </p>
+                          <p v-else>
+                            <span class="incomplete-setting"
+                              >请完善所有设置项以启用QPS限制</span
+                            >
+                          </p>
+                        </div>
+                      </el-col>
+                    </el-row>
+
+                    <el-row>
+                      <el-col :span="24">
+                        <el-form-item>
+                          <el-button
+                            type="primary"
+                            @click="updateRateLimitSettings"
+                            :loading="rateLimitLoading"
+                            size="large"
+                          >
+                            {{ rateLimitLoading ? '保存中...' : '保存QPS设置' }}
+                          </el-button>
+                        </el-form-item>
+                      </el-col>
+                    </el-row>
+                  </el-form>
+                </div>
               </el-tab-pane>
 
               <el-tab-pane label="套餐信息" name="Package">
@@ -1006,6 +1211,77 @@ useHead({
         }
       }
     }
+  }
+}
+
+// QPS限制样式
+.rate-limit-container {
+  padding: 24px;
+  background: #fff;
+  border: 1px solid #eaecf0;
+  border-radius: 12px;
+  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.03);
+
+  .form-help {
+    font-size: 12px;
+    color: #6b7280;
+    margin-top: 4px;
+    line-height: 1.4;
+  }
+
+  .rate-limit-example {
+    margin: 24px 0;
+    padding: 16px;
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+
+    h4 {
+      margin: 0 0 12px 0;
+      font-size: 14px;
+      font-weight: 600;
+      color: #374151;
+    }
+
+    p {
+      margin: 0;
+      font-size: 14px;
+      color: #4b5563;
+      line-height: 1.5;
+
+      strong {
+        color: #1f2937;
+        font-weight: 600;
+      }
+
+      .no-setting {
+        color: #9ca3af;
+        font-style: italic;
+      }
+
+      .incomplete-setting {
+        color: #f59e0b;
+        font-weight: 500;
+      }
+    }
+  }
+
+  :deep(.el-form-item) {
+    margin-bottom: 24px;
+
+    .el-form-item__label {
+      color: #374151;
+      font-weight: 500;
+    }
+
+    .el-input__suffix-inner {
+      color: #6b7280;
+    }
+  }
+
+  :deep(.el-button) {
+    padding: 12px 24px;
+    font-weight: 500;
   }
 }
 

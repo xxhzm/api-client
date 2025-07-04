@@ -153,7 +153,7 @@ useHead({
           </div>
 
           <div class="tip-description">
-            设置全站API接口的访问频率限制，当用户请求频率超出限制时，系统将自动拉黑IP一段时间，修改后请手动重启网关服务
+            设置全站API接口的访问频率限制，当用户请求频率超出限制时，系统将自动拉黑IP一段时间。
           </div>
 
           <el-form :model="limitInfo" label-position="top" v-loading="loading">
