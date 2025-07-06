@@ -68,11 +68,19 @@ const filterTableData = computed(() =>
 const handleDelete = async (index, row) => {
   loading.value = true
 
-  const { data: res } = await $myFetch('CategoryDelete', {
+  const res = await $myFetch('CategoryDelete', {
     params: {
       id: row.id,
     },
   })
+
+  if (res.code !== 200) {
+    msg(res.msg, 'error')
+    loading.value = false
+    return false
+  }
+
+  msg(res.msg, 'success')
 
   await getData()
 

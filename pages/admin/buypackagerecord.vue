@@ -19,6 +19,12 @@ const totalRecords = ref(0) // 总记录数
 const dialogVisible = ref(false)
 const currentRecord = ref(null)
 
+// 接口筛选相关
+const apiList = ref([]) // 接口列表
+const selectedApiId = ref('') // 选中的接口ID
+const apiSearchKeyword = ref('') // 接口搜索关键词
+const apiSearchLoading = ref(false)
+
 // 控制左侧边栏显示隐藏
 // 获取页面宽度
 const screenWidth = ref(0)
@@ -47,6 +53,46 @@ const handleSidebarShow = () => {
   }
 }
 
+// 搜索接口列表
+const searchApiList = async (keyword = '') => {
+  if (!keyword.trim()) {
+    apiList.value = []
+    return
+  }
+
+  apiSearchLoading.value = true
+  try {
+    const res = await $myFetch('ApiSearch', {
+      params: { keyword: keyword.trim() },
+    })
+    if (res.code === 200) {
+      apiList.value = res.data || []
+    } else {
+      $msg(res.msg || '搜索接口失败', 'error')
+      apiList.value = []
+    }
+  } catch (error) {
+    $msg('搜索接口失败', 'error')
+    apiList.value = []
+  } finally {
+    apiSearchLoading.value = false
+  }
+}
+
+// 监听搜索关键词变化
+watch(apiSearchKeyword, (newValue) => {
+  searchApiList(newValue)
+})
+
+// 清空接口筛选
+const clearApiFilter = () => {
+  selectedApiId.value = ''
+  apiSearchKeyword.value = ''
+  apiList.value = []
+  page.value = 1
+  fetchAllRecords()
+}
+
 // 获取购买套餐记录数据
 const fetchAllRecords = async () => {
   pageLoading.value = true
@@ -55,6 +101,11 @@ const fetchAllRecords = async () => {
     const params = {
       page: page.value,
       limit: pageSize.value, // 添加每页数量参数
+    }
+
+    // 如果选择了接口，添加aid参数
+    if (selectedApiId.value) {
+      params.aid = selectedApiId.value
     }
 
     // 发送请求获取购买套餐记录数据
@@ -85,6 +136,12 @@ watch(
     fetchAllRecords() // 页码变化时重新获取数据
   }
 )
+
+// 监听接口选择变化
+watch(selectedApiId, () => {
+  page.value = 1 // 重置到第一页
+  fetchAllRecords()
+})
 
 // 手动处理页面切换
 const handlePageChange = (newPage) => {
@@ -160,6 +217,42 @@ useHead({
                 </el-icon>
                 <span>刷新</span>
               </el-button>
+            </div>
+          </div>
+
+          <!-- 筛选区域 -->
+          <div class="filter-section">
+            <div class="filter-item">
+              <label class="filter-label">接口筛选：</label>
+              <div class="api-filter-container">
+                <el-select
+                  v-model="selectedApiId"
+                  placeholder="搜索并选择接口"
+                  filterable
+                  remote
+                  clearable
+                  :remote-method="searchApiList"
+                  :loading="apiSearchLoading"
+                  style="width: 300px"
+                  @clear="clearApiFilter"
+                >
+                  <el-option
+                    v-for="api in apiList"
+                    :key="api.id"
+                    :label="`${api.name} (${api.alias})`"
+                    :value="api.id"
+                  />
+                </el-select>
+                <el-button
+                  v-if="selectedApiId"
+                  type="info"
+                  plain
+                  @click="clearApiFilter"
+                  style="margin-left: 10px"
+                >
+                  清空筛选
+                </el-button>
+              </div>
             </div>
           </div>
 
@@ -425,6 +518,31 @@ useHead({
 .header-right {
   display: flex;
   gap: 10px;
+}
+
+.filter-section {
+  padding: 16px 20px;
+  background-color: #fafafa;
+  border-bottom: 1px solid #ebeef5;
+}
+
+.filter-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.filter-label {
+  font-size: 14px;
+  color: #606266;
+  font-weight: 500;
+  min-width: 80px;
+}
+
+.api-filter-container {
+  display: flex;
+  align-items: center;
+  flex: 1;
 }
 
 .table-container {
