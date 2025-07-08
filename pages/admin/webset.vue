@@ -52,6 +52,67 @@ const aiInfo = ref({
   url: '',
 })
 
+// 新增：关于我们页面信息相关
+const aboutInfo = ref({
+  companyInfo: {
+    name: '',
+    slogan: '',
+    description: '',
+    contact: '',
+  },
+  features: [
+    { title: '', description: '' },
+    { title: '', description: '' },
+    { title: '', description: '' },
+    { title: '', description: '' },
+  ],
+  serviceTerms: {
+    serviceDescription: {
+      title: '',
+      content: '',
+    },
+    apiAgreement: {
+      title: '',
+      content: '',
+    },
+    privacyPolicy: {
+      title: '',
+      content: '',
+    },
+  },
+  timeline: [{ year: '', events: [''] }],
+  techStack: [
+    { title: '', items: [''] },
+    { title: '', items: [''] },
+    { title: '', items: [''] },
+    { title: '', items: [''] },
+  ],
+  apiTypes: [
+    { title: '', description: '', features: '' },
+    { title: '', description: '', features: '' },
+    { title: '', description: '', features: '' },
+  ],
+  devSupport: [
+    { title: '', description: '' },
+    { title: '', description: '' },
+    { title: '', description: '' },
+    { title: '', description: '' },
+  ],
+  statistics: [
+    { number: '', label: '' },
+    { number: '', label: '' },
+    { number: '', label: '' },
+  ],
+  testimonials: [
+    { quote: '', author: { name: '', company: '' }, rating: '', date: '' },
+    { quote: '', author: { name: '', company: '' }, rating: '', date: '' },
+    { quote: '', author: { name: '', company: '' }, rating: '', date: '' },
+    { quote: '', author: { name: '', company: '' }, rating: '', date: '' },
+    { quote: '', author: { name: '', company: '' }, rating: '', date: '' },
+    { quote: '', author: { name: '', company: '' }, rating: '', date: '' },
+  ],
+})
+
 // 控制左侧边栏显示隐藏
 // 获取页面宽度
 const screenWidth = ref(0)
@@ -131,6 +192,95 @@ const getAIInfo = async () => {
   const res = await $myFetch('AIInfo')
   if (res.code === 200) {
     aiInfo.value = res.data
+  }
+}
+
+// 新增：获取关于我们页面信息
+const getAboutInfo = async () => {
+  const res = await $myFetch('AboutInfo')
+  if (res.code === 200) {
+    aboutInfo.value = res.data
+
+    // 确保功能特色固定为4个
+    if (aboutInfo.value.features) {
+      // 如果不足4个，补齐空项
+      while (aboutInfo.value.features.length < 4) {
+        aboutInfo.value.features.push({ title: '', description: '' })
+      }
+      // 如果超过4个，截取前4个
+      if (aboutInfo.value.features.length > 4) {
+        aboutInfo.value.features = aboutInfo.value.features.slice(0, 4)
+      }
+    }
+
+    // 确保技术栈固定为4个类别
+    if (aboutInfo.value.techStack) {
+      // 如果不足4个，补齐空项
+      while (aboutInfo.value.techStack.length < 4) {
+        aboutInfo.value.techStack.push({ title: '', items: [''] })
+      }
+      // 如果超过4个，截取前4个
+      if (aboutInfo.value.techStack.length > 4) {
+        aboutInfo.value.techStack = aboutInfo.value.techStack.slice(0, 4)
+      }
+    }
+
+    // 确保API类型固定为3个
+    if (aboutInfo.value.apiTypes) {
+      // 如果不足3个，补齐空项
+      while (aboutInfo.value.apiTypes.length < 3) {
+        aboutInfo.value.apiTypes.push({
+          title: '',
+          description: '',
+          features: '',
+        })
+      }
+      // 如果超过3个，截取前3个
+      if (aboutInfo.value.apiTypes.length > 3) {
+        aboutInfo.value.apiTypes = aboutInfo.value.apiTypes.slice(0, 3)
+      }
+    }
+
+    // 确保开发者支持固定为4个
+    if (aboutInfo.value.devSupport) {
+      // 如果不足4个，补齐空项
+      while (aboutInfo.value.devSupport.length < 4) {
+        aboutInfo.value.devSupport.push({ title: '', description: '' })
+      }
+      // 如果超过4个，截取前4个
+      if (aboutInfo.value.devSupport.length > 4) {
+        aboutInfo.value.devSupport = aboutInfo.value.devSupport.slice(0, 4)
+      }
+    }
+
+    // 确保统计数据固定为3个
+    if (aboutInfo.value.statistics) {
+      // 如果不足3个，补齐空项
+      while (aboutInfo.value.statistics.length < 3) {
+        aboutInfo.value.statistics.push({ number: '', label: '' })
+      }
+      // 如果超过3个，截取前3个
+      if (aboutInfo.value.statistics.length > 3) {
+        aboutInfo.value.statistics = aboutInfo.value.statistics.slice(0, 3)
+      }
+    }
+
+    // 确保用户评价固定为6个
+    if (aboutInfo.value.testimonials) {
+      // 如果不足6个，补齐空项
+      while (aboutInfo.value.testimonials.length < 6) {
+        aboutInfo.value.testimonials.push({
+          quote: '',
+          author: { name: '', company: '' },
+          rating: '',
+          date: '',
+        })
+      }
+      // 如果超过6个，截取前6个
+      if (aboutInfo.value.testimonials.length > 6) {
+        aboutInfo.value.testimonials = aboutInfo.value.testimonials.slice(0, 6)
+      }
+    }
   }
 }
 
@@ -267,6 +417,7 @@ onMounted(() => {
   getAlipayInfo()
   getWechatPayInfo()
   getAIInfo()
+  getAboutInfo()
 })
 
 // 提交网站设置
@@ -403,6 +554,49 @@ const aiInfoSubmit = async () => {
   } else {
     $msg(res.msg, 'error')
   }
+}
+
+const aboutInfoSubmit = async () => {
+  const bodyValue = new URLSearchParams()
+  bodyValue.append('data', JSON.stringify(aboutInfo.value))
+
+  const res = await $myFetch('AboutInfoUpdate', {
+    method: 'POST',
+    body: bodyValue,
+  })
+
+  if (res.code === 200) {
+    $msg(res.msg, 'success')
+    getAboutInfo()
+  } else {
+    $msg(res.msg, 'error')
+  }
+}
+
+// 数组操作辅助函数
+
+const addTimelineYear = () => {
+  aboutInfo.value.timeline.push({ year: '', events: [''] })
+}
+
+const removeTimelineYear = (index) => {
+  aboutInfo.value.timeline.splice(index, 1)
+}
+
+const addTimelineEvent = (yearIndex) => {
+  aboutInfo.value.timeline[yearIndex].events.push('')
+}
+
+const removeTimelineEvent = (yearIndex, eventIndex) => {
+  aboutInfo.value.timeline[yearIndex].events.splice(eventIndex, 1)
+}
+
+const addTechStackItem = (stackIndex) => {
+  aboutInfo.value.techStack[stackIndex].items.push('')
+}
+
+const removeTechStackItem = (stackIndex, itemIndex) => {
+  aboutInfo.value.techStack[stackIndex].items.splice(itemIndex, 1)
 }
 
 // 发送测试邮件
@@ -773,6 +967,397 @@ useHead({
                 </el-form>
               </div>
             </el-tab-pane>
+
+            <el-tab-pane label="关于我们" name="about">
+              <div class="form about-form">
+                <el-form
+                  :model="aboutInfo"
+                  label-position="top"
+                  label-width="120px"
+                >
+                  <!-- 公司信息 -->
+                  <el-divider content-position="left">公司信息</el-divider>
+                  <el-form-item label="公司名称">
+                    <el-input
+                      v-model="aboutInfo.companyInfo.name"
+                      placeholder="请输入公司名称"
+                    />
+                  </el-form-item>
+                  <el-form-item label="公司标语">
+                    <el-input
+                      v-model="aboutInfo.companyInfo.slogan"
+                      placeholder="请输入公司标语"
+                    />
+                  </el-form-item>
+                  <el-form-item label="公司描述">
+                    <el-input
+                      v-model="aboutInfo.companyInfo.description"
+                      type="textarea"
+                      :rows="6"
+                      placeholder="请输入公司详细描述（支持HTML）"
+                    />
+                  </el-form-item>
+                  <el-form-item label="联系方式">
+                    <el-input
+                      v-model="aboutInfo.companyInfo.contact"
+                      type="textarea"
+                      :rows="4"
+                      placeholder="请输入联系方式（支持HTML）"
+                    />
+                  </el-form-item>
+
+                  <!-- 功能特色 -->
+                  <el-divider content-position="left">功能特色</el-divider>
+                  <div
+                    v-for="(feature, index) in aboutInfo.features"
+                    :key="index"
+                    class="array-item"
+                  >
+                    <div class="array-item-header">
+                      <span>特色 {{ index + 1 }}</span>
+                    </div>
+                    <el-form-item label="标题">
+                      <el-input
+                        v-model="feature.title"
+                        placeholder="请输入特色标题"
+                      />
+                    </el-form-item>
+                    <el-form-item label="描述">
+                      <el-input
+                        v-model="feature.description"
+                        type="textarea"
+                        :rows="2"
+                        placeholder="请输入特色描述"
+                      />
+                    </el-form-item>
+                  </div>
+
+                  <!-- 服务条款 -->
+                  <el-divider content-position="left">服务条款</el-divider>
+                  <el-form-item label="服务说明标题">
+                    <el-input
+                      v-model="aboutInfo.serviceTerms.serviceDescription.title"
+                      placeholder="请输入服务说明标题"
+                    />
+                  </el-form-item>
+                  <el-form-item label="服务说明内容">
+                    <el-input
+                      v-model="
+                        aboutInfo.serviceTerms.serviceDescription.content
+                      "
+                      type="textarea"
+                      :rows="4"
+                      placeholder="请输入服务说明内容（支持HTML）"
+                    />
+                  </el-form-item>
+                  <el-form-item label="API服务协议标题">
+                    <el-input
+                      v-model="aboutInfo.serviceTerms.apiAgreement.title"
+                      placeholder="请输入API服务协议标题"
+                    />
+                  </el-form-item>
+                  <el-form-item label="API服务协议内容">
+                    <el-input
+                      v-model="aboutInfo.serviceTerms.apiAgreement.content"
+                      type="textarea"
+                      :rows="4"
+                      placeholder="请输入API服务协议内容（支持HTML）"
+                    />
+                  </el-form-item>
+                  <el-form-item label="隐私保护标题">
+                    <el-input
+                      v-model="aboutInfo.serviceTerms.privacyPolicy.title"
+                      placeholder="请输入隐私保护标题"
+                    />
+                  </el-form-item>
+                  <el-form-item label="隐私保护内容">
+                    <el-input
+                      v-model="aboutInfo.serviceTerms.privacyPolicy.content"
+                      type="textarea"
+                      :rows="4"
+                      placeholder="请输入隐私保护内容（支持HTML）"
+                    />
+                  </el-form-item>
+
+                  <!-- 发展历程 -->
+                  <el-divider content-position="left">
+                    <span>发展历程</span>
+                    <el-button
+                      type="primary"
+                      link
+                      @click="addTimelineYear"
+                      style="margin-left: 10px"
+                    >
+                      + 添加年份
+                    </el-button>
+                  </el-divider>
+                  <div
+                    v-for="(timeline, yearIndex) in aboutInfo.timeline"
+                    :key="yearIndex"
+                    class="array-item"
+                    style="margin-top: 20px"
+                  >
+                    <div class="array-item-header">
+                      <span>年份 {{ yearIndex + 1 }}</span>
+                      <el-button
+                        type="danger"
+                        link
+                        @click="removeTimelineYear(yearIndex)"
+                        v-if="aboutInfo.timeline.length > 1"
+                      >
+                        删除年份
+                      </el-button>
+                    </div>
+                    <el-form-item label="年份">
+                      <el-input
+                        v-model="timeline.year"
+                        placeholder="请输入年份，如：2022年"
+                      />
+                    </el-form-item>
+                    <el-form-item>
+                      <template #label>
+                        <div class="label-with-action">
+                          <span>事件</span>
+                          <el-button
+                            type="primary"
+                            link
+                            @click="addTimelineEvent(yearIndex)"
+                            size="small"
+                          >
+                            + 添加事件
+                          </el-button>
+                        </div>
+                      </template>
+                      <div
+                        v-for="(event, eventIndex) in timeline.events"
+                        :key="eventIndex"
+                        class="event-item"
+                      >
+                        <div class="event-input-wrapper">
+                          <el-input
+                            v-model="timeline.events[eventIndex]"
+                            placeholder="请输入事件描述"
+                          />
+                          <el-button
+                            type="danger"
+                            link
+                            @click="removeTimelineEvent(yearIndex, eventIndex)"
+                            v-if="timeline.events.length > 1"
+                            class="event-delete-btn"
+                          >
+                            删除
+                          </el-button>
+                        </div>
+                      </div>
+                    </el-form-item>
+                  </div>
+
+                  <!-- 技术栈 -->
+                  <el-divider content-position="left">技术栈</el-divider>
+                  <div
+                    v-for="(tech, stackIndex) in aboutInfo.techStack"
+                    :key="stackIndex"
+                    class="array-item"
+                  >
+                    <div class="array-item-header">
+                      <span>技术类别 {{ stackIndex + 1 }}</span>
+                    </div>
+                    <el-form-item label="类别标题">
+                      <el-input
+                        v-model="tech.title"
+                        placeholder="请输入技术类别标题"
+                      />
+                    </el-form-item>
+                    <el-form-item>
+                      <template #label>
+                        <div class="label-with-action">
+                          <span>技术项目</span>
+                          <el-button
+                            type="primary"
+                            link
+                            @click="addTechStackItem(stackIndex)"
+                            size="small"
+                          >
+                            + 添加项目
+                          </el-button>
+                        </div>
+                      </template>
+                      <div
+                        v-for="(item, itemIndex) in tech.items"
+                        :key="itemIndex"
+                        class="event-item"
+                      >
+                        <div class="event-input-wrapper">
+                          <el-input
+                            v-model="tech.items[itemIndex]"
+                            placeholder="请输入技术项目"
+                          />
+                          <el-button
+                            type="danger"
+                            link
+                            @click="removeTechStackItem(stackIndex, itemIndex)"
+                            v-if="tech.items.length > 1"
+                            class="event-delete-btn"
+                          >
+                            删除
+                          </el-button>
+                        </div>
+                      </div>
+                    </el-form-item>
+                  </div>
+
+                  <!-- API类型 -->
+                  <el-divider content-position="left">API类型</el-divider>
+                  <div
+                    v-for="(apiType, index) in aboutInfo.apiTypes"
+                    :key="index"
+                    class="array-item"
+                  >
+                    <div class="array-item-header">
+                      <span>API类型 {{ index + 1 }}</span>
+                    </div>
+                    <el-form-item label="标题">
+                      <el-input
+                        v-model="apiType.title"
+                        placeholder="请输入API类型标题"
+                      />
+                    </el-form-item>
+                    <el-form-item label="描述">
+                      <el-input
+                        v-model="apiType.description"
+                        type="textarea"
+                        :rows="2"
+                        placeholder="请输入API类型描述"
+                      />
+                    </el-form-item>
+                    <el-form-item label="功能特性（HTML格式）">
+                      <el-input
+                        v-model="apiType.features"
+                        type="textarea"
+                        :rows="3"
+                        placeholder="请输入功能特性（支持HTML）"
+                      />
+                    </el-form-item>
+                  </div>
+
+                  <!-- 开发者支持 -->
+                  <el-divider content-position="left">开发者支持</el-divider>
+                  <div
+                    v-for="(support, index) in aboutInfo.devSupport"
+                    :key="index"
+                    class="array-item"
+                  >
+                    <div class="array-item-header">
+                      <span>支持项目 {{ index + 1 }}</span>
+                    </div>
+                    <el-form-item label="标题">
+                      <el-input
+                        v-model="support.title"
+                        placeholder="请输入支持项目标题"
+                      />
+                    </el-form-item>
+                    <el-form-item label="描述">
+                      <el-input
+                        v-model="support.description"
+                        type="textarea"
+                        :rows="2"
+                        placeholder="请输入支持项目描述"
+                      />
+                    </el-form-item>
+                  </div>
+
+                  <!-- 统计数据 -->
+                  <el-divider content-position="left">统计数据</el-divider>
+                  <div
+                    v-for="(stat, index) in aboutInfo.statistics"
+                    :key="index"
+                    class="array-item"
+                  >
+                    <div class="array-item-header">
+                      <span>统计项 {{ index + 1 }}</span>
+                    </div>
+                    <el-form-item label="数值">
+                      <el-input
+                        v-model="stat.number"
+                        placeholder="请输入统计数值，如：10000+"
+                      />
+                    </el-form-item>
+                    <el-form-item label="标签">
+                      <el-input
+                        v-model="stat.label"
+                        placeholder="请输入统计标签，如：累计服务开发者"
+                      />
+                    </el-form-item>
+                  </div>
+
+                  <!-- 用户评价 -->
+                  <el-divider content-position="left">用户评价</el-divider>
+                  <div
+                    v-for="(testimonial, index) in aboutInfo.testimonials"
+                    :key="index"
+                    class="array-item"
+                  >
+                    <div class="array-item-header">
+                      <span>用户评价 {{ index + 1 }}</span>
+                    </div>
+                    <el-form-item label="评价内容">
+                      <el-input
+                        v-model="testimonial.quote"
+                        type="textarea"
+                        :rows="3"
+                        placeholder="请输入评价内容"
+                      />
+                    </el-form-item>
+                    <el-form-item label="评价人姓名">
+                      <el-input
+                        v-model="testimonial.author.name"
+                        placeholder="请输入评价人姓名"
+                      />
+                    </el-form-item>
+                    <el-form-item label="评价人公司">
+                      <el-input
+                        v-model="testimonial.author.company"
+                        placeholder="请输入评价人公司"
+                      />
+                    </el-form-item>
+                    <el-form-item label="评分">
+                      <el-input
+                        v-model="testimonial.rating"
+                        placeholder="请输入评分，如：★★★★★"
+                      />
+                    </el-form-item>
+                    <el-form-item label="评价日期">
+                      <el-input
+                        v-model="testimonial.date"
+                        placeholder="请输入评价日期，如：2024-02"
+                      />
+                    </el-form-item>
+                  </div>
+
+                  <el-form-item>
+                    <el-button type="primary" @click="aboutInfoSubmit"
+                      >提交</el-button
+                    >
+                  </el-form-item>
+                </el-form>
+
+                <!-- 提示说明 -->
+                <el-alert
+                  title="使用说明"
+                  type="info"
+                  :closable="false"
+                  style="margin-top: 24px"
+                >
+                  <template #default>
+                    <p>
+                      1. 所有文本内容字段都支持HTML标签，可以设置丰富的文本格式
+                    </p>
+                    <p>2. 数组类型的数据可以通过"添加"和"删除"按钮动态管理</p>
+                    <p>3. 修改完成后请点击"提交"按钮保存更改</p>
+                  </template>
+                </el-alert>
+              </div>
+            </el-tab-pane>
           </el-tabs>
         </div>
       </div>
@@ -923,6 +1508,88 @@ useHead({
 
   .el-button {
     margin-top: 1px;
+  }
+}
+
+.about-form {
+  :deep(.el-divider) {
+    margin: 24px 0 16px 0;
+
+    .el-divider__text {
+      font-size: 16px;
+      font-weight: 500;
+      color: #1f2937;
+    }
+  }
+
+  :deep(.el-textarea__inner) {
+    font-family: inherit;
+    line-height: 1.6;
+  }
+
+  .array-item {
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    padding: 16px;
+    margin-bottom: 16px;
+    background-color: #f9fafb;
+
+    .array-item-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
+      padding-bottom: 8px;
+      border-bottom: 1px solid #e5e7eb;
+
+      span {
+        font-weight: 500;
+        color: #374151;
+      }
+    }
+  }
+
+  .event-item {
+    margin-bottom: 12px;
+
+    .event-input-wrapper {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+
+      .el-input {
+        flex: 1;
+      }
+
+      .event-delete-btn {
+        flex-shrink: 0;
+        margin-left: 8px;
+      }
+    }
+
+    .event-actions {
+      display: flex;
+      gap: 8px;
+      margin-top: 4px;
+    }
+  }
+
+  .label-with-action {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+
+    span {
+      font-weight: 500;
+      color: #374151;
+    }
+
+    .el-button {
+      font-size: 12px;
+      padding: 0;
+      margin: 0;
+    }
   }
 }
 </style>
