@@ -332,7 +332,7 @@ const openInNewWindow = (url) => {
 <template>
   <div class="doc-container">
     <!-- 公告 -->
-    <IndexNotice></IndexNotice>
+    <IndexNotice :content="options.notice"></IndexNotice>
 
     <div class="apiinfo-container">
       <div class="box">

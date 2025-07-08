@@ -7,15 +7,7 @@ import {
   DataLine,
   Service,
   Lock,
-  Medal,
-  TrendCharts,
-  Platform,
-  Connection,
   Promotion,
-  OfficeBuilding,
-  Cpu,
-  Cloudy,
-  Monitor,
   Document,
   Picture,
   DataAnalysis,
@@ -39,13 +31,18 @@ useHead({
   viewport:
     'width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0',
   charset: 'utf-8',
-  meta: [{ name: 'description', content: '小小API-关于我们' }],
+  meta: [
+    {
+      name: 'description',
+      content: options.value.website_name + ' - 关于我们',
+    },
+  ],
 })
 </script>
 
 <template>
   <div class="about-container">
-    <IndexNotice></IndexNotice>
+    <IndexNotice :content="options.notice"></IndexNotice>
     <div class="container">
       <div class="section">
         <h2 class="section-title">关于我们</h2>

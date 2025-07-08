@@ -12,6 +12,8 @@ const websetInfo = ref({
   create_time: '',
   icp: '',
   gongan: '',
+  website_name: '',
+  notice: '',
 })
 
 // 邮件设置相关
@@ -40,6 +42,14 @@ const wechatPayInfo = ref({
   serialNo: '',
   wxPublicKeyContent: '',
   wxPublicKeyID: '',
+})
+
+// AI配置相关
+const aiInfo = ref({
+  key: '',
+  model: '',
+  system_message: '',
+  url: '',
 })
 
 // 控制左侧边栏显示隐藏
@@ -113,6 +123,14 @@ const getWechatPayInfo = async () => {
     wechatPayInfo.value.serialNo = res.data.serial_no
     wechatPayInfo.value.wxPublicKeyContent = res.data.wx_public_key_content
     wechatPayInfo.value.wxPublicKeyID = res.data.wx_public_key_id
+  }
+}
+
+// 获取AI配置
+const getAIInfo = async () => {
+  const res = await $myFetch('AIInfo')
+  if (res.code === 200) {
+    aiInfo.value = res.data
   }
 }
 
@@ -248,6 +266,7 @@ onMounted(() => {
   getTopApiList()
   getAlipayInfo()
   getWechatPayInfo()
+  getAIInfo()
 })
 
 // 提交网站设置
@@ -271,6 +290,8 @@ const websetInfoSubmit = async () => {
   bodyValue.append('createTime', websetInfo.value.create_time)
   bodyValue.append('icp', websetInfo.value.icp)
   bodyValue.append('gongan', websetInfo.value.gongan)
+  bodyValue.append('websiteName', websetInfo.value.website_name)
+  bodyValue.append('notice', websetInfo.value.notice)
 
   const res = await $myFetch('OptionsUpdate', {
     method: 'POST',
@@ -363,6 +384,27 @@ const wechatPayInfoSubmit = async () => {
   }
 }
 
+// 提交AI配置
+const aiInfoSubmit = async () => {
+  const bodyValue = new URLSearchParams()
+  bodyValue.append('key', aiInfo.value.key || '')
+  bodyValue.append('model', aiInfo.value.model || '')
+  bodyValue.append('systemMessage', aiInfo.value.system_message || '')
+  bodyValue.append('url', aiInfo.value.url || '')
+
+  const res = await $myFetch('AIOptionUpdate', {
+    method: 'POST',
+    body: bodyValue,
+  })
+
+  if (res.code === 200) {
+    $msg(res.msg, 'success')
+    getAIInfo()
+  } else {
+    $msg(res.msg, 'error')
+  }
+}
+
 // 发送测试邮件
 const sendTestMail = async () => {
   if (!testMail.value) {
@@ -446,6 +488,17 @@ useHead({
                   </el-form-item>
                   <el-form-item label="公安备案号">
                     <el-input v-model="websetInfo.gongan" />
+                  </el-form-item>
+                  <el-form-item label="网站名称">
+                    <el-input v-model="websetInfo.website_name" />
+                  </el-form-item>
+                  <el-form-item label="通知信息">
+                    <el-input
+                      v-model="websetInfo.notice"
+                      type="textarea"
+                      :rows="3"
+                      placeholder="请输入通知信息"
+                    />
                   </el-form-item>
                   <el-form-item>
                     <el-button type="primary" @click="websetInfoSubmit"
@@ -670,6 +723,50 @@ useHead({
                   </el-form-item>
                   <el-form-item>
                     <el-button type="primary" @click="wechatPayInfoSubmit"
+                      >提交</el-button
+                    >
+                  </el-form-item>
+                </el-form>
+              </div>
+            </el-tab-pane>
+
+            <el-tab-pane label="AI配置" name="ai">
+              <div class="form">
+                <el-form
+                  :model="aiInfo"
+                  label-position="top"
+                  label-width="120px"
+                >
+                  <el-form-item label="API密钥">
+                    <el-input
+                      v-model="aiInfo.key"
+                      type="password"
+                      show-password
+                      placeholder="请输入AI服务API密钥"
+                    />
+                  </el-form-item>
+                  <el-form-item label="模型名称">
+                    <el-input
+                      v-model="aiInfo.model"
+                      placeholder="请输入AI模型名称（如：gpt-3.5-turbo）"
+                    />
+                  </el-form-item>
+                  <el-form-item label="系统消息">
+                    <el-input
+                      v-model="aiInfo.system_message"
+                      type="textarea"
+                      :rows="4"
+                      placeholder="请输入系统提示消息，用于定义AI助手的行为和角色"
+                    />
+                  </el-form-item>
+                  <el-form-item label="API地址">
+                    <el-input
+                      v-model="aiInfo.url"
+                      placeholder="请输入AI服务API地址（如：https://api.openai.com/v1）"
+                    />
+                  </el-form-item>
+                  <el-form-item>
+                    <el-button type="primary" @click="aiInfoSubmit"
                       >提交</el-button
                     >
                   </el-form-item>

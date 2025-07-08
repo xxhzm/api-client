@@ -249,6 +249,15 @@ watch(isForgotPassword, (newValue) => {
   }
 })
 
+// 获取配置信息
+const options = ref({})
+
+const {
+  data: { value: res },
+} = await useAsyncData('Options', () => $myFetch('Options'))
+
+options.value = res.data
+
 useHead({
   title: '用户登录',
   viewport:
@@ -285,13 +294,15 @@ useHead({
             }}
           </h2>
           <p class="subtitle">
-            {{
-              isForgotPassword
-                ? '输入您的用户名和邮箱找回密码'
-                : LoginIsRegister
-                ? '欢迎使用小小API，请登录您的账号'
-                : '欢迎加入小小API，请完成注册'
-            }}
+            <clientOnly>
+              {{
+                isForgotPassword
+                  ? '输入您的用户名和邮箱找回密码'
+                  : LoginIsRegister
+                  ? '欢迎使用' + options.website_name + '，请登录您的账号'
+                  : '欢迎加入' + options.website_name + '，请完成注册'
+              }}
+            </clientOnly>
           </p>
         </div>
       </div>

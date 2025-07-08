@@ -86,7 +86,7 @@ watch(
 
 <template>
   <div class="index-container">
-    <IndexNotice></IndexNotice>
+    <IndexNotice :content="options.notice"></IndexNotice>
     <div class="container">
       <client-only>
         <div class="section">
