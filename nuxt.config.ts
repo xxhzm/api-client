@@ -24,11 +24,14 @@ export default defineNuxtConfig({
 
   runtimeConfig: {
     public: {
-      isDev: process.env.NODE_ENV === 'development'
-    }
+      isDev: process.env.NODE_ENV === 'development',
+    },
   },
 
-  dev: process.env.NODE_ENV === 'development' ? {
-    globalError: false
-  } : undefined
+  dev:
+    process.env.NODE_ENV === 'development'
+      ? {
+          globalError: false,
+        }
+      : undefined,
 })

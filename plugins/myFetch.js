@@ -1,5 +1,4 @@
 export default defineNuxtPlugin((/* nuxtApp */) => {
-  const config = useRuntimeConfig()
   return {
     provide: {
       // 封装useFetch
@@ -27,9 +26,11 @@ export default defineNuxtPlugin((/* nuxtApp */) => {
           obj.headers.Authorization = authorization.value
         }
 
+        const event = useRequestEvent()
+        const host = event?.node?.req?.headers?.host || window?.location?.host
+
         // const baseURL = 'https://xxapi.cn/api/'
-        // const baseURL = 'http://10.6.6.6:3005/admin/'
-        const baseURL = 'https://api.xxpan.cn/adminapi/'
+        const baseURL = 'https://' + host + '/adminapi/'
 
         return $fetch(baseURL + request, { ...opts, ...obj })
       },
