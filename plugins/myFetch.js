@@ -28,7 +28,8 @@ export default defineNuxtPlugin((/* nuxtApp */) => {
         }
 
         // const baseURL = 'https://xxapi.cn/api/'
-        const baseURL = 'http://10.6.6.6:3005/admin/'
+        // const baseURL = 'http://10.6.6.6:3005/admin/'
+        const baseURL = 'https://api.xxpan.cn/adminapi/'
 
         return $fetch(baseURL + request, { ...opts, ...obj })
       },

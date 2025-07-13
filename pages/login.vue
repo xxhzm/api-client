@@ -39,11 +39,6 @@ const login = async () => {
     return false
   }
 
-  if (info.username.length < 6 || info.password.length < 6) {
-    $msg('请输入6位以上的账号密码', 'error')
-    return false
-  }
-
   const bodyValue = new URLSearchParams()
   bodyValue.append('username', info.username)
   bodyValue.append('id', captchaInfo.value.id)
@@ -159,11 +154,6 @@ const register = async () => {
     info.mailCode === ''
   ) {
     $msg('请正确填写账号信息', 'error')
-    return false
-  }
-
-  if (info.username.length < 6 || info.password.length < 6) {
-    $msg('请输入6位以上的账号密码', 'error')
     return false
   }
 

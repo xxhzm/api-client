@@ -1342,20 +1342,23 @@ useHead({
                 </el-form>
 
                 <!-- 提示说明 -->
-                <el-alert
-                  title="使用说明"
-                  type="info"
-                  :closable="false"
-                  style="margin-top: 24px"
+                <client-only>
+                  <el-alert
+                    title="使用说明"
+                    type="info"
+                    :closable="false"
+                    style="margin-top: 24px"
+                  >
+                    <template #default>
+                      <p>
+                        1.
+                        所有文本内容字段都支持HTML标签，可以设置丰富的文本格式
+                      </p>
+                      <p>2. 数组类型的数据可以通过"添加"和"删除"按钮动态管理</p>
+                      <p>3. 修改完成后请点击"提交"按钮保存更改</p>
+                    </template>
+                  </el-alert></client-only
                 >
-                  <template #default>
-                    <p>
-                      1. 所有文本内容字段都支持HTML标签，可以设置丰富的文本格式
-                    </p>
-                    <p>2. 数组类型的数据可以通过"添加"和"删除"按钮动态管理</p>
-                    <p>3. 修改完成后请点击"提交"按钮保存更改</p>
-                  </template>
-                </el-alert>
               </div>
             </el-tab-pane>
           </el-tabs>
