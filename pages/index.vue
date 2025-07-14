@@ -82,6 +82,20 @@ watch(
     )
   }
 )
+
+const adDisplay = ref(true)
+
+const adInfo = (info) => {
+  if (info.value.length === 0) {
+    adDisplay.value = false
+  }
+}
+
+const linksDisplay = ref(true)
+
+if (links.value.length === 0) {
+  linksDisplay.value = false
+}
 </script>
 
 <template>
@@ -89,9 +103,9 @@ watch(
     <IndexNotice :content="options.notice"></IndexNotice>
     <div class="container">
       <client-only>
-        <div class="section">
+        <div class="section" v-if="adDisplay">
           <h2 class="section-title">广告商</h2>
-          <Ad></Ad>
+          <Ad @adInfo="adInfo"></Ad>
         </div>
 
         <div class="section">
@@ -122,7 +136,7 @@ watch(
         <div class="section-header">
           <h2 class="section-title">API列表</h2>
           <a
-            href="https://jq.qq.com/?_wv=1027&k=92BF8Ndr"
+            :href="options.feedback || '#'"
             target="_blank"
             class="feedback-btn"
           >
@@ -239,7 +253,7 @@ watch(
     </div>
 
     <!-- 友情链接 -->
-    <div class="section friend-links">
+    <div class="section friend-links" v-if="linksDisplay">
       <div class="container">
         <h2 class="section-title">友情链接</h2>
         <div class="links-wrapper">

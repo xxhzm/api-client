@@ -14,6 +14,7 @@ const websetInfo = ref({
   gongan: '',
   website_name: '',
   notice: '',
+  feedback: '',
 })
 
 // 邮件设置相关
@@ -443,6 +444,7 @@ const websetInfoSubmit = async () => {
   bodyValue.append('gongan', websetInfo.value.gongan)
   bodyValue.append('websiteName', websetInfo.value.website_name)
   bodyValue.append('notice', websetInfo.value.notice)
+  bodyValue.append('feedback', websetInfo.value.feedback)
 
   const res = await $myFetch('OptionsUpdate', {
     method: 'POST',
@@ -692,6 +694,12 @@ useHead({
                       type="textarea"
                       :rows="3"
                       placeholder="请输入通知信息"
+                    />
+                  </el-form-item>
+                  <el-form-item label="问题反馈链接">
+                    <el-input
+                      v-model="websetInfo.feedback"
+                      placeholder="请输入问题反馈链接"
                     />
                   </el-form-item>
                   <el-form-item>

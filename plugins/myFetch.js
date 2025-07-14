@@ -26,11 +26,11 @@ export default defineNuxtPlugin((/* nuxtApp */) => {
           obj.headers.Authorization = authorization.value
         }
 
-        const event = useRequestEvent()
-        const host = event?.node?.req?.headers?.host || window?.location?.host
+        // const event = useRequestEvent()
+        // const host = event?.node?.req?.headers?.host || window?.location?.host
 
-        // const baseURL = 'https://xxapi.cn/api/'
-        const baseURL = 'https://' + host + '/adminapi/'
+        const baseURL = 'http://10.6.6.6:3005/admin/'
+        // const baseURL = 'https://' + host + '/adminapi/'
 
         return $fetch(baseURL + request, { ...opts, ...obj })
       },

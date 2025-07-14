@@ -8,6 +8,10 @@ const res = await $myFetch('AdListForFrontend', {
 })
 
 adDate.value = res.data
+
+const emit = defineEmits(['adInfo'])
+
+emit('adInfo', adDate)
 </script>
 
 <template>
