@@ -12,6 +12,8 @@ import {
   Lock,
 } from '@element-plus/icons-vue'
 
+const defaultOpeneds = ref([])
+
 const { $msg, $myFetch } = useNuxtApp()
 const routeInfo = useCookie('routeInfo')
 
@@ -67,6 +69,46 @@ const sitemap = async () => {
 const openInNewTab = (url) => {
   window.open(url, '_blank')
 }
+
+// 获取当前打开的菜单
+const path = useRoute().path
+const pathArr = path.split('/')
+
+const pathMap = {
+  webset: '2',
+  ad: '2',
+  sitemap: '2',
+  apilist: '3',
+  createapi: '3',
+  addparam: '3',
+  categories: '3',
+  prefix: '3',
+  apilogs: '3',
+  statistics: '3',
+  userlist: '4',
+  rolelist: '4',
+  permissionlist: '4',
+  keylog: '4',
+  articlelist: '5',
+  createarticle: '5',
+  pay: '6',
+  createRechargeCard: '6',
+  useRechargeCard: '6',
+  rechargeCardHistory: '6',
+  rechargerecord: '6',
+  buypackagerecord: '6',
+  package: '6',
+  buy: '6',
+  mypackage: '6',
+  'ip-ban': '7',
+  'api-rate-limit': '7',
+}
+
+const thirdPath = pathArr[2] // 注意 pathArr[2] 是第3段
+
+if (thirdPath && pathMap[thirdPath]) {
+  defaultOpeneds.value = [pathMap[thirdPath]]
+}
 </script>
 
 <template>
@@ -76,6 +118,7 @@ const openInNewTab = (url) => {
       @open="handleOpen"
       @close="handleClose"
       :unique-opened="true"
+      :default-openeds="defaultOpeneds"
     >
       <el-menu-item index="1" @click="navigateTo('/admin')">
         <img
@@ -100,7 +143,7 @@ const openInNewTab = (url) => {
 
         <el-sub-menu
           index="2"
-          v-if="routeShowArr(['/admin/webset', '/admin/sitemap'])"
+          v-if="routeShowArr(['/admin/webset', '/admin/ad', '/admin/sitemap'])"
         >
           <template #title>
             <el-icon>
@@ -140,6 +183,7 @@ const openInNewTab = (url) => {
               '/admin/categories',
               '/admin/prefix',
               '/admin/apilogs',
+              '/admin/statistics',
             ])
           "
         >
@@ -202,6 +246,7 @@ const openInNewTab = (url) => {
               '/admin/userlist',
               '/admin/rolelist',
               '/admin/permissionlist',
+              '/admin/keylog',
             ])
           "
         >
@@ -267,7 +312,19 @@ const openInNewTab = (url) => {
 
         <el-sub-menu
           index="6"
-          v-if="routeShowArr(['/admin/pay', '/admin/package'])"
+          v-if="
+            routeShowArr([
+              '/admin/pay',
+              '/admin/createRechargeCard',
+              '/admin/useRechargeCard',
+              '/admin/rechargeCardHistory',
+              '/admin/rechargerecord',
+              '/admin/buypackagerecord',
+              '/admin/package',
+              '/admin/buy',
+              '/admin/mypackage',
+            ])
+          "
         >
           <template #title>
             <el-icon>
@@ -333,7 +390,10 @@ const openInNewTab = (url) => {
           </el-menu-item-group>
         </el-sub-menu>
 
-        <el-sub-menu index="7" v-if="routeShowArr(['/admin/ip-ban'])">
+        <el-sub-menu
+          index="7"
+          v-if="routeShowArr(['/admin/ip-ban', '/admin/api-rate-limit'])"
+        >
           <template #title>
             <el-icon>
               <Lock />
