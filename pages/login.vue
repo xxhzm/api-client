@@ -118,6 +118,8 @@ const getMailCode = async () => {
 
   if (rule.test(info.mail) === false) {
     $msg('请填写正确的信息', 'error')
+
+    getVerifyCodeButtonState.value = false
     return false
   }
 
@@ -302,6 +304,7 @@ useHead({
               v-model="info.username"
               placeholder="请输入用户名"
               prefix-icon="el-icon-user"
+              @keyup.enter="login"
             />
           </el-form-item>
           <el-form-item>
@@ -311,6 +314,7 @@ useHead({
               placeholder="请输入密码"
               prefix-icon="el-icon-lock"
               show-password
+              @keyup.enter="login"
             />
           </el-form-item>
           <el-form-item>
@@ -319,6 +323,7 @@ useHead({
                 v-model="info.captcha"
                 placeholder="图片验证码"
                 prefix-icon="el-icon-picture"
+                @keyup.enter="login"
               />
               <img
                 :src="captchaInfo.url"
