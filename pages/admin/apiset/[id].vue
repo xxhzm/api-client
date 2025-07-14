@@ -201,6 +201,85 @@ const handleDelete = async (index, row) => {
   getData()
 }
 
+// 参数编辑相关
+const paramDialogStatus = ref(false)
+const updateParamStatus = ref(false)
+const paramEditInfo = ref({
+  id: '',
+  aid: '',
+  name: '',
+  param: '',
+  position: 'query',
+  docs: '',
+  required: true,
+})
+
+// 编辑参数
+const handleParamEdit = (index, row) => {
+  paramDialogStatus.value = true
+  updateParamStatus.value = true
+  paramEditInfo.value = {
+    id: row.id,
+    aid: row.aid,
+    name: row.name,
+    param: row.param,
+    position: row.position,
+    docs: row.docs,
+    required: row.required === '必传',
+  }
+}
+
+// 更新参数
+const updateParam = async () => {
+  if (
+    !paramEditInfo.value.name ||
+    !paramEditInfo.value.param ||
+    !paramEditInfo.value.position ||
+    !paramEditInfo.value.docs
+  ) {
+    msg('请填写完整信息', 'error')
+    return
+  }
+
+  const bodyValue = new URLSearchParams()
+  bodyValue.append('id', paramEditInfo.value.id)
+  bodyValue.append('aid', paramEditInfo.value.aid)
+  bodyValue.append('name', paramEditInfo.value.name)
+  bodyValue.append('param', paramEditInfo.value.param)
+  bodyValue.append('position', paramEditInfo.value.position)
+  bodyValue.append('docs', paramEditInfo.value.docs)
+  bodyValue.append('required', paramEditInfo.value.required ? 1 : 2)
+
+  const res = await $myFetch('UpdateParam', {
+    method: 'POST',
+    body: bodyValue,
+  })
+
+  if (res.code === 200) {
+    msg(res.msg, 'success')
+    paramDialogStatus.value = false
+    await getData()
+  } else {
+    msg(res.msg, 'error')
+  }
+}
+
+// 监听参数编辑对话框关闭，重置表单
+watch(paramDialogStatus, (newValue) => {
+  if (!newValue) {
+    updateParamStatus.value = false
+    paramEditInfo.value = {
+      id: '',
+      aid: '',
+      name: '',
+      param: '',
+      position: 'query',
+      docs: '',
+      required: true,
+    }
+  }
+})
+
 // 分类的数据
 const categoryData = ref([])
 
@@ -622,7 +701,7 @@ useHead({
                 <el-form :model="apiSetInfo">
                   <el-row :gutter="12">
                     <el-col :xs="24" :sm="24" :md="24" :lg="24" :xl="24">
-                      <el-form-item label="接口名称"
+                      <el-form-item label="接口名称" :label-width="90"
                         ><el-input
                           v-model="apiSetInfo.name"
                           maxlength="25"
@@ -631,7 +710,7 @@ useHead({
                     </el-col>
 
                     <el-col :xs="24" :sm="24" :md="24" :lg="24" :xl="24">
-                      <el-form-item label="接口别名">
+                      <el-form-item label="接口别名" :label-width="90">
                         <el-input
                           v-model="apiSetInfo.alias"
                           maxlength="25"
@@ -641,25 +720,37 @@ useHead({
                     </el-col>
 
                     <el-col :xs="24" :sm="24" :md="24" :lg="24" :xl="24">
-                      <el-form-item label="接口地址">
+                      <el-form-item label="接口地址" :label-width="90">
                         <el-input v-model="apiSetInfo.url" />
                       </el-form-item>
                     </el-col>
 
                     <el-col :xs="24" :sm="24" :md="24" :lg="24" :xl="24">
-                      <el-form-item label="请求类型">
+                      <el-form-item label="请求类型" :label-width="90">
                         <el-input v-model="apiSetInfo.method" />
                       </el-form-item>
                     </el-col>
 
                     <el-col :xs="24" :sm="24" :md="24" :lg="24" :xl="24">
-                      <el-form-item label="接口示例">
+                      <el-form-item label="接口示例" :label-width="90">
                         <el-input v-model="apiSetInfo.example_url" />
                       </el-form-item>
                     </el-col>
 
                     <el-col :xs="24" :sm="24" :md="24" :lg="24" :xl="24">
-                      <el-form-item label="接口前缀">
+                      <el-form-item label="接口描述" :label-width="90">
+                        <el-input v-model="apiSetInfo.description" />
+                      </el-form-item>
+                    </el-col>
+
+                    <el-col :xs="24" :sm="24" :md="24" :lg="24" :xl="24">
+                      <el-form-item label="接口关键词" :label-width="90">
+                        <el-input v-model="apiSetInfo.keywords" />
+                      </el-form-item>
+                    </el-col>
+
+                    <el-col :xs="24" :sm="24" :md="24" :lg="24" :xl="24">
+                      <el-form-item label="接口前缀" :label-width="90">
                         <client-only>
                           <el-autocomplete
                             v-model="apiSetInfo.prefixValue"
@@ -672,7 +763,7 @@ useHead({
                     </el-col>
 
                     <el-col :xs="24" :sm="24" :md="24" :lg="24" :xl="24">
-                      <el-form-item label="接口分类">
+                      <el-form-item label="接口分类" :label-width="90">
                         <el-autocomplete
                           v-model="apiSetInfo.category"
                           :fetch-suggestions="querySearch"
@@ -683,7 +774,7 @@ useHead({
                     </el-col>
 
                     <el-col :xs="24" :sm="24" :md="24" :lg="24" :xl="24">
-                      <el-form-item label="接口状态">
+                      <el-form-item label="接口状态" :label-width="90">
                         <el-select
                           v-model="apiSetInfo.state"
                           placeholder="请选择状态"
@@ -695,7 +786,7 @@ useHead({
                     </el-col>
 
                     <el-col :xs="24" :sm="24" :md="24" :lg="24" :xl="24">
-                      <el-form-item label="秘钥验证">
+                      <el-form-item label="秘钥验证" :label-width="90">
                         <el-select
                           v-model="apiSetInfo.keyState"
                           placeholder="请选择状态"
@@ -707,7 +798,7 @@ useHead({
                     </el-col>
 
                     <el-col :xs="24" :sm="24" :md="24" :lg="24" :xl="24">
-                      <el-form-item label="返回示例">
+                      <el-form-item label="返回示例" :label-width="90">
                         <el-input
                           :rows="10"
                           v-model="apiSetInfo.example"
@@ -740,22 +831,104 @@ useHead({
                     label="创建时间"
                     width="165"
                   />
-                  <el-table-column width="100" label="操作">
+                  <el-table-column width="160" label="操作">
                     <template #default="scope">
-                      <el-popconfirm
-                        confirm-button-text="确定"
-                        cancel-button-text="取消"
-                        title="您确定要删除吗?"
-                        width="160px"
-                        @confirm="handleDelete(scope.$index, scope.row)"
-                      >
-                        <template #reference>
-                          <el-button size="small" type="danger">删除</el-button>
-                        </template>
-                      </el-popconfirm>
+                      <div class="table-actions">
+                        <el-button
+                          size="small"
+                          type="primary"
+                          @click="handleParamEdit(scope.$index, scope.row)"
+                        >
+                          编辑
+                        </el-button>
+                        <el-popconfirm
+                          confirm-button-text="确定"
+                          cancel-button-text="取消"
+                          title="您确定要删除吗?"
+                          width="160px"
+                          @confirm="handleDelete(scope.$index, scope.row)"
+                        >
+                          <template #reference>
+                            <el-button size="small" type="danger"
+                              >删除</el-button
+                            >
+                          </template>
+                        </el-popconfirm>
+                      </div>
                     </template>
                   </el-table-column>
                 </el-table>
+
+                <!-- 编辑参数对话框 -->
+                <el-dialog
+                  v-model="paramDialogStatus"
+                  title="编辑参数"
+                  width="600px"
+                  destroy-on-close
+                  class="param-dialog"
+                >
+                  <div class="dialog-content">
+                    <el-form :model="paramEditInfo" label-width="100px">
+                      <el-row :gutter="20">
+                        <el-col :span="12">
+                          <el-form-item label="参数名称" required>
+                            <el-input
+                              v-model="paramEditInfo.name"
+                              placeholder="请输入参数名称"
+                            />
+                          </el-form-item>
+                        </el-col>
+                        <el-col :span="12">
+                          <el-form-item label="可传参数" required>
+                            <el-input
+                              v-model="paramEditInfo.param"
+                              placeholder="请输入可传参数"
+                            />
+                          </el-form-item>
+                        </el-col>
+                      </el-row>
+
+                      <el-row :gutter="20">
+                        <el-col :span="12">
+                          <el-form-item label="传入位置" required>
+                            <el-select
+                              v-model="paramEditInfo.position"
+                              placeholder="请选择传入位置"
+                              class="full-width"
+                            >
+                              <el-option label="query" value="query" />
+                              <el-option label="body" value="body" />
+                            </el-select>
+                          </el-form-item>
+                        </el-col>
+                        <el-col :span="12">
+                          <el-form-item label="是否必传">
+                            <el-switch v-model="paramEditInfo.required" />
+                          </el-form-item>
+                        </el-col>
+                      </el-row>
+
+                      <el-form-item label="参数描述" required>
+                        <el-input
+                          v-model="paramEditInfo.docs"
+                          type="textarea"
+                          :rows="3"
+                          placeholder="请输入参数描述"
+                        />
+                      </el-form-item>
+                    </el-form>
+                  </div>
+                  <template #footer>
+                    <div class="dialog-footer">
+                      <el-button @click="paramDialogStatus = false">
+                        取消
+                      </el-button>
+                      <el-button type="primary" @click="updateParam">
+                        更新
+                      </el-button>
+                    </div>
+                  </template>
+                </el-dialog>
               </el-tab-pane>
 
               <el-tab-pane label="QPS限制" name="RateLimit">
@@ -1318,9 +1491,14 @@ useHead({
 
   .table-actions {
     display: flex;
-    gap: 4px;
+    gap: 8px;
     margin: 0;
     padding: 0;
+
+    .el-button {
+      padding: 4px 8px;
+      font-size: 12px;
+    }
   }
 }
 
@@ -1377,6 +1555,33 @@ useHead({
       align-items: center;
       gap: 6px;
     }
+  }
+}
+
+// 参数编辑对话框样式
+:deep(.param-dialog) {
+  .dialog-content {
+    padding: 20px 0;
+  }
+
+  .dialog-footer {
+    text-align: right;
+
+    .el-button {
+      margin-left: 10px;
+    }
+  }
+
+  .full-width {
+    width: 100%;
+  }
+
+  .el-form-item {
+    margin-bottom: 20px;
+  }
+
+  .el-textarea {
+    width: 100%;
   }
 }
 </style>
