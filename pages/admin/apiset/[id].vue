@@ -60,6 +60,18 @@ const apiSetInfo = ref({
 const paramsArr = ref()
 const packageList = ref([])
 
+// 请求方法选项
+const methodOptions = [
+  {
+    value: 'GET',
+    label: 'GET',
+  },
+  {
+    value: 'POST',
+    label: 'POST',
+  },
+]
+
 const getData = async () => {
   const res = await $myFetch('ApiId', {
     params: {
@@ -727,7 +739,18 @@ useHead({
 
                     <el-col :xs="24" :sm="24" :md="24" :lg="24" :xl="24">
                       <el-form-item label="请求类型" :label-width="90">
-                        <el-input v-model="apiSetInfo.method" />
+                        <el-select
+                          v-model="apiSetInfo.method"
+                          placeholder="请选择请求类型"
+                          style="width: 100%"
+                        >
+                          <el-option
+                            v-for="item in methodOptions"
+                            :key="item.value"
+                            :label="item.label"
+                            :value="item.value"
+                          />
+                        </el-select>
                       </el-form-item>
                     </el-col>
 

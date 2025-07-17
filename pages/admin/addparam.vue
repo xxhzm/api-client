@@ -44,6 +44,54 @@ const addparameter = reactive({
   required: true,
 })
 
+// 常用参数名称列表
+const commonParamNames = [
+  { value: 'return' },
+  { value: 'format' },
+  { value: 'page' },
+  { value: 'limit' },
+  { value: 'size' },
+  { value: 'offset' },
+  { value: 'sort' },
+  { value: 'order' },
+  { value: 'id' },
+  { value: 'name' },
+  { value: 'type' },
+  { value: 'status' },
+  { value: 'keyword' },
+  { value: 'search' },
+  { value: 'filter' },
+  { value: 'category' },
+  { value: 'tag' },
+  { value: 'date' },
+  { value: 'time' },
+  { value: 'token' },
+]
+
+// 常用可传参数列表
+const commonParamValues = [
+  { value: 'json' },
+  { value: 'xml' },
+  { value: 'text' },
+  { value: 'html' },
+  { value: '302' },
+  { value: '301' },
+  { value: 'true' },
+  { value: 'false' },
+  { value: '1' },
+  { value: '0' },
+  { value: 'asc' },
+  { value: 'desc' },
+  { value: 'utf-8' },
+  { value: 'gbk' },
+  { value: 'get' },
+  { value: 'post' },
+  { value: 'put' },
+  { value: 'delete' },
+  { value: 'image' },
+  { value: 'file' },
+]
+
 const position = [
   {
     value: 'query',
@@ -134,6 +182,28 @@ const handleSearchSelect = (item) => {
   addparameter.id = item.id
 }
 
+// 参数名称自动完成
+const queryParamNameAsync = (queryString, cb) => {
+  const results = queryString
+    ? commonParamNames.filter((item) =>
+        item.value.toLowerCase().includes(queryString.toLowerCase())
+      )
+    : commonParamNames
+
+  cb(results)
+}
+
+// 可传参数自动完成
+const queryParamValueAsync = (queryString, cb) => {
+  const results = queryString
+    ? commonParamValues.filter((item) =>
+        item.value.toLowerCase().includes(queryString.toLowerCase())
+      )
+    : commonParamValues
+
+  cb(results)
+}
+
 useHead({
   title: '添加参数',
   viewport:
@@ -184,12 +254,19 @@ useHead({
                 />
               </el-form-item>
               <el-form-item label="参数名称">
-                <el-input v-model="addparameter.name" placeholder="return" />
+                <el-autocomplete
+                  v-model="addparameter.name"
+                  :fetch-suggestions="queryParamNameAsync"
+                  placeholder="请输入参数名称，或从常用参数中选择"
+                  class="full-width"
+                />
               </el-form-item>
               <el-form-item label="可传参数">
-                <el-input
+                <el-autocomplete
                   v-model="addparameter.param"
-                  placeholder="json | 302"
+                  :fetch-suggestions="queryParamValueAsync"
+                  placeholder="请输入可传参数，或从常用值中选择"
+                  class="full-width"
                 />
               </el-form-item>
               <client-only>

@@ -70,6 +70,66 @@ const position = [
   },
 ]
 
+// 常用参数名称列表
+const commonParamNames = [
+  { value: 'return' },
+  { value: 'format' },
+  { value: 'page' },
+  { value: 'limit' },
+  { value: 'size' },
+  { value: 'offset' },
+  { value: 'sort' },
+  { value: 'order' },
+  { value: 'id' },
+  { value: 'name' },
+  { value: 'type' },
+  { value: 'status' },
+  { value: 'keyword' },
+  { value: 'search' },
+  { value: 'filter' },
+  { value: 'category' },
+  { value: 'tag' },
+  { value: 'date' },
+  { value: 'time' },
+  { value: 'token' },
+]
+
+// 常用可传参数列表
+const commonParamValues = [
+  { value: 'json' },
+  { value: 'xml' },
+  { value: 'text' },
+  { value: 'html' },
+  { value: '302' },
+  { value: '301' },
+  { value: 'true' },
+  { value: 'false' },
+  { value: '1' },
+  { value: '0' },
+  { value: 'asc' },
+  { value: 'desc' },
+  { value: 'utf-8' },
+  { value: 'gbk' },
+  { value: 'get' },
+  { value: 'post' },
+  { value: 'put' },
+  { value: 'delete' },
+  { value: 'image' },
+  { value: 'file' },
+]
+
+// 请求方法选项
+const methodOptions = [
+  {
+    value: 'GET',
+    label: 'GET',
+  },
+  {
+    value: 'POST',
+    label: 'POST',
+  },
+]
+
 watch(
   () => addparameter.id,
   (newValue) => {
@@ -92,6 +152,11 @@ const create = async () => {
 
   if (!createapiInfo.categoryId) {
     msg('请选择分类', 'error')
+    return false
+  }
+
+  if (createapiInfo.method !== 'GET' && createapiInfo.method !== 'POST') {
+    msg('请选择正确的请求类型', 'error')
     return false
   }
 
@@ -230,6 +295,28 @@ const handleSelect = (item) => {
   createapiInfo.categoryId = item.id
 }
 
+// 参数名称自动完成
+const queryParamNameAsync = (queryString, cb) => {
+  const results = queryString
+    ? commonParamNames.filter((item) =>
+        item.value.toLowerCase().includes(queryString.toLowerCase())
+      )
+    : commonParamNames
+
+  cb(results)
+}
+
+// 可传参数自动完成
+const queryParamValueAsync = (queryString, cb) => {
+  const results = queryString
+    ? commonParamValues.filter((item) =>
+        item.value.toLowerCase().includes(queryString.toLowerCase())
+      )
+    : commonParamValues
+
+  cb(results)
+}
+
 useHead({
   title: '新增接口',
   viewport:
@@ -351,12 +438,18 @@ useHead({
 
               <el-col :xs="24" :sm="12" :md="12" :lg="8" :xl="8">
                 <el-form-item label="请求类型">
-                  <el-input
+                  <el-select
                     v-model="createapiInfo.method"
-                    maxlength="12"
-                    show-word-limit
-                    placeholder="GET 建议使用大写"
-                  />
+                    placeholder="请选择请求类型"
+                    style="width: 100%"
+                  >
+                    <el-option
+                      v-for="item in methodOptions"
+                      :key="item.value"
+                      :label="item.label"
+                      :value="item.value"
+                    />
+                  </el-select>
                 </el-form-item>
               </el-col>
 
@@ -393,10 +486,20 @@ useHead({
           <!-- 原有参数表单 -->
           <el-form :model="addparameter" label-width="120px" class="param-form">
             <el-form-item label="参数名称">
-              <el-input v-model="addparameter.name" placeholder="return" />
+              <el-autocomplete
+                v-model="addparameter.name"
+                :fetch-suggestions="queryParamNameAsync"
+                placeholder="请输入参数名称，或从常用参数中选择"
+                style="width: 100%"
+              />
             </el-form-item>
             <el-form-item label="可传参数">
-              <el-input v-model="addparameter.param" placeholder="json | 302" />
+              <el-autocomplete
+                v-model="addparameter.param"
+                :fetch-suggestions="queryParamValueAsync"
+                placeholder="请输入可传参数，或从常用值中选择"
+                style="width: 100%"
+              />
             </el-form-item>
             <client-only>
               <el-form-item label="传入位置">
