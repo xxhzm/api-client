@@ -734,6 +734,13 @@ useHead({
                     <el-col :xs="24" :sm="24" :md="24" :lg="24" :xl="24">
                       <el-form-item label="接口地址" :label-width="90">
                         <el-input v-model="apiSetInfo.url" />
+                        <div class="form-tip">
+                          <el-text type="info" size="small">
+                            PHP-FPM 提示：直接填写项目文件夹路径即可，如
+                            /www/wwwroot/tcping，系统会自动访问该目录下的
+                            index.php 文件
+                          </el-text>
+                        </div>
                       </el-form-item>
                     </el-col>
 
@@ -1605,6 +1612,20 @@ useHead({
 
   .el-textarea {
     width: 100%;
+  }
+}
+
+// 表单提示样式
+.form-tip {
+  margin-top: 8px;
+  padding: 8px 12px;
+  background: #f0f9ff;
+  border: 1px solid #e0f2fe;
+  border-radius: 4px;
+
+  .el-text {
+    color: #0369a1;
+    line-height: 1.5;
   }
 }
 </style>

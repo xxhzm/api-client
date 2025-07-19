@@ -397,6 +397,13 @@ useHead({
                     maxlength="128"
                     show-word-limit
                   />
+                  <div class="form-tip">
+                    <el-text type="info" size="small">
+                      PHP-FPM 提示：直接填写项目文件夹路径即可，如
+                      /www/wwwroot/tcping，系统会自动访问该目录下的 index.php
+                      文件
+                    </el-text>
+                  </div>
                 </el-form-item>
               </el-col>
 
@@ -731,6 +738,20 @@ useHead({
       align-items: flex-start;
       gap: 12px;
     }
+  }
+}
+
+// 表单提示样式
+.form-tip {
+  margin-top: 8px;
+  padding: 8px 12px;
+  background: #f0f9ff;
+  border: 1px solid #e0f2fe;
+  border-radius: 4px;
+
+  .el-text {
+    color: #0369a1;
+    line-height: 1.5;
   }
 }
 </style>

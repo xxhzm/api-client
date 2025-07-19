@@ -1,5 +1,5 @@
 <script setup>
-import { Connection, Menu } from '@element-plus/icons-vue'
+import { Connection, Menu, Bell } from '@element-plus/icons-vue'
 const { $msg, $myFetch } = useNuxtApp()
 const msg = $msg
 
@@ -200,6 +200,29 @@ useHead({
       <AdminHeader></AdminHeader>
       <div class="prefix_container">
         <div class="prefix-card">
+          <ClientOnly>
+            <el-alert
+              title="php-fpm 的地址可设为 Unix 套接字（如 /tmp/php-cgi-82.sock）或 IP:端口（如 127.0.0.1:9000）。建议优先使用 Unix 套接字，因其并发性能更佳。如使用 IP:端口，必须设置 listen.allowed_clients 为本机 IP（如 127.0.0.1）以增强安全性。"
+              type="warning"
+              show-icon
+              style="margin-bottom: 16px"
+            >
+              <template #icon>
+                <Bell />
+              </template>
+            </el-alert>
+            <el-alert
+              title="修改前缀后请重启网关服务"
+              type="error"
+              show-icon
+              style="margin-bottom: 16px"
+            >
+              <template #icon>
+                <Bell />
+              </template>
+            </el-alert>
+          </ClientOnly>
+
           <div class="card-header">
             <div class="header-left">
               <el-icon class="icon">
@@ -265,6 +288,8 @@ useHead({
                       :type="
                         scope.row.request_type === 'http'
                           ? 'success'
+                          : scope.row.request_type === 'grpc'
+                          ? 'primary'
                           : 'warning'
                       "
                       size="small"
@@ -284,6 +309,7 @@ useHead({
           :title="disabled ? '修改前缀' : '新增前缀'"
           width="500px"
           destroy-on-close
+          @close="handleClose"
         >
           <el-form :model="prefixInfo" label-width="90px">
             <el-form-item label="前缀名称" required>
@@ -307,8 +333,9 @@ useHead({
                 placeholder="请选择接口类型"
                 class="full-width"
               >
-                <el-option label="HTTP" value="http" />
-                <el-option label="gRPC" value="grpc" />
+                <el-option label="http" value="http" />
+                <el-option label="grpc" value="grpc" />
+                <el-option label="php-fpm" value="php" />
               </el-select>
             </el-form-item>
           </el-form>
