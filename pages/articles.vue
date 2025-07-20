@@ -32,6 +32,11 @@ useHead({
       content: options.value.website_name + '-文章',
     },
   ],
+  style: [
+    {
+      children: options.value.css,
+    },
+  ],
 })
 </script>
 

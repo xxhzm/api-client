@@ -7,7 +7,7 @@ export default defineNuxtConfig({
     externalVue: true,
   },
 
-  css: ['@/assets/css/app.less', '@/assets/css/font.css'],
+  css: ['@/assets/css/app.less'],
 
   sourcemap: {
     server: false,

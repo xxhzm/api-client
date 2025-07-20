@@ -42,6 +42,11 @@ useHead({
     { name: 'description', content: info.value.description },
     { name: 'keywords', content: info.value.keywords },
   ],
+  style: [
+    {
+      children: options.value.css,
+    },
+  ],
 })
 </script>
 

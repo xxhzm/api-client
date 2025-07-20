@@ -28,6 +28,11 @@ useHead({
       content: options.value.website_name + '-友情链接',
     },
   ],
+  style: [
+    {
+      children: options.value.css,
+    },
+  ],
 })
 
 // 图片错误处理函数

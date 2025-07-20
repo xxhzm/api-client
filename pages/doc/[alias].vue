@@ -72,6 +72,11 @@ useHead({
     { name: 'description', content: apiInfo.value.description },
     { name: 'keywords', content: apiInfo.value.keywords },
   ],
+  style: [
+    {
+      children: options.value.css,
+    },
+  ],
 })
 
 onMounted(() => {

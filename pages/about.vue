@@ -73,6 +73,11 @@ useHead({
       content: options.value.website_name + ' - 关于我们',
     },
   ],
+  style: [
+    {
+      children: options.value.css,
+    },
+  ],
 })
 </script>
 

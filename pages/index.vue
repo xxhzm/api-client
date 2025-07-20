@@ -35,6 +35,11 @@ useHead({
     { name: 'description', content: options.value.description },
     { name: 'keywords', content: options.value.keywords },
   ],
+  style: [
+    {
+      children: options.value.css,
+    },
+  ],
 })
 
 // 添加搜索相关的数据和方法

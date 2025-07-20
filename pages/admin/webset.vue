@@ -15,6 +15,7 @@ const websetInfo = ref({
   website_name: '',
   notice: '',
   feedback: '',
+  css: '',
 })
 
 // 邮件设置相关
@@ -445,6 +446,7 @@ const websetInfoSubmit = async () => {
   bodyValue.append('websiteName', websetInfo.value.website_name)
   bodyValue.append('notice', websetInfo.value.notice)
   bodyValue.append('feedback', websetInfo.value.feedback)
+  bodyValue.append('css', websetInfo.value.css)
 
   const res = await $myFetch('OptionsUpdate', {
     method: 'POST',
@@ -454,7 +456,10 @@ const websetInfoSubmit = async () => {
   if (res.code === 200) {
     $msg(res.msg, 'success')
     getWebsetInfo()
+    return
   }
+
+  $msg(res.msg, 'error')
 }
 
 // 提交邮件设置
@@ -700,6 +705,14 @@ useHead({
                     <el-input
                       v-model="websetInfo.feedback"
                       placeholder="请输入问题反馈链接"
+                    />
+                  </el-form-item>
+                  <el-form-item label="自定义CSS">
+                    <el-input
+                      v-model="websetInfo.css"
+                      type="textarea"
+                      :rows="5"
+                      placeholder="请输入自定义CSS"
                     />
                   </el-form-item>
                   <el-form-item>
