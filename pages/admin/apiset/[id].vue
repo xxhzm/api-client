@@ -683,6 +683,144 @@ const handleAddPackage = () => {
   }
 }
 
+// 添加参数相关
+const addParamDialogStatus = ref(false)
+const addParamInfo = ref({
+  name: '',
+  param: '',
+  position: 'query',
+  docs: '',
+  required: true,
+})
+
+// 常用参数名称列表
+const commonParamNames = [
+  { value: 'return' },
+  { value: 'format' },
+  { value: 'page' },
+  { value: 'limit' },
+  { value: 'size' },
+  { value: 'offset' },
+  { value: 'sort' },
+  { value: 'order' },
+  { value: 'id' },
+  { value: 'name' },
+  { value: 'type' },
+  { value: 'status' },
+  { value: 'keyword' },
+  { value: 'search' },
+  { value: 'filter' },
+  { value: 'category' },
+  { value: 'tag' },
+  { value: 'date' },
+  { value: 'time' },
+  { value: 'token' },
+]
+
+// 常用可传参数列表
+const commonParamValues = [
+  { value: 'json' },
+  { value: 'xml' },
+  { value: 'text' },
+  { value: 'html' },
+  { value: '302' },
+  { value: '301' },
+  { value: 'true' },
+  { value: 'false' },
+  { value: '1' },
+  { value: '0' },
+  { value: 'asc' },
+  { value: 'desc' },
+  { value: 'utf-8' },
+  { value: 'gbk' },
+  { value: 'get' },
+  { value: 'post' },
+  { value: 'put' },
+  { value: 'delete' },
+  { value: 'image' },
+  { value: 'file' },
+]
+
+// 处理添加参数
+const handleAddParam = () => {
+  addParamDialogStatus.value = true
+  addParamInfo.value = {
+    name: '',
+    param: '',
+    position: 'query',
+    docs: '',
+    required: true,
+  }
+}
+
+// 参数名称自动完成
+const queryParamNameAsync = (queryString, cb) => {
+  const results = queryString
+    ? commonParamNames.filter((item) =>
+        item.value.toLowerCase().includes(queryString.toLowerCase())
+      )
+    : commonParamNames
+
+  cb(results)
+}
+
+// 可传参数自动完成
+const queryParamValueAsync = (queryString, cb) => {
+  const results = queryString
+    ? commonParamValues.filter((item) =>
+        item.value.toLowerCase().includes(queryString.toLowerCase())
+      )
+    : commonParamValues
+
+  cb(results)
+}
+
+const addParam = async () => {
+  if (
+    !addParamInfo.value.name ||
+    !addParamInfo.value.param ||
+    !addParamInfo.value.position ||
+    !addParamInfo.value.docs
+  ) {
+    msg('请填写完整信息', 'error')
+    return
+  }
+
+  const bodyValue = new URLSearchParams()
+  bodyValue.append('aid', route.params.id)
+  bodyValue.append('name', addParamInfo.value.name)
+  bodyValue.append('param', addParamInfo.value.param)
+  bodyValue.append('position', addParamInfo.value.position)
+  bodyValue.append('docs', addParamInfo.value.docs)
+  bodyValue.append('required', addParamInfo.value.required ? 1 : 2)
+
+  const res = await $myFetch('ParamCreate', {
+    method: 'POST',
+    body: bodyValue,
+  })
+
+  if (res.code === 200) {
+    msg(res.msg, 'success')
+    addParamDialogStatus.value = false
+    await getData()
+  } else {
+    msg(res.msg, 'error')
+  }
+}
+
+// 监听添加参数对话框关闭，重置表单
+watch(addParamDialogStatus, (newValue) => {
+  if (!newValue) {
+    addParamInfo.value = {
+      name: '',
+      param: '',
+      position: 'query',
+      docs: '',
+      required: true,
+    }
+  }
+})
+
 useHead({
   title: '编辑接口',
   viewport:
@@ -841,26 +979,25 @@ useHead({
               </el-tab-pane>
 
               <el-tab-pane label="参数信息" name="Parameter">
+                <div class="param-header">
+                  <div class="header-left">
+                    <span class="param-title">参数列表</span>
+                  </div>
+                  <div class="header-right">
+                    <el-button type="primary" @click="handleAddParam">
+                      <span>添加参数</span>
+                    </el-button>
+                  </div>
+                </div>
+
                 <el-table :data="paramsArr">
-                  <el-table-column prop="aid" label="id" width="60" />
-                  <el-table-column prop="name" label="接口名称" width="100" />
-                  <el-table-column prop="param" label="传递参数" width="100" />
-                  <el-table-column
-                    prop="position"
-                    label="传入位置"
-                    width="100"
-                  />
-                  <el-table-column prop="docs" label="参数描述" width="300" />
-                  <el-table-column
-                    prop="required"
-                    label="是否必传"
-                    width="100"
-                  />
-                  <el-table-column
-                    prop="create_time"
-                    label="创建时间"
-                    width="165"
-                  />
+                  <el-table-column prop="aid" label="id" />
+                  <el-table-column prop="name" label="接口名称" />
+                  <el-table-column prop="param" label="传递参数" />
+                  <el-table-column prop="position" label="传入位置" />
+                  <el-table-column prop="docs" label="参数描述" />
+                  <el-table-column prop="required" label="是否必传" />
+                  <el-table-column prop="create_time" label="创建时间" />
                   <el-table-column width="160" label="操作">
                     <template #default="scope">
                       <div class="table-actions">
@@ -888,6 +1025,81 @@ useHead({
                     </template>
                   </el-table-column>
                 </el-table>
+
+                <!-- 添加参数对话框 -->
+                <el-dialog
+                  v-model="addParamDialogStatus"
+                  title="添加参数"
+                  width="600px"
+                  destroy-on-close
+                  class="param-dialog"
+                >
+                  <div class="dialog-content">
+                    <el-form :model="addParamInfo" label-width="100px">
+                      <el-row :gutter="20">
+                        <el-col :span="12">
+                          <el-form-item label="参数名称" required>
+                            <el-autocomplete
+                              v-model="addParamInfo.name"
+                              :fetch-suggestions="queryParamNameAsync"
+                              placeholder="请输入参数名称，或从常用参数中选择"
+                              style="width: 100%"
+                            />
+                          </el-form-item>
+                        </el-col>
+                        <el-col :span="12">
+                          <el-form-item label="可传参数" required>
+                            <el-autocomplete
+                              v-model="addParamInfo.param"
+                              :fetch-suggestions="queryParamValueAsync"
+                              placeholder="请输入可传参数，或从常用值中选择"
+                              style="width: 100%"
+                            />
+                          </el-form-item>
+                        </el-col>
+                      </el-row>
+
+                      <el-row :gutter="20">
+                        <el-col :span="12">
+                          <el-form-item label="传入位置" required>
+                            <el-select
+                              v-model="addParamInfo.position"
+                              placeholder="请选择传入位置"
+                              class="full-width"
+                            >
+                              <el-option label="query" value="query" />
+                              <el-option label="body" value="body" />
+                            </el-select>
+                          </el-form-item>
+                        </el-col>
+                        <el-col :span="12">
+                          <el-form-item label="是否必传">
+                            <el-switch v-model="addParamInfo.required" />
+                          </el-form-item>
+                        </el-col>
+                      </el-row>
+
+                      <el-form-item label="参数描述" required>
+                        <el-input
+                          v-model="addParamInfo.docs"
+                          type="textarea"
+                          :rows="3"
+                          placeholder="请输入参数描述"
+                        />
+                      </el-form-item>
+                    </el-form>
+                  </div>
+                  <template #footer>
+                    <div class="dialog-footer">
+                      <el-button @click="addParamDialogStatus = false">
+                        取消
+                      </el-button>
+                      <el-button type="primary" @click="addParam">
+                        添加
+                      </el-button>
+                    </div>
+                  </template>
+                </el-dialog>
 
                 <!-- 编辑参数对话框 -->
                 <el-dialog
@@ -1626,6 +1838,36 @@ useHead({
   .el-text {
     color: #0369a1;
     line-height: 1.5;
+  }
+}
+
+.param-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px 24px;
+  margin-bottom: 16px;
+  background: #f8fafc;
+  border-radius: 8px;
+
+  .header-left {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+
+    .param-title {
+      font-size: 16px;
+      font-weight: 600;
+      color: #1a1f36;
+    }
+  }
+
+  .header-right {
+    .el-button {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
   }
 }
 </style>
