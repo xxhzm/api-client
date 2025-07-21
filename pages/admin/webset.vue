@@ -54,6 +54,11 @@ const aiInfo = ref({
   url: '',
 })
 
+// 高级设置相关
+const advancedInfo = ref({
+  request_id: 'true',
+})
+
 // 新增：关于我们页面信息相关
 const aboutInfo = ref({
   companyInfo: {
@@ -194,6 +199,14 @@ const getAIInfo = async () => {
   const res = await $myFetch('AIInfo')
   if (res.code === 200) {
     aiInfo.value = res.data
+  }
+}
+
+// 获取高级设置
+const getAdvancedInfo = async () => {
+  const res = await $myFetch('AdvancedSetting')
+  if (res.code === 200) {
+    advancedInfo.value = res.data
   }
 }
 
@@ -420,6 +433,7 @@ onMounted(() => {
   getWechatPayInfo()
   getAIInfo()
   getAboutInfo()
+  getAdvancedInfo()
 })
 
 // 提交网站设置
@@ -575,6 +589,24 @@ const aboutInfoSubmit = async () => {
   if (res.code === 200) {
     $msg(res.msg, 'success')
     getAboutInfo()
+  } else {
+    $msg(res.msg, 'error')
+  }
+}
+
+// 提交高级设置
+const advancedInfoSubmit = async () => {
+  const bodyValue = new URLSearchParams()
+  bodyValue.append('requestId', advancedInfo.value.request_id)
+
+  const res = await $myFetch('UpdateAdvancedSetting', {
+    method: 'POST',
+    body: bodyValue,
+  })
+
+  if (res.code === 200) {
+    $msg(res.msg, 'success')
+    getAdvancedInfo()
   } else {
     $msg(res.msg, 'error')
   }
@@ -984,6 +1016,35 @@ useHead({
                     <el-button type="primary" @click="aiInfoSubmit"
                       >提交</el-button
                     >
+                  </el-form-item>
+                </el-form>
+              </div>
+            </el-tab-pane>
+
+            <el-tab-pane label="高级设置" name="advanced">
+              <div class="form">
+                <el-form
+                  :model="advancedInfo"
+                  label-position="top"
+                  label-width="120px"
+                >
+                  <el-form-item label="返回携带请求ID">
+                    <el-select
+                      v-model="advancedInfo.request_id"
+                      placeholder="请选择是否返回请求ID"
+                      style="width: 100%"
+                    >
+                      <el-option label="是" value="true"></el-option>
+                      <el-option label="否" value="false"></el-option>
+                    </el-select>
+                    <div class="form-help">
+                      开启后，所有API响应将包含唯一的请求ID，便于问题追踪和调试
+                    </div>
+                  </el-form-item>
+                  <el-form-item>
+                    <el-button type="primary" @click="advancedInfoSubmit">
+                      提交
+                    </el-button>
                   </el-form-item>
                 </el-form>
               </div>
@@ -1485,6 +1546,14 @@ useHead({
             .el-input__wrapper {
               padding: 0 12px;
             }
+          }
+
+          // 表单帮助文本样式
+          .form-help {
+            margin-top: 8px;
+            font-size: 13px;
+            color: #6b7280;
+            line-height: 1.5;
           }
         }
       }
