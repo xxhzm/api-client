@@ -57,6 +57,9 @@ const apiSetInfo = ref({
   keyState: '',
 })
 
+// 返回示例编辑器类型
+const exampleEditorType = ref('basic')
+
 const paramsArr = ref()
 const packageList = ref([])
 
@@ -967,11 +970,38 @@ useHead({
 
                     <el-col :xs="24" :sm="24" :md="24" :lg="24" :xl="24">
                       <el-form-item label="返回示例" :label-width="90">
-                        <el-input
-                          :rows="10"
-                          v-model="apiSetInfo.example"
-                          type="textarea"
-                        />
+                        <div class="example-editor-container">
+                          <div class="editor-type-selector">
+                            <el-radio-group
+                              v-model="exampleEditorType"
+                              size="small"
+                            >
+                              <el-radio-button value="basic"
+                                >基础</el-radio-button
+                              >
+                              <el-radio-button value="advanced"
+                                >高级</el-radio-button
+                              >
+                            </el-radio-group>
+                          </div>
+
+                          <!-- 基础文本框 -->
+                          <el-input
+                            v-if="exampleEditorType === 'basic'"
+                            :rows="10"
+                            v-model="apiSetInfo.example"
+                            type="textarea"
+                            placeholder="请输入返回示例"
+                          />
+
+                          <!-- 高级编辑器 -->
+                          <div v-else class="advanced-editor">
+                            <TinyMCEEditor
+                              v-model="apiSetInfo.example"
+                              :height="400"
+                            />
+                          </div>
+                        </div>
                       </el-form-item>
                     </el-col>
                   </el-row>
@@ -1625,6 +1655,51 @@ useHead({
           transform: translateY(-50%);
         }
       }
+    }
+  }
+}
+
+// 返回示例编辑器样式
+.example-editor-container {
+  width: 100%;
+  .editor-type-selector {
+    margin-bottom: 12px;
+    display: flex;
+    align-items: center;
+
+    :deep(.el-radio-group) {
+      .el-radio-button__inner {
+        padding: 8px 16px;
+        font-size: 13px;
+        border-radius: 6px;
+        transition: all 0.3s;
+      }
+
+      .el-radio-button:first-child .el-radio-button__inner {
+        border-left: 1px solid #dcdfe6;
+      }
+
+      .el-radio-button__original-radio:checked + .el-radio-button__inner {
+        background-color: #409eff;
+        border-color: #409eff;
+        color: #fff;
+      }
+    }
+  }
+
+  .advanced-editor {
+    margin-top: 8px;
+
+    :deep(.tinymce-editor-container) {
+      border-radius: 8px;
+      overflow: hidden;
+    }
+  }
+
+  :deep(.el-textarea) {
+    .el-textarea__inner {
+      border-radius: 8px;
+      line-height: 1.5;
     }
   }
 }

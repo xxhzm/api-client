@@ -303,9 +303,23 @@ watch(debugVisible, (val) => {
   }
 })
 
+// 检测内容是否为HTML格式（来自高级编辑器）
+const isHtmlContent = computed(() => {
+  if (!apiInfo.value.example) return false
+
+  // 检测是否包含HTML标签
+  const htmlRegex = /<[^>]*>/
+  return htmlRegex.test(apiInfo.value.example)
+})
+
 // 添加新的计算属性
 const highlightedExample = computed(() => {
   if (!apiInfo.value.example) return ''
+
+  // 如果是HTML内容（来自高级编辑器），直接返回
+  if (isHtmlContent.value) {
+    return apiInfo.value.example
+  }
 
   try {
     // 如果example是字符串形式的JSON,先解析再格式化
@@ -446,11 +460,29 @@ const openInNewWindow = (url) => {
 
       <div class="box">
         <h2>返回示例</h2>
-        <pre class="example mac_light mac_pre"><client-only><el-tooltip
-        class="box-item"
-        effect="dark"
-        content="复制"
-        placement="left"
+
+        <!-- 高级模式：HTML内容 -->
+        <div v-if="isHtmlContent" class="example-html-container">
+          <client-only>
+            <el-tooltip
+              class="box-item"
+              effect="dark"
+              content="复制"
+              placement="left"
+            >
+              <div class="copy" @click="copy(apiInfo.example)">
+                <el-icon size="14"><CopyDocument /></el-icon>
+              </div>
+            </el-tooltip>
+          </client-only>
+          <div class="html-content" v-html="highlightedExample"></div>
+        </div>
+
+        <!-- 基础模式：代码格式 -->
+        <pre
+          v-else
+          class="example mac_light mac_pre"
+        ><client-only><el-tooltip class="box-item" effect="dark" content="复制" placement="left"
       ><div class="copy" @click="copy(apiInfo.example)"><el-icon size="14"><CopyDocument /></el-icon></div
       ></el-tooltip></client-only><code class="json" v-text="apiInfo.example"></code></pre>
       </div>
@@ -705,6 +737,159 @@ const openInNewWindow = (url) => {
       background: #ff5f56;
       box-shadow: 20px 0 #ffbd2e, 40px 0 #27c93f;
       width: 12px;
+    }
+
+    // 高级模式HTML容器样式
+    .example-html-container {
+      position: relative;
+      background: #f8fafc;
+      border-radius: 8px;
+      border: 1px solid #edf2f7;
+      overflow: hidden;
+
+      &::before {
+        content: '';
+        display: block;
+        height: 12px;
+        margin: 10px 0 16px 16px;
+        border-radius: 50%;
+        background: #ff5f56;
+        box-shadow: 20px 0 #ffbd2e, 40px 0 #27c93f;
+        width: 12px;
+      }
+
+      .copy {
+        position: absolute;
+        top: 12px;
+        right: 12px;
+        padding: 6px;
+        background: rgba(255, 255, 255, 0.9);
+        border-radius: 4px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+        opacity: 0;
+        transition: opacity 0.3s ease;
+        cursor: pointer;
+        z-index: 10;
+
+        &:hover {
+          background: #fff;
+        }
+      }
+
+      &:hover .copy {
+        opacity: 1;
+      }
+
+      .html-content {
+        padding: 16px;
+        padding-top: 0;
+        min-height: 60px;
+        line-height: 1.6;
+        color: #2c3e50;
+
+        // 确保富文本内容的样式
+        :deep(p) {
+          margin: 0 0 12px 0;
+          line-height: 1.6;
+
+          &:last-child {
+            margin-bottom: 0;
+          }
+        }
+
+        :deep(h1, h2, h3, h4, h5, h6) {
+          margin: 16px 0 8px 0;
+          color: #2c3e50;
+
+          &:first-child {
+            margin-top: 0;
+          }
+        }
+
+        :deep(ul, ol) {
+          margin: 8px 0;
+          padding-left: 24px;
+        }
+
+        :deep(li) {
+          margin: 4px 0;
+        }
+
+        :deep(strong) {
+          font-weight: 600;
+          color: #1a202c;
+        }
+
+        :deep(em) {
+          font-style: italic;
+        }
+
+        :deep(code) {
+          background: #e2e8f0;
+          padding: 2px 6px;
+          border-radius: 3px;
+          font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+          font-size: 13px;
+          color: #e53e3e;
+        }
+
+        :deep(pre) {
+          background: #2d3748;
+          color: #e2e8f0;
+          padding: 12px;
+          border-radius: 6px;
+          margin: 12px 0;
+          overflow-x: auto;
+
+          code {
+            background: transparent;
+            color: inherit;
+            padding: 0;
+          }
+        }
+
+        :deep(blockquote) {
+          border-left: 4px solid #409eff;
+          margin: 12px 0;
+          padding: 8px 16px;
+          background: #f0f9ff;
+          color: #1a365d;
+        }
+
+        :deep(table) {
+          width: 100%;
+          border-collapse: collapse;
+          margin: 12px 0;
+
+          th,
+          td {
+            border: 1px solid #e2e8f0;
+            padding: 8px 12px;
+            text-align: left;
+          }
+
+          th {
+            background: #f8fafc;
+            font-weight: 600;
+          }
+        }
+
+        :deep(a) {
+          color: #409eff;
+          text-decoration: none;
+
+          &:hover {
+            text-decoration: underline;
+          }
+        }
+
+        :deep(img) {
+          max-width: 100%;
+          height: auto;
+          border-radius: 4px;
+          margin: 8px 0;
+        }
+      }
     }
 
     .el-tabs {
