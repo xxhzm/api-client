@@ -25,13 +25,7 @@ if (res.code !== 200) {
 info.value = res.data
 
 // 配置项
-const options = ref({})
-
-const {
-  data: { value: res1 },
-} = await useAsyncData('Options', () => $myFetch('Options'))
-
-options.value = res1.data
+const options = useState('options')
 
 useHead({
   title: info.value.title + ' - ' + options.value.title,

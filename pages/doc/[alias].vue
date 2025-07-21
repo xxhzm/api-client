@@ -55,13 +55,7 @@ res.data.params = res.data.params.map((item) => {
 apiInfo.value = res.data
 
 // 配置项
-const options = ref({})
-
-const {
-  data: { value: res1 },
-} = await useAsyncData('Options', () => $myFetch('Options'))
-
-options.value = res1.data
+const options = useState('options')
 
 useHead({
   title: apiInfo.value.name + ' - 免费API',

@@ -242,13 +242,7 @@ watch(isForgotPassword, (newValue) => {
 })
 
 // 获取配置信息
-const options = ref({})
-
-const {
-  data: { value: res },
-} = await useAsyncData('Options', () => $myFetch('Options'))
-
-options.value = res.data
+const options = useState('options')
 
 useHead({
   title: '用户登录',

@@ -412,8 +412,10 @@ onUnmounted(() => {
   chart?.dispose()
 })
 
+const options = useState('options')
+
 useHead({
-  title: '实时请求大屏 - 免费API',
+  title: '实时请求大屏 - ' + options.value.title,
 })
 </script>
 

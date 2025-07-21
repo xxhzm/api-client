@@ -9,13 +9,7 @@ const {
 links.value = res.data
 
 // 配置项
-const options = ref({})
-
-const {
-  data: { value: res1 },
-} = await useAsyncData('Options', () => $myFetch('Options'))
-
-options.value = res1.data
+const options = useState('options')
 
 useHead({
   title: '友情链接' + ' - ' + options.value.title,

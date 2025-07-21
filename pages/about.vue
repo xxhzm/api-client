@@ -18,13 +18,7 @@ import {
 const { $myFetch } = useNuxtApp()
 
 // 配置项
-const options = ref({})
-
-const {
-  data: { value: res },
-} = await useAsyncData('Options', () => $myFetch('Options'))
-
-options.value = res.data
+const options = useState('options')
 
 // 关于我们页面数据
 const aboutData = ref({})

@@ -11,14 +11,8 @@ import {
 const { $myFetch } = useNuxtApp()
 
 // 配置项
-const options = ref({})
+const options = useState('options')
 const links = ref([])
-
-const {
-  data: { value: res },
-} = await useAsyncData('Options', () => $myFetch('Options'))
-
-options.value = res.data
 
 const {
   data: { value: linkRes },
@@ -34,11 +28,6 @@ useHead({
   meta: [
     { name: 'description', content: options.value.description },
     { name: 'keywords', content: options.value.keywords },
-  ],
-  style: [
-    {
-      children: options.value.css,
-    },
   ],
 })
 
