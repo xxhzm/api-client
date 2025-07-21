@@ -13,6 +13,7 @@ const websetInfo = ref({
   icp: '',
   gongan: '',
   website_name: '',
+  recommend: 'true',
   notice: '',
   feedback: '',
   css: '',
@@ -458,6 +459,7 @@ const websetInfoSubmit = async () => {
   bodyValue.append('icp', websetInfo.value.icp)
   bodyValue.append('gongan', websetInfo.value.gongan)
   bodyValue.append('websiteName', websetInfo.value.website_name)
+  bodyValue.append('recommend', websetInfo.value.recommend)
   bodyValue.append('notice', websetInfo.value.notice)
   bodyValue.append('feedback', websetInfo.value.feedback)
   bodyValue.append('css', websetInfo.value.css)
@@ -724,6 +726,19 @@ useHead({
                   </el-form-item>
                   <el-form-item label="网站名称">
                     <el-input v-model="websetInfo.website_name" />
+                  </el-form-item>
+                  <el-form-item label="首页推荐信息">
+                    <el-select
+                      v-model="websetInfo.recommend"
+                      placeholder="请选择是否显示首页热门API推荐、免费API大全信息"
+                      style="width: 100%"
+                    >
+                      <el-option label="是" value="true"></el-option>
+                      <el-option label="否" value="false"></el-option>
+                    </el-select>
+                    <div class="form-help">
+                      开启后，首页将显示热门API推荐、免费API大全等信息
+                    </div>
                   </el-form-item>
                   <el-form-item label="通知信息">
                     <el-input

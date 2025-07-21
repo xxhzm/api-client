@@ -143,7 +143,7 @@ if (links.value.length === 0) {
       </div>
 
       <!-- 热门API推荐 -->
-      <div class="section hot-apis">
+      <div class="section hot-apis" v-if="options.recommend === 'true'">
         <div class="section-header">
           <h2 class="section-title">热门API推荐</h2>
         </div>
@@ -176,7 +176,7 @@ if (links.value.length === 0) {
           </div>
         </client-only>
       </div>
-      <div class="section seo-section">
+      <div class="section seo-section" v-if="options.recommend === 'true'">
         <div class="seo-block">
           <h2 class="section-title">免费API大全</h2>
           <div class="seo-content">
