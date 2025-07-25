@@ -47,6 +47,14 @@ const wechatPayInfo = ref({
   wxPublicKeyID: '',
 })
 
+// 新增：码支付配置相关
+const mpayInfo = ref({
+  key: '',
+  pid: '',
+  type: '',
+  url: '',
+})
+
 // AI配置相关
 const aiInfo = ref({
   key: '',
@@ -192,6 +200,14 @@ const getWechatPayInfo = async () => {
     wechatPayInfo.value.serialNo = res.data.serial_no
     wechatPayInfo.value.wxPublicKeyContent = res.data.wx_public_key_content
     wechatPayInfo.value.wxPublicKeyID = res.data.wx_public_key_id
+  }
+}
+
+// 新增：获取码支付配置
+const getMPayInfo = async () => {
+  const res = await $myFetch('MPayInfo')
+  if (res.code === 200) {
+    mpayInfo.value = res.data
   }
 }
 
@@ -432,6 +448,7 @@ onMounted(() => {
   getTopApiList()
   getAlipayInfo()
   getWechatPayInfo()
+  getMPayInfo()
   getAIInfo()
   getAboutInfo()
   getAdvancedInfo()
@@ -553,6 +570,27 @@ const wechatPayInfoSubmit = async () => {
   if (res.code === 200) {
     $msg(res.msg, 'success')
     getWechatPayInfo()
+  } else {
+    $msg(res.msg, 'error')
+  }
+}
+
+// 新增：提交码支付配置
+const mpayInfoSubmit = async () => {
+  const bodyValue = new URLSearchParams()
+  bodyValue.append('key', mpayInfo.value.key || '')
+  bodyValue.append('pid', mpayInfo.value.pid || '')
+  bodyValue.append('type', mpayInfo.value.type || '')
+  bodyValue.append('url', mpayInfo.value.url || '')
+
+  const res = await $myFetch('MPayOptionUpdate', {
+    method: 'POST',
+    body: bodyValue,
+  })
+
+  if (res.code === 200) {
+    $msg(res.msg, 'success')
+    getMPayInfo()
   } else {
     $msg(res.msg, 'error')
   }
@@ -985,6 +1023,62 @@ useHead({
                   </el-form-item>
                   <el-form-item>
                     <el-button type="primary" @click="wechatPayInfoSubmit"
+                      >提交</el-button
+                    >
+                  </el-form-item>
+                </el-form>
+              </div>
+            </el-tab-pane>
+
+            <el-tab-pane label="码支付配置" name="mpay">
+              <div class="form">
+                <el-form
+                  :model="mpayInfo"
+                  label-position="top"
+                  label-width="120px"
+                >
+                  <el-form-item label="密钥(Key)">
+                    <el-input
+                      v-model="mpayInfo.key"
+                      type="password"
+                      show-password
+                      placeholder="请输入码支付密钥"
+                    />
+                    <div class="form-help">
+                      码支付平台提供的API密钥，用于接口调用验证
+                    </div>
+                  </el-form-item>
+                  <el-form-item label="商户ID(PID)">
+                    <el-input
+                      v-model="mpayInfo.pid"
+                      placeholder="请输入码支付商户ID"
+                    />
+                    <div class="form-help">码支付平台分配的唯一商户标识符</div>
+                  </el-form-item>
+                  <el-form-item label="支付类型(Type)">
+                    <el-select
+                      v-model="mpayInfo.type"
+                      placeholder="请选择支付类型"
+                      style="width: 100%"
+                    >
+                      <el-option label="微信支付" value="wxpay"></el-option>
+                      <el-option label="支付宝支付" value="alipay"></el-option>
+                    </el-select>
+                    <div class="form-help">
+                      选择码支付平台支持的支付方式，只能选择其中一种
+                    </div>
+                  </el-form-item>
+                  <el-form-item label="API地址(URL)">
+                    <el-input
+                      v-model="mpayInfo.url"
+                      placeholder="请输入码支付API地址"
+                    />
+                    <div class="form-help">
+                      码支付平台的API接口地址，通常以https://开头，mapi.php结尾
+                    </div>
+                  </el-form-item>
+                  <el-form-item>
+                    <el-button type="primary" @click="mpayInfoSubmit"
                       >提交</el-button
                     >
                   </el-form-item>

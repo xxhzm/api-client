@@ -41,6 +41,7 @@ const balance = ref(0)
 const payChannels = ref({
   alipay: false,
   weixin: false,
+  mpay: false,
 })
 
 // 表单数据
@@ -58,6 +59,12 @@ const payStatusDialogVisible = ref(false)
 const wechatPayDialogVisible = ref(false)
 const wechatQrCode = ref('')
 const currentOrderId = ref('')
+
+// 新增：码支付二维码弹窗
+const mpayDialogVisible = ref(false)
+const mpayQrCode = ref('')
+const mpayMethod = ref('') // 新增：存储码支付的扫码方式
+const mpayAmount = ref('') // 新增：存储码支付的实际支付金额
 
 // 处理自定义金额输入
 const handleCustomAmount = (val) => {
@@ -105,6 +112,8 @@ const getPayChannels = async () => {
       if (form.value.payMethod === 'alipay' && !payChannels.value.alipay) {
         if (payChannels.value.weixin) {
           form.value.payMethod = 'wechat'
+        } else if (payChannels.value.mpay) {
+          form.value.payMethod = 'mpay'
         }
       } else if (
         form.value.payMethod === 'wechat' &&
@@ -112,6 +121,14 @@ const getPayChannels = async () => {
       ) {
         if (payChannels.value.alipay) {
           form.value.payMethod = 'alipay'
+        } else if (payChannels.value.mpay) {
+          form.value.payMethod = 'mpay'
+        }
+      } else if (form.value.payMethod === 'mpay' && !payChannels.value.mpay) {
+        if (payChannels.value.alipay) {
+          form.value.payMethod = 'alipay'
+        } else if (payChannels.value.weixin) {
+          form.value.payMethod = 'wechat'
         }
       }
     }
@@ -140,7 +157,11 @@ const submitForm = async () => {
   }
 
   // 检查支付方式是否可用
-  if (!payChannels.value.alipay && !payChannels.value.weixin) {
+  if (
+    !payChannels.value.alipay &&
+    !payChannels.value.weixin &&
+    !payChannels.value.mpay
+  ) {
     $msg('暂无可用的支付方式，请联系客服', 'error')
     return
   }
@@ -155,16 +176,25 @@ const submitForm = async () => {
     return
   }
 
+  if (form.value.payMethod === 'mpay' && !payChannels.value.mpay) {
+    $msg('码支付暂不可用，请选择其他支付方式', 'error')
+    return
+  }
+
   loading.value = true
   try {
     const body = new URLSearchParams()
     body.append('amount', form.value.amount)
 
     // 根据支付方式选择不同的接口
-    const apiEndpoint =
-      form.value.payMethod === 'wechat'
-        ? 'WeixinWebPayment'
-        : 'AlipayWebPayment'
+    let apiEndpoint
+    if (form.value.payMethod === 'wechat') {
+      apiEndpoint = 'WeixinWebPayment'
+    } else if (form.value.payMethod === 'mpay') {
+      apiEndpoint = 'MPayment'
+    } else {
+      apiEndpoint = 'AlipayWebPayment'
+    }
 
     const res = await $myFetch(apiEndpoint, {
       method: 'POST',
@@ -182,6 +212,12 @@ const submitForm = async () => {
         // 微信支付：显示二维码
         wechatQrCode.value = res.data.image_url
         wechatPayDialogVisible.value = true
+      } else if (form.value.payMethod === 'mpay') {
+        // 码支付：显示二维码
+        mpayQrCode.value = res.data.image_url
+        mpayMethod.value = res.data.method // 保存扫码方式
+        mpayAmount.value = res.data.amount // 保存实际支付金额
+        mpayDialogVisible.value = true
       } else {
         // 支付宝支付：跳转页面
         // 先立即打开一个空白窗口（在用户点击事件中）-防止safari浏览器拦截
@@ -195,6 +231,8 @@ const submitForm = async () => {
 
       // 开始查询支付状态
       startPaymentQuery(res.data.id)
+    } else {
+      $msg(res.msg, 'error')
     }
   } catch (error) {
     $msg(error.message, 'error')
@@ -219,6 +257,7 @@ const startPaymentQuery = (orderId) => {
       // 关闭所有弹窗
       payStatusDialogVisible.value = false
       wechatPayDialogVisible.value = false
+      mpayDialogVisible.value = false
       clearInterval(timer)
     }
   }, 2000)
@@ -228,12 +267,13 @@ const startPaymentQuery = (orderId) => {
     clearInterval(timer)
     payStatusDialogVisible.value = false
     wechatPayDialogVisible.value = false
+    mpayDialogVisible.value = false
     getBalance(false)
   }, 5 * 60 * 1000)
 }
 
 // 处理支付状态
-const handlePayStatus = (isSuccess) => {
+const handlmPayStatus = (isSuccess) => {
   if (isSuccess) {
     clearInterval(timer)
     $msg(
@@ -252,6 +292,43 @@ const closeWechatPayDialog = () => {
   clearInterval(timer)
   wechatPayDialogVisible.value = false
   $msg('如遇支付问题，请联系客服处理', 'warning')
+}
+
+// 新增：关闭码支付弹窗
+const closeEpayDialog = () => {
+  clearInterval(timer)
+  mpayDialogVisible.value = false
+  $msg('如遇支付问题，请联系客服处理', 'warning')
+}
+
+// 新增：获取码支付弹窗标题
+const getPaymentTitle = () => {
+  if (mpayMethod.value === 'alipay') {
+    return '支付宝扫码支付'
+  } else if (mpayMethod.value === 'wechat') {
+    return '微信扫码支付'
+  }
+  return '码支付二维码'
+}
+
+// 新增：获取码支付提示文字
+const getPaymentTips = () => {
+  if (mpayMethod.value === 'alipay') {
+    return '请使用支付宝扫描二维码进行支付'
+  } else if (mpayMethod.value === 'wechat') {
+    return '请使用微信扫描二维码进行支付'
+  }
+  return '请使用手机扫描二维码进行支付'
+}
+
+// 新增：获取码支付使用说明
+const getPaymentInstructions = () => {
+  if (mpayMethod.value === 'alipay') {
+    return '打开支付宝，使用"扫一扫"功能扫描二维码'
+  } else if (mpayMethod.value === 'wechat') {
+    return '打开微信，使用"扫一扫"功能扫描二维码'
+  }
+  return '使用手机扫描上方二维码'
 }
 
 // 页面加载时获取数据
@@ -386,10 +463,17 @@ useHead({
                         <el-radio value="wechat" v-if="payChannels.weixin">
                           微信支付
                         </el-radio>
+                        <el-radio value="mpay" v-if="payChannels.mpay">
+                          码支付
+                        </el-radio>
                       </el-radio-group>
                       <!-- 无可用支付方式时的提示 -->
                       <div
-                        v-if="!payChannels.alipay && !payChannels.weixin"
+                        v-if="
+                          !payChannels.alipay &&
+                          !payChannels.weixin &&
+                          !payChannels.mpay
+                        "
                         class="no-payment-tips"
                       >
                         <el-alert
@@ -415,7 +499,11 @@ useHead({
                     <div class="preview-method">
                       <span class="label">支付方式：</span>
                       <span class="value">{{
-                        form.payMethod === 'alipay' ? '支付宝支付' : '微信支付'
+                        form.payMethod === 'alipay'
+                          ? '支付宝支付'
+                          : form.payMethod === 'wechat'
+                          ? '微信支付'
+                          : '码支付'
                       }}</span>
                     </div>
                   </div>
@@ -423,7 +511,11 @@ useHead({
                     type="primary"
                     @click="submitForm"
                     :loading="loading"
-                    :disabled="!payChannels.alipay && !payChannels.weixin"
+                    :disabled="
+                      !payChannels.alipay &&
+                      !payChannels.weixin &&
+                      !payChannels.mpay
+                    "
                     class="submit-btn"
                   >
                     确认支付
@@ -448,8 +540,8 @@ useHead({
       <div class="pay-status-content">
         <p class="status-tips">请确认支付是否完成</p>
         <div class="status-buttons">
-          <el-button @click="handlePayStatus(false)">未完成支付</el-button>
-          <el-button type="primary" @click="handlePayStatus(true)">
+          <el-button @click="handlmPayStatus(false)">未完成支付</el-button>
+          <el-button type="primary" @click="handlmPayStatus(true)">
             已完成支付
           </el-button>
         </div>
@@ -480,6 +572,52 @@ useHead({
           @click="closeWechatPayDialog"
           class="close-btn"
         >
+          关闭
+        </el-button>
+      </div>
+    </el-dialog>
+    <!-- 码支付二维码弹窗 -->
+    <el-dialog
+      v-model="mpayDialogVisible"
+      :title="getPaymentTitle()"
+      width="400px"
+      :close-on-click-modal="false"
+      :show-close="false"
+      class="mpay-dialog"
+    >
+      <div class="mpay-content">
+        <p class="qr-code-tips">{{ getPaymentTips() }}</p>
+
+        <!-- 实际支付金额显示 -->
+        <div class="payment-amount-section">
+          <div class="amount-display">
+            <span class="amount-label">实际支付金额：</span>
+            <span class="amount-value">{{ mpayAmount }}</span>
+            <span class="amount-unit">元</span>
+          </div>
+          <div class="amount-warning">
+            <el-alert
+              title="请按照上方显示的金额进行支付，不要多付或少付"
+              type="warning"
+              :closable="false"
+              show-icon
+            />
+          </div>
+        </div>
+
+        <div class="qr-code">
+          <img :src="mpayQrCode" :alt="getPaymentTitle()" />
+        </div>
+        <div class="qr-tips">
+          <p>使用说明：</p>
+          <p>1. {{ getPaymentInstructions() }}</p>
+          <p>
+            2. 确认支付金额为
+            <strong>{{ mpayAmount }}元</strong>，点击"确认"完成支付
+          </p>
+          <p>3. 支付成功后系统将自动检测并更新余额</p>
+        </div>
+        <el-button type="primary" @click="closeEpayDialog" class="close-btn">
           关闭
         </el-button>
       </div>
@@ -904,7 +1042,8 @@ useHead({
   }
 }
 
-.wechat-pay-dialog {
+.wechat-pay-dialog,
+.mpay-dialog {
   :deep(.el-dialog__header) {
     margin-right: 0;
     text-align: center;
@@ -912,15 +1051,58 @@ useHead({
     padding-bottom: 15px;
   }
 
-  .wechat-pay-content {
+  .wechat-pay-content,
+  .mpay-content {
     padding: 20px 0;
     text-align: center;
 
     .qr-code-tips {
       font-size: 16px;
       color: #606266;
-      margin-bottom: 30px;
+      margin-bottom: 20px;
       font-weight: 500;
+    }
+
+    .payment-amount-section {
+      margin-bottom: 25px;
+
+      .amount-display {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        margin-bottom: 15px;
+        padding: 15px;
+        background: #f8f9fa;
+        border-radius: 8px;
+        border: 2px solid #e74c3c;
+
+        .amount-label {
+          font-size: 16px;
+          color: #606266;
+          font-weight: 500;
+        }
+
+        .amount-value {
+          font-size: 24px;
+          font-weight: bold;
+          color: #e74c3c;
+          margin: 0 5px;
+        }
+
+        .amount-unit {
+          font-size: 16px;
+          color: #606266;
+        }
+      }
+
+      .amount-warning {
+        :deep(.el-alert) {
+          .el-alert__content {
+            font-size: 13px;
+            line-height: 1.5;
+          }
+        }
+      }
     }
 
     .qr-code {
@@ -948,6 +1130,11 @@ useHead({
       p {
         margin: 8px 0;
         line-height: 1.6;
+
+        strong {
+          color: #e74c3c;
+          font-weight: 600;
+        }
       }
     }
 

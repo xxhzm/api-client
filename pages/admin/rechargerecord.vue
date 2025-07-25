@@ -203,11 +203,21 @@ useHead({
                   <template #default="scope">
                     <el-tag
                       :type="
-                        scope.row.method === 'alipay' ? 'primary' : 'success'
+                        scope.row.method === 'alipay'
+                          ? 'primary'
+                          : scope.row.method === 'mpay'
+                          ? 'success'
+                          : 'info'
                       "
                       size="small"
                     >
-                      {{ scope.row.method === 'alipay' ? '支付宝' : '微信' }}
+                      {{
+                        scope.row.method === 'alipay'
+                          ? '支付宝'
+                          : scope.row.method === 'mpay'
+                          ? '码支付'
+                          : '微信'
+                      }}
                     </el-tag>
                   </template>
                 </el-table-column>
@@ -288,7 +298,11 @@ useHead({
           <div class="detail-item">
             <span class="label">支付方式：</span>
             <span class="value">{{
-              currentRecord.method === 'alipay' ? '支付宝' : '微信'
+              currentRecord.method === 'alipay'
+                ? '支付宝'
+                : currentRecord.method === 'mpay'
+                ? '码支付'
+                : '微信'
             }}</span>
           </div>
           <div class="detail-item">
