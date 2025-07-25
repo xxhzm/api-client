@@ -1,7 +1,20 @@
 <script setup>
 import { Menu, Search } from '@element-plus/icons-vue'
+import { watch } from 'vue'
 const { $msg, $myFetch } = useNuxtApp()
 const activeTab = ref('basic')
+const activeSubTab = ref('website')
+
+// 监听主选项卡变化，设置对应的子选项卡默认值
+watch(activeTab, (newTab) => {
+  if (newTab === 'basic') {
+    activeSubTab.value = 'website'
+  } else if (newTab === 'payment') {
+    activeSubTab.value = 'alipay'
+  } else if (newTab === 'system') {
+    activeSubTab.value = 'ai'
+  }
+})
 
 // 网站设置相关
 const websetInfo = ref({
@@ -726,831 +739,864 @@ useHead({
       <AdminHeader></AdminHeader>
       <div class="webset_container">
         <div class="cont">
-          <el-tabs v-model="activeTab" class="setting-tabs">
+          <el-tabs v-model="activeTab" class="setting-tabs main-tabs">
+            <!-- 基本设置 -->
             <el-tab-pane label="基本设置" name="basic">
-              <div class="form">
-                <el-form
-                  :model="websetInfo"
-                  label-position="top"
-                  label-width="120px"
-                >
-                  <el-form-item label="网站标题">
-                    <el-input v-model="websetInfo.title" />
-                  </el-form-item>
-                  <el-form-item label="网站副标题">
-                    <el-input v-model="websetInfo.subheading" />
-                  </el-form-item>
-                  <el-form-item label="网站关键词">
-                    <el-input v-model="websetInfo.keywords" />
-                  </el-form-item>
-                  <el-form-item label="网站描述">
-                    <el-input v-model="websetInfo.description" />
-                  </el-form-item>
-                  <el-form-item label="建站时间">
-                    <el-date-picker
-                      v-model="websetInfo.create_time"
-                      type="datetime"
-                      placeholder="选择建站时间"
-                      format="YYYY/MM/DD HH:mm:ss"
-                      value-format="YYYY/MM/DD HH:mm:ss"
-                      :disabled-date="disabledDate"
-                    />
-                  </el-form-item>
-                  <el-form-item label="ICP备案号">
-                    <el-input v-model="websetInfo.icp" />
-                  </el-form-item>
-                  <el-form-item label="公安备案号">
-                    <el-input v-model="websetInfo.gongan" />
-                  </el-form-item>
-                  <el-form-item label="网站名称">
-                    <el-input v-model="websetInfo.website_name" />
-                  </el-form-item>
-                  <el-form-item label="首页推荐信息">
-                    <el-select
-                      v-model="websetInfo.recommend"
-                      placeholder="请选择是否显示首页热门API推荐、免费API大全信息"
-                      style="width: 100%"
+              <el-tabs v-model="activeSubTab" class="sub-tabs">
+                <el-tab-pane label="网站配置" name="website">
+                  <div class="form">
+                    <el-form
+                      :model="websetInfo"
+                      label-position="top"
+                      label-width="120px"
                     >
-                      <el-option label="是" value="true"></el-option>
-                      <el-option label="否" value="false"></el-option>
-                    </el-select>
-                    <div class="form-help">
-                      开启后，首页将显示热门API推荐、免费API大全等信息
-                    </div>
-                  </el-form-item>
-                  <el-form-item label="通知信息">
-                    <el-input
-                      v-model="websetInfo.notice"
-                      type="textarea"
-                      :rows="3"
-                      placeholder="请输入通知信息"
-                    />
-                  </el-form-item>
-                  <el-form-item label="问题反馈链接">
-                    <el-input
-                      v-model="websetInfo.feedback"
-                      placeholder="请输入问题反馈链接"
-                    />
-                  </el-form-item>
-                  <el-form-item label="自定义CSS">
-                    <el-input
-                      v-model="websetInfo.css"
-                      type="textarea"
-                      :rows="5"
-                      placeholder="请输入自定义CSS"
-                    />
-                  </el-form-item>
-                  <el-form-item>
-                    <el-button type="primary" @click="websetInfoSubmit"
-                      >提交</el-button
-                    >
-                  </el-form-item>
-                </el-form>
-              </div>
-            </el-tab-pane>
-
-            <el-tab-pane label="邮件设置" name="mail">
-              <div class="form">
-                <el-form
-                  :model="mailInfo"
-                  label-position="top"
-                  label-width="120px"
-                >
-                  <el-form-item label="SMTP服务器地址">
-                    <el-input v-model="mailInfo.smtp" />
-                  </el-form-item>
-                  <el-form-item label="邮箱账户">
-                    <el-input v-model="mailInfo.user" />
-                  </el-form-item>
-                  <el-form-item label="密码">
-                    <el-input
-                      v-model="mailInfo.password"
-                      type="password"
-                      show-password
-                    />
-                  </el-form-item>
-                  <el-form-item label="发件人">
-                    <el-input v-model="mailInfo.setfrom" />
-                  </el-form-item>
-                  <el-form-item label="服务器端口">
-                    <el-input v-model="mailInfo.port" />
-                  </el-form-item>
-                  <el-form-item label="发信名称">
-                    <el-input v-model="mailInfo.name" />
-                  </el-form-item>
-                  <el-form-item>
-                    <el-button type="primary" @click="mailInfoSubmit"
-                      >提交</el-button
-                    >
-                  </el-form-item>
-                </el-form>
-              </div>
-            </el-tab-pane>
-
-            <el-tab-pane label="发信测试" name="test">
-              <div class="form">
-                <el-form label-position="top" label-width="120px">
-                  <el-form-item label="测试邮箱">
-                    <el-input v-model="testMail" placeholder="请输入测试邮箱" />
-                  </el-form-item>
-                  <el-form-item>
-                    <el-button type="primary" @click="sendTestMail"
-                      >发送测试</el-button
-                    >
-                  </el-form-item>
-                </el-form>
-              </div>
-            </el-tab-pane>
-
-            <el-tab-pane label="接口置顶" name="topApi">
-              <div class="form">
-                <el-form label-position="top" label-width="120px">
-                  <el-form-item label="搜索接口">
-                    <div class="search-input-group">
-                      <el-autocomplete
-                        v-model="searchApiKeyword"
-                        :fetch-suggestions="querySearchAsync"
-                        placeholder="请输入接口名称搜索"
-                        @select="handleApiSelect"
-                        class="search-input"
-                        clearable
-                        :loading="searchLoading"
-                      >
-                        <template #suffix>
-                          <el-icon class="search-icon"><Search /></el-icon>
-                        </template>
-                      </el-autocomplete>
-                      <el-button
-                        type="primary"
-                        @click="handleAddTopApi"
-                        :disabled="!selectedApi"
-                        :loading="addLoading"
-                      >
-                        添加置顶
-                      </el-button>
-                    </div>
-                  </el-form-item>
-                </el-form>
-
-                <div class="top-api-list">
-                  <div class="list-header">
-                    <h3>置顶接口列表</h3>
-                  </div>
-                  <el-table
-                    :data="topApiList"
-                    style="width: 100%"
-                    v-loading="topApiLoading"
-                  >
-                    <el-table-column
-                      type="index"
-                      label="排序"
-                      width="80"
-                      align="center"
-                    />
-                    <el-table-column
-                      prop="name"
-                      label="接口名称"
-                      min-width="150"
-                    >
-                    </el-table-column>
-                    <el-table-column label="操作" width="80">
-                      <template #default="scope">
-                        <el-button
-                          type="danger"
-                          link
-                          style="padding: 0; margin: 0"
-                          @click="removeTopApi(scope.$index, scope.row)"
+                      <el-form-item label="网站标题">
+                        <el-input v-model="websetInfo.title" />
+                      </el-form-item>
+                      <el-form-item label="网站副标题">
+                        <el-input v-model="websetInfo.subheading" />
+                      </el-form-item>
+                      <el-form-item label="网站关键词">
+                        <el-input v-model="websetInfo.keywords" />
+                      </el-form-item>
+                      <el-form-item label="网站描述">
+                        <el-input v-model="websetInfo.description" />
+                      </el-form-item>
+                      <el-form-item label="建站时间">
+                        <el-date-picker
+                          v-model="websetInfo.create_time"
+                          type="datetime"
+                          placeholder="选择建站时间"
+                          format="YYYY/MM/DD HH:mm:ss"
+                          value-format="YYYY/MM/DD HH:mm:ss"
+                          :disabled-date="disabledDate"
+                        />
+                      </el-form-item>
+                      <el-form-item label="ICP备案号">
+                        <el-input v-model="websetInfo.icp" />
+                      </el-form-item>
+                      <el-form-item label="公安备案号">
+                        <el-input v-model="websetInfo.gongan" />
+                      </el-form-item>
+                      <el-form-item label="网站名称">
+                        <el-input v-model="websetInfo.website_name" />
+                      </el-form-item>
+                      <el-form-item label="首页推荐信息">
+                        <el-select
+                          v-model="websetInfo.recommend"
+                          placeholder="请选择是否显示首页热门API推荐、免费API大全信息"
+                          style="width: 100%"
                         >
-                          删除
+                          <el-option label="是" value="true"></el-option>
+                          <el-option label="否" value="false"></el-option>
+                        </el-select>
+                        <div class="form-help">
+                          开启后，首页将显示热门API推荐、免费API大全等信息
+                        </div>
+                      </el-form-item>
+                      <el-form-item label="通知信息">
+                        <el-input
+                          v-model="websetInfo.notice"
+                          type="textarea"
+                          :rows="3"
+                          placeholder="请输入通知信息"
+                        />
+                      </el-form-item>
+                      <el-form-item label="问题反馈链接">
+                        <el-input
+                          v-model="websetInfo.feedback"
+                          placeholder="请输入问题反馈链接"
+                        />
+                      </el-form-item>
+                      <el-form-item label="自定义CSS">
+                        <el-input
+                          v-model="websetInfo.css"
+                          type="textarea"
+                          :rows="5"
+                          placeholder="请输入自定义CSS"
+                        />
+                      </el-form-item>
+                      <el-form-item>
+                        <el-button type="primary" @click="websetInfoSubmit"
+                          >提交</el-button
+                        >
+                      </el-form-item>
+                    </el-form>
+                  </div>
+                </el-tab-pane>
+
+                <el-tab-pane label="邮件配置" name="mail">
+                  <div class="form">
+                    <el-form
+                      :model="mailInfo"
+                      label-position="top"
+                      label-width="120px"
+                    >
+                      <el-form-item label="SMTP服务器地址">
+                        <el-input v-model="mailInfo.smtp" />
+                      </el-form-item>
+                      <el-form-item label="邮箱账户">
+                        <el-input v-model="mailInfo.user" />
+                      </el-form-item>
+                      <el-form-item label="密码">
+                        <el-input
+                          v-model="mailInfo.password"
+                          type="password"
+                          show-password
+                        />
+                      </el-form-item>
+                      <el-form-item label="发件人">
+                        <el-input v-model="mailInfo.setfrom" />
+                      </el-form-item>
+                      <el-form-item label="服务器端口">
+                        <el-input v-model="mailInfo.port" />
+                      </el-form-item>
+                      <el-form-item label="发信名称">
+                        <el-input v-model="mailInfo.name" />
+                      </el-form-item>
+                      <el-form-item>
+                        <el-button type="primary" @click="mailInfoSubmit"
+                          >提交</el-button
+                        >
+                      </el-form-item>
+                    </el-form>
+                  </div>
+                </el-tab-pane>
+
+                <el-tab-pane label="发信测试" name="test">
+                  <div class="form">
+                    <el-form label-position="top" label-width="120px">
+                      <el-form-item label="测试邮箱">
+                        <el-input
+                          v-model="testMail"
+                          placeholder="请输入测试邮箱"
+                        />
+                      </el-form-item>
+                      <el-form-item>
+                        <el-button type="primary" @click="sendTestMail"
+                          >发送测试</el-button
+                        >
+                      </el-form-item>
+                    </el-form>
+                  </div>
+                </el-tab-pane>
+
+                <el-tab-pane label="接口置顶" name="topApi">
+                  <div class="form">
+                    <el-form label-position="top" label-width="120px">
+                      <el-form-item label="搜索接口">
+                        <div class="search-input-group">
+                          <el-autocomplete
+                            v-model="searchApiKeyword"
+                            :fetch-suggestions="querySearchAsync"
+                            placeholder="请输入接口名称搜索"
+                            @select="handleApiSelect"
+                            class="search-input"
+                            clearable
+                            :loading="searchLoading"
+                          >
+                            <template #suffix>
+                              <el-icon class="search-icon"><Search /></el-icon>
+                            </template>
+                          </el-autocomplete>
+                          <el-button
+                            type="primary"
+                            @click="handleAddTopApi"
+                            :disabled="!selectedApi"
+                            :loading="addLoading"
+                          >
+                            添加置顶
+                          </el-button>
+                        </div>
+                      </el-form-item>
+                    </el-form>
+
+                    <div class="top-api-list">
+                      <div class="list-header">
+                        <h3>置顶接口列表</h3>
+                      </div>
+                      <el-table
+                        :data="topApiList"
+                        style="width: 100%"
+                        v-loading="topApiLoading"
+                      >
+                        <el-table-column
+                          type="index"
+                          label="排序"
+                          width="80"
+                          align="center"
+                        />
+                        <el-table-column
+                          prop="name"
+                          label="接口名称"
+                          min-width="150"
+                        >
+                        </el-table-column>
+                        <el-table-column label="操作" width="80">
+                          <template #default="scope">
+                            <el-button
+                              type="danger"
+                              link
+                              style="padding: 0; margin: 0"
+                              @click="removeTopApi(scope.$index, scope.row)"
+                            >
+                              删除
+                            </el-button>
+                          </template>
+                        </el-table-column>
+                      </el-table>
+                    </div>
+                  </div>
+                </el-tab-pane>
+              </el-tabs>
+            </el-tab-pane>
+
+            <!-- 高级设置 -->
+            <el-tab-pane label="高级设置" name="system">
+              <el-tabs v-model="activeSubTab" class="sub-tabs">
+                <el-tab-pane label="AI配置" name="ai">
+                  <div class="form">
+                    <el-form
+                      :model="aiInfo"
+                      label-position="top"
+                      label-width="120px"
+                    >
+                      <el-form-item label="API密钥">
+                        <el-input
+                          v-model="aiInfo.key"
+                          type="password"
+                          show-password
+                          placeholder="请输入AI服务API密钥"
+                        />
+                      </el-form-item>
+                      <el-form-item label="模型名称">
+                        <el-input
+                          v-model="aiInfo.model"
+                          placeholder="请输入AI模型名称（如：gpt-3.5-turbo）"
+                        />
+                      </el-form-item>
+                      <el-form-item label="系统消息">
+                        <el-input
+                          v-model="aiInfo.system_message"
+                          type="textarea"
+                          :rows="4"
+                          placeholder="请输入系统提示消息，用于定义AI助手的行为和角色"
+                        />
+                      </el-form-item>
+                      <el-form-item label="API地址">
+                        <el-input
+                          v-model="aiInfo.url"
+                          placeholder="请输入AI服务API地址（如：https://api.openai.com/v1）"
+                        />
+                      </el-form-item>
+                      <el-form-item>
+                        <el-button type="primary" @click="aiInfoSubmit"
+                          >提交</el-button
+                        >
+                      </el-form-item>
+                    </el-form>
+                  </div>
+                </el-tab-pane>
+
+                <el-tab-pane label="关于我们" name="about">
+                  <div class="form about-form">
+                    <el-form
+                      :model="aboutInfo"
+                      label-position="top"
+                      label-width="120px"
+                    >
+                      <!-- 公司信息 -->
+                      <el-divider content-position="left">公司信息</el-divider>
+                      <el-form-item label="公司名称">
+                        <el-input
+                          v-model="aboutInfo.companyInfo.name"
+                          placeholder="请输入公司名称"
+                        />
+                      </el-form-item>
+                      <el-form-item label="公司标语">
+                        <el-input
+                          v-model="aboutInfo.companyInfo.slogan"
+                          placeholder="请输入公司标语"
+                        />
+                      </el-form-item>
+                      <el-form-item label="公司描述">
+                        <el-input
+                          v-model="aboutInfo.companyInfo.description"
+                          type="textarea"
+                          :rows="6"
+                          placeholder="请输入公司详细描述（支持HTML）"
+                        />
+                      </el-form-item>
+                      <el-form-item label="联系方式">
+                        <el-input
+                          v-model="aboutInfo.companyInfo.contact"
+                          type="textarea"
+                          :rows="4"
+                          placeholder="请输入联系方式（支持HTML）"
+                        />
+                      </el-form-item>
+
+                      <!-- 功能特色 -->
+                      <el-divider content-position="left">功能特色</el-divider>
+                      <div
+                        v-for="(feature, index) in aboutInfo.features"
+                        :key="index"
+                        class="array-item"
+                      >
+                        <div class="array-item-header">
+                          <span>特色 {{ index + 1 }}</span>
+                        </div>
+                        <el-form-item label="标题">
+                          <el-input
+                            v-model="feature.title"
+                            placeholder="请输入特色标题"
+                          />
+                        </el-form-item>
+                        <el-form-item label="描述">
+                          <el-input
+                            v-model="feature.description"
+                            type="textarea"
+                            :rows="2"
+                            placeholder="请输入特色描述"
+                          />
+                        </el-form-item>
+                      </div>
+
+                      <!-- 服务条款 -->
+                      <el-divider content-position="left">服务条款</el-divider>
+                      <el-form-item label="服务说明标题">
+                        <el-input
+                          v-model="
+                            aboutInfo.serviceTerms.serviceDescription.title
+                          "
+                          placeholder="请输入服务说明标题"
+                        />
+                      </el-form-item>
+                      <el-form-item label="服务说明内容">
+                        <el-input
+                          v-model="
+                            aboutInfo.serviceTerms.serviceDescription.content
+                          "
+                          type="textarea"
+                          :rows="4"
+                          placeholder="请输入服务说明内容（支持HTML）"
+                        />
+                      </el-form-item>
+                      <el-form-item label="API服务协议标题">
+                        <el-input
+                          v-model="aboutInfo.serviceTerms.apiAgreement.title"
+                          placeholder="请输入API服务协议标题"
+                        />
+                      </el-form-item>
+                      <el-form-item label="API服务协议内容">
+                        <el-input
+                          v-model="aboutInfo.serviceTerms.apiAgreement.content"
+                          type="textarea"
+                          :rows="4"
+                          placeholder="请输入API服务协议内容（支持HTML）"
+                        />
+                      </el-form-item>
+                      <el-form-item label="隐私保护标题">
+                        <el-input
+                          v-model="aboutInfo.serviceTerms.privacyPolicy.title"
+                          placeholder="请输入隐私保护标题"
+                        />
+                      </el-form-item>
+                      <el-form-item label="隐私保护内容">
+                        <el-input
+                          v-model="aboutInfo.serviceTerms.privacyPolicy.content"
+                          type="textarea"
+                          :rows="4"
+                          placeholder="请输入隐私保护内容（支持HTML）"
+                        />
+                      </el-form-item>
+
+                      <!-- 发展历程 -->
+                      <el-divider content-position="left">
+                        <span>发展历程</span>
+                        <el-button
+                          type="primary"
+                          link
+                          @click="addTimelineYear"
+                          style="margin-left: 10px"
+                        >
+                          + 添加年份
                         </el-button>
-                      </template>
-                    </el-table-column>
-                  </el-table>
-                </div>
-              </div>
-            </el-tab-pane>
-
-            <el-tab-pane label="支付宝配置" name="alipay">
-              <div class="form">
-                <el-form
-                  :model="alipayInfo"
-                  label-position="top"
-                  label-width="120px"
-                >
-                  <el-form-item label="支付宝Appid">
-                    <el-input
-                      v-model="alipayInfo.Appid"
-                      placeholder="请输入支付宝Appid"
-                    />
-                  </el-form-item>
-                  <el-form-item label="应用私钥">
-                    <el-input
-                      v-model="alipayInfo.PrivateKey"
-                      type="textarea"
-                      :rows="5"
-                      placeholder="请输入支付宝私钥"
-                    />
-                  </el-form-item>
-                  <el-form-item label="支付宝公钥">
-                    <el-input
-                      v-model="alipayInfo.PublicKey"
-                      type="textarea"
-                      :rows="5"
-                      placeholder="请输入支付宝公钥"
-                    />
-                  </el-form-item>
-                  <el-form-item>
-                    <el-button type="primary" @click="alipayInfoSubmit"
-                      >提交</el-button
-                    >
-                  </el-form-item>
-                </el-form>
-              </div>
-            </el-tab-pane>
-
-            <el-tab-pane label="微信支付配置" name="wechatpay">
-              <div class="form">
-                <el-form
-                  :model="wechatPayInfo"
-                  label-position="top"
-                  label-width="120px"
-                >
-                  <el-form-item label="API V3密钥">
-                    <el-input
-                      v-model="wechatPayInfo.apiV3Key"
-                      placeholder="请输入微信支付API V3密钥"
-                    />
-                  </el-form-item>
-                  <el-form-item label="应用ID(AppId)">
-                    <el-input
-                      v-model="wechatPayInfo.appid"
-                      placeholder="请输入微信小程序/公众号AppId"
-                    />
-                  </el-form-item>
-                  <el-form-item label="商户号(MchId)">
-                    <el-input
-                      v-model="wechatPayInfo.mchid"
-                      placeholder="请输入微信支付商户号"
-                    />
-                  </el-form-item>
-                  <el-form-item label="商户私钥">
-                    <el-input
-                      v-model="wechatPayInfo.privateKey"
-                      type="textarea"
-                      :rows="8"
-                      placeholder="请输入商户API证书私钥（完整的PEM格式）"
-                    />
-                  </el-form-item>
-                  <el-form-item label="证书序列号">
-                    <el-input
-                      v-model="wechatPayInfo.serialNo"
-                      placeholder="请输入商户API证书序列号"
-                    />
-                  </el-form-item>
-                  <el-form-item label="微信公钥内容">
-                    <el-input
-                      v-model="wechatPayInfo.wxPublicKeyContent"
-                      type="textarea"
-                      :rows="8"
-                      placeholder="请输入微信支付平台公钥内容（完整的PEM格式）"
-                    />
-                  </el-form-item>
-                  <el-form-item label="微信公钥ID">
-                    <el-input
-                      v-model="wechatPayInfo.wxPublicKeyID"
-                      placeholder="请输入微信支付平台公钥ID"
-                    />
-                  </el-form-item>
-                  <el-form-item>
-                    <el-button type="primary" @click="wechatPayInfoSubmit"
-                      >提交</el-button
-                    >
-                  </el-form-item>
-                </el-form>
-              </div>
-            </el-tab-pane>
-
-            <el-tab-pane label="码支付配置" name="mpay">
-              <div class="form">
-                <el-form
-                  :model="mpayInfo"
-                  label-position="top"
-                  label-width="120px"
-                >
-                  <el-form-item label="密钥(Key)">
-                    <el-input
-                      v-model="mpayInfo.key"
-                      type="password"
-                      show-password
-                      placeholder="请输入码支付密钥"
-                    />
-                    <div class="form-help">
-                      码支付平台提供的API密钥，用于接口调用验证
-                    </div>
-                  </el-form-item>
-                  <el-form-item label="商户ID(PID)">
-                    <el-input
-                      v-model="mpayInfo.pid"
-                      placeholder="请输入码支付商户ID"
-                    />
-                    <div class="form-help">码支付平台分配的唯一商户标识符</div>
-                  </el-form-item>
-                  <el-form-item label="支付类型(Type)">
-                    <el-select
-                      v-model="mpayInfo.type"
-                      placeholder="请选择支付类型"
-                      style="width: 100%"
-                    >
-                      <el-option label="微信支付" value="wxpay"></el-option>
-                      <el-option label="支付宝支付" value="alipay"></el-option>
-                    </el-select>
-                    <div class="form-help">
-                      选择码支付平台支持的支付方式，只能选择其中一种
-                    </div>
-                  </el-form-item>
-                  <el-form-item label="API地址(URL)">
-                    <el-input
-                      v-model="mpayInfo.url"
-                      placeholder="请输入码支付API地址"
-                    />
-                    <div class="form-help">
-                      码支付平台的API接口地址，通常以https://开头，mapi.php结尾
-                    </div>
-                  </el-form-item>
-                  <el-form-item>
-                    <el-button type="primary" @click="mpayInfoSubmit"
-                      >提交</el-button
-                    >
-                  </el-form-item>
-                </el-form>
-              </div>
-            </el-tab-pane>
-
-            <el-tab-pane label="AI配置" name="ai">
-              <div class="form">
-                <el-form
-                  :model="aiInfo"
-                  label-position="top"
-                  label-width="120px"
-                >
-                  <el-form-item label="API密钥">
-                    <el-input
-                      v-model="aiInfo.key"
-                      type="password"
-                      show-password
-                      placeholder="请输入AI服务API密钥"
-                    />
-                  </el-form-item>
-                  <el-form-item label="模型名称">
-                    <el-input
-                      v-model="aiInfo.model"
-                      placeholder="请输入AI模型名称（如：gpt-3.5-turbo）"
-                    />
-                  </el-form-item>
-                  <el-form-item label="系统消息">
-                    <el-input
-                      v-model="aiInfo.system_message"
-                      type="textarea"
-                      :rows="4"
-                      placeholder="请输入系统提示消息，用于定义AI助手的行为和角色"
-                    />
-                  </el-form-item>
-                  <el-form-item label="API地址">
-                    <el-input
-                      v-model="aiInfo.url"
-                      placeholder="请输入AI服务API地址（如：https://api.openai.com/v1）"
-                    />
-                  </el-form-item>
-                  <el-form-item>
-                    <el-button type="primary" @click="aiInfoSubmit"
-                      >提交</el-button
-                    >
-                  </el-form-item>
-                </el-form>
-              </div>
-            </el-tab-pane>
-
-            <el-tab-pane label="高级设置" name="advanced">
-              <div class="form">
-                <el-form
-                  :model="advancedInfo"
-                  label-position="top"
-                  label-width="120px"
-                >
-                  <el-form-item label="返回携带请求ID">
-                    <el-select
-                      v-model="advancedInfo.request_id"
-                      placeholder="请选择是否返回请求ID"
-                      style="width: 100%"
-                    >
-                      <el-option label="是" value="true"></el-option>
-                      <el-option label="否" value="false"></el-option>
-                    </el-select>
-                    <div class="form-help">
-                      开启后，所有API响应将包含唯一的请求ID，便于问题追踪和调试
-                    </div>
-                  </el-form-item>
-                  <el-form-item>
-                    <el-button type="primary" @click="advancedInfoSubmit">
-                      提交
-                    </el-button>
-                  </el-form-item>
-                </el-form>
-              </div>
-            </el-tab-pane>
-
-            <el-tab-pane label="关于我们" name="about">
-              <div class="form about-form">
-                <el-form
-                  :model="aboutInfo"
-                  label-position="top"
-                  label-width="120px"
-                >
-                  <!-- 公司信息 -->
-                  <el-divider content-position="left">公司信息</el-divider>
-                  <el-form-item label="公司名称">
-                    <el-input
-                      v-model="aboutInfo.companyInfo.name"
-                      placeholder="请输入公司名称"
-                    />
-                  </el-form-item>
-                  <el-form-item label="公司标语">
-                    <el-input
-                      v-model="aboutInfo.companyInfo.slogan"
-                      placeholder="请输入公司标语"
-                    />
-                  </el-form-item>
-                  <el-form-item label="公司描述">
-                    <el-input
-                      v-model="aboutInfo.companyInfo.description"
-                      type="textarea"
-                      :rows="6"
-                      placeholder="请输入公司详细描述（支持HTML）"
-                    />
-                  </el-form-item>
-                  <el-form-item label="联系方式">
-                    <el-input
-                      v-model="aboutInfo.companyInfo.contact"
-                      type="textarea"
-                      :rows="4"
-                      placeholder="请输入联系方式（支持HTML）"
-                    />
-                  </el-form-item>
-
-                  <!-- 功能特色 -->
-                  <el-divider content-position="left">功能特色</el-divider>
-                  <div
-                    v-for="(feature, index) in aboutInfo.features"
-                    :key="index"
-                    class="array-item"
-                  >
-                    <div class="array-item-header">
-                      <span>特色 {{ index + 1 }}</span>
-                    </div>
-                    <el-form-item label="标题">
-                      <el-input
-                        v-model="feature.title"
-                        placeholder="请输入特色标题"
-                      />
-                    </el-form-item>
-                    <el-form-item label="描述">
-                      <el-input
-                        v-model="feature.description"
-                        type="textarea"
-                        :rows="2"
-                        placeholder="请输入特色描述"
-                      />
-                    </el-form-item>
-                  </div>
-
-                  <!-- 服务条款 -->
-                  <el-divider content-position="left">服务条款</el-divider>
-                  <el-form-item label="服务说明标题">
-                    <el-input
-                      v-model="aboutInfo.serviceTerms.serviceDescription.title"
-                      placeholder="请输入服务说明标题"
-                    />
-                  </el-form-item>
-                  <el-form-item label="服务说明内容">
-                    <el-input
-                      v-model="
-                        aboutInfo.serviceTerms.serviceDescription.content
-                      "
-                      type="textarea"
-                      :rows="4"
-                      placeholder="请输入服务说明内容（支持HTML）"
-                    />
-                  </el-form-item>
-                  <el-form-item label="API服务协议标题">
-                    <el-input
-                      v-model="aboutInfo.serviceTerms.apiAgreement.title"
-                      placeholder="请输入API服务协议标题"
-                    />
-                  </el-form-item>
-                  <el-form-item label="API服务协议内容">
-                    <el-input
-                      v-model="aboutInfo.serviceTerms.apiAgreement.content"
-                      type="textarea"
-                      :rows="4"
-                      placeholder="请输入API服务协议内容（支持HTML）"
-                    />
-                  </el-form-item>
-                  <el-form-item label="隐私保护标题">
-                    <el-input
-                      v-model="aboutInfo.serviceTerms.privacyPolicy.title"
-                      placeholder="请输入隐私保护标题"
-                    />
-                  </el-form-item>
-                  <el-form-item label="隐私保护内容">
-                    <el-input
-                      v-model="aboutInfo.serviceTerms.privacyPolicy.content"
-                      type="textarea"
-                      :rows="4"
-                      placeholder="请输入隐私保护内容（支持HTML）"
-                    />
-                  </el-form-item>
-
-                  <!-- 发展历程 -->
-                  <el-divider content-position="left">
-                    <span>发展历程</span>
-                    <el-button
-                      type="primary"
-                      link
-                      @click="addTimelineYear"
-                      style="margin-left: 10px"
-                    >
-                      + 添加年份
-                    </el-button>
-                  </el-divider>
-                  <div
-                    v-for="(timeline, yearIndex) in aboutInfo.timeline"
-                    :key="yearIndex"
-                    class="array-item"
-                    style="margin-top: 20px"
-                  >
-                    <div class="array-item-header">
-                      <span>年份 {{ yearIndex + 1 }}</span>
-                      <el-button
-                        type="danger"
-                        link
-                        @click="removeTimelineYear(yearIndex)"
-                        v-if="aboutInfo.timeline.length > 1"
-                      >
-                        删除年份
-                      </el-button>
-                    </div>
-                    <el-form-item label="年份">
-                      <el-input
-                        v-model="timeline.year"
-                        placeholder="请输入年份，如：2022年"
-                      />
-                    </el-form-item>
-                    <el-form-item>
-                      <template #label>
-                        <div class="label-with-action">
-                          <span>事件</span>
-                          <el-button
-                            type="primary"
-                            link
-                            @click="addTimelineEvent(yearIndex)"
-                            size="small"
-                          >
-                            + 添加事件
-                          </el-button>
-                        </div>
-                      </template>
+                      </el-divider>
                       <div
-                        v-for="(event, eventIndex) in timeline.events"
-                        :key="eventIndex"
-                        class="event-item"
+                        v-for="(timeline, yearIndex) in aboutInfo.timeline"
+                        :key="yearIndex"
+                        class="array-item"
+                        style="margin-top: 20px"
                       >
-                        <div class="event-input-wrapper">
-                          <el-input
-                            v-model="timeline.events[eventIndex]"
-                            placeholder="请输入事件描述"
-                          />
+                        <div class="array-item-header">
+                          <span>年份 {{ yearIndex + 1 }}</span>
                           <el-button
                             type="danger"
                             link
-                            @click="removeTimelineEvent(yearIndex, eventIndex)"
-                            v-if="timeline.events.length > 1"
-                            class="event-delete-btn"
+                            @click="removeTimelineYear(yearIndex)"
+                            v-if="aboutInfo.timeline.length > 1"
                           >
-                            删除
+                            删除年份
                           </el-button>
                         </div>
-                      </div>
-                    </el-form-item>
-                  </div>
-
-                  <!-- 技术栈 -->
-                  <el-divider content-position="left">技术栈</el-divider>
-                  <div
-                    v-for="(tech, stackIndex) in aboutInfo.techStack"
-                    :key="stackIndex"
-                    class="array-item"
-                  >
-                    <div class="array-item-header">
-                      <span>技术类别 {{ stackIndex + 1 }}</span>
-                    </div>
-                    <el-form-item label="类别标题">
-                      <el-input
-                        v-model="tech.title"
-                        placeholder="请输入技术类别标题"
-                      />
-                    </el-form-item>
-                    <el-form-item>
-                      <template #label>
-                        <div class="label-with-action">
-                          <span>技术项目</span>
-                          <el-button
-                            type="primary"
-                            link
-                            @click="addTechStackItem(stackIndex)"
-                            size="small"
-                          >
-                            + 添加项目
-                          </el-button>
-                        </div>
-                      </template>
-                      <div
-                        v-for="(item, itemIndex) in tech.items"
-                        :key="itemIndex"
-                        class="event-item"
-                      >
-                        <div class="event-input-wrapper">
+                        <el-form-item label="年份">
                           <el-input
-                            v-model="tech.items[itemIndex]"
-                            placeholder="请输入技术项目"
+                            v-model="timeline.year"
+                            placeholder="请输入年份，如：2022年"
                           />
-                          <el-button
-                            type="danger"
-                            link
-                            @click="removeTechStackItem(stackIndex, itemIndex)"
-                            v-if="tech.items.length > 1"
-                            class="event-delete-btn"
+                        </el-form-item>
+                        <el-form-item>
+                          <template #label>
+                            <div class="label-with-action">
+                              <span>事件</span>
+                              <el-button
+                                type="primary"
+                                link
+                                @click="addTimelineEvent(yearIndex)"
+                                size="small"
+                              >
+                                + 添加事件
+                              </el-button>
+                            </div>
+                          </template>
+                          <div
+                            v-for="(event, eventIndex) in timeline.events"
+                            :key="eventIndex"
+                            class="event-item"
                           >
-                            删除
-                          </el-button>
-                        </div>
+                            <div class="event-input-wrapper">
+                              <el-input
+                                v-model="timeline.events[eventIndex]"
+                                placeholder="请输入事件描述"
+                              />
+                              <el-button
+                                type="danger"
+                                link
+                                @click="
+                                  removeTimelineEvent(yearIndex, eventIndex)
+                                "
+                                v-if="timeline.events.length > 1"
+                                class="event-delete-btn"
+                              >
+                                删除
+                              </el-button>
+                            </div>
+                          </div>
+                        </el-form-item>
                       </div>
-                    </el-form-item>
-                  </div>
 
-                  <!-- API类型 -->
-                  <el-divider content-position="left">API类型</el-divider>
-                  <div
-                    v-for="(apiType, index) in aboutInfo.apiTypes"
-                    :key="index"
-                    class="array-item"
-                  >
-                    <div class="array-item-header">
-                      <span>API类型 {{ index + 1 }}</span>
-                    </div>
-                    <el-form-item label="标题">
-                      <el-input
-                        v-model="apiType.title"
-                        placeholder="请输入API类型标题"
-                      />
-                    </el-form-item>
-                    <el-form-item label="描述">
-                      <el-input
-                        v-model="apiType.description"
-                        type="textarea"
-                        :rows="2"
-                        placeholder="请输入API类型描述"
-                      />
-                    </el-form-item>
-                    <el-form-item label="功能特性（HTML格式）">
-                      <el-input
-                        v-model="apiType.features"
-                        type="textarea"
-                        :rows="3"
-                        placeholder="请输入功能特性（支持HTML）"
-                      />
-                    </el-form-item>
-                  </div>
+                      <!-- 技术栈 -->
+                      <el-divider content-position="left">技术栈</el-divider>
+                      <div
+                        v-for="(tech, stackIndex) in aboutInfo.techStack"
+                        :key="stackIndex"
+                        class="array-item"
+                      >
+                        <div class="array-item-header">
+                          <span>技术类别 {{ stackIndex + 1 }}</span>
+                        </div>
+                        <el-form-item label="类别标题">
+                          <el-input
+                            v-model="tech.title"
+                            placeholder="请输入技术类别标题"
+                          />
+                        </el-form-item>
+                        <el-form-item>
+                          <template #label>
+                            <div class="label-with-action">
+                              <span>技术项目</span>
+                              <el-button
+                                type="primary"
+                                link
+                                @click="addTechStackItem(stackIndex)"
+                                size="small"
+                              >
+                                + 添加项目
+                              </el-button>
+                            </div>
+                          </template>
+                          <div
+                            v-for="(item, itemIndex) in tech.items"
+                            :key="itemIndex"
+                            class="event-item"
+                          >
+                            <div class="event-input-wrapper">
+                              <el-input
+                                v-model="tech.items[itemIndex]"
+                                placeholder="请输入技术项目"
+                              />
+                              <el-button
+                                type="danger"
+                                link
+                                @click="
+                                  removeTechStackItem(stackIndex, itemIndex)
+                                "
+                                v-if="tech.items.length > 1"
+                                class="event-delete-btn"
+                              >
+                                删除
+                              </el-button>
+                            </div>
+                          </div>
+                        </el-form-item>
+                      </div>
 
-                  <!-- 开发者支持 -->
-                  <el-divider content-position="left">开发者支持</el-divider>
-                  <div
-                    v-for="(support, index) in aboutInfo.devSupport"
-                    :key="index"
-                    class="array-item"
-                  >
-                    <div class="array-item-header">
-                      <span>支持项目 {{ index + 1 }}</span>
-                    </div>
-                    <el-form-item label="标题">
-                      <el-input
-                        v-model="support.title"
-                        placeholder="请输入支持项目标题"
-                      />
-                    </el-form-item>
-                    <el-form-item label="描述">
-                      <el-input
-                        v-model="support.description"
-                        type="textarea"
-                        :rows="2"
-                        placeholder="请输入支持项目描述"
-                      />
-                    </el-form-item>
-                  </div>
+                      <!-- API类型 -->
+                      <el-divider content-position="left">API类型</el-divider>
+                      <div
+                        v-for="(apiType, index) in aboutInfo.apiTypes"
+                        :key="index"
+                        class="array-item"
+                      >
+                        <div class="array-item-header">
+                          <span>API类型 {{ index + 1 }}</span>
+                        </div>
+                        <el-form-item label="标题">
+                          <el-input
+                            v-model="apiType.title"
+                            placeholder="请输入API类型标题"
+                          />
+                        </el-form-item>
+                        <el-form-item label="描述">
+                          <el-input
+                            v-model="apiType.description"
+                            type="textarea"
+                            :rows="2"
+                            placeholder="请输入API类型描述"
+                          />
+                        </el-form-item>
+                        <el-form-item label="功能特性（HTML格式）">
+                          <el-input
+                            v-model="apiType.features"
+                            type="textarea"
+                            :rows="3"
+                            placeholder="请输入功能特性（支持HTML）"
+                          />
+                        </el-form-item>
+                      </div>
 
-                  <!-- 统计数据 -->
-                  <el-divider content-position="left">统计数据</el-divider>
-                  <div
-                    v-for="(stat, index) in aboutInfo.statistics"
-                    :key="index"
-                    class="array-item"
-                  >
-                    <div class="array-item-header">
-                      <span>统计项 {{ index + 1 }}</span>
-                    </div>
-                    <el-form-item label="数值">
-                      <el-input
-                        v-model="stat.number"
-                        placeholder="请输入统计数值，如：10000+"
-                      />
-                    </el-form-item>
-                    <el-form-item label="标签">
-                      <el-input
-                        v-model="stat.label"
-                        placeholder="请输入统计标签，如：累计服务开发者"
-                      />
-                    </el-form-item>
-                  </div>
+                      <!-- 开发者支持 -->
+                      <el-divider content-position="left"
+                        >开发者支持</el-divider
+                      >
+                      <div
+                        v-for="(support, index) in aboutInfo.devSupport"
+                        :key="index"
+                        class="array-item"
+                      >
+                        <div class="array-item-header">
+                          <span>支持项目 {{ index + 1 }}</span>
+                        </div>
+                        <el-form-item label="标题">
+                          <el-input
+                            v-model="support.title"
+                            placeholder="请输入支持项目标题"
+                          />
+                        </el-form-item>
+                        <el-form-item label="描述">
+                          <el-input
+                            v-model="support.description"
+                            type="textarea"
+                            :rows="2"
+                            placeholder="请输入支持项目描述"
+                          />
+                        </el-form-item>
+                      </div>
 
-                  <!-- 用户评价 -->
-                  <el-divider content-position="left">用户评价</el-divider>
-                  <div
-                    v-for="(testimonial, index) in aboutInfo.testimonials"
-                    :key="index"
-                    class="array-item"
-                  >
-                    <div class="array-item-header">
-                      <span>用户评价 {{ index + 1 }}</span>
-                    </div>
-                    <el-form-item label="评价内容">
-                      <el-input
-                        v-model="testimonial.quote"
-                        type="textarea"
-                        :rows="3"
-                        placeholder="请输入评价内容"
-                      />
-                    </el-form-item>
-                    <el-form-item label="评价人姓名">
-                      <el-input
-                        v-model="testimonial.author.name"
-                        placeholder="请输入评价人姓名"
-                      />
-                    </el-form-item>
-                    <el-form-item label="评价人公司">
-                      <el-input
-                        v-model="testimonial.author.company"
-                        placeholder="请输入评价人公司"
-                      />
-                    </el-form-item>
-                    <el-form-item label="评分">
-                      <el-input
-                        v-model="testimonial.rating"
-                        placeholder="请输入评分，如：★★★★★"
-                      />
-                    </el-form-item>
-                    <el-form-item label="评价日期">
-                      <el-input
-                        v-model="testimonial.date"
-                        placeholder="请输入评价日期，如：2024-02"
-                      />
-                    </el-form-item>
-                  </div>
+                      <!-- 统计数据 -->
+                      <el-divider content-position="left">统计数据</el-divider>
+                      <div
+                        v-for="(stat, index) in aboutInfo.statistics"
+                        :key="index"
+                        class="array-item"
+                      >
+                        <div class="array-item-header">
+                          <span>统计项 {{ index + 1 }}</span>
+                        </div>
+                        <el-form-item label="数值">
+                          <el-input
+                            v-model="stat.number"
+                            placeholder="请输入统计数值，如：10000+"
+                          />
+                        </el-form-item>
+                        <el-form-item label="标签">
+                          <el-input
+                            v-model="stat.label"
+                            placeholder="请输入统计标签，如：累计服务开发者"
+                          />
+                        </el-form-item>
+                      </div>
 
-                  <el-form-item>
-                    <el-button type="primary" @click="aboutInfoSubmit"
-                      >提交</el-button
+                      <!-- 用户评价 -->
+                      <el-divider content-position="left">用户评价</el-divider>
+                      <div
+                        v-for="(testimonial, index) in aboutInfo.testimonials"
+                        :key="index"
+                        class="array-item"
+                      >
+                        <div class="array-item-header">
+                          <span>用户评价 {{ index + 1 }}</span>
+                        </div>
+                        <el-form-item label="评价内容">
+                          <el-input
+                            v-model="testimonial.quote"
+                            type="textarea"
+                            :rows="3"
+                            placeholder="请输入评价内容"
+                          />
+                        </el-form-item>
+                        <el-form-item label="评价人姓名">
+                          <el-input
+                            v-model="testimonial.author.name"
+                            placeholder="请输入评价人姓名"
+                          />
+                        </el-form-item>
+                        <el-form-item label="评价人公司">
+                          <el-input
+                            v-model="testimonial.author.company"
+                            placeholder="请输入评价人公司"
+                          />
+                        </el-form-item>
+                        <el-form-item label="评分">
+                          <el-input
+                            v-model="testimonial.rating"
+                            placeholder="请输入评分，如：★★★★★"
+                          />
+                        </el-form-item>
+                        <el-form-item label="评价日期">
+                          <el-input
+                            v-model="testimonial.date"
+                            placeholder="请输入评价日期，如：2024-02"
+                          />
+                        </el-form-item>
+                      </div>
+
+                      <el-form-item>
+                        <el-button type="primary" @click="aboutInfoSubmit"
+                          >提交</el-button
+                        >
+                      </el-form-item>
+                    </el-form>
+
+                    <!-- 提示说明 -->
+                    <client-only>
+                      <el-alert
+                        title="使用说明"
+                        type="info"
+                        :closable="false"
+                        style="margin-top: 24px"
+                      >
+                        <template #default>
+                          <p>
+                            1.
+                            所有文本内容字段都支持HTML标签，可以设置丰富的文本格式
+                          </p>
+                          <p>
+                            2. 数组类型的数据可以通过"添加"和"删除"按钮动态管理
+                          </p>
+                          <p>3. 修改完成后请点击"提交"按钮保存更改</p>
+                        </template>
+                      </el-alert></client-only
                     >
-                  </el-form-item>
-                </el-form>
+                  </div>
+                </el-tab-pane>
 
-                <!-- 提示说明 -->
-                <client-only>
-                  <el-alert
-                    title="使用说明"
-                    type="info"
-                    :closable="false"
-                    style="margin-top: 24px"
-                  >
-                    <template #default>
-                      <p>
-                        1.
-                        所有文本内容字段都支持HTML标签，可以设置丰富的文本格式
-                      </p>
-                      <p>2. 数组类型的数据可以通过"添加"和"删除"按钮动态管理</p>
-                      <p>3. 修改完成后请点击"提交"按钮保存更改</p>
-                    </template>
-                  </el-alert></client-only
-                >
-              </div>
+                <el-tab-pane label="高级设置" name="advanced">
+                  <div class="form">
+                    <el-form
+                      :model="advancedInfo"
+                      label-position="top"
+                      label-width="120px"
+                    >
+                      <el-form-item label="返回携带请求ID">
+                        <el-select
+                          v-model="advancedInfo.request_id"
+                          placeholder="请选择是否返回请求ID"
+                          style="width: 100%"
+                        >
+                          <el-option label="是" value="true"></el-option>
+                          <el-option label="否" value="false"></el-option>
+                        </el-select>
+                        <div class="form-help">
+                          开启后，所有API响应将包含唯一的请求ID，便于问题追踪和调试
+                        </div>
+                      </el-form-item>
+                      <el-form-item>
+                        <el-button type="primary" @click="advancedInfoSubmit">
+                          提交
+                        </el-button>
+                      </el-form-item>
+                    </el-form>
+                  </div>
+                </el-tab-pane>
+              </el-tabs>
+            </el-tab-pane>
+
+            <!-- 支付设置 -->
+            <el-tab-pane label="支付设置" name="payment">
+              <el-tabs v-model="activeSubTab" class="sub-tabs">
+                <el-tab-pane label="支付宝配置" name="alipay">
+                  <div class="form">
+                    <el-form
+                      :model="alipayInfo"
+                      label-position="top"
+                      label-width="120px"
+                    >
+                      <el-form-item label="支付宝Appid">
+                        <el-input
+                          v-model="alipayInfo.Appid"
+                          placeholder="请输入支付宝Appid"
+                        />
+                      </el-form-item>
+                      <el-form-item label="应用私钥">
+                        <el-input
+                          v-model="alipayInfo.PrivateKey"
+                          type="textarea"
+                          :rows="5"
+                          placeholder="请输入支付宝私钥"
+                        />
+                      </el-form-item>
+                      <el-form-item label="支付宝公钥">
+                        <el-input
+                          v-model="alipayInfo.PublicKey"
+                          type="textarea"
+                          :rows="5"
+                          placeholder="请输入支付宝公钥"
+                        />
+                      </el-form-item>
+                      <el-form-item>
+                        <el-button type="primary" @click="alipayInfoSubmit"
+                          >提交</el-button
+                        >
+                      </el-form-item>
+                    </el-form>
+                  </div>
+                </el-tab-pane>
+
+                <el-tab-pane label="微信支付配置" name="wechatpay">
+                  <div class="form">
+                    <el-form
+                      :model="wechatPayInfo"
+                      label-position="top"
+                      label-width="120px"
+                    >
+                      <el-form-item label="API V3密钥">
+                        <el-input
+                          v-model="wechatPayInfo.apiV3Key"
+                          placeholder="请输入微信支付API V3密钥"
+                        />
+                      </el-form-item>
+                      <el-form-item label="应用ID(AppId)">
+                        <el-input
+                          v-model="wechatPayInfo.appid"
+                          placeholder="请输入微信小程序/公众号AppId"
+                        />
+                      </el-form-item>
+                      <el-form-item label="商户号(MchId)">
+                        <el-input
+                          v-model="wechatPayInfo.mchid"
+                          placeholder="请输入微信支付商户号"
+                        />
+                      </el-form-item>
+                      <el-form-item label="商户私钥">
+                        <el-input
+                          v-model="wechatPayInfo.privateKey"
+                          type="textarea"
+                          :rows="8"
+                          placeholder="请输入商户API证书私钥（完整的PEM格式）"
+                        />
+                      </el-form-item>
+                      <el-form-item label="证书序列号">
+                        <el-input
+                          v-model="wechatPayInfo.serialNo"
+                          placeholder="请输入商户API证书序列号"
+                        />
+                      </el-form-item>
+                      <el-form-item label="微信公钥内容">
+                        <el-input
+                          v-model="wechatPayInfo.wxPublicKeyContent"
+                          type="textarea"
+                          :rows="8"
+                          placeholder="请输入微信支付平台公钥内容（完整的PEM格式）"
+                        />
+                      </el-form-item>
+                      <el-form-item label="微信公钥ID">
+                        <el-input
+                          v-model="wechatPayInfo.wxPublicKeyID"
+                          placeholder="请输入微信支付平台公钥ID"
+                        />
+                      </el-form-item>
+                      <el-form-item>
+                        <el-button type="primary" @click="wechatPayInfoSubmit"
+                          >提交</el-button
+                        >
+                      </el-form-item>
+                    </el-form>
+                  </div>
+                </el-tab-pane>
+
+                <el-tab-pane label="码支付配置" name="mpay">
+                  <div class="form">
+                    <el-form
+                      :model="mpayInfo"
+                      label-position="top"
+                      label-width="120px"
+                    >
+                      <el-form-item label="密钥(Key)">
+                        <el-input
+                          v-model="mpayInfo.key"
+                          type="password"
+                          show-password
+                          placeholder="请输入码支付密钥"
+                        />
+                        <div class="form-help">
+                          码支付平台提供的API密钥，用于接口调用验证
+                        </div>
+                      </el-form-item>
+                      <el-form-item label="商户ID(PID)">
+                        <el-input
+                          v-model="mpayInfo.pid"
+                          placeholder="请输入码支付商户ID"
+                        />
+                        <div class="form-help">
+                          码支付平台分配的唯一商户标识符
+                        </div>
+                      </el-form-item>
+                      <el-form-item label="支付类型(Type)">
+                        <el-select
+                          v-model="mpayInfo.type"
+                          placeholder="请选择支付类型"
+                          style="width: 100%"
+                        >
+                          <el-option label="微信支付" value="wxpay"></el-option>
+                          <el-option
+                            label="支付宝支付"
+                            value="alipay"
+                          ></el-option>
+                        </el-select>
+                        <div class="form-help">
+                          选择码支付平台支持的支付方式，只能选择其中一种
+                        </div>
+                      </el-form-item>
+                      <el-form-item label="API地址(URL)">
+                        <el-input
+                          v-model="mpayInfo.url"
+                          placeholder="请输入码支付API地址"
+                        />
+                        <div class="form-help">
+                          码支付平台的API接口地址，通常以https://开头，mapi.php结尾
+                        </div>
+                      </el-form-item>
+                      <el-form-item>
+                        <el-button type="primary" @click="mpayInfoSubmit"
+                          >提交</el-button
+                        >
+                      </el-form-item>
+                    </el-form>
+                  </div>
+                </el-tab-pane>
+              </el-tabs>
             </el-tab-pane>
           </el-tabs>
         </div>
@@ -1604,22 +1650,73 @@ useHead({
         border-radius: 8px;
 
         .setting-tabs {
-          :deep(.el-tabs__header) {
-            margin-bottom: 24px;
-          }
+          &.main-tabs {
+            :deep(.el-tabs__header) {
+              margin-bottom: 24px;
+            }
 
-          :deep(.el-tabs__nav-wrap::after) {
-            height: 1px;
-          }
+            :deep(.el-tabs__nav-wrap::after) {
+              height: 1px;
+            }
 
-          :deep(.el-tabs__item) {
-            font-size: 15px;
-            padding: 0 24px;
-            height: 40px;
-            line-height: 40px;
-
-            &.is-active {
+            :deep(.el-tabs__item) {
+              font-size: 16px;
+              padding: 0 32px;
+              height: 44px;
+              line-height: 44px;
               font-weight: 500;
+
+              &.is-active {
+                font-weight: 600;
+                color: #409eff;
+              }
+            }
+          }
+
+          &.sub-tabs {
+            margin-top: 16px;
+
+            :deep(.el-tabs__header) {
+              margin-bottom: 20px;
+              background-color: #f8f9fa;
+              border-radius: 6px;
+              padding: 4px;
+            }
+
+            :deep(.el-tabs__nav-wrap) {
+              &::after {
+                display: none;
+              }
+            }
+
+            :deep(.el-tabs__nav) {
+              border: none;
+            }
+
+            :deep(.el-tabs__item) {
+              font-size: 14px;
+              padding: 0 20px;
+              height: 36px;
+              line-height: 36px;
+              border-radius: 4px;
+              margin: 0 2px;
+              transition: all 0.3s;
+              color: #606266;
+
+              &:hover {
+                background-color: #e6f7ff;
+                color: #409eff;
+              }
+
+              &.is-active {
+                background-color: #409eff;
+                color: #fff;
+                font-weight: 500;
+              }
+            }
+
+            :deep(.el-tabs__active-bar) {
+              display: none;
             }
           }
         }
