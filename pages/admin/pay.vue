@@ -642,11 +642,9 @@ useHead({
 .container {
   display: flex;
   width: 100%;
-  height: 100vh;
 
   .right {
     flex: 1;
-    height: 100vh;
     background: #f5f5f5;
 
     .overlay {

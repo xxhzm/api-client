@@ -1,5 +1,15 @@
 <script setup>
-import { InfoFilled, Setting, Connection, Menu } from '@element-plus/icons-vue'
+import {
+  InfoFilled,
+  Setting,
+  Connection,
+  Menu,
+  Plus,
+  Key,
+  EditPen,
+  Lock,
+  Unlock,
+} from '@element-plus/icons-vue'
 const username = useCookie('username')
 
 const { $msg, $myFetch } = useNuxtApp()
@@ -49,15 +59,43 @@ const createapiInfo = reactive({
   prefixValue: '',
 })
 
-// 参数信息
-const addparameter = reactive({
-  id: 0,
-  name: '',
-  param: '',
-  position: '',
-  docs: '',
-  required: true,
-})
+// 生成唯一ID
+const generateId = () => {
+  return Date.now() + Math.random().toString(36).substr(2, 9)
+}
+
+// 参数信息 - 改为数组结构支持多个参数
+const parameterList = ref([
+  {
+    id: generateId(),
+    name: '',
+    param: '',
+    position: 'query',
+    docs: '',
+    required: true,
+  },
+])
+
+// 添加参数
+const addParameter = () => {
+  parameterList.value.push({
+    id: generateId(),
+    name: '',
+    param: '',
+    position: 'query',
+    docs: '',
+    required: true,
+  })
+}
+
+// 删除参数
+const removeParameter = (index) => {
+  if (parameterList.value.length > 1) {
+    parameterList.value.splice(index, 1)
+  } else {
+    $msg('至少需要保留一个参数配置', 'warning')
+  }
+}
 
 const position = [
   {
@@ -131,10 +169,16 @@ const methodOptions = [
 ]
 
 watch(
-  () => addparameter.id,
+  () => parameterList.value,
   (newValue) => {
-    addparameter.id = newValue.replace(/[^\d]/g, '')
-  }
+    // 更新每个参数的ID
+    newValue.forEach((param, index) => {
+      if (!param.id) {
+        newValue[index].id = generateId()
+      }
+    })
+  },
+  { deep: true }
 )
 
 const create = async () => {
@@ -191,36 +235,39 @@ const create = async () => {
 
   msg(res.msg, 'success')
 
-  // 接口添加成功后添加参数
-  addparameter.id = res.data
-  if (
-    !addparameter.id ||
-    !addparameter.name ||
-    !addparameter.param ||
-    !addparameter.docs ||
-    !addparameter.position
-  ) {
-    navigateTo('/admin/apilist')
-    return false
+  // 接口添加成功后批量添加参数
+  const apiId = res.data
+
+  // 只提交有效的参数（至少有参数名称和文档说明）
+  const validParameters = parameterList.value.filter(
+    (param) => param.name.trim() && param.docs.trim()
+  )
+
+  if (validParameters.length > 0) {
+    for (const param of validParameters) {
+      const paramBodyValue = new URLSearchParams()
+      paramBodyValue.append('aid', apiId)
+      paramBodyValue.append('name', param.name)
+      paramBodyValue.append('param', param.param)
+      paramBodyValue.append('position', param.position)
+      paramBodyValue.append('docs', param.docs)
+
+      if (param.required) {
+        paramBodyValue.append('required', 1)
+      } else {
+        paramBodyValue.append('required', 2)
+      }
+
+      const paramRes = await $myFetch('ParamCreate', {
+        method: 'POST',
+        body: paramBodyValue,
+      })
+
+      if (paramRes.code !== 200) {
+        msg(`参数 "${param.name}" 添加失败: ${paramRes.msg}`, 'error')
+      }
+    }
   }
-
-  const paramBodyValue = new URLSearchParams()
-  paramBodyValue.append('aid', addparameter.id)
-  paramBodyValue.append('name', addparameter.name)
-  paramBodyValue.append('param', addparameter.param)
-  paramBodyValue.append('position', addparameter.position)
-  paramBodyValue.append('docs', addparameter.docs)
-
-  if (addparameter.required) {
-    paramBodyValue.append('required', 1)
-  } else {
-    paramBodyValue.append('required', 2)
-  }
-
-  const res1 = await $myFetch('ParamCreate', {
-    method: 'POST',
-    body: paramBodyValue,
-  })
 
   setTimeout(() => {
     navigateTo('/admin/apilist')
@@ -490,49 +537,139 @@ useHead({
             </div>
           </div>
 
-          <!-- 原有参数表单 -->
-          <el-form :model="addparameter" label-width="120px" class="param-form">
-            <el-form-item label="参数名称">
-              <el-autocomplete
-                v-model="addparameter.name"
-                :fetch-suggestions="queryParamNameAsync"
-                placeholder="请输入参数名称，或从常用参数中选择"
-                style="width: 100%"
-              />
-            </el-form-item>
-            <el-form-item label="可传参数">
-              <el-autocomplete
-                v-model="addparameter.param"
-                :fetch-suggestions="queryParamValueAsync"
-                placeholder="请输入可传参数，或从常用值中选择"
-                style="width: 100%"
-              />
-            </el-form-item>
-            <client-only>
-              <el-form-item label="传入位置">
-                <el-select
-                  v-model="addparameter.position"
-                  placeholder="传入位置"
+          <!-- 动态参数表单列表 -->
+          <div class="parameter-container">
+            <div class="parameter-list">
+              <transition-group name="parameter" tag="div">
+                <div
+                  v-for="(parameter, index) in parameterList"
+                  :key="parameter.id"
+                  class="parameter-card"
                 >
-                  <el-option
-                    v-for="item in position"
-                    :key="item.value"
-                    :label="item.label"
-                    :value="item.value"
-                  />
-                </el-select>
-              </el-form-item>
-            </client-only>
-            <el-form-item label="参数描述">
-              <el-input
-                v-model="addparameter.docs"
-                placeholder="返回json数据 | 重定义到图片"
-              />
-            </el-form-item>
-            <el-form-item label="是否必传">
-              <el-switch v-model="addparameter.required" />
-            </el-form-item>
-          </el-form>
+                  <!-- 参数卡片头部 -->
+                  <div class="parameter-card-header">
+                    <div class="card-title-area">
+                      <div class="param-number">{{ index + 1 }}</div>
+                      <div class="title-text">
+                        <span class="param-title">参数配置</span>
+                        <span v-if="parameter.name" class="param-name"
+                          >[{{ parameter.name }}]</span
+                        >
+                      </div>
+                    </div>
+                    <div class="card-actions">
+                      <el-tag
+                        :type="parameter.required ? 'danger' : 'info'"
+                        size="small"
+                        effect="light"
+                      >
+                        {{ parameter.required ? '必传' : '可选' }}
+                      </el-tag>
+                      <el-button
+                        v-if="parameterList.length > 1"
+                        type="danger"
+                        size="small"
+                        text
+                        @click="removeParameter(index)"
+                        class="delete-btn"
+                      >
+                        删除
+                      </el-button>
+                    </div>
+                  </div>
+
+                  <!-- 参数配置表单 -->
+                  <div class="parameter-form-container">
+                    <el-form
+                      :model="parameter"
+                      label-width="80px"
+                      class="simple-form"
+                    >
+                      <el-row :gutter="16">
+                        <el-col :xs="24" :sm="24" :md="24" :lg="24" :xl="24">
+                          <el-form-item label="参数名称">
+                            <el-autocomplete
+                              v-model="parameter.name"
+                              :fetch-suggestions="queryParamNameAsync"
+                              placeholder="请输入参数名称"
+                              style="width: 100%"
+                            />
+                          </el-form-item>
+                        </el-col>
+
+                        <el-col :xs="24" :sm="24" :md="24" :lg="24" :xl="24">
+                          <el-form-item label="可传参数">
+                            <el-autocomplete
+                              v-model="parameter.param"
+                              :fetch-suggestions="queryParamValueAsync"
+                              placeholder="请输入可传参数"
+                              style="width: 100%"
+                            />
+                          </el-form-item>
+                        </el-col>
+
+                        <el-col :xs="24" :sm="24" :md="24" :lg="24" :xl="24">
+                          <el-form-item label="传入位置">
+                            <el-select
+                              v-model="parameter.position"
+                              placeholder="位置"
+                              style="width: 100%"
+                            >
+                              <el-option
+                                v-for="item in position"
+                                :key="item.value"
+                                :label="item.label"
+                                :value="item.value"
+                              />
+                            </el-select>
+                          </el-form-item>
+                        </el-col>
+
+                        <el-col :xs="24" :sm="24" :md="24" :lg="24" :xl="24">
+                          <el-form-item label="是否必传">
+                            <el-switch v-model="parameter.required" />
+                          </el-form-item>
+                        </el-col>
+
+                        <el-col :xs="24" :sm="24" :md="24" :lg="24" :xl="24">
+                          <el-form-item label="参数描述">
+                            <el-input
+                              v-model="parameter.docs"
+                              type="textarea"
+                              :rows="2"
+                              placeholder="请输入参数描述"
+                            />
+                          </el-form-item>
+                        </el-col>
+                      </el-row>
+                    </el-form>
+                  </div>
+                </div>
+              </transition-group>
+            </div>
+
+            <!-- 空状态 -->
+            <div v-if="parameterList.length === 0" class="empty-state">
+              <div class="empty-icon">📝</div>
+              <p class="empty-text">暂无参数配置</p>
+              <el-button type="primary" @click="addParameter" size="large">
+                添加第一个参数
+              </el-button>
+            </div>
+
+            <!-- 底部添加按钮 -->
+            <div v-if="parameterList.length > 0" class="add-parameter-footer">
+              <el-button
+                type="primary"
+                @click="addParameter"
+                size="large"
+                class="add-btn-footer"
+              >
+                <el-icon><Plus /></el-icon>
+                继续添加参数
+              </el-button>
+            </div>
+          </div>
         </div>
 
         <!-- 底部操作栏 -->
@@ -661,17 +798,208 @@ useHead({
             }
           }
         }
+
+        .parameter-container {
+          padding-bottom: 40px; // 为浮动操作栏预留适当空间
+
+          .parameter-list {
+            padding: 24px;
+            max-height: 600px;
+            overflow-y: auto;
+
+            .parameter-card {
+              margin-bottom: 20px;
+              border: 1px solid #e2e8f0;
+              border-radius: 12px;
+              background: #fff;
+              box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+
+              .parameter-card-header {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                padding: 16px 20px;
+                border-bottom: 1px solid #f1f5f9;
+                background: linear-gradient(135deg, #fafbff 0%, #f8fafc 100%);
+                border-radius: 12px 12px 0 0;
+
+                .card-title-area {
+                  display: flex;
+                  align-items: center;
+                  gap: 12px;
+
+                  .param-number {
+                    width: 28px;
+                    height: 28px;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    background: linear-gradient(
+                      135deg,
+                      #3b82f6 0%,
+                      #1d4ed8 100%
+                    );
+                    color: white;
+                    border-radius: 50%;
+                    font-size: 14px;
+                    font-weight: 600;
+                    box-shadow: 0 2px 4px rgba(59, 130, 246, 0.3);
+                  }
+
+                  .title-text {
+                    display: flex;
+                    align-items: center;
+                    gap: 8px;
+
+                    .param-title {
+                      font-size: 16px;
+                      font-weight: 600;
+                      color: #1e293b;
+                    }
+
+                    .param-name {
+                      font-size: 14px;
+                      color: #3b82f6;
+                      font-weight: 500;
+                      background: #eff6ff;
+                      padding: 2px 8px;
+                      border-radius: 4px;
+                    }
+                  }
+                }
+
+                .card-actions {
+                  display: flex;
+                  align-items: center;
+                  gap: 12px;
+
+                  .delete-btn {
+                    color: #ef4444;
+                    font-weight: 500;
+
+                    &:hover {
+                      background: #fef2f2;
+                    }
+                  }
+                }
+              }
+
+              .parameter-form-container {
+                padding: 20px;
+
+                .simple-form {
+                  :deep(.el-form-item) {
+                    margin-bottom: 16px;
+
+                    .el-form-item__label {
+                      font-size: 14px;
+                      color: #606266;
+                      font-weight: 500;
+                    }
+
+                    .el-input__wrapper,
+                    .el-select__wrapper {
+                      box-shadow: 0 0 0 1px #dcdfe6 inset;
+                      border-radius: 4px;
+
+                      &:hover {
+                        box-shadow: 0 0 0 1px #c0c4cc inset;
+                      }
+
+                      &.is-focus {
+                        box-shadow: 0 0 0 1px #409eff inset;
+                      }
+                    }
+
+                    .el-textarea__inner {
+                      border: 1px solid #dcdfe6;
+                      border-radius: 4px;
+
+                      &:hover {
+                        border-color: #c0c4cc;
+                      }
+
+                      &:focus {
+                        border-color: #409eff;
+                      }
+                    }
+
+                    .el-switch {
+                      margin-top: 4px;
+                    }
+                  }
+                }
+              }
+            }
+          }
+
+          .empty-state {
+            padding: 60px 24px;
+            text-align: center;
+            border: 2px dashed #e2e8f0;
+            border-radius: 12px;
+            margin: 24px;
+            background: #fafbff;
+
+            .empty-icon {
+              font-size: 48px;
+              margin-bottom: 16px;
+              opacity: 0.6;
+            }
+
+            .empty-text {
+              margin: 0 0 24px 0;
+              font-size: 16px;
+              color: #64748b;
+            }
+          }
+
+          .add-parameter-footer {
+            padding: 20px 24px;
+            text-align: center;
+            border-top: 1px solid #f1f5f9;
+
+            .add-btn-footer {
+              font-weight: 500;
+            }
+          }
+        }
+
+        // 动画效果
+        .parameter-enter-active {
+          transition: all 0.3s ease;
+        }
+
+        .parameter-leave-active {
+          transition: all 0.3s ease;
+        }
+
+        .parameter-enter-from {
+          opacity: 0;
+          transform: translateY(-10px);
+        }
+
+        .parameter-leave-to {
+          opacity: 0;
+          transform: translateX(20px);
+        }
+
+        .parameter-move {
+          transition: transform 0.3s ease;
+        }
       }
 
       .createapi-footer {
         position: fixed;
-        bottom: 0;
-        right: 0;
-        width: calc(100% - 200px);
+        bottom: 20px;
+        right: 20px;
+        width: calc(100% - 240px);
         background: #fff;
-        border-top: 1px solid #eaecf0;
+        border: 1px solid #eaecf0;
+        border-radius: 8px;
         padding: 16px 32px;
         z-index: 10;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 
         .footer-content {
           display: flex;
@@ -737,6 +1065,91 @@ useHead({
       flex-direction: column;
       align-items: flex-start;
       gap: 12px;
+    }
+
+    .createapi-footer {
+      bottom: 10px;
+      right: 10px;
+      left: 10px;
+      width: auto;
+      padding: 12px 16px;
+    }
+
+    .createapi-cont {
+      .parameter-container {
+        .parameter-list {
+          padding: 16px;
+
+          .parameter-card {
+            .parameter-card-header {
+              padding: 12px 16px;
+
+              .card-title-area {
+                .param-number {
+                  width: 24px;
+                  height: 24px;
+                  font-size: 12px;
+                }
+
+                .title-text {
+                  .param-title {
+                    font-size: 14px;
+                  }
+
+                  .param-name {
+                    font-size: 12px;
+                  }
+                }
+              }
+
+              .card-actions {
+                gap: 8px;
+
+                :deep(.el-tag) {
+                  font-size: 12px;
+                }
+              }
+            }
+
+            .parameter-form-container {
+              padding: 16px;
+
+              .simple-form {
+                :deep(.el-row) {
+                  .el-col {
+                    margin-bottom: 8px;
+                  }
+                }
+
+                :deep(.el-form-item) {
+                  margin-bottom: 12px;
+
+                  .el-form-item__label {
+                    font-size: 13px;
+                  }
+                }
+              }
+            }
+          }
+        }
+
+        .empty-state {
+          padding: 40px 16px;
+          margin: 16px;
+
+          .empty-icon {
+            font-size: 36px;
+          }
+
+          .empty-text {
+            font-size: 14px;
+          }
+        }
+
+        .add-parameter-footer {
+          padding: 16px;
+        }
+      }
     }
   }
 }
