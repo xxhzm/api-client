@@ -41,7 +41,7 @@ const balance = ref(0)
 const payChannels = ref({
   alipay: false,
   weixin: false,
-  mpay: false,
+  mpay: '', // 改为字符串类型：空字符串代表未配置，'alipay'代表支付宝，'wxpay'代表微信支付
 })
 
 // 表单数据
@@ -305,7 +305,7 @@ const closeEpayDialog = () => {
 const getPaymentTitle = () => {
   if (mpayMethod.value === 'alipay') {
     return '支付宝扫码支付'
-  } else if (mpayMethod.value === 'wechat') {
+  } else if (mpayMethod.value === 'wechat' || mpayMethod.value === 'wxpay') {
     return '微信扫码支付'
   }
   return '码支付二维码'
@@ -315,7 +315,7 @@ const getPaymentTitle = () => {
 const getPaymentTips = () => {
   if (mpayMethod.value === 'alipay') {
     return '请使用支付宝扫描二维码进行支付'
-  } else if (mpayMethod.value === 'wechat') {
+  } else if (mpayMethod.value === 'wechat' || mpayMethod.value === 'wxpay') {
     return '请使用微信扫描二维码进行支付'
   }
   return '请使用手机扫描二维码进行支付'
@@ -325,7 +325,7 @@ const getPaymentTips = () => {
 const getPaymentInstructions = () => {
   if (mpayMethod.value === 'alipay') {
     return '打开支付宝，使用"扫一扫"功能扫描二维码'
-  } else if (mpayMethod.value === 'wechat') {
+  } else if (mpayMethod.value === 'wechat' || mpayMethod.value === 'wxpay') {
     return '打开微信，使用"扫一扫"功能扫描二维码'
   }
   return '使用手机扫描上方二维码'
@@ -464,7 +464,13 @@ useHead({
                           微信支付
                         </el-radio>
                         <el-radio value="mpay" v-if="payChannels.mpay">
-                          码支付
+                          码支付{{
+                            payChannels.mpay === 'alipay'
+                              ? '(支付宝)'
+                              : payChannels.mpay === 'wxpay'
+                              ? '(微信)'
+                              : ''
+                          }}
                         </el-radio>
                       </el-radio-group>
                       <!-- 无可用支付方式时的提示 -->
@@ -503,7 +509,14 @@ useHead({
                           ? '支付宝支付'
                           : form.payMethod === 'wechat'
                           ? '微信支付'
-                          : '码支付'
+                          : form.payMethod === 'mpay'
+                          ? '码支付' +
+                            (payChannels.mpay === 'alipay'
+                              ? '(支付宝)'
+                              : payChannels.mpay === 'wxpay'
+                              ? '(微信)'
+                              : '')
+                          : '未知支付方式'
                       }}</span>
                     </div>
                   </div>
