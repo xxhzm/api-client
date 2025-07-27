@@ -30,6 +30,7 @@ const websetInfo = ref({
   notice: '',
   feedback: '',
   css: '',
+  valueAddedTelecomLicense: '',
 })
 
 // 邮件设置相关
@@ -493,6 +494,10 @@ const websetInfoSubmit = async () => {
   bodyValue.append('notice', websetInfo.value.notice)
   bodyValue.append('feedback', websetInfo.value.feedback)
   bodyValue.append('css', websetInfo.value.css)
+  bodyValue.append(
+    'valueAddedTelecomLicense',
+    websetInfo.value.valueAddedTelecomLicense
+  )
 
   const res = await $myFetch('OptionsUpdate', {
     method: 'POST',
@@ -777,6 +782,11 @@ useHead({
                       </el-form-item>
                       <el-form-item label="公安备案号">
                         <el-input v-model="websetInfo.gongan" />
+                      </el-form-item>
+                      <el-form-item label="增值电信业务许可证号">
+                        <el-input
+                          v-model="websetInfo.valueAddedTelecomLicense"
+                        />
                       </el-form-item>
                       <el-form-item label="网站名称">
                         <el-input v-model="websetInfo.website_name" />

@@ -53,7 +53,19 @@ const props = defineProps(['options'])
             "
             >{{ props.options.gongan }}</a
           ></span
-        >
+        ><br />
+        <span v-if="props.options.valueAddedTelecomLicense"
+          ><a
+            :href="
+              'https://tsm.miit.gov.cn/dxxzsp/xkz/xkzgl/resource/qiyesearch.jsp?num=' +
+              props.options.valueAddedTelecomLicense +
+              '&type=xuke'
+            "
+            target="_blank"
+            >增值电信业务经营许可证
+            {{ props.options.valueAddedTelecomLicense }}</a
+          >
+        </span>
       </p>
     </div>
     <nav class="custom-tabbar">
@@ -121,13 +133,16 @@ const props = defineProps(['options'])
 .footer {
   padding-bottom: 50px;
   margin-bottom: 20px;
+  span {
+    a {
+      margin: 0px 10px;
+      color: #606266;
+      transition: all 0.5s;
+      text-decoration: none;
 
-  a {
-    color: #9999ff;
-    transition: all 0.5s;
-
-    &:hover {
-      color: #0000ff;
+      &:hover {
+        color: #409eff;
+      }
     }
   }
 }
