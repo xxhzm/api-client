@@ -80,6 +80,7 @@ const aiInfo = ref({
 // 高级设置相关
 const advancedInfo = ref({
   request_id: 'true',
+  clickhouse: 'true',
 })
 
 // 新增：关于我们页面信息相关
@@ -656,6 +657,7 @@ const aboutInfoSubmit = async () => {
 const advancedInfoSubmit = async () => {
   const bodyValue = new URLSearchParams()
   bodyValue.append('requestId', advancedInfo.value.request_id)
+  bodyValue.append('clickhouse', advancedInfo.value.clickhouse)
 
   const res = await $myFetch('UpdateAdvancedSetting', {
     method: 'POST',
@@ -1430,6 +1432,20 @@ useHead({
                         </el-select>
                         <div class="form-help">
                           开启后，所有API响应将包含唯一的请求ID，便于问题追踪和调试
+                        </div>
+                      </el-form-item>
+
+                      <el-form-item label="是否启用clickhouse">
+                        <el-select
+                          v-model="advancedInfo.clickhouse"
+                          placeholder="是否启用clickhouse"
+                          style="width: 100%"
+                        >
+                          <el-option label="是" value="true"></el-option>
+                          <el-option label="否" value="false"></el-option>
+                        </el-select>
+                        <div class="form-help">
+                          开启后，所有API响应将写入clickhouse数据库，便于问题追踪和调试
                         </div>
                       </el-form-item>
                       <el-form-item>
