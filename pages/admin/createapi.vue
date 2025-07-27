@@ -650,7 +650,6 @@ useHead({
 
             <!-- 空状态 -->
             <div v-if="parameterList.length === 0" class="empty-state">
-              <div class="empty-icon">📝</div>
               <p class="empty-text">暂无参数配置</p>
               <el-button type="primary" @click="addParameter" size="large">
                 添加第一个参数
@@ -941,12 +940,6 @@ useHead({
             margin: 24px;
             background: #fafbff;
 
-            .empty-icon {
-              font-size: 48px;
-              margin-bottom: 16px;
-              opacity: 0.6;
-            }
-
             .empty-text {
               margin: 0 0 24px 0;
               font-size: 16px;
@@ -1136,10 +1129,6 @@ useHead({
         .empty-state {
           padding: 40px 16px;
           margin: 16px;
-
-          .empty-icon {
-            font-size: 36px;
-          }
 
           .empty-text {
             font-size: 14px;
