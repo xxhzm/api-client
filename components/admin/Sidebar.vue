@@ -78,6 +78,7 @@ const pathMap = {
   webset: '2',
   ad: '2',
   sitemap: '2',
+  'online-update': '2',
   apilist: '3',
   createapi: '3',
   addparam: '3',
@@ -145,7 +146,14 @@ if (thirdPath && pathMap[thirdPath]) {
 
         <el-sub-menu
           index="2"
-          v-if="routeShowArr(['/admin/webset', '/admin/ad', '/admin/sitemap'])"
+          v-if="
+            routeShowArr([
+              '/admin/webset',
+              '/admin/ad',
+              '/admin/sitemap',
+              '/admin/online-update',
+            ])
+          "
         >
           <template #title>
             <el-icon>
@@ -171,6 +179,13 @@ if (thirdPath && pathMap[thirdPath]) {
               @click="sitemap()"
               v-if="routeShow('/admin/sitemap')"
               >生成网站地图
+            </el-menu-item>
+            <el-menu-item
+              index="2-4"
+              @click="navigateTo('/admin/online-update')"
+              v-if="routeShow('/admin/online-update')"
+            >
+              在线更新
             </el-menu-item>
           </el-menu-item-group>
         </el-sub-menu>
