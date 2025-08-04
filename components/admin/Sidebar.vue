@@ -79,6 +79,7 @@ const pathMap = {
   ad: '2',
   sitemap: '2',
   'online-update': '2',
+  import: '2',
   apilist: '3',
   createapi: '3',
   addparam: '3',
@@ -152,6 +153,7 @@ if (thirdPath && pathMap[thirdPath]) {
               '/admin/ad',
               '/admin/sitemap',
               '/admin/online-update',
+              '/admin/import',
             ])
           "
         >
@@ -186,6 +188,13 @@ if (thirdPath && pathMap[thirdPath]) {
               v-if="routeShow('/admin/online-update')"
             >
               在线更新
+            </el-menu-item>
+            <el-menu-item
+              index="2-5"
+              @click="navigateTo('/admin/import')"
+              v-if="routeShow('/admin/import')"
+            >
+              一键对接
             </el-menu-item>
           </el-menu-item-group>
         </el-sub-menu>
