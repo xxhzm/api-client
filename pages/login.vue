@@ -320,7 +320,7 @@ useHead({
             <div class="captcha-container">
               <el-input
                 v-model="info.captcha"
-                placeholder="图片验证码"
+                placeholder="计算图片验证码"
                 prefix-icon="el-icon-picture"
                 @keyup.enter="login"
               />

@@ -1,5 +1,11 @@
 <script setup>
-import { Tickets, Menu } from '@element-plus/icons-vue'
+import {
+  Tickets,
+  Menu,
+  InfoFilled,
+  SuccessFilled,
+  WarningFilled,
+} from '@element-plus/icons-vue'
 
 const route = useRoute()
 
@@ -75,6 +81,13 @@ const methodOptions = [
   },
 ]
 
+// 缓存类型常量
+const CACHE_TYPE = {
+  NO_CACHE: 'no_cache',
+  WITH_PARAMS: 'cache_with_params',
+  WITHOUT_PARAMS: 'cache_without_params',
+}
+
 const getData = async () => {
   const res = await $myFetch('ApiId', {
     params: {
@@ -129,6 +142,7 @@ const getData = async () => {
 onMounted(async () => {
   await getData()
   await getRateLimitSettings()
+  await getCacheSettings()
 })
 
 const updateApiInfo = async () => {
@@ -665,6 +679,97 @@ const validateRateLimitNumber = (field) => {
   // 转换为数字
   if (rateLimitInfo.value[field] !== '') {
     rateLimitInfo.value[field] = parseInt(rateLimitInfo.value[field])
+  }
+}
+
+// 缓存相关状态
+const cacheInfo = ref({
+  cacheType: 'no_cache',
+  cacheDuration: 300,
+})
+
+const cacheLoading = ref(false)
+
+// 获取缓存设置
+const getCacheSettings = async () => {
+  try {
+    const res = await $myFetch('GetApiCacheSettings', {
+      params: {
+        id: route.params.id,
+      },
+    })
+
+    if (res.code === 200 && res.data) {
+      cacheInfo.value = {
+        cacheType: res.data.cacheType || CACHE_TYPE.NO_CACHE,
+        cacheDuration: res.data.cacheDuration || 300,
+      }
+    } else {
+      // 接口返回空或无数据，默认设置为不使用缓存
+      cacheInfo.value = {
+        cacheType: CACHE_TYPE.NO_CACHE,
+        cacheDuration: 300,
+      }
+    }
+  } catch (error) {
+    console.error('获取缓存设置失败:', error)
+    // 出错时也默认设置为不使用缓存
+    cacheInfo.value = {
+      cacheType: CACHE_TYPE.NO_CACHE,
+      cacheDuration: 300,
+    }
+  }
+}
+
+// 更新缓存设置
+const updateCacheSettings = async () => {
+  if (
+    cacheInfo.value.cacheType !== CACHE_TYPE.NO_CACHE &&
+    (!cacheInfo.value.cacheDuration || cacheInfo.value.cacheDuration < 1)
+  ) {
+    msg('缓存时间必须大于0秒', 'error')
+    return
+  }
+
+  cacheLoading.value = true
+
+  const bodyValue = new URLSearchParams()
+  bodyValue.append('aid', route.params.id)
+  bodyValue.append('cacheStrategy', cacheInfo.value.cacheType)
+  bodyValue.append('cacheDuration', cacheInfo.value.cacheDuration)
+
+  try {
+    const res = await $myFetch('UpdateApiCacheSettings', {
+      method: 'POST',
+      body: bodyValue,
+    })
+
+    if (res.code === 200) {
+      msg(res.msg || '缓存设置更新成功', 'success')
+    } else {
+      msg(res.msg || '缓存设置更新失败', 'error')
+    }
+  } catch (error) {
+    msg('缓存设置更新失败', 'error')
+  } finally {
+    cacheLoading.value = false
+  }
+}
+
+// 验证缓存时间输入
+const validateCacheDuration = () => {
+  // 移除非数字字符
+  cacheInfo.value.cacheDuration = cacheInfo.value.cacheDuration
+    .toString()
+    .replace(/[^\d]/g, '')
+
+  // 转换为数字，确保不小于1秒
+  if (cacheInfo.value.cacheDuration !== '') {
+    const duration = parseInt(cacheInfo.value.cacheDuration)
+    cacheInfo.value.cacheDuration = Math.max(1, duration)
+  } else {
+    // 如果为空，设置默认值
+    cacheInfo.value.cacheDuration = 300
   }
 }
 
@@ -1301,6 +1406,194 @@ useHead({
                         </el-form-item>
                       </el-col>
                     </el-row>
+                  </el-form>
+                </div>
+              </el-tab-pane>
+
+              <el-tab-pane label="接口缓存" name="Cache">
+                <div class="cache-container">
+                  <el-form :model="cacheInfo" label-width="120px">
+                    <div class="cache-section">
+                      <h3 class="section-title">缓存策略配置</h3>
+                      <p class="section-description">
+                        选择适合的缓存策略可以显著提高接口响应速度，减少服务器负载。
+                      </p>
+
+                      <el-form-item label="缓存类型" required>
+                        <el-radio-group
+                          v-model="cacheInfo.cacheType"
+                          class="cache-radio-group"
+                        >
+                          <!-- 不使用缓存选项 -->
+                          <div class="cache-option">
+                            <el-radio value="no_cache" class="cache-radio">
+                              <div class="option-content">
+                                <div class="option-header">
+                                  <span class="option-label">不使用缓存</span>
+                                  <el-tag type="info" size="small">默认</el-tag>
+                                </div>
+                                <div class="option-description">
+                                  每次请求都会直接访问后端服务，不使用任何缓存
+                                </div>
+                              </div>
+                            </el-radio>
+                          </div>
+
+                          <!-- 基于参数缓存选项 -->
+                          <div class="cache-option">
+                            <el-radio
+                              value="cache_with_params"
+                              class="cache-radio"
+                            >
+                              <div class="option-content">
+                                <div class="option-header">
+                                  <span class="option-label">基于参数缓存</span>
+                                  <el-tag type="success" size="small"
+                                    >推荐</el-tag
+                                  >
+                                </div>
+                                <div class="option-description">
+                                  根据请求参数的不同组合进行缓存，相同参数返回缓存结果
+                                </div>
+                              </div>
+                            </el-radio>
+                          </div>
+
+                          <!-- 忽略参数缓存选项 -->
+                          <div class="cache-option">
+                            <el-radio
+                              value="cache_without_params"
+                              class="cache-radio"
+                            >
+                              <div class="option-content">
+                                <div class="option-header">
+                                  <span class="option-label">忽略参数缓存</span>
+                                  <el-tag type="warning" size="small"
+                                    >高效</el-tag
+                                  >
+                                </div>
+                                <div class="option-description">
+                                  忽略请求参数，所有请求返回相同的缓存结果，性能最佳
+                                </div>
+                              </div>
+                            </el-radio>
+                          </div>
+                        </el-radio-group>
+                      </el-form-item>
+
+                      <!-- 缓存时间设置 -->
+                      <el-form-item
+                        v-if="cacheInfo.cacheType !== CACHE_TYPE.NO_CACHE"
+                        label="缓存时间"
+                        required
+                      >
+                        <div class="cache-duration-container">
+                          <el-input
+                            v-model="cacheInfo.cacheDuration"
+                            placeholder="请输入缓存时间"
+                            class="cache-duration-input"
+                            @input="validateCacheDuration"
+                          >
+                            <template #suffix>秒</template>
+                          </el-input>
+                          <div class="duration-presets">
+                            <span class="preset-label">快速设置：</span>
+                            <div class="preset-buttons">
+                              <el-button
+                                size="small"
+                                type="primary"
+                                plain
+                                @click="cacheInfo.cacheDuration = 60"
+                              >
+                                1分钟
+                              </el-button>
+                              <el-button
+                                size="small"
+                                type="primary"
+                                plain
+                                @click="cacheInfo.cacheDuration = 300"
+                              >
+                                5分钟
+                              </el-button>
+                              <el-button
+                                size="small"
+                                type="primary"
+                                plain
+                                @click="cacheInfo.cacheDuration = 600"
+                              >
+                                10分钟
+                              </el-button>
+                              <el-button
+                                size="small"
+                                type="primary"
+                                plain
+                                @click="cacheInfo.cacheDuration = 1800"
+                              >
+                                30分钟
+                              </el-button>
+                              <el-button
+                                size="small"
+                                type="primary"
+                                plain
+                                @click="cacheInfo.cacheDuration = 3600"
+                              >
+                                1小时
+                              </el-button>
+                            </div>
+                          </div>
+                          <div class="duration-help">
+                            <el-text type="info" size="small">
+                              缓存时间建议：数据更新频率高的接口建议设置较短时间（1-5分钟），
+                              相对稳定的数据可以设置较长时间（10分钟以上）
+                            </el-text>
+                          </div>
+                        </div>
+                      </el-form-item>
+
+                      <!-- 提交按钮 -->
+                      <el-form-item>
+                        <el-button
+                          type="primary"
+                          @click="updateCacheSettings"
+                          :loading="cacheLoading"
+                          size="large"
+                        >
+                          {{ cacheLoading ? '保存中...' : '保存缓存设置' }}
+                        </el-button>
+                      </el-form-item>
+
+                      <!-- 缓存说明 -->
+                      <div class="cache-explanation">
+                        <h4>缓存类型说明：</h4>
+                        <div class="explanation-item">
+                          <el-icon class="explanation-icon"
+                            ><InfoFilled
+                          /></el-icon>
+                          <div class="explanation-content">
+                            <strong>不使用缓存：</strong
+                            >适用于数据实时性要求极高的接口，每次请求都会获取最新数据。
+                          </div>
+                        </div>
+                        <div class="explanation-item">
+                          <el-icon class="explanation-icon"
+                            ><SuccessFilled
+                          /></el-icon>
+                          <div class="explanation-content">
+                            <strong>基于参数缓存：</strong
+                            >适用于大多数查询接口，相同参数的请求会返回缓存结果，不同参数会分别缓存。
+                          </div>
+                        </div>
+                        <div class="explanation-item">
+                          <el-icon class="explanation-icon"
+                            ><WarningFilled
+                          /></el-icon>
+                          <div class="explanation-content">
+                            <strong>忽略参数缓存：</strong
+                            >适用于返回固定内容的接口，所有请求都返回相同的缓存结果，性能最佳。
+                          </div>
+                        </div>
+                      </div>
+                    </div>
                   </el-form>
                 </div>
               </el-tab-pane>
@@ -1942,6 +2235,314 @@ useHead({
       display: flex;
       align-items: center;
       gap: 6px;
+    }
+  }
+}
+
+// 缓存设置样式
+.cache-container {
+  padding: 0;
+  background: transparent;
+
+  .cache-section {
+    background: #fff;
+    border-radius: 12px;
+    padding: 32px;
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+    border: 1px solid #e8eaed;
+
+    .section-title {
+      margin: 0 0 8px 0;
+      font-size: 20px;
+      font-weight: 700;
+      color: #1a202c;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+
+      &::before {
+        content: '';
+        font-size: 22px;
+      }
+    }
+
+    .section-description {
+      margin: 0 0 36px 0;
+      font-size: 15px;
+      color: #718096;
+      line-height: 1.6;
+      background: #f7fafc;
+      padding: 16px;
+      border-radius: 8px;
+      border-left: 4px solid #4299e1;
+    }
+
+    .cache-radio-group {
+      width: 100%;
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 16px;
+
+      .cache-option {
+        position: relative;
+        padding: 24px;
+        border: 2px solid #e2e8f0;
+        border-radius: 16px;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        cursor: pointer;
+        background: linear-gradient(135deg, #fafbfc 0%, #f8fafc 100%);
+
+        &:hover {
+          border-color: #cbd5e0;
+          transform: translateY(-2px);
+          box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+        }
+
+        .cache-radio {
+          width: 100%;
+          height: auto;
+
+          :deep(.el-radio__input) {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            z-index: 2;
+
+            .el-radio__inner {
+              width: 20px;
+              height: 20px;
+              border-width: 2px;
+            }
+          }
+
+          :deep(.el-radio__label) {
+            color: inherit;
+            font-weight: inherit;
+            padding-left: 0;
+            width: 100%;
+          }
+
+          .option-content {
+            width: 100%;
+            padding-right: 40px;
+
+            .option-header {
+              display: flex;
+              align-items: center;
+              gap: 12px;
+              margin-bottom: 12px;
+
+              .option-label {
+                font-size: 18px;
+                font-weight: 700;
+                color: #2d3748;
+              }
+
+              .el-tag {
+                font-size: 12px;
+                font-weight: 600;
+                padding: 4px 8px;
+                border-radius: 6px;
+              }
+            }
+
+            .option-description {
+              font-size: 14px;
+              color: #718096;
+              line-height: 1.6;
+              margin: 0;
+            }
+          }
+        }
+
+        // 选中状态的样式
+        &:has(.el-radio.is-checked) {
+          border-color: #4299e1;
+          background: linear-gradient(135deg, #ebf8ff 0%, #e6fffa 100%);
+          box-shadow: 0 8px 30px rgba(66, 153, 225, 0.15);
+          transform: translateY(-2px);
+
+          .option-label {
+            color: #2b6cb0 !important;
+          }
+
+          .option-description {
+            color: #4a5568 !important;
+          }
+
+          &::before {
+            content: '';
+            position: absolute;
+            top: -2px;
+            left: -2px;
+            right: -2px;
+            bottom: -2px;
+            background: linear-gradient(45deg, #4299e1, #38b2ac);
+            border-radius: 18px;
+            z-index: -1;
+            opacity: 0.1;
+          }
+        }
+      }
+    }
+
+    .cache-explanation {
+      margin-top: 32px;
+      padding: 20px;
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+      border-radius: 8px;
+
+      h4 {
+        margin: 0 0 16px 0;
+        font-size: 16px;
+        font-weight: 600;
+        color: #1f2937;
+      }
+
+      .explanation-item {
+        display: flex;
+        align-items: flex-start;
+        gap: 12px;
+        margin-bottom: 12px;
+
+        &:last-child {
+          margin-bottom: 0;
+        }
+
+        .explanation-icon {
+          font-size: 18px;
+          margin-top: 2px;
+          color: #6b7280;
+        }
+
+        .explanation-content {
+          flex: 1;
+          font-size: 14px;
+          color: #4b5563;
+          line-height: 1.5;
+
+          strong {
+            color: #1f2937;
+            font-weight: 600;
+          }
+        }
+      }
+    }
+  }
+
+  // 缓存时间设置样式
+  .cache-duration-container {
+    width: 100%;
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    padding: 24px;
+    margin-top: 8px;
+
+    .cache-duration-input {
+      max-width: 240px;
+      margin-bottom: 20px;
+
+      :deep(.el-input__wrapper) {
+        border-radius: 8px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+        border: 1px solid #e2e8f0;
+
+        &:hover {
+          border-color: #4299e1;
+        }
+
+        &.is-focus {
+          border-color: #4299e1;
+          box-shadow: 0 0 0 3px rgba(66, 153, 225, 0.1);
+        }
+      }
+    }
+
+    .duration-presets {
+      margin-bottom: 16px;
+
+      .preset-label {
+        display: block;
+        font-size: 14px;
+        font-weight: 600;
+        color: #4a5568;
+        margin-bottom: 12px;
+      }
+
+      .preset-buttons {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(80px, 1fr));
+        gap: 8px;
+
+        .el-button {
+          font-size: 12px;
+          font-weight: 500;
+          padding: 8px 12px;
+          border-radius: 8px;
+          transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+          border: 1px solid #e2e8f0;
+
+          &:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(66, 153, 225, 0.15);
+            border-color: #4299e1;
+          }
+
+          &:active {
+            transform: translateY(0);
+          }
+        }
+      }
+    }
+
+    .duration-help {
+      padding: 16px;
+      background: linear-gradient(135deg, #ebf8ff 0%, #e6fffa 100%);
+      border: 1px solid #bee3f8;
+      border-radius: 8px;
+      border-left: 4px solid #4299e1;
+
+      .el-text {
+        color: #2c5282;
+        line-height: 1.6;
+        font-size: 13px;
+      }
+    }
+  }
+
+  :deep(.el-form-item) {
+    margin-bottom: 32px;
+
+    .el-form-item__label {
+      color: #2d3748;
+      font-weight: 600;
+      font-size: 15px;
+    }
+
+    &:last-child {
+      margin-bottom: 0;
+      margin-top: 40px;
+      text-align: center;
+
+      .el-button {
+        padding: 16px 32px;
+        font-weight: 600;
+        font-size: 16px;
+        border-radius: 12px;
+        box-shadow: 0 4px 12px rgba(66, 153, 225, 0.3);
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+
+        &:hover {
+          transform: translateY(-2px);
+          box-shadow: 0 8px 20px rgba(66, 153, 225, 0.4);
+        }
+
+        &:active {
+          transform: translateY(0);
+        }
+      }
     }
   }
 }
