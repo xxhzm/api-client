@@ -340,6 +340,11 @@ const highlightedExample = computed(() => {
 const openInNewWindow = (url) => {
   window.open(url, '_blank')
 }
+
+// 购买套餐
+const buyPackage = (pkg) => {
+  navigateTo(`/admin/buy?package_id=${pkg.id}`)
+}
 </script>
 
 <template>
@@ -392,6 +397,46 @@ const openInNewWindow = (url) => {
       <client-only>
         <Ad></Ad>
       </client-only>
+
+      <!-- 套餐列表 -->
+      <div class="box" v-if="apiInfo.package_list && apiInfo.package_list.length > 0">
+        <h2>相关套餐</h2>
+        <el-table :data="apiInfo.package_list" border style="width: 100%">
+          <el-table-column prop="name" label="套餐名称" width="180" />
+          <el-table-column prop="description" label="套餐描述" min-width="200" />
+          <el-table-column label="套餐类型" width="100" align="center">
+            <template #default="scope">
+              <el-tag :type="scope.row.type === 2 ? 'success' : 'warning'" size="small">
+                {{ scope.row.type === 2 ? '时长套餐' : '点数套餐' }}
+              </el-tag>
+            </template>
+          </el-table-column>
+          <el-table-column label="可用次数" width="100" align="center">
+            <template #default="scope">
+              <span v-if="scope.row.type === 2">无限制</span>
+              <span v-else>{{ scope.row.points }}次</span>
+            </template>
+          </el-table-column>
+          <el-table-column label="有效期" width="100" align="center">
+            <template #default="scope">
+              <span v-if="scope.row.duration > 0">{{ scope.row.duration }}天</span>
+              <span v-else>永久</span>
+            </template>
+          </el-table-column>
+          <el-table-column prop="price" label="价格" width="80" align="center">
+            <template #default="scope">
+              <span class="package-price-cell">¥{{ scope.row.price }}</span>
+            </template>
+          </el-table-column>
+          <el-table-column label="操作" width="100" align="center">
+            <template #default="scope">
+              <el-button type="primary" size="small" @click="buyPackage(scope.row)">
+                购买
+              </el-button>
+            </template>
+          </el-table-column>
+        </el-table>
+      </div>
 
       <div class="box">
         <h2>请求示例</h2>
@@ -1112,6 +1157,13 @@ const openInNewWindow = (url) => {
         }
       }
     }
+
+    // 套餐表格样式
+    .package-price-cell {
+      font-weight: 600;
+      color: #e53e3e;
+      font-size: 14px;
+    }
   }
 }
 
@@ -1158,6 +1210,13 @@ const openInNewWindow = (url) => {
       :deep(.el-form) {
         max-width: 100%;
       }
+    }
+  }
+
+  .doc-container {
+    .apiinfo-container {
+      width: 95%;
+      padding: 20px 0;
     }
   }
 }
