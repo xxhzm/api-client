@@ -99,6 +99,16 @@ const copy = (value) => {
 
 // 调试相关的响应式变量
 const debugVisible = ref(false)
+
+// 广告显示控制
+const adDisplay = ref(true)
+
+// 处理广告数据
+const adInfo = (info) => {
+  if (info.value.length === 0) {
+    adDisplay.value = false
+  }
+}
 const debugForm = ref({})
 const loading = ref(false)
 const response = ref(null)
@@ -353,183 +363,275 @@ const buyPackage = (pkg) => {
     <IndexNotice :content="options.notice"></IndexNotice>
 
     <div class="apiinfo-container">
-      <div class="box">
-        <h1>{{ apiInfo.name }}</h1>
+      <!-- 侧边导航 -->
+      <div class="sidebar">
+        <div class="nav-title">{{ apiInfo.name }}</div>
+        <ul class="nav-menu">
+          <li class="nav-item">
+            <a href="#overview" class="active">接口概览</a>
+          </li>
+          <li class="nav-item">
+            <a href="#description">接口描述</a>
+          </li>
+          <li class="nav-item">
+            <a href="#parameters">请求参数</a>
+          </li>
+          <li
+            class="nav-item"
+            v-if="apiInfo.package_list && apiInfo.package_list.length > 0"
+          >
+            <a href="#packages">相关套餐</a>
+          </li>
+          <li class="nav-item">
+            <a href="#examples">请求示例</a>
+          </li>
+          <li class="nav-item">
+            <a href="#response">返回示例</a>
+          </li>
+        </ul>
       </div>
 
-      <div class="box">
-        <el-tag type="success">{{ apiInfo.method }}</el-tag>
-
-        <el-tooltip effect="dark" content="点击复制" placement="top">
-          <span class="url" @click="copy(apiInfo.url)" ref="urlDom">{{
-            apiInfo.url
-          }}</span>
-        </el-tooltip>
-
-        <el-button type="primary" size="small" @click="openDebugDialog">
-          <el-icon>
-            <VideoPlay />
-          </el-icon>
-          调试
-        </el-button>
-      </div>
-
-      <el-divider border-style="dashed" />
-
-      <div class="box">
-        <h2>接口描述</h2>
-        <span>{{ apiInfo.description }}</span>
-      </div>
-
-      <el-divider border-style="dashed" />
-
-      <div class="box">
-        <h2>请求参数</h2>
-        <el-table :data="apiInfo.params" border style="width: 100%">
-          <el-table-column prop="name" label="参数名" width="180" />
-          <el-table-column prop="param" label="传递参数" width="180" />
-          <el-table-column prop="position" label="传入位置" width="120" />
-          <el-table-column prop="required" label="类型" width="100" />
-          <el-table-column prop="docs" label="参数说明" />
-        </el-table>
-      </div>
-
-      <client-only>
-        <Ad></Ad>
-      </client-only>
-
-      <!-- 套餐列表 -->
-      <div class="box" v-if="apiInfo.package_list && apiInfo.package_list.length > 0">
-        <h2>相关套餐</h2>
-        <el-table :data="apiInfo.package_list" border style="width: 100%">
-          <el-table-column prop="name" label="套餐名称" width="180" />
-          <el-table-column prop="description" label="套餐描述" min-width="200" />
-          <el-table-column label="套餐类型" width="100" align="center">
-            <template #default="scope">
-              <el-tag :type="scope.row.type === 2 ? 'success' : 'warning'" size="small">
-                {{ scope.row.type === 2 ? '时长套餐' : '点数套餐' }}
-              </el-tag>
-            </template>
-          </el-table-column>
-          <el-table-column label="可用次数" width="100" align="center">
-            <template #default="scope">
-              <span v-if="scope.row.type === 2">无限制</span>
-              <span v-else>{{ scope.row.points }}次</span>
-            </template>
-          </el-table-column>
-          <el-table-column label="有效期" width="100" align="center">
-            <template #default="scope">
-              <span v-if="scope.row.duration > 0">{{ scope.row.duration }}天</span>
-              <span v-else>永久</span>
-            </template>
-          </el-table-column>
-          <el-table-column prop="price" label="价格" width="80" align="center">
-            <template #default="scope">
-              <span class="package-price-cell">¥{{ scope.row.price }}</span>
-            </template>
-          </el-table-column>
-          <el-table-column label="操作" width="100" align="center">
-            <template #default="scope">
-              <el-button type="primary" size="small" @click="buyPackage(scope.row)">
-                购买
+      <!-- 主要内容 -->
+      <div class="main-content">
+        <!-- 接口概览 -->
+        <div class="box" id="overview">
+          <div class="api-header">
+            <h1>{{ apiInfo.name }}</h1>
+            <div class="api-meta">
+              <el-tag type="success" size="large">{{ apiInfo.method }}</el-tag>
+              <el-button
+                type="primary"
+                @click="openDebugDialog"
+                class="debug-btn"
+              >
+                <el-icon><VideoPlay /></el-icon>
+                在线调试
               </el-button>
-            </template>
-          </el-table-column>
-        </el-table>
-      </div>
+            </div>
+          </div>
 
-      <div class="box">
-        <h2>请求示例</h2>
-        <el-tabs v-model="activeName" type="card">
-          <el-tab-pane label="axios" name="axios">
-            <pre class="example mac_light mac_pre"><client-only><el-tooltip
-            class="box-item"
-            effect="dark"
-            content="复制"
-            placement="left"
-          ><div class="copy" @click="copy(apiInfo.axios)"><el-icon size="14"><CopyDocument /></el-icon></div
-          ></el-tooltip></client-only><code class="javascript.js" v-text="apiInfo.axios"></code></pre>
-          </el-tab-pane>
-
-          <el-tab-pane label="ajax" name="ajax">
-            <pre class="example mac_light mac_pre"><client-only><el-tooltip
-            class="box-item"
-            effect="dark"
-            content="复制"
-            placement="left"
-          ><div class="copy" @click="copy(apiInfo.ajax)"><el-icon size="14"><CopyDocument /></el-icon></div
-          ></el-tooltip></client-only><code class="javascript.js" v-text="apiInfo.ajax"></code></pre>
-          </el-tab-pane>
-
-          <el-tab-pane label="fetch" name="fetch">
-            <pre class="example mac_light mac_pre"><client-only><el-tooltip
-            class="box-item"
-            effect="dark"
-            content="复制"
-            placement="left"
-          ><div class="copy" @click="copy(apiInfo.fetch)"><el-icon size="14"><CopyDocument /></el-icon></div
-          ></el-tooltip></client-only><code class="javascript.js" v-text="apiInfo.fetch"></code></pre>
-          </el-tab-pane>
-
-          <el-tab-pane label="xhr" name="xhr">
-            <pre class="example mac_light mac_pre"><client-only><el-tooltip
-            class="box-item"
-            effect="dark"
-            content="复制"
-            placement="left"
-          ><div class="copy" @click="copy(apiInfo.xhr)"><el-icon size="14"><CopyDocument /></el-icon></div
-          ></el-tooltip></client-only><code class="javascript.js" v-text="apiInfo.xhr"></code></pre>
-          </el-tab-pane>
-
-          <el-tab-pane label="php" name="php">
-            <pre class="example mac_light mac_pre"><client-only><el-tooltip
-            class="box-item"
-            effect="dark"
-            content="复制"
-            placement="left"
-          ><div class="copy" @click="copy(apiInfo.php)"><el-icon size="14"><CopyDocument /></el-icon></div
-          ></el-tooltip></client-only><code class="php" v-text="apiInfo.php"></code></pre>
-          </el-tab-pane>
-
-          <el-tab-pane label="python" name="python">
-            <pre class="example mac_light mac_pre"><client-only><el-tooltip
-            class="box-item"
-            effect="dark"
-            content="复制"
-            placement="left"
-          ><div class="copy" @click="copy(apiInfo.python)"><el-icon size="14"><CopyDocument /></el-icon></div
-          ></el-tooltip></client-only><code class="python" v-text="apiInfo.python"></code></pre>
-          </el-tab-pane>
-        </el-tabs>
-      </div>
-
-      <div class="box">
-        <h2>返回示例</h2>
-
-        <!-- 高级模式：HTML内容 -->
-        <div v-if="isHtmlContent" class="example-html-container">
-          <client-only>
-            <el-tooltip
-              class="box-item"
-              effect="dark"
-              content="复制"
-              placement="left"
-            >
-              <div class="copy" @click="copy(apiInfo.example)">
-                <el-icon size="14"><CopyDocument /></el-icon>
+          <div class="api-url-section">
+            <label class="url-label">接口地址：</label>
+            <el-tooltip effect="dark" content="点击复制" placement="top">
+              <div
+                class="url-container"
+                @click="copy(apiInfo.url)"
+                ref="urlDom"
+              >
+                <code class="api-url">{{ apiInfo.url }}</code>
+                <el-icon class="copy-icon"><CopyDocument /></el-icon>
               </div>
             </el-tooltip>
-          </client-only>
-          <div class="html-content" v-html="highlightedExample"></div>
+          </div>
         </div>
 
-        <!-- 基础模式：代码格式 -->
-        <pre
-          v-else
-          class="example mac_light mac_pre"
-        ><client-only><el-tooltip class="box-item" effect="dark" content="复制" placement="left"
-      ><div class="copy" @click="copy(apiInfo.example)"><el-icon size="14"><CopyDocument /></el-icon></div
-      ></el-tooltip></client-only><code class="json" v-text="apiInfo.example"></code></pre>
+        <!-- 接口描述 -->
+        <div class="box" id="description">
+          <h2>接口描述</h2>
+          <p class="description-text">{{ apiInfo.description }}</p>
+        </div>
+
+        <!-- 请求参数 -->
+        <div class="box" id="parameters">
+          <h2>请求参数</h2>
+          <div class="table-container">
+            <el-table
+              :data="apiInfo.params"
+              style="width: 100%"
+              class="params-table"
+            >
+              <el-table-column prop="name" label="参数名" width="180" />
+              <el-table-column prop="param" label="传递参数" width="180" />
+              <el-table-column prop="position" label="传入位置" width="120" />
+              <el-table-column prop="required" label="类型" width="100">
+                <template #default="scope">
+                  <el-tag
+                    :type="scope.row.required === '必传' ? 'danger' : 'info'"
+                    size="small"
+                  >
+                    {{ scope.row.required }}
+                  </el-tag>
+                </template>
+              </el-table-column>
+              <el-table-column prop="docs" label="参数说明" />
+            </el-table>
+          </div>
+        </div>
+
+        <!-- 广告位 -->
+        <client-only>
+          <div class="box ad-section" v-if="adDisplay">
+            <h2>推荐内容</h2>
+            <Ad @adInfo="adInfo"></Ad>
+          </div>
+        </client-only>
+
+        <!-- 套餐列表 -->
+        <div
+          class="box"
+          id="packages"
+          v-if="apiInfo.package_list && apiInfo.package_list.length > 0"
+        >
+          <h2>相关套餐</h2>
+          <div class="table-container">
+            <el-table
+              :data="apiInfo.package_list"
+              style="width: 100%"
+              class="package-table"
+            >
+              <el-table-column prop="name" label="套餐名称" width="180" />
+              <el-table-column
+                prop="description"
+                label="套餐描述"
+                min-width="200"
+              />
+              <el-table-column label="套餐类型" width="100" align="center">
+                <template #default="scope">
+                  <el-tag
+                    :type="scope.row.type === 2 ? 'success' : 'warning'"
+                    size="small"
+                  >
+                    {{ scope.row.type === 2 ? '时长套餐' : '点数套餐' }}
+                  </el-tag>
+                </template>
+              </el-table-column>
+              <el-table-column label="可用次数" width="100" align="center">
+                <template #default="scope">
+                  <span v-if="scope.row.type === 2">无限制</span>
+                  <span v-else>{{ scope.row.points }}次</span>
+                </template>
+              </el-table-column>
+              <el-table-column label="有效期" width="100" align="center">
+                <template #default="scope">
+                  <span v-if="scope.row.duration > 0"
+                    >{{ scope.row.duration }}天</span
+                  >
+                  <span v-else>永久</span>
+                </template>
+              </el-table-column>
+              <el-table-column
+                prop="price"
+                label="价格"
+                width="80"
+                align="center"
+              >
+                <template #default="scope">
+                  <span class="package-price-cell">¥{{ scope.row.price }}</span>
+                </template>
+              </el-table-column>
+              <el-table-column label="操作" width="100" align="center">
+                <template #default="scope">
+                  <el-button
+                    type="primary"
+                    size="small"
+                    @click="buyPackage(scope.row)"
+                  >
+                    购买
+                  </el-button>
+                </template>
+              </el-table-column>
+            </el-table>
+          </div>
+        </div>
+
+        <!-- 请求示例 -->
+        <div class="box" id="examples">
+          <h2>请求示例</h2>
+          <div class="examples-container">
+            <el-tabs v-model="activeName" type="card" class="example-tabs">
+              <el-tab-pane label="axios" name="axios">
+                <pre class="example mac_light mac_pre"><client-only><el-tooltip
+                class="box-item"
+                effect="dark"
+                content="复制"
+                placement="left"
+              ><div class="copy" @click="copy(apiInfo.axios)"><el-icon size="14"><CopyDocument /></el-icon></div
+              ></el-tooltip></client-only><code class="javascript.js" v-text="apiInfo.axios"></code></pre>
+              </el-tab-pane>
+
+              <el-tab-pane label="ajax" name="ajax">
+                <pre class="example mac_light mac_pre"><client-only><el-tooltip
+                class="box-item"
+                effect="dark"
+                content="复制"
+                placement="left"
+              ><div class="copy" @click="copy(apiInfo.ajax)"><el-icon size="14"><CopyDocument /></el-icon></div
+              ></el-tooltip></client-only><code class="javascript.js" v-text="apiInfo.ajax"></code></pre>
+              </el-tab-pane>
+
+              <el-tab-pane label="fetch" name="fetch">
+                <pre class="example mac_light mac_pre"><client-only><el-tooltip
+                class="box-item"
+                effect="dark"
+                content="copy"
+                placement="left"
+              ><div class="copy" @click="copy(apiInfo.fetch)"><el-icon size="14"><CopyDocument /></el-icon></div
+              ></el-tooltip></client-only><code class="javascript.js" v-text="apiInfo.fetch"></code></pre>
+              </el-tab-pane>
+
+              <el-tab-pane label="xhr" name="xhr">
+                <pre class="example mac_light mac_pre"><client-only><el-tooltip
+                class="box-item"
+                effect="dark"
+                content="复制"
+                placement="left"
+              ><div class="copy" @click="copy(apiInfo.xhr)"><el-icon size="14"><CopyDocument /></el-icon></div
+              ></el-tooltip></client-only><code class="javascript.js" v-text="apiInfo.xhr"></code></pre>
+              </el-tab-pane>
+
+              <el-tab-pane label="php" name="php">
+                <pre class="example mac_light mac_pre"><client-only><el-tooltip
+                class="box-item"
+                effect="dark"
+                content="复制"
+                placement="left"
+              ><div class="copy" @click="copy(apiInfo.php)"><el-icon size="14"><CopyDocument /></el-icon></div
+              ></el-tooltip></client-only><code class="php" v-text="apiInfo.php"></code></pre>
+              </el-tab-pane>
+
+              <el-tab-pane label="python" name="python">
+                <pre class="example mac_light mac_pre"><client-only><el-tooltip
+                class="box-item"
+                effect="dark"
+                content="复制"
+                placement="left"
+              ><div class="copy" @click="copy(apiInfo.python)"><el-icon size="14"><CopyDocument /></el-icon></div
+              ></el-tooltip></client-only><code class="python" v-text="apiInfo.python"></code></pre>
+              </el-tab-pane>
+            </el-tabs>
+          </div>
+        </div>
+
+        <!-- 返回示例 -->
+        <div class="box" id="response">
+          <h2>返回示例</h2>
+          <div class="response-container">
+            <!-- 高级模式：HTML内容 -->
+            <div v-if="isHtmlContent" class="example-html-container">
+              <client-only>
+                <el-tooltip
+                  class="box-item"
+                  effect="dark"
+                  content="复制"
+                  placement="left"
+                >
+                  <div class="copy" @click="copy(apiInfo.example)">
+                    <el-icon size="14"><CopyDocument /></el-icon>
+                  </div>
+                </el-tooltip>
+              </client-only>
+              <div class="html-content" v-html="highlightedExample"></div>
+            </div>
+
+            <!-- 基础模式：代码格式 -->
+            <pre
+              v-else
+              class="example mac_light mac_pre"
+            ><client-only><el-tooltip class="box-item" effect="dark" content="复制" placement="left"
+           ><div class="copy" @click="copy(apiInfo.example)"><el-icon size="14"><CopyDocument /></el-icon></div
+           ></el-tooltip></client-only><code class="json" v-text="apiInfo.example"></code></pre>
+          </div>
+        </div>
       </div>
     </div>
 
@@ -641,28 +743,228 @@ const buyPackage = (pkg) => {
   background: #ffffff;
 
   .apiinfo-container {
-    width: 90%;
-    max-width: 1000px;
+    max-width: 1200px;
     margin: 0 auto;
-    padding: 32px 0;
+    padding: 40px 24px;
+
+    @media (max-width: 1024px) {
+      padding: 24px 16px;
+    }
+
+    .sidebar {
+      display: none;
+
+      @media (max-width: 1024px) {
+        display: none;
+      }
+
+      .nav-title {
+        font-size: 18px;
+        font-weight: 600;
+        color: #1e293b;
+        margin-bottom: 16px;
+        padding-bottom: 12px;
+        border-bottom: 2px solid #e2e8f0;
+      }
+
+      .nav-menu {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+
+        .nav-item {
+          margin-bottom: 8px;
+
+          a {
+            display: block;
+            padding: 12px 16px;
+            color: #64748b;
+            text-decoration: none;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+            font-weight: 500;
+
+            &:hover {
+              background: #f1f5f9;
+              color: #3b82f6;
+              transform: translateX(4px);
+            }
+
+            &.active {
+              background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+              color: white;
+              box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+            }
+          }
+        }
+      }
+    }
+
+    .main-content {
+      display: block;
+    }
 
     .box {
-      margin-bottom: 40px;
+      background: transparent;
+      padding: 32px 0;
+      border-bottom: 1px solid #f1f5f9;
+
+      &:last-child {
+        border-bottom: none;
+      }
+
+      .api-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        margin-bottom: 24px;
+
+        @media (max-width: 768px) {
+          flex-direction: column;
+          gap: 16px;
+        }
+
+        h1 {
+          margin: 0;
+          font-size: 28px;
+          font-weight: 700;
+          color: #1e293b;
+          line-height: 1.2;
+        }
+
+        .api-meta {
+          display: flex;
+          align-items: center;
+          gap: 16px;
+        }
+      }
+
+      .api-url-section {
+        .url-label {
+          display: block;
+          font-weight: 600;
+          color: #475569;
+          margin-bottom: 12px;
+          font-size: 14px;
+        }
+
+        .url-container {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          background: #f8fafc;
+          padding: 16px;
+          border: 1px solid #e2e8f0;
+          cursor: pointer;
+
+          .api-url {
+            font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+            font-size: 14px;
+            color: #1e293b;
+            background: none;
+            border: none;
+            flex: 1;
+          }
+
+          .copy-icon {
+            color: #64748b;
+
+            &:hover {
+              color: #3b82f6;
+            }
+          }
+        }
+      }
+
+      .description-text {
+        font-size: 16px;
+        line-height: 1.6;
+        color: #475569;
+        margin: 0;
+      }
+
+      .table-container {
+        .params-table,
+        .package-table {
+          .el-table__header {
+            background: #f8fafc;
+
+            th {
+              background: #f8fafc !important;
+              color: #374151;
+              font-weight: 600;
+              border-bottom: 1px solid #e2e8f0;
+            }
+          }
+
+          .el-table__body {
+            tr {
+              &:hover {
+                background: #f8fafc;
+              }
+
+              td {
+                border-bottom: 1px solid #f1f5f9;
+              }
+            }
+          }
+        }
+      }
+
+      .examples-container {
+        .example-tabs {
+          .el-tabs__nav-scroll {
+            margin-bottom: 15px;
+          }
+
+          .el-tabs__header {
+            margin-bottom: 20px;
+
+            .el-tabs__nav {
+              border-radius: 12px;
+              overflow: hidden;
+
+              .el-tabs__item {
+                &.is-active {
+                  background: #3b82f6;
+                  color: white;
+                }
+              }
+            }
+          }
+        }
+      }
+
+      .response-container {
+        .example-html-container {
+          border: 1px solid #e2e8f0;
+        }
+      }
+
+      .ad-section {
+        h2 {
+          margin: 0 0 16px 0;
+          font-size: 18px;
+          color: #374151;
+        }
+      }
 
       h1 {
         font-size: 28px;
         font-weight: 600;
-        color: #2c3e50;
+        color: #1e293b;
         margin: 0 0 24px 0;
       }
 
       h2 {
         position: relative;
         font-size: 20px;
-        color: #2c3e50;
-        font-weight: 500;
-        margin: 0 0 24px 0;
+        color: #1e293b;
+        font-weight: 600;
+        margin: 0 0 20px 0;
         padding-left: 12px;
+        padding-bottom: 12px;
+        border-bottom: 2px solid #e2e8f0;
         line-height: 1.4;
 
         &::before {
@@ -673,7 +975,7 @@ const buyPackage = (pkg) => {
           transform: translateY(-50%);
           width: 3px;
           height: 16px;
-          background: #409eff;
+          background: #334155;
           border-radius: 3px;
         }
       }
@@ -683,13 +985,15 @@ const buyPackage = (pkg) => {
         margin: 0 12px;
         padding: 6px 12px;
         cursor: pointer;
-        color: #181819b3;
+        color: #475569;
         font-size: 14px;
         user-select: all;
         border-radius: 4px;
         transition: all 0.3s ease;
         text-decoration: none;
         outline: none;
+        background: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%);
+        border: 1px solid rgba(203, 213, 224, 0.8);
 
         &:hover {
           opacity: 0.8;
@@ -698,7 +1002,8 @@ const buyPackage = (pkg) => {
         &:active,
         &:focus {
           outline: none;
-          background: transparent;
+          background: linear-gradient(135deg, #e2e8f0 0%, #cbd5e0 100%);
+          border-color: #94a3b8;
         }
       }
 
@@ -738,21 +1043,19 @@ const buyPackage = (pkg) => {
       margin: 0;
       font-size: 14px;
       line-height: 1.6;
-      color: #2c3e50;
+      color: #1e293b;
       background: #f8fafc;
       border-radius: 8px;
-      border: 1px solid #edf2f7;
 
       .copy {
         position: absolute;
         top: 12px;
         right: 12px;
         padding: 6px;
-        background: rgba(255, 255, 255, 0.9);
+        background: rgba(255, 255, 255, 0.95);
         border-radius: 4px;
-        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
         opacity: 0;
-        transition: opacity 0.3s ease;
+        transition: all 0.3s ease;
         cursor: pointer;
 
         &:hover {
@@ -766,7 +1069,8 @@ const buyPackage = (pkg) => {
     }
 
     .mac_light {
-      background: #f8fafc !important;
+      background: #f9fafb !important;
+      border: 1px solid #f1f5f9;
     }
 
     .mac_light code {
@@ -787,9 +1091,9 @@ const buyPackage = (pkg) => {
     // 高级模式HTML容器样式
     .example-html-container {
       position: relative;
-      background: #f8fafc;
+      background: #f9fafb;
       border-radius: 8px;
-      border: 1px solid #edf2f7;
+      border: 1px solid #f1f5f9;
       overflow: hidden;
 
       &::before {
@@ -810,7 +1114,6 @@ const buyPackage = (pkg) => {
         padding: 6px;
         background: rgba(255, 255, 255, 0.9);
         border-radius: 4px;
-        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
         opacity: 0;
         transition: opacity 0.3s ease;
         cursor: pointer;
@@ -914,7 +1217,8 @@ const buyPackage = (pkg) => {
           }
 
           th {
-            background: #f8fafc;
+            background: #f9fafb;
+            border: 1px solid #f1f5f9;
             font-weight: 600;
           }
         }
@@ -954,12 +1258,12 @@ const buyPackage = (pkg) => {
         line-height: 32px;
 
         &.is-active {
-          border-color: #409eff;
-          color: #409eff;
+          border-color: #475569;
+          color: #475569;
         }
 
         &:hover {
-          color: #409eff;
+          color: #475569;
         }
       }
     }
@@ -969,7 +1273,7 @@ const buyPackage = (pkg) => {
       overflow: hidden;
 
       :deep(th) {
-        background: #f8fafc;
+        background: #f9fafb;
         color: #1a202c;
         font-weight: 600;
         padding: 8px 16px;
@@ -1036,7 +1340,7 @@ const buyPackage = (pkg) => {
         transform: translateY(-50%);
         width: 3px;
         height: 16px;
-        background: #409eff;
+        background: #475569;
         border-radius: 3px;
       }
     }
@@ -1055,7 +1359,7 @@ const buyPackage = (pkg) => {
       transition: all 0.3s ease;
 
       &.is-focus {
-        box-shadow: 0 0 0 1px #409eff inset;
+        box-shadow: 0 0 0 1px #475569 inset;
       }
     }
   }
@@ -1089,7 +1393,7 @@ const buyPackage = (pkg) => {
         transform: translateY(-50%);
         width: 3px;
         height: 16px;
-        background: #67c23a;
+        background: #0f766e;
         border-radius: 3px;
       }
     }
@@ -1101,9 +1405,9 @@ const buyPackage = (pkg) => {
     }
 
     .video-response {
-      background: #f8fafc;
+      background: #f9fafb;
       border-radius: 8px;
-      border: 1px solid #edf2f7;
+      border: 1px solid #f1f5f9;
       padding: 16px;
       margin-top: 16px;
 
@@ -1131,9 +1435,9 @@ const buyPackage = (pkg) => {
     }
 
     .image-response {
-      background: #f8fafc;
+      background: #f9fafb;
       border-radius: 8px;
-      border: 1px solid #edf2f7;
+      border: 1px solid #f1f5f9;
       padding: 16px;
 
       img {
@@ -1170,8 +1474,6 @@ const buyPackage = (pkg) => {
 :deep(.el-dialog) {
   border-radius: 12px;
   overflow: hidden;
-  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1),
-    0 10px 10px -5px rgba(0, 0, 0, 0.04);
 
   .el-dialog__header {
     margin: 0;
