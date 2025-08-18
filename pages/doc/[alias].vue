@@ -1,7 +1,7 @@
 <script setup>
 const { $myFetch } = useNuxtApp()
 import { ElMessage } from 'element-plus'
-import { CopyDocument, VideoPlay, Download } from '@element-plus/icons-vue'
+import { CopyDocument, VideoPlay, Download, Document } from '@element-plus/icons-vue'
 
 import 'highlight.js/styles/github.css'
 import hljs from 'highlight.js/lib/core'
@@ -295,6 +295,8 @@ const copyImageUrl = () => {
   copy(imageUrl.value)
 }
 
+
+
 // 监听对话框关闭时清理资源
 watch(debugVisible, (val) => {
   if (!val) {
@@ -406,6 +408,14 @@ const buyPackage = (pkg) => {
               >
                 <el-icon><VideoPlay /></el-icon>
                 在线调试
+              </el-button>
+              <el-button
+                type="info"
+                @click="$router.push(`/markdown/${route.params.alias}`)"
+                class="view-markdown-btn"
+              >
+                <el-icon><Document /></el-icon>
+                查看Markdown
               </el-button>
             </div>
           </div>
@@ -836,6 +846,14 @@ const buyPackage = (pkg) => {
           display: flex;
           align-items: center;
           gap: 16px;
+
+          .debug-btn {
+            margin-left: 12px;
+          }
+
+          .view-markdown-btn {
+            margin-left: 8px;
+          }
         }
       }
 
