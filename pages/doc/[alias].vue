@@ -165,27 +165,66 @@ const sendRequest = async () => {
       },
     }
 
+    // 分离不同位置的参数
+    const headerParams = []
+    const bodyParams = []
+    const queryParams = []
+
+    for (let i = 0; i < apiInfo.value.params.length; i++) {
+      const param = apiInfo.value.params[i]
+      const value = debugForm.value[i]
+      if (value) {
+        if (param.position === 'header') {
+          headerParams.push({ name: param.name, value })
+        } else if (param.position === 'body') {
+          bodyParams.push({ name: param.name, value })
+        } else {
+          // 默认为query参数
+          queryParams.push({ name: param.name, value })
+        }
+      }
+    }
+
+    // 添加header参数到请求头
+    headerParams.forEach((param) => {
+      options.headers[param.name] = param.value
+    })
+
     // 处理 POST 请求
     if (apiInfo.value.method === 'POST') {
       const formData = new URLSearchParams()
-      for (let i = 0; i < apiInfo.value.params.length; i++) {
-        const param = apiInfo.value.params[i]
-        const value = debugForm.value[i]
-        if (value) {
-          formData.append(param.name, value)
-        }
+      // 添加body参数
+      bodyParams.forEach((param) => {
+        formData.append(param.name, param.value)
+      })
+      // 如果没有专门的body参数，将query参数也放到body中
+      if (bodyParams.length === 0) {
+        queryParams.forEach((param) => {
+          formData.append(param.name, param.value)
+        })
       }
       options.body = formData
-    } else {
-      // GET 请求，将参数添加到 URL
-      const params = new URLSearchParams()
-      for (let i = 0; i < apiInfo.value.params.length; i++) {
-        const param = apiInfo.value.params[i]
-        const value = debugForm.value[i]
-        if (value) {
-          params.append(param.name, value)
+
+      // 如果有query参数且有body参数，query参数仍然放到URL中
+      if (bodyParams.length > 0 && queryParams.length > 0) {
+        const params = new URLSearchParams()
+        queryParams.forEach((param) => {
+          params.append(param.name, param.value)
+        })
+        const queryString = params.toString()
+        if (queryString) {
+          url += (url.includes('?') ? '&' : '?') + queryString
         }
       }
+    } else {
+      // GET 请求，将query和body参数都添加到 URL
+      const params = new URLSearchParams()
+      queryParams.forEach((param) => {
+        params.append(param.name, param.value)
+      })
+      bodyParams.forEach((param) => {
+        params.append(param.name, param.value)
+      })
 
       const queryString = params.toString()
       if (queryString) {
