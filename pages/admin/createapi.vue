@@ -106,6 +106,10 @@ const position = [
     value: 'body',
     label: 'body',
   },
+  {
+    value: 'header',
+    label: 'header',
+  },
 ]
 
 // 常用参数名称列表

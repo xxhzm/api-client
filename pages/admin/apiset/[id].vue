@@ -849,6 +849,22 @@ const commonParamValues = [
   { value: 'file' },
 ]
 
+// 传入位置选项
+const position = [
+  {
+    value: 'query',
+    label: 'query',
+  },
+  {
+    value: 'body',
+    label: 'body',
+  },
+  {
+    value: 'header',
+    label: 'header',
+  },
+]
+
 // 处理添加参数
 const handleAddParam = () => {
   addParamDialogStatus.value = true
@@ -1202,8 +1218,12 @@ useHead({
                               placeholder="请选择传入位置"
                               class="full-width"
                             >
-                              <el-option label="query" value="query" />
-                              <el-option label="body" value="body" />
+                              <el-option
+                                v-for="item in position"
+                                :key="item.value"
+                                :label="item.label"
+                                :value="item.value"
+                              />
                             </el-select>
                           </el-form-item>
                         </el-col>
@@ -1273,8 +1293,12 @@ useHead({
                               placeholder="请选择传入位置"
                               class="full-width"
                             >
-                              <el-option label="query" value="query" />
-                              <el-option label="body" value="body" />
+                              <el-option
+                                v-for="item in position"
+                                :key="item.value"
+                                :label="item.label"
+                                :value="item.value"
+                              />
                             </el-select>
                           </el-form-item>
                         </el-col>

@@ -1,7 +1,12 @@
 <script setup>
 const { $myFetch } = useNuxtApp()
 import { ElMessage } from 'element-plus'
-import { CopyDocument, VideoPlay, Download, Document } from '@element-plus/icons-vue'
+import {
+  CopyDocument,
+  VideoPlay,
+  Download,
+  Document,
+} from '@element-plus/icons-vue'
 
 import 'highlight.js/styles/github.css'
 import hljs from 'highlight.js/lib/core'
@@ -294,8 +299,6 @@ const downloadImage = async () => {
 const copyImageUrl = () => {
   copy(imageUrl.value)
 }
-
-
 
 // 监听对话框关闭时清理资源
 watch(debugVisible, (val) => {

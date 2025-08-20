@@ -101,6 +101,10 @@ const position = [
     value: 'body',
     label: 'body',
   },
+  {
+    value: 'header',
+    label: 'header',
+  },
 ]
 
 const onSubmit = async () => {
