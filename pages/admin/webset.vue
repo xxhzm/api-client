@@ -757,19 +757,19 @@ useHead({
                       label-position="top"
                       label-width="120px"
                     >
-                      <el-form-item label="网站标题">
+                      <el-form-item label="网站标题" required>
                         <el-input v-model="websetInfo.title" />
                       </el-form-item>
-                      <el-form-item label="网站副标题">
+                      <el-form-item label="网站副标题" required>
                         <el-input v-model="websetInfo.subheading" />
                       </el-form-item>
-                      <el-form-item label="网站关键词">
+                      <el-form-item label="网站关键词" required>
                         <el-input v-model="websetInfo.keywords" />
                       </el-form-item>
-                      <el-form-item label="网站描述">
+                      <el-form-item label="网站描述" required>
                         <el-input v-model="websetInfo.description" />
                       </el-form-item>
-                      <el-form-item label="建站时间">
+                      <el-form-item label="建站时间" required>
                         <el-date-picker
                           v-model="websetInfo.create_time"
                           type="datetime"
@@ -844,26 +844,26 @@ useHead({
                       label-position="top"
                       label-width="120px"
                     >
-                      <el-form-item label="SMTP服务器地址">
+                      <el-form-item label="SMTP服务器地址" required>
                         <el-input v-model="mailInfo.smtp" />
                       </el-form-item>
-                      <el-form-item label="邮箱账户">
+                      <el-form-item label="邮箱账户" required>
                         <el-input v-model="mailInfo.user" />
                       </el-form-item>
-                      <el-form-item label="密码">
+                      <el-form-item label="密码" required>
                         <el-input
                           v-model="mailInfo.password"
                           type="password"
                           show-password
                         />
                       </el-form-item>
-                      <el-form-item label="发件人">
+                      <el-form-item label="发件人" required>
                         <el-input v-model="mailInfo.setfrom" />
                       </el-form-item>
-                      <el-form-item label="服务器端口">
+                      <el-form-item label="服务器端口" required>
                         <el-input v-model="mailInfo.port" />
                       </el-form-item>
-                      <el-form-item label="发信名称">
+                      <el-form-item label="发信名称" required>
                         <el-input v-model="mailInfo.name" />
                       </el-form-item>
                       <el-form-item>
