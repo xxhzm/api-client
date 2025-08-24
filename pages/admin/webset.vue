@@ -81,6 +81,7 @@ const aiInfo = ref({
 const advancedInfo = ref({
   request_id: 'true',
   clickhouse: 'true',
+  server_ip: '',
 })
 
 // 新增：关于我们页面信息相关
@@ -658,6 +659,7 @@ const advancedInfoSubmit = async () => {
   const bodyValue = new URLSearchParams()
   bodyValue.append('requestId', advancedInfo.value.request_id)
   bodyValue.append('clickhouse', advancedInfo.value.clickhouse)
+  bodyValue.append('serverIp', advancedInfo.value.server_ip || '')
 
   const res = await $myFetch('UpdateAdvancedSetting', {
     method: 'POST',
@@ -716,6 +718,22 @@ const sendTestMail = async () => {
     testMail.value = ''
   } else {
     $msg(res.msg, 'error')
+  }
+}
+
+// IPv4格式验证函数
+const validateIPv4 = (rule, value, callback) => {
+  if (!value) {
+    callback() // 允许为空
+    return
+  }
+  
+  const ipv4Regex = /^((25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$/
+  
+  if (!ipv4Regex.test(value)) {
+    callback(new Error('请输入有效的IPv4地址格式（如：192.168.1.1）'))
+  } else {
+    callback()
   }
 }
 
@@ -1446,6 +1464,26 @@ useHead({
                         </el-select>
                         <div class="form-help">
                           开启后，所有API响应将写入clickhouse数据库，便于问题追踪和调试
+                        </div>
+                      </el-form-item>
+
+                      <el-form-item 
+                        label="服务器IP地址"
+                        :rules="[
+                          {
+                            validator: validateIPv4,
+                            trigger: 'blur'
+                          }
+                        ]"
+                        prop="server_ip"
+                      >
+                        <el-input
+                          v-model="advancedInfo.server_ip"
+                          placeholder="请输入服务器IP地址（如：192.168.1.1）"
+                          style="width: 100%"
+                        />
+                        <div class="form-help">
+                          用于实时监控大屏中显示的服务器地址，必须为有效的IPv4格式
                         </div>
                       </el-form-item>
                       <el-form-item>
