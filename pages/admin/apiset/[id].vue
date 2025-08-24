@@ -974,7 +974,7 @@ useHead({
                 <el-form :model="apiSetInfo">
                   <el-row :gutter="12">
                     <el-col :xs="24" :sm="24" :md="24" :lg="24" :xl="24">
-                      <el-form-item label="接口名称" :label-width="90"
+                      <el-form-item label="接口名称" :label-width="90" required
                         ><el-input
                           v-model="apiSetInfo.name"
                           maxlength="25"
@@ -983,7 +983,7 @@ useHead({
                     </el-col>
 
                     <el-col :xs="24" :sm="24" :md="24" :lg="24" :xl="24">
-                      <el-form-item label="接口别名" :label-width="90">
+                      <el-form-item label="接口别名" :label-width="90" required>
                         <el-input
                           v-model="apiSetInfo.alias"
                           maxlength="25"
@@ -1006,7 +1006,7 @@ useHead({
                     </el-col>
 
                     <el-col :xs="24" :sm="24" :md="24" :lg="24" :xl="24">
-                      <el-form-item label="请求类型" :label-width="90">
+                      <el-form-item label="请求类型" :label-width="90" required>
                         <el-select
                           v-model="apiSetInfo.method"
                           placeholder="请选择请求类型"
@@ -1029,19 +1029,23 @@ useHead({
                     </el-col>
 
                     <el-col :xs="24" :sm="24" :md="24" :lg="24" :xl="24">
-                      <el-form-item label="接口描述" :label-width="90">
+                      <el-form-item label="接口描述" :label-width="90" required>
                         <el-input v-model="apiSetInfo.description" />
                       </el-form-item>
                     </el-col>
 
                     <el-col :xs="24" :sm="24" :md="24" :lg="24" :xl="24">
-                      <el-form-item label="接口关键词" :label-width="90">
+                      <el-form-item
+                        label="接口关键词"
+                        :label-width="95"
+                        required
+                      >
                         <el-input v-model="apiSetInfo.keywords" />
                       </el-form-item>
                     </el-col>
 
                     <el-col :xs="24" :sm="24" :md="24" :lg="24" :xl="24">
-                      <el-form-item label="接口前缀" :label-width="90">
+                      <el-form-item label="接口前缀" :label-width="90" required>
                         <client-only>
                           <el-autocomplete
                             v-model="apiSetInfo.prefixValue"
@@ -1054,7 +1058,7 @@ useHead({
                     </el-col>
 
                     <el-col :xs="24" :sm="24" :md="24" :lg="24" :xl="24">
-                      <el-form-item label="接口分类" :label-width="90">
+                      <el-form-item label="接口分类" :label-width="90" required>
                         <el-autocomplete
                           v-model="apiSetInfo.category"
                           :fetch-suggestions="querySearch"
@@ -1065,7 +1069,7 @@ useHead({
                     </el-col>
 
                     <el-col :xs="24" :sm="24" :md="24" :lg="24" :xl="24">
-                      <el-form-item label="接口状态" :label-width="90">
+                      <el-form-item label="接口状态" :label-width="90" required>
                         <el-select
                           v-model="apiSetInfo.state"
                           placeholder="请选择状态"
@@ -1077,7 +1081,7 @@ useHead({
                     </el-col>
 
                     <el-col :xs="24" :sm="24" :md="24" :lg="24" :xl="24">
-                      <el-form-item label="秘钥验证" :label-width="90">
+                      <el-form-item label="秘钥验证" :label-width="90" required>
                         <el-select
                           v-model="apiSetInfo.keyState"
                           placeholder="请选择状态"
@@ -1089,7 +1093,7 @@ useHead({
                     </el-col>
 
                     <el-col :xs="24" :sm="24" :md="24" :lg="24" :xl="24">
-                      <el-form-item label="返回示例" :label-width="90">
+                      <el-form-item label="返回示例" :label-width="90" required>
                         <div class="example-editor-container">
                           <div class="editor-type-selector">
                             <el-radio-group

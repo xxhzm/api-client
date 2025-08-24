@@ -407,37 +407,40 @@ useHead({
           <el-form :model="createapiInfo" label-width="120px" class="main-form">
             <el-row :gutter="12">
               <el-col :xs="24" :sm="12" :md="12" :lg="8" :xl="8">
-                <el-form-item label="接口名称">
+                <el-form-item label="接口名称" required>
                   <el-input
                     v-model="createapiInfo.name"
                     maxlength="32"
                     show-word-limit
+                    placeholder="接口名称"
                   /> </el-form-item
               ></el-col>
 
               <el-col :xs="24" :sm="12" :md="12" :lg="8" :xl="8">
-                <el-form-item label="接口别名">
+                <el-form-item label="接口别名" required>
                   <el-input
                     v-model="createapiInfo.alias"
                     maxlength="32"
                     show-word-limit
+                    placeholder="接口调用时访问路径"
                   /> </el-form-item
               ></el-col>
 
               <el-col :xs="24" :sm="12" :md="12" :lg="8" :xl="8">
-                <el-form-item label="接口描述">
+                <el-form-item label="接口描述" required>
                   <el-input
                     v-model="createapiInfo.description"
+                    placeholder="接口描述"
                   /> </el-form-item
               ></el-col>
 
               <el-col :xs="24" :sm="12" :md="12" :lg="8" :xl="8">
-                <el-form-item label="接口关键词">
+                <el-form-item label="接口关键词" required>
                   <el-input
                     v-model="createapiInfo.keywords"
                     maxlength="128"
                     show-word-limit
-                    placeholder="英文逗号隔开"
+                    placeholder="接口关键词英文逗号隔开"
                   /> </el-form-item
               ></el-col>
 
@@ -447,6 +450,7 @@ useHead({
                     v-model="createapiInfo.url"
                     maxlength="128"
                     show-word-limit
+                    placeholder="HTTP 调用完整路径 = 接口前缀 + 路径"
                   />
                   <div class="form-tip">
                     <el-text type="info" size="small">
@@ -464,12 +468,13 @@ useHead({
                     v-model="createapiInfo.exampleUrl"
                     maxlength="128"
                     show-word-limit
+                    placeholder="请求代码中的示例"
                   />
                 </el-form-item>
               </el-col>
 
               <el-col :xs="24" :sm="8" :md="8" :lg="8" :xl="8">
-                <el-form-item label="接口前缀URL">
+                <el-form-item label="接口前缀URL" required>
                   <client-only>
                     <el-autocomplete
                       v-model="createapiInfo.prefixValue"
@@ -482,7 +487,7 @@ useHead({
               </el-col>
 
               <el-col :xs="24" :sm="8" :md="8" :lg="8" :xl="8">
-                <el-form-item label="接口分类">
+                <el-form-item label="接口分类" required>
                   <client-only>
                     <el-autocomplete
                       v-model="createapiInfo.category"
@@ -495,7 +500,7 @@ useHead({
               </el-col>
 
               <el-col :xs="24" :sm="12" :md="12" :lg="8" :xl="8">
-                <el-form-item label="请求类型">
+                <el-form-item label="请求类型" required>
                   <el-select
                     v-model="createapiInfo.method"
                     placeholder="请选择请求类型"
@@ -512,11 +517,12 @@ useHead({
               </el-col>
 
               <el-col :xs="24" :sm="16" :md="16" :lg="16" :xl="16">
-                <el-form-item label="返回示例">
+                <el-form-item label="返回示例" required>
                   <el-input
                     v-model="createapiInfo.example"
                     type="textarea"
                     :rows="8"
+                    placeholder="返回示例"
                   /> </el-form-item
               ></el-col>
             </el-row>
@@ -591,7 +597,7 @@ useHead({
                     >
                       <el-row :gutter="16">
                         <el-col :xs="24" :sm="24" :md="24" :lg="24" :xl="24">
-                          <el-form-item label="参数名称">
+                          <el-form-item label="参数名称" required>
                             <el-autocomplete
                               v-model="parameter.name"
                               :fetch-suggestions="queryParamNameAsync"
@@ -602,7 +608,7 @@ useHead({
                         </el-col>
 
                         <el-col :xs="24" :sm="24" :md="24" :lg="24" :xl="24">
-                          <el-form-item label="可传参数">
+                          <el-form-item label="可传参数" required>
                             <el-autocomplete
                               v-model="parameter.param"
                               :fetch-suggestions="queryParamValueAsync"
@@ -613,7 +619,7 @@ useHead({
                         </el-col>
 
                         <el-col :xs="24" :sm="24" :md="24" :lg="24" :xl="24">
-                          <el-form-item label="传入位置">
+                          <el-form-item label="传入位置" required>
                             <el-select
                               v-model="parameter.position"
                               placeholder="位置"
@@ -636,7 +642,7 @@ useHead({
                         </el-col>
 
                         <el-col :xs="24" :sm="24" :md="24" :lg="24" :xl="24">
-                          <el-form-item label="参数描述">
+                          <el-form-item label="参数描述" required>
                             <el-input
                               v-model="parameter.docs"
                               type="textarea"

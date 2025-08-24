@@ -248,7 +248,7 @@ useHead({
               label-position="top"
               label-width="120px"
             >
-              <el-form-item label="接口名称">
+              <el-form-item label="接口名称" required>
                 <el-autocomplete
                   v-model="addparameter.apiName"
                   :fetch-suggestions="querySearchAsync"
@@ -257,7 +257,7 @@ useHead({
                   class="full-width"
                 />
               </el-form-item>
-              <el-form-item label="参数名称">
+              <el-form-item label="参数名称" required>
                 <el-autocomplete
                   v-model="addparameter.name"
                   :fetch-suggestions="queryParamNameAsync"
@@ -265,7 +265,7 @@ useHead({
                   class="full-width"
                 />
               </el-form-item>
-              <el-form-item label="可传参数">
+              <el-form-item label="可传参数" required>
                 <el-autocomplete
                   v-model="addparameter.param"
                   :fetch-suggestions="queryParamValueAsync"
@@ -274,7 +274,7 @@ useHead({
                 />
               </el-form-item>
               <client-only>
-                <el-form-item label="传入位置">
+                <el-form-item label="传入位置" required>
                   <el-select
                     v-model="addparameter.position"
                     placeholder="传入位置"
@@ -289,7 +289,7 @@ useHead({
                   </el-select>
                 </el-form-item>
               </client-only>
-              <el-form-item label="参数描述">
+              <el-form-item label="参数描述" required>
                 <el-input
                   v-model="addparameter.docs"
                   type="textarea"
