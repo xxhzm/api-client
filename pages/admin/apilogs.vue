@@ -80,6 +80,9 @@ const getData = async () => {
   })
 
   if (res.code !== 200) {
+    $msg(res.msg, 'error')
+    tableData.value = []
+    maxPage.value = 1
     return
   }
 
@@ -149,7 +152,7 @@ const handleSearchTime = async (sPage) => {
   const res = await $myFetch('ApiLogSearch', { params })
 
   if (res.code !== 200) {
-    $msg(res.msg, 'warning')
+    $msg(res.msg, 'error')
     tableData.value = []
     maxPage.value = 1
     return false
@@ -191,7 +194,8 @@ const handleSearchId = async () => {
   })
 
   if (res.code !== 200) {
-    $msg(res.msg, 'warning')
+    $msg(res.msg, 'error')
+    tableData.value = []
     tableData.value = []
     return false
   }
