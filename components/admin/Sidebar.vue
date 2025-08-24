@@ -125,12 +125,7 @@ if (thirdPath && pathMap[thirdPath]) {
       :default-openeds="defaultOpeneds"
     >
       <el-menu-item index="1" @click="navigateTo('/admin')">
-        <img
-          src="@/assets/images/logo.png"
-          alt="logo"
-          class="logo"
-          style="width: 120px"
-        />
+        <img src="/logo.png" alt="logo" class="logo" style="width: 120px" />
       </el-menu-item>
       <div>
         <el-menu-item
