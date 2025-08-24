@@ -698,11 +698,10 @@ const getCacheSettings = async () => {
         id: route.params.id,
       },
     })
-
     if (res.code === 200 && res.data) {
       cacheInfo.value = {
-        cacheType: res.data.cacheType || CACHE_TYPE.NO_CACHE,
-        cacheDuration: res.data.cacheDuration || 300,
+        cacheType: res.data.cache_strategy || CACHE_TYPE.NO_CACHE,
+        cacheDuration: res.data.cache_duration || 300,
       }
     } else {
       // 接口返回空或无数据，默认设置为不使用缓存
