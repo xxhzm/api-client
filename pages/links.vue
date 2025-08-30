@@ -49,7 +49,7 @@ const handleImageError = (e) => {
         <h2 class="section-title">友情链接</h2>
         <div class="link-grid">
           <div class="link-card" v-for="item in links" :key="item.id">
-            <a :href="item.url + '?ref=xxapi.cn'" target="_blank">
+            <a :href="item.url" target="_blank">
               <div class="link-card__image-wrapper">
                 <img
                   :src="item.image"
