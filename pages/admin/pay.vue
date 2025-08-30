@@ -60,11 +60,11 @@ const wechatPayDialogVisible = ref(false)
 const wechatQrCode = ref('')
 const currentOrderId = ref('')
 
-// 新增：码支付二维码弹窗
+// 新增：易支付二维码弹窗
 const mpayDialogVisible = ref(false)
 const mpayQrCode = ref('')
-const mpayMethod = ref('') // 新增：存储码支付的扫码方式
-const mpayAmount = ref('') // 新增：存储码支付的实际支付金额
+const mpayMethod = ref('') // 新增：存储易支付的扫码方式
+const mpayAmount = ref('') // 新增：存储易支付的实际支付金额
 
 // 处理自定义金额输入
 const handleCustomAmount = (val) => {
@@ -177,7 +177,7 @@ const submitForm = async () => {
   }
 
   if (form.value.payMethod === 'mpay' && !payChannels.value.mpay) {
-    $msg('码支付暂不可用，请选择其他支付方式', 'error')
+    $msg('易支付暂不可用，请选择其他支付方式', 'error')
     return
   }
 
@@ -213,7 +213,7 @@ const submitForm = async () => {
         wechatQrCode.value = res.data.image_url
         wechatPayDialogVisible.value = true
       } else if (form.value.payMethod === 'mpay') {
-        // 码支付：显示二维码
+        // 易支付：显示二维码
         mpayQrCode.value = res.data.image_url
         mpayMethod.value = res.data.method // 保存扫码方式
         mpayAmount.value = res.data.amount // 保存实际支付金额
@@ -294,24 +294,24 @@ const closeWechatPayDialog = () => {
   $msg('如遇支付问题，请联系客服处理', 'warning')
 }
 
-// 新增：关闭码支付弹窗
+// 新增：关闭易支付弹窗
 const closeEpayDialog = () => {
   clearInterval(timer)
   mpayDialogVisible.value = false
   $msg('如遇支付问题，请联系客服处理', 'warning')
 }
 
-// 新增：获取码支付弹窗标题
+// 新增：获取易支付弹窗标题
 const getPaymentTitle = () => {
   if (mpayMethod.value === 'alipay') {
-    return '支付宝扫码支付'
+    return '支付宝扫易支付'
   } else if (mpayMethod.value === 'wechat' || mpayMethod.value === 'wxpay') {
-    return '微信扫码支付'
+    return '微信扫易支付'
   }
-  return '码支付二维码'
+  return '易支付二维码'
 }
 
-// 新增：获取码支付提示文字
+// 新增：获取易支付提示文字
 const getPaymentTips = () => {
   if (mpayMethod.value === 'alipay') {
     return '请使用支付宝扫描二维码进行支付'
@@ -321,7 +321,7 @@ const getPaymentTips = () => {
   return '请使用手机扫描二维码进行支付'
 }
 
-// 新增：获取码支付使用说明
+// 新增：获取易支付使用说明
 const getPaymentInstructions = () => {
   if (mpayMethod.value === 'alipay') {
     return '打开支付宝，使用"扫一扫"功能扫描二维码'
@@ -464,7 +464,7 @@ useHead({
                           微信支付
                         </el-radio>
                         <el-radio value="mpay" v-if="payChannels.mpay">
-                          码支付{{
+                          易支付{{
                             payChannels.mpay === 'alipay'
                               ? '(支付宝)'
                               : payChannels.mpay === 'wxpay'
@@ -510,7 +510,7 @@ useHead({
                           : form.payMethod === 'wechat'
                           ? '微信支付'
                           : form.payMethod === 'mpay'
-                          ? '码支付' +
+                          ? '易支付' +
                             (payChannels.mpay === 'alipay'
                               ? '(支付宝)'
                               : payChannels.mpay === 'wxpay'
@@ -589,7 +589,7 @@ useHead({
         </el-button>
       </div>
     </el-dialog>
-    <!-- 码支付二维码弹窗 -->
+    <!-- 易支付二维码弹窗 -->
     <el-dialog
       v-model="mpayDialogVisible"
       :title="getPaymentTitle()"

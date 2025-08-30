@@ -61,7 +61,7 @@ const wechatPayInfo = ref({
   wxPublicKeyID: '',
 })
 
-// 新增：码支付配置相关
+// 新增：易支付配置相关
 const mpayInfo = ref({
   key: '',
   pid: '',
@@ -219,7 +219,7 @@ const getWechatPayInfo = async () => {
   }
 }
 
-// 新增：获取码支付配置
+// 新增：获取易支付配置
 const getMPayInfo = async () => {
   const res = await $myFetch('MPayInfo')
   if (res.code === 200) {
@@ -595,7 +595,7 @@ const wechatPayInfoSubmit = async () => {
   }
 }
 
-// 新增：提交码支付配置
+// 新增：提交易支付配置
 const mpayInfoSubmit = async () => {
   const bodyValue = new URLSearchParams()
   bodyValue.append('key', mpayInfo.value.key || '')
@@ -727,9 +727,10 @@ const validateIPv4 = (rule, value, callback) => {
     callback() // 允许为空
     return
   }
-  
-  const ipv4Regex = /^((25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$/
-  
+
+  const ipv4Regex =
+    /^((25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$/
+
   if (!ipv4Regex.test(value)) {
     callback(new Error('请输入有效的IPv4地址格式（如：192.168.1.1）'))
   } else {
@@ -1467,13 +1468,13 @@ useHead({
                         </div>
                       </el-form-item>
 
-                      <el-form-item 
+                      <el-form-item
                         label="服务器IP地址"
                         :rules="[
                           {
                             validator: validateIPv4,
-                            trigger: 'blur'
-                          }
+                            trigger: 'blur',
+                          },
                         ]"
                         prop="server_ip"
                       >
@@ -1600,7 +1601,7 @@ useHead({
                   </div>
                 </el-tab-pane>
 
-                <el-tab-pane label="码支付配置" name="mpay">
+                <el-tab-pane label="易支付v1配置" name="mpay">
                   <div class="form">
                     <el-form
                       :model="mpayInfo"
@@ -1612,19 +1613,19 @@ useHead({
                           v-model="mpayInfo.key"
                           type="password"
                           show-password
-                          placeholder="请输入码支付密钥"
+                          placeholder="请输入易支付密钥"
                         />
                         <div class="form-help">
-                          码支付平台提供的API密钥，用于接口调用验证
+                          易支付平台提供的API密钥，用于接口调用验证
                         </div>
                       </el-form-item>
                       <el-form-item label="商户ID(PID)">
                         <el-input
                           v-model="mpayInfo.pid"
-                          placeholder="请输入码支付商户ID"
+                          placeholder="请输入易支付商户ID"
                         />
                         <div class="form-help">
-                          码支付平台分配的唯一商户标识符
+                          易支付平台分配的唯一商户标识符
                         </div>
                       </el-form-item>
                       <el-form-item label="支付类型(Type)">
@@ -1640,16 +1641,16 @@ useHead({
                           ></el-option>
                         </el-select>
                         <div class="form-help">
-                          选择码支付平台支持的支付方式，只能选择其中一种
+                          选择易支付平台支持的支付方式，只能选择其中一种
                         </div>
                       </el-form-item>
                       <el-form-item label="API地址(URL)">
                         <el-input
                           v-model="mpayInfo.url"
-                          placeholder="请输入码支付API地址"
+                          placeholder="请输入易支付API地址"
                         />
                         <div class="form-help">
-                          码支付平台的API接口地址，通常以https://开头，mapi.php结尾
+                          易支付平台的API接口地址，通常以https://开头，mapi.php结尾
                         </div>
                       </el-form-item>
                       <el-form-item>

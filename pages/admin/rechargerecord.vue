@@ -215,7 +215,7 @@ useHead({
                         scope.row.method === 'alipay'
                           ? '支付宝'
                           : scope.row.method === 'mpay'
-                          ? '码支付'
+                          ? '易支付'
                           : '微信'
                       }}
                     </el-tag>
@@ -301,7 +301,7 @@ useHead({
               currentRecord.method === 'alipay'
                 ? '支付宝'
                 : currentRecord.method === 'mpay'
-                ? '码支付'
+                ? '易支付'
                 : '微信'
             }}</span>
           </div>
