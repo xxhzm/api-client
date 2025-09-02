@@ -25,6 +25,7 @@ const info = reactive({
 
 const LoginIsRegister = ref(true)
 const isForgotPassword = ref(false)
+const isEmailLogin = ref(false)
 const loginAndRegisterButtonStatus = ref(false)
 
 const goBack = () => {
@@ -82,6 +83,8 @@ const LoginIsRegisterChange = () => {
 
 // 获取验证码按钮的状态
 const getVerifyCodeButtonState = ref(false)
+// 邮箱登录验证码按钮状态
+const getEmailVerifyCodeButtonState = ref(false)
 
 // 图片验证码信息
 const captchaInfo = ref({
@@ -185,7 +188,19 @@ const register = async () => {
 const toggleForgotPassword = () => {
   isForgotPassword.value = !isForgotPassword.value
   LoginIsRegister.value = true
+  isEmailLogin.value = false
   info.captcha = ''
+  getCaptchaInfo()
+}
+
+// 切换到邮箱登录
+const toggleEmailLogin = () => {
+  isEmailLogin.value = !isEmailLogin.value
+  LoginIsRegister.value = true
+  isForgotPassword.value = false
+  info.captcha = ''
+  info.mail = ''
+  info.mailCode = ''
   getCaptchaInfo()
 }
 
@@ -241,6 +256,107 @@ watch(isForgotPassword, (newValue) => {
   }
 })
 
+// 监听邮箱登录状态变化
+watch(isEmailLogin, (newValue) => {
+  if (newValue) {
+    info.username = ''
+    info.password = ''
+    info.mail = ''
+    info.captcha = ''
+    info.mailCode = ''
+    getCaptchaInfo()
+  }
+})
+
+// 获取邮箱登录验证码
+const getMailLoginCode = async () => {
+  getEmailVerifyCodeButtonState.value = true
+
+  if (rule.test(info.mail) === false) {
+    $msg('请填写正确的邮箱地址', 'error')
+    getEmailVerifyCodeButtonState.value = false
+    return false
+  }
+
+  if (info.captcha === '') {
+    $msg('请填写图片验证码', 'error')
+    getEmailVerifyCodeButtonState.value = false
+    return false
+  }
+
+  const body = new URLSearchParams()
+  body.append('id', captchaInfo.value.id)
+  body.append('key', info.captcha)
+  body.append('mail', info.mail)
+
+  try {
+    const res = await $myFetch('MailLoginCode', {
+      method: 'POST',
+      body,
+    })
+
+    if (res.code === 200) {
+      $msg('验证码已发送', 'success')
+      info.sign = res.data
+    } else {
+      $msg(res.msg, 'error')
+      getCaptchaInfo()
+      info.captcha = ''
+    }
+  } catch (error) {
+    $msg('发送验证码失败，请稍后重试', 'error')
+  } finally {
+    getEmailVerifyCodeButtonState.value = false
+  }
+}
+
+// 邮箱登录
+const mailLogin = async () => {
+  if (info.mail === '' || info.mailCode === '') {
+    $msg('请填写完整的登录信息', 'error')
+    return false
+  }
+
+  if (rule.test(info.mail) === false) {
+    $msg('请填写正确的邮箱地址', 'error')
+    return false
+  }
+
+  loginAndRegisterButtonStatus.value = true
+
+  const body = new URLSearchParams()
+  body.append('mail', info.mail)
+  body.append('code', info.mailCode)
+
+  try {
+    const res = await $myFetch('MailLogin', {
+      method: 'POST',
+      body,
+    })
+
+    if (res.code === 200 && res.data.username) {
+      // 设置cookie
+      username.value = res.data.username
+      token.value = res.data.token
+
+      // 将 token 同时保存到 usestate
+      const authorization = useState('Authorization')
+      authorization.value = res.data.token
+
+      $msg('登录成功', 'success')
+
+      routeInfo.value = res.data.routeInfo
+      navigateTo('/admin')
+    } else {
+      $msg(res.msg, 'error')
+    }
+  } catch (error) {
+    $msg('登录失败，请稍后重试', 'error')
+  } finally {
+    loginAndRegisterButtonStatus.value = false
+  }
+}
+
 // 获取配置信息
 const options = useState('options')
 
@@ -262,23 +378,38 @@ useHead({
     <div
       class="login-card"
       :class="{
-        'is-register': !LoginIsRegister && !isForgotPassword,
+        'is-register': !LoginIsRegister && !isForgotPassword && !isEmailLogin,
         'is-forgot': isForgotPassword,
+        'is-email': isEmailLogin,
       }"
     >
       <div class="card-header">
         <span
           class="back-btn"
-          @click="isForgotPassword ? toggleForgotPassword() : goBack()"
+          @click="
+            isForgotPassword
+              ? toggleForgotPassword()
+              : isEmailLogin
+              ? toggleEmailLogin()
+              : goBack()
+          "
         >
           <img src="@/assets/images/goback.svg" alt="返回" />
-          {{ isForgotPassword ? '返回登录' : '返回首页' }}
+          {{
+            isForgotPassword
+              ? '返回登录'
+              : isEmailLogin
+              ? '返回登录'
+              : '返回首页'
+          }}
         </span>
         <div class="header-content">
           <h2 class="title">
             {{
               isForgotPassword
                 ? '找回密码'
+                : isEmailLogin
+                ? '邮箱登录'
                 : LoginIsRegister
                 ? '账号登录'
                 : '注册账号'
@@ -288,6 +419,8 @@ useHead({
             {{
               isForgotPassword
                 ? '输入您的用户名和邮箱找回密码'
+                : isEmailLogin
+                ? '使用邮箱验证码快速登录'
                 : LoginIsRegister
                 ? '欢迎使用' + options.website_name + '，请登录您的账号'
                 : '欢迎加入' + options.website_name + '，请完成注册'
@@ -296,7 +429,10 @@ useHead({
         </div>
       </div>
 
-      <div v-if="LoginIsRegister && !isForgotPassword" class="form-container">
+      <div
+        v-if="LoginIsRegister && !isForgotPassword && !isEmailLogin"
+        class="form-container"
+      >
         <el-form :model="info" size="large">
           <el-form-item>
             <el-input
@@ -346,7 +482,65 @@ useHead({
           <a @click="LoginIsRegisterChange">立即注册</a>
           <div class="forgot-link">
             <a @click="toggleForgotPassword">忘记密码？</a>
+            <span class="separator">|</span>
+            <a @click="toggleEmailLogin">邮箱登录</a>
           </div>
+        </div>
+      </div>
+      <div v-else-if="isEmailLogin && !isForgotPassword" class="form-container">
+        <el-form :model="info" size="large">
+          <el-form-item>
+            <el-input
+              v-model="info.mail"
+              placeholder="请输入电子邮箱"
+              prefix-icon="el-icon-message"
+              @keyup.enter="mailLogin"
+            />
+          </el-form-item>
+          <el-form-item>
+            <div class="captcha-container">
+              <el-input
+                v-model="info.captcha"
+                placeholder="图片验证码"
+                prefix-icon="el-icon-picture"
+              />
+              <img
+                :src="captchaInfo.url"
+                alt="验证码"
+                class="captcha-img"
+                @click="getCaptchaInfo()"
+              />
+            </div>
+          </el-form-item>
+          <el-form-item>
+            <div class="verify-code-container">
+              <el-input
+                v-model="info.mailCode"
+                placeholder="邮件验证码"
+                prefix-icon="el-icon-key"
+                @keyup.enter="mailLogin"
+              />
+              <el-button
+                @click="getMailLoginCode"
+                :loading="getEmailVerifyCodeButtonState"
+                class="verify-code-btn"
+              >
+                获取验证码
+              </el-button>
+            </div>
+          </el-form-item>
+          <el-button
+            type="primary"
+            class="submit-btn"
+            @click="mailLogin"
+            :loading="loginAndRegisterButtonStatus"
+          >
+            登录
+          </el-button>
+        </el-form>
+        <div class="form-footer">
+          <span>使用其他方式？</span>
+          <a @click="toggleEmailLogin">账号登录</a>
         </div>
       </div>
       <div v-else-if="isForgotPassword" class="form-container">
@@ -394,7 +588,10 @@ useHead({
           <a @click="toggleForgotPassword">返回登录</a>
         </div>
       </div>
-      <div v-else class="form-container">
+      <div
+        v-else-if="!LoginIsRegister && !isForgotPassword && !isEmailLogin"
+        class="form-container"
+      >
         <el-form :model="info" size="large">
           <el-form-item>
             <el-input
@@ -490,6 +687,10 @@ useHead({
 
     &.is-forgot {
       height: 520px;
+    }
+
+    &.is-email {
+      height: 480px;
     }
 
     .card-header {
@@ -627,6 +828,11 @@ useHead({
             color: #409eff;
           }
         }
+
+        .separator {
+          margin: 0 8px;
+          color: #dcdfe6;
+        }
       }
     }
   }
@@ -641,6 +847,10 @@ useHead({
 
       &.is-register {
         height: 580px;
+      }
+
+      &.is-email {
+        height: 480px;
       }
 
       .card-header {
