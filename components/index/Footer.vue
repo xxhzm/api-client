@@ -158,7 +158,7 @@ const props = defineProps(['options'])
   box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.05);
   height: 50px;
   padding: 5px 0;
-  z-index: 2007;
+  z-index: 2;
 }
 
 .tabbar-item {
