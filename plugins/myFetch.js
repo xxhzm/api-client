@@ -29,8 +29,8 @@ export default defineNuxtPlugin((/* nuxtApp */) => {
         const event = useRequestEvent()
         const host = event?.node?.req?.headers?.host || window?.location?.host
 
-        // const baseURL = 'http://10.6.6.6:3005/admin/'
-        const baseURL = 'https://' + host + '/adminapi/'
+        const baseURL = 'http://127.0.0.1:3005/admin/'
+        // const baseURL = 'https://' + host + '/adminapi/'
 
         return $fetch(baseURL + request, { ...opts, ...obj })
       },

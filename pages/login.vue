@@ -27,6 +27,7 @@ const LoginIsRegister = ref(true)
 const isForgotPassword = ref(false)
 const isEmailLogin = ref(false)
 const loginAndRegisterButtonStatus = ref(false)
+const loginMethod = ref('email') // 'email' 或 'sms'
 
 const goBack = () => {
   navigateTo('/')
@@ -77,6 +78,10 @@ const login = async () => {
 // 登录注册切换
 const LoginIsRegisterChange = () => {
   LoginIsRegister.value = !LoginIsRegister.value
+  // 切换到注册时获取登录方式配置
+  if (!LoginIsRegister.value) {
+    getLoginMethodConfig()
+  }
 }
 
 // 以下全部为注册
@@ -119,19 +124,43 @@ const rule =
 const getMailCode = async () => {
   getVerifyCodeButtonState.value = true
 
-  if (rule.test(info.mail) === false) {
-    $msg('请填写正确的信息', 'error')
-
-    getVerifyCodeButtonState.value = false
-    return false
+  // 根据登录方式验证输入格式
+  if (loginMethod.value === 'sms') {
+    // 手机号格式验证
+    const phoneRule = /^1[3-9]\d{9}$/
+    if (!phoneRule.test(info.mail)) {
+      $msg('请填写正确的手机号', 'error')
+      getVerifyCodeButtonState.value = false
+      return false
+    }
+  } else {
+    // 邮箱格式验证
+    if (rule.test(info.mail) === false) {
+      $msg('请填写正确的邮箱地址', 'error')
+      getVerifyCodeButtonState.value = false
+      return false
+    }
   }
 
-  const body = new URLSearchParams()
-  body.append('id', captchaInfo.value.id)
-  body.append('key', info.captcha)
-  body.append('mail', info.mail)
+  let body, apiEndpoint
 
-  const res = await $myFetch('MailCode', {
+  if (loginMethod.value === 'email') {
+    // 邮箱验证码
+    apiEndpoint = 'MailCode'
+    body = new URLSearchParams()
+    body.append('id', captchaInfo.value.id)
+    body.append('key', info.captcha)
+    body.append('mail', info.mail)
+  } else {
+    // 短信验证码
+    apiEndpoint = 'SendLoginSMS'
+    body = new URLSearchParams()
+    body.append('phone', info.mail) // 手机号存储在mail字段中
+    body.append('id', captchaInfo.value.id) // 验证码ID
+    body.append('key', info.captcha) // 验证码key
+  }
+
+  const res = await $myFetch(apiEndpoint, {
     method: 'POST',
     body,
   })
@@ -144,7 +173,9 @@ const getMailCode = async () => {
     return false
   }
 
-  $msg('验证码已发送', 'success')
+  const message =
+    loginMethod.value === 'email' ? '邮件验证码已发送' : '短信验证码已发送'
+  $msg(message, 'success')
 
   info.sign = res.data
   getVerifyCodeButtonState.value = false
@@ -155,11 +186,26 @@ const register = async () => {
     info.username === '' ||
     info.password === '' ||
     info.mail === '' ||
-    rule.test(info.mail) === false ||
     info.mailCode === ''
   ) {
     $msg('请正确填写账号信息', 'error')
     return false
+  }
+
+  // 根据登录方式验证输入格式
+  if (loginMethod.value === 'sms') {
+    // 手机号格式验证
+    const phoneRule = /^1[3-9]\d{9}$/
+    if (!phoneRule.test(info.mail)) {
+      $msg('请填写正确的手机号', 'error')
+      return false
+    }
+  } else {
+    // 邮箱格式验证
+    if (rule.test(info.mail) === false) {
+      $msg('请填写正确的邮箱地址', 'error')
+      return false
+    }
   }
 
   const body = new URLSearchParams()
@@ -193,6 +239,20 @@ const toggleForgotPassword = () => {
   getCaptchaInfo()
 }
 
+// 获取登录方式配置
+const getLoginMethodConfig = async () => {
+  try {
+    const res = await $myFetch('LoginMethodInfo', {
+      method: 'GET',
+    })
+    if (res.code === 200) {
+      loginMethod.value = res.data
+    }
+  } catch (error) {
+    console.error('获取登录方式配置失败:', error)
+  }
+}
+
 // 切换到邮箱登录
 const toggleEmailLogin = () => {
   isEmailLogin.value = !isEmailLogin.value
@@ -202,6 +262,10 @@ const toggleEmailLogin = () => {
   info.mail = ''
   info.mailCode = ''
   getCaptchaInfo()
+  // 获取登录方式配置
+  if (isEmailLogin.value) {
+    getLoginMethodConfig()
+  }
 }
 
 // 发送重置密码邮件
@@ -272,10 +336,22 @@ watch(isEmailLogin, (newValue) => {
 const getMailLoginCode = async () => {
   getEmailVerifyCodeButtonState.value = true
 
-  if (rule.test(info.mail) === false) {
-    $msg('请填写正确的邮箱地址', 'error')
-    getEmailVerifyCodeButtonState.value = false
-    return false
+  // 根据登录方式验证输入格式
+  if (loginMethod.value === 'sms') {
+    // 手机号格式验证
+    const phoneRule = /^1[3-9]\d{9}$/
+    if (!phoneRule.test(info.mail)) {
+      $msg('请填写正确的手机号', 'error')
+      getEmailVerifyCodeButtonState.value = false
+      return false
+    }
+  } else {
+    // 邮箱格式验证
+    if (rule.test(info.mail) === false) {
+      $msg('请填写正确的邮箱地址', 'error')
+      getEmailVerifyCodeButtonState.value = false
+      return false
+    }
   }
 
   if (info.captcha === '') {
@@ -284,19 +360,32 @@ const getMailLoginCode = async () => {
     return false
   }
 
-  const body = new URLSearchParams()
-  body.append('id', captchaInfo.value.id)
-  body.append('key', info.captcha)
-  body.append('mail', info.mail)
-
   try {
-    const res = await $myFetch('MailLoginCode', {
+    let body, apiEndpoint
+
+    if (loginMethod.value === 'email') {
+      // 邮箱登录验证码
+      apiEndpoint = 'MailLoginCode'
+      body = new URLSearchParams()
+      body.append('id', captchaInfo.value.id)
+      body.append('key', info.captcha)
+      body.append('mail', info.mail)
+    } else {
+      // 短信验证码
+      apiEndpoint = 'SendLoginSMS'
+      body = new URLSearchParams()
+      body.append('phone', info.mail) // 手机号存储在mail字段中
+      body.append('id', captchaInfo.value.id) // 验证码ID
+      body.append('key', info.captcha) // 验证码key
+    }
+
+    const res = await $myFetch(apiEndpoint, {
       method: 'POST',
       body,
     })
 
     if (res.code === 200) {
-      $msg('验证码已发送', 'success')
+      $msg(res.data, 'success')
       info.sign = res.data
     } else {
       $msg(res.msg, 'error')
@@ -317,19 +406,40 @@ const mailLogin = async () => {
     return false
   }
 
-  if (rule.test(info.mail) === false) {
-    $msg('请填写正确的邮箱地址', 'error')
-    return false
+  // 根据登录方式验证输入格式
+  if (loginMethod.value === 'sms') {
+    // 手机号格式验证
+    const phoneRule = /^1[3-9]\d{9}$/
+    if (!phoneRule.test(info.mail)) {
+      $msg('请填写正确的手机号', 'error')
+      return false
+    }
+  } else {
+    // 邮箱格式验证
+    if (rule.test(info.mail) === false) {
+      $msg('请填写正确的邮箱地址', 'error')
+      return false
+    }
   }
 
   loginAndRegisterButtonStatus.value = true
 
-  const body = new URLSearchParams()
-  body.append('mail', info.mail)
-  body.append('code', info.mailCode)
-
   try {
-    const res = await $myFetch('MailLogin', {
+    const body = new URLSearchParams()
+
+    // 根据配置选择不同的登录接口和参数
+    let apiEndpoint
+    if (loginMethod.value === 'email') {
+      apiEndpoint = 'MailLogin'
+      body.append('mail', info.mail)
+      body.append('code', info.mailCode)
+    } else {
+      apiEndpoint = 'SmsLogin'
+      body.append('phone', info.mail) // 手机号存储在mail字段中
+      body.append('code', info.mailCode)
+    }
+
+    const res = await $myFetch(apiEndpoint, {
       method: 'POST',
       body,
     })
@@ -359,6 +469,11 @@ const mailLogin = async () => {
 
 // 获取配置信息
 const options = useState('options')
+
+// 组件挂载时获取登录方式配置
+onMounted(() => {
+  getLoginMethodConfig()
+})
 
 useHead({
   title: '用户登录',
@@ -409,7 +524,9 @@ useHead({
               isForgotPassword
                 ? '找回密码'
                 : isEmailLogin
-                ? '邮箱登录'
+                ? loginMethod === 'sms'
+                  ? '手机号登录'
+                  : '邮箱登录'
                 : LoginIsRegister
                 ? '账号登录'
                 : '注册账号'
@@ -420,7 +537,9 @@ useHead({
               isForgotPassword
                 ? '输入您的用户名和邮箱找回密码'
                 : isEmailLogin
-                ? '使用邮箱验证码快速登录'
+                ? loginMethod === 'sms'
+                  ? '使用手机号验证码快速登录'
+                  : '使用邮箱验证码快速登录'
                 : LoginIsRegister
                 ? '欢迎使用' + options.website_name + '，请登录您的账号'
                 : '欢迎加入' + options.website_name + '，请完成注册'
@@ -483,7 +602,9 @@ useHead({
           <div class="forgot-link">
             <a @click="toggleForgotPassword">忘记密码？</a>
             <span class="separator">|</span>
-            <a @click="toggleEmailLogin">邮箱登录</a>
+            <a @click="toggleEmailLogin">{{
+              loginMethod === 'sms' ? '手机号登录' : '邮箱登录'
+            }}</a>
           </div>
         </div>
       </div>
@@ -492,8 +613,12 @@ useHead({
           <el-form-item>
             <el-input
               v-model="info.mail"
-              placeholder="请输入电子邮箱"
-              prefix-icon="el-icon-message"
+              :placeholder="
+                loginMethod === 'sms' ? '请输入手机号' : '请输入电子邮箱'
+              "
+              :prefix-icon="
+                loginMethod === 'sms' ? 'el-icon-phone' : 'el-icon-message'
+              "
               @keyup.enter="mailLogin"
             />
           </el-form-item>
@@ -516,7 +641,9 @@ useHead({
             <div class="verify-code-container">
               <el-input
                 v-model="info.mailCode"
-                placeholder="邮件验证码"
+                :placeholder="
+                  loginMethod === 'sms' ? '短信验证码' : '邮件验证码'
+                "
                 prefix-icon="el-icon-key"
                 @keyup.enter="mailLogin"
               />
@@ -612,8 +739,12 @@ useHead({
           <el-form-item>
             <el-input
               v-model="info.mail"
-              placeholder="请输入电子邮箱"
-              prefix-icon="el-icon-message"
+              :placeholder="
+                loginMethod === 'sms' ? '请输入手机号' : '请输入电子邮箱'
+              "
+              :prefix-icon="
+                loginMethod === 'sms' ? 'el-icon-phone' : 'el-icon-message'
+              "
             />
           </el-form-item>
           <el-form-item>
@@ -635,7 +766,9 @@ useHead({
             <div class="verify-code-container">
               <el-input
                 v-model="info.mailCode"
-                placeholder="邮件验证码"
+                :placeholder="
+                  loginMethod === 'sms' ? '短信验证码' : '邮件验证码'
+                "
                 prefix-icon="el-icon-key"
               />
               <el-button
