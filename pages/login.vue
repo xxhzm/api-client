@@ -27,7 +27,9 @@ const LoginIsRegister = ref(true)
 const isForgotPassword = ref(false)
 const isEmailLogin = ref(false)
 const loginAndRegisterButtonStatus = ref(false)
-const loginMethod = ref('email') // 'email' 或 'sms'
+const availableLoginMethods = ref([]) // 可用的登录方式数组
+const currentLoginMethod = ref('email') // 当前选择的登录方式
+const isLoginDisabled = ref(false) // 是否禁用所有登录方式
 
 const goBack = () => {
   navigateTo('/')
@@ -124,8 +126,20 @@ const rule =
 const getMailCode = async () => {
   getVerifyCodeButtonState.value = true
 
-  // 根据登录方式验证输入格式
-  if (loginMethod.value === 'sms') {
+  // 注册模式始终使用邮箱，登录模式根据配置判断
+  const isRegisterMode =
+    !LoginIsRegister.value && !isForgotPassword.value && !isEmailLogin.value
+  const useEmail = isRegisterMode || currentLoginMethod.value === 'email'
+
+  // 根据使用的方式验证输入格式
+  if (useEmail) {
+    // 邮箱格式验证
+    if (rule.test(info.mail) === false) {
+      $msg('请填写正确的邮箱地址', 'error')
+      getVerifyCodeButtonState.value = false
+      return false
+    }
+  } else {
     // 手机号格式验证
     const phoneRule = /^1[3-9]\d{9}$/
     if (!phoneRule.test(info.mail)) {
@@ -133,18 +147,11 @@ const getMailCode = async () => {
       getVerifyCodeButtonState.value = false
       return false
     }
-  } else {
-    // 邮箱格式验证
-    if (rule.test(info.mail) === false) {
-      $msg('请填写正确的邮箱地址', 'error')
-      getVerifyCodeButtonState.value = false
-      return false
-    }
   }
 
   let body, apiEndpoint
 
-  if (loginMethod.value === 'email') {
+  if (useEmail) {
     // 邮箱验证码
     apiEndpoint = 'MailCode'
     body = new URLSearchParams()
@@ -173,8 +180,7 @@ const getMailCode = async () => {
     return false
   }
 
-  const message =
-    loginMethod.value === 'email' ? '邮件验证码已发送' : '短信验证码已发送'
+  const message = useEmail ? '邮件验证码已发送' : '短信验证码已发送'
   $msg(message, 'success')
 
   info.sign = res.data
@@ -192,20 +198,10 @@ const register = async () => {
     return false
   }
 
-  // 根据登录方式验证输入格式
-  if (loginMethod.value === 'sms') {
-    // 手机号格式验证
-    const phoneRule = /^1[3-9]\d{9}$/
-    if (!phoneRule.test(info.mail)) {
-      $msg('请填写正确的手机号', 'error')
-      return false
-    }
-  } else {
-    // 邮箱格式验证
-    if (rule.test(info.mail) === false) {
-      $msg('请填写正确的邮箱地址', 'error')
-      return false
-    }
+  // 注册始终使用邮箱验证
+  if (rule.test(info.mail) === false) {
+    $msg('请填写正确的邮箱地址', 'error')
+    return false
   }
 
   const body = new URLSearchParams()
@@ -245,26 +241,96 @@ const getLoginMethodConfig = async () => {
     const res = await $myFetch('LoginMethodInfo', {
       method: 'GET',
     })
-    if (res.code === 200) {
-      loginMethod.value = res.data
+
+    if (res.code === 200 && res.data) {
+      let methods = []
+
+      // 处理不同格式的登录方式数据
+      if (res.data) {
+        if (typeof res.data === 'string') {
+          // 字符串格式：可能是 "sms|email" 或单个方式 "email"
+          methods = res.data.split('|').filter((method) => method.trim())
+        } else if (Array.isArray(res.data)) {
+          // 数组格式：["sms", "email"]
+          methods = res.data.filter((method) => method && method.trim())
+        }
+      }
+
+      // 设置登录方式配置
+      if (methods.length > 0) {
+        availableLoginMethods.value = methods
+        currentLoginMethod.value = methods[0]
+        isLoginDisabled.value = false
+      } else {
+        // 没有可用的登录方式
+        availableLoginMethods.value = []
+        currentLoginMethod.value = ''
+        isLoginDisabled.value = true
+      }
+    } else {
+      // 接口返回失败或数据为空，禁用登录
+      availableLoginMethods.value = []
+      currentLoginMethod.value = ''
+      isLoginDisabled.value = true
     }
   } catch (error) {
     console.error('获取登录方式配置失败:', error)
+    // 发生错误时，设置默认的登录方式以确保功能可用
+    availableLoginMethods.value = ['email']
+    currentLoginMethod.value = 'email'
+    isLoginDisabled.value = false
   }
 }
 
-// 切换到邮箱登录
-const toggleEmailLogin = () => {
-  isEmailLogin.value = !isEmailLogin.value
-  LoginIsRegister.value = true
-  isForgotPassword.value = false
-  info.captcha = ''
-  info.mail = ''
-  info.mailCode = ''
-  getCaptchaInfo()
-  // 获取登录方式配置
+// 切换登录方式
+const toggleEmailLogin = (targetMethod = false) => {
   if (isEmailLogin.value) {
-    getLoginMethodConfig()
+    if (
+      targetMethod &&
+      typeof targetMethod === 'string' &&
+      availableLoginMethods.value.includes(targetMethod)
+    ) {
+      // 切换到指定的登录方式
+      currentLoginMethod.value = targetMethod
+    } else if (targetMethod && availableLoginMethods.value.length > 1) {
+      // 在可用的登录方式之间切换
+      const currentIndex = availableLoginMethods.value.indexOf(
+        currentLoginMethod.value
+      )
+      const nextIndex = (currentIndex + 1) % availableLoginMethods.value.length
+      currentLoginMethod.value = availableLoginMethods.value[nextIndex]
+    } else {
+      // 返回账号登录
+      isEmailLogin.value = false
+      LoginIsRegister.value = true
+      isForgotPassword.value = false
+      info.captcha = ''
+      info.mail = ''
+      info.mailCode = ''
+      getCaptchaInfo()
+    }
+  } else {
+    // 从账号登录切换到验证码登录模式
+    isEmailLogin.value = true
+    LoginIsRegister.value = true
+    isForgotPassword.value = false
+    info.captcha = ''
+    info.mail = ''
+    info.mailCode = ''
+    getCaptchaInfo()
+
+    // 设置登录方式
+    if (
+      targetMethod &&
+      typeof targetMethod === 'string' &&
+      availableLoginMethods.value.includes(targetMethod)
+    ) {
+      // 使用指定的登录方式
+      currentLoginMethod.value = targetMethod
+    } else if (availableLoginMethods.value.length > 0) {
+      // 设置默认的登录方式为第一个可用方式
+      currentLoginMethod.value = availableLoginMethods.value[0]
+    }
   }
 }
 
@@ -337,7 +403,7 @@ const getMailLoginCode = async () => {
   getEmailVerifyCodeButtonState.value = true
 
   // 根据登录方式验证输入格式
-  if (loginMethod.value === 'sms') {
+  if (currentLoginMethod.value === 'sms') {
     // 手机号格式验证
     const phoneRule = /^1[3-9]\d{9}$/
     if (!phoneRule.test(info.mail)) {
@@ -363,7 +429,7 @@ const getMailLoginCode = async () => {
   try {
     let body, apiEndpoint
 
-    if (loginMethod.value === 'email') {
+    if (currentLoginMethod.value === 'email') {
       // 邮箱登录验证码
       apiEndpoint = 'MailLoginCode'
       body = new URLSearchParams()
@@ -407,7 +473,7 @@ const mailLogin = async () => {
   }
 
   // 根据登录方式验证输入格式
-  if (loginMethod.value === 'sms') {
+  if (currentLoginMethod.value === 'sms') {
     // 手机号格式验证
     const phoneRule = /^1[3-9]\d{9}$/
     if (!phoneRule.test(info.mail)) {
@@ -429,7 +495,7 @@ const mailLogin = async () => {
 
     // 根据配置选择不同的登录接口和参数
     let apiEndpoint
-    if (loginMethod.value === 'email') {
+    if (currentLoginMethod.value === 'email') {
       apiEndpoint = 'MailLogin'
       body.append('mail', info.mail)
       body.append('code', info.mailCode)
@@ -524,7 +590,7 @@ useHead({
               isForgotPassword
                 ? '找回密码'
                 : isEmailLogin
-                ? loginMethod === 'sms'
+                ? currentLoginMethod === 'sms'
                   ? '手机号登录'
                   : '邮箱登录'
                 : LoginIsRegister
@@ -537,7 +603,7 @@ useHead({
               isForgotPassword
                 ? '输入您的用户名和邮箱找回密码'
                 : isEmailLogin
-                ? loginMethod === 'sms'
+                ? currentLoginMethod === 'sms'
                   ? '使用手机号验证码快速登录'
                   : '使用邮箱验证码快速登录'
                 : LoginIsRegister
@@ -601,23 +667,61 @@ useHead({
           <a @click="LoginIsRegisterChange">立即注册</a>
           <div class="forgot-link">
             <a @click="toggleForgotPassword">忘记密码？</a>
-            <span class="separator">|</span>
-            <a @click="toggleEmailLogin">{{
-              loginMethod === 'sms' ? '手机号登录' : '邮箱登录'
-            }}</a>
+            <!-- 当同时支持邮箱和短信登录时，显示两个独立的选项 -->
+            <template
+              v-if="
+                availableLoginMethods.includes('email') &&
+                availableLoginMethods.includes('sms')
+              "
+            >
+              <span class="separator">|</span>
+              <a @click="toggleEmailLogin('email')">邮箱登录</a>
+              <span class="separator">|</span>
+              <a @click="toggleEmailLogin('sms')">手机号登录</a>
+            </template>
+            <!-- 当只支持单种验证码登录方式时，显示对应的选项 -->
+            <template
+              v-else-if="
+                availableLoginMethods.length > 0 &&
+                (availableLoginMethods.includes('email') ||
+                  availableLoginMethods.includes('sms'))
+              "
+            >
+              <span class="separator">|</span>
+              <a @click="toggleEmailLogin">
+                <template v-if="availableLoginMethods.includes('email')">
+                  邮箱登录
+                </template>
+                <template v-else-if="availableLoginMethods.includes('sms')">
+                  手机号登录
+                </template>
+              </a>
+            </template>
           </div>
         </div>
       </div>
       <div v-else-if="isEmailLogin && !isForgotPassword" class="form-container">
-        <el-form :model="info" size="large">
+        <!-- 登录方式被禁用的提示 -->
+        <div v-if="isLoginDisabled" class="login-disabled-notice">
+          <el-alert
+            title="登录功能暂时不可用"
+            description="管理员已禁用所有登录方式，请联系管理员或稍后再试。"
+            type="warning"
+            :closable="false"
+            show-icon
+          />
+        </div>
+        <el-form v-else :model="info" size="large">
           <el-form-item>
             <el-input
               v-model="info.mail"
               :placeholder="
-                loginMethod === 'sms' ? '请输入手机号' : '请输入电子邮箱'
+                currentLoginMethod === 'sms' ? '请输入手机号' : '请输入电子邮箱'
               "
               :prefix-icon="
-                loginMethod === 'sms' ? 'el-icon-phone' : 'el-icon-message'
+                currentLoginMethod === 'sms'
+                  ? 'el-icon-phone'
+                  : 'el-icon-message'
               "
               @keyup.enter="mailLogin"
             />
@@ -642,7 +746,7 @@ useHead({
               <el-input
                 v-model="info.mailCode"
                 :placeholder="
-                  loginMethod === 'sms' ? '短信验证码' : '邮件验证码'
+                  currentLoginMethod === 'sms' ? '短信验证码' : '邮件验证码'
                 "
                 prefix-icon="el-icon-key"
                 @keyup.enter="mailLogin"
@@ -667,7 +771,22 @@ useHead({
         </el-form>
         <div class="form-footer">
           <span>使用其他方式？</span>
-          <a @click="toggleEmailLogin">账号登录</a>
+          <a @click="toggleEmailLogin(false)">账号登录</a>
+          <!-- 只有当支持多种验证码登录方式时才显示切换链接 -->
+          <template
+            v-if="
+              availableLoginMethods.length > 1 &&
+              availableLoginMethods.includes('email') &&
+              availableLoginMethods.includes('sms')
+            "
+          >
+            <span class="separator">|</span>
+            <a @click="toggleEmailLogin(true)">
+              切换到{{
+                currentLoginMethod === 'sms' ? '邮箱登录' : '手机号登录'
+              }}
+            </a>
+          </template>
         </div>
       </div>
       <div v-else-if="isForgotPassword" class="form-container">
@@ -739,12 +858,8 @@ useHead({
           <el-form-item>
             <el-input
               v-model="info.mail"
-              :placeholder="
-                loginMethod === 'sms' ? '请输入手机号' : '请输入电子邮箱'
-              "
-              :prefix-icon="
-                loginMethod === 'sms' ? 'el-icon-phone' : 'el-icon-message'
-              "
+              placeholder="请输入电子邮箱"
+              prefix-icon="el-icon-message"
             />
           </el-form-item>
           <el-form-item>
@@ -766,9 +881,7 @@ useHead({
             <div class="verify-code-container">
               <el-input
                 v-model="info.mailCode"
-                :placeholder="
-                  loginMethod === 'sms' ? '短信验证码' : '邮件验证码'
-                "
+                placeholder="邮件验证码"
                 prefix-icon="el-icon-key"
               />
               <el-button
@@ -944,6 +1057,7 @@ useHead({
       a {
         color: #409eff;
         margin-left: 4px;
+        margin-right: 4px;
         cursor: pointer;
 
         &:hover {

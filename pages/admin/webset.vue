@@ -86,7 +86,7 @@ const advancedInfo = ref({
 
 // 登录设置相关
 const loginInfo = ref({
-  method: 'email', // email 或 sms
+  method: ['email'], // 支持多选：email 和/或 sms
   provider: '', // aliyun 或 tencent
   sdkAppId: '',
   secretId: '',
@@ -257,8 +257,20 @@ const getAdvancedInfo = async () => {
 // 获取登录设置
 const getLoginInfo = async () => {
   const res = await $myFetch('LoginMethodInfo')
-  if (res.code === 200) {
+  if (res.code === 200 && res.data) {
     loginInfo.value = res.data
+    // 将method字符串转换为数组
+    if (typeof loginInfo.value.method === 'string') {
+      loginInfo.value.method = loginInfo.value.method
+        ? loginInfo.value.method.split('|')
+        : []
+    } else if (!loginInfo.value.method) {
+      // 如果method字段不存在，设置为空数组
+      loginInfo.value.method = []
+    }
+  } else {
+    // 如果接口返回失败或数据为空，重置为初始状态
+    loginInfo.value.method = []
   }
 }
 
@@ -697,7 +709,8 @@ const advancedInfoSubmit = async () => {
 // 提交登录设置
 const loginInfoSubmit = async () => {
   const bodyValue = new URLSearchParams()
-  bodyValue.append('method', loginInfo.value.method)
+  // 将method数组用|分隔转换为字符串
+  bodyValue.append('method', loginInfo.value.method.join('|'))
   bodyValue.append('provider', loginInfo.value.provider || '')
   bodyValue.append('sdkAppId', loginInfo.value.sdkAppId || '')
   bodyValue.append('secretId', loginInfo.value.secretId || '')
@@ -1548,16 +1561,22 @@ useHead({
                       label-width="120px"
                     >
                       <el-form-item label="登录方式">
-                        <el-radio-group v-model="loginInfo.method">
-                          <el-radio label="email">邮箱验证码登录</el-radio>
-                          <el-radio label="sms">手机号验证码登录</el-radio>
-                        </el-radio-group>
+                        <el-checkbox-group v-model="loginInfo.method">
+                          <el-checkbox label="email"
+                            >邮箱验证码登录</el-checkbox
+                          >
+                          <el-checkbox label="sms"
+                            >手机号验证码登录</el-checkbox
+                          >
+                        </el-checkbox-group>
                       </el-form-item>
 
                       <!-- 手机号登录配置 -->
-                      <template v-if="loginInfo.method === 'sms'">
-                        <el-divider content-position="left">短信平台配置</el-divider>
-                        
+                      <template v-if="loginInfo.method.includes('sms')">
+                        <el-divider content-position="left"
+                          >短信平台配置</el-divider
+                        >
+
                         <el-form-item label="短信服务商">
                           <el-radio-group v-model="loginInfo.provider">
                             <el-radio label="aliyun">阿里云</el-radio>
@@ -1567,16 +1586,20 @@ useHead({
 
                         <!-- 阿里云配置 -->
                         <template v-if="loginInfo.provider === 'aliyun'">
-                          <el-divider content-position="left">阿里云平台配置</el-divider>
-                          
+                          <el-divider content-position="left"
+                            >阿里云平台配置</el-divider
+                          >
+
                           <el-form-item label="签名名称">
                             <el-input
                               v-model="loginInfo.signName"
                               placeholder="示例：山东省云鹊网络科技"
                             />
-                            <div class="form-help">短信签名名称，用于标识短信发送方</div>
+                            <div class="form-help">
+                              短信签名名称，用于标识短信发送方
+                            </div>
                           </el-form-item>
-                          
+
                           <el-form-item label="模版代码">
                             <el-input
                               v-model="loginInfo.templateCode"
@@ -1584,7 +1607,7 @@ useHead({
                             />
                             <div class="form-help">阿里云短信模板代码</div>
                           </el-form-item>
-                          
+
                           <el-form-item label="AccessKeyId">
                             <el-input
                               v-model="loginInfo.secretId"
@@ -1592,7 +1615,7 @@ useHead({
                             />
                             <div class="form-help">阿里云访问密钥ID</div>
                           </el-form-item>
-                          
+
                           <el-form-item label="AccessKeySecret">
                             <el-input
                               v-model="loginInfo.secretKey"
@@ -1606,8 +1629,10 @@ useHead({
 
                         <!-- 腾讯云配置 -->
                         <template v-if="loginInfo.provider === 'tencent'">
-                          <el-divider content-position="left">腾讯云平台配置</el-divider>
-                          
+                          <el-divider content-position="left"
+                            >腾讯云平台配置</el-divider
+                          >
+
                           <el-form-item label="SdkAppId">
                             <el-input
                               v-model="loginInfo.sdkAppId"
@@ -1615,7 +1640,7 @@ useHead({
                             />
                             <div class="form-help">腾讯云短信应用ID</div>
                           </el-form-item>
-                          
+
                           <el-form-item label="模板ID">
                             <el-input
                               v-model="loginInfo.templateCode"
@@ -1623,15 +1648,17 @@ useHead({
                             />
                             <div class="form-help">腾讯云短信模板ID</div>
                           </el-form-item>
-                          
+
                           <el-form-item label="签名名称">
                             <el-input
                               v-model="loginInfo.signName"
                               placeholder="示例：山东省云鹊网络"
                             />
-                            <div class="form-help">短信签名名称，用于标识短信发送方</div>
+                            <div class="form-help">
+                              短信签名名称，用于标识短信发送方
+                            </div>
                           </el-form-item>
-                          
+
                           <el-form-item label="secretId">
                             <el-input
                               v-model="loginInfo.secretId"
@@ -1639,7 +1666,7 @@ useHead({
                             />
                             <div class="form-help">腾讯云API密钥ID</div>
                           </el-form-item>
-                          
+
                           <el-form-item label="secretKey">
                             <el-input
                               v-model="loginInfo.secretKey"

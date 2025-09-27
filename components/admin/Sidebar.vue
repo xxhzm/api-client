@@ -106,6 +106,9 @@ const pathMap = {
   mypackage: '6',
   'ip-ban': '7',
   'api-rate-limit': '7',
+  key: '8',
+  password: '8',
+  phone: '8',
 }
 
 const thirdPath = pathArr[2] // 注意 pathArr[2] 是第3段
@@ -437,16 +440,37 @@ if (thirdPath && pathMap[thirdPath]) {
           </el-menu-item-group>
         </el-sub-menu>
 
-        <el-menu-item
+        <el-sub-menu
           index="8"
-          @click="navigateTo('/admin/key')"
-          v-if="routeShow('/admin/key')"
+          v-if="routeShowArr(['/admin/key', '/admin/password', '/admin/phone'])"
         >
-          <el-icon>
-            <Connection />
-          </el-icon>
-          <template #title>API密钥管理</template>
-        </el-menu-item>
+          <template #title>
+            <el-icon>
+              <Avatar />
+            </el-icon>
+            <span>个人中心</span>
+          </template>
+          <el-menu-item-group title="个人中心">
+            <el-menu-item
+              index="8-1"
+              @click="navigateTo('/admin/key')"
+              v-if="routeShow('/admin/key')"
+              >API密钥管理</el-menu-item
+            >
+            <el-menu-item
+              index="8-2"
+              @click="navigateTo('/admin/password')"
+              v-if="routeShow('/admin/password')"
+              >修改密码</el-menu-item
+            >
+            <el-menu-item
+              index="8-3"
+              @click="navigateTo('/admin/phone')"
+              v-if="routeShow('/admin/phone')"
+              >手机号管理</el-menu-item
+            >
+          </el-menu-item-group>
+        </el-sub-menu>
 
         <el-menu-item
           index="9"
