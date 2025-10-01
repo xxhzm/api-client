@@ -22,57 +22,58 @@ systemInfo.value.recent_request.forEach((element) => {
   number.value += element.number
 })
 
-// 定义卡片数据
-const cards = computed(() => [
-  {
-    title: '平台接口',
-    tag: '接口',
-    value: systemInfo.value.total_api,
-    isCount: true,
-  },
-  {
-    title: '24小时内总请求',
-    tag: '24H',
-    value: number.value,
-    isCount: true,
-  },
-  {
-    title: '请求总调用',
-    tag: '总数',
-    value: systemInfo.value.total_request_number,
-    isCount: true,
-  },
-  {
-    title: '已稳定运营',
-    tag: '天数',
-    value: systemInfo.value.day,
-    isCount: true,
-  },
-  {
-    title: 'CPU使用率',
-    tag: 'CPU',
-    value: systemInfo.value.cpu,
-    isCount: false,
-  },
-  {
-    title: '已用内存',
-    tag: '已用',
-    value: systemInfo.value.memory_used,
-    isCount: false,
-  },
-  {
-    title: '可用内存',
-    tag: '可用',
-    value: systemInfo.value.memory_available,
-    isCount: false,
-  },
-  {
-    title: '已发送',
-    tag: '总量',
-    value: systemInfo.value.total_network_transmission,
-    isCount: false,
-  },
-])
+// 定义卡片数据（当对应值为空时不显示系统信息相关卡片）
+const cards = computed(() => {
+  const list = [
+    {
+      title: '平台接口',
+      tag: '接口',
+      value: systemInfo.value.total_api,
+      isCount: true,
+    },
+    {
+      title: '24小时内总请求',
+      tag: '24H',
+      value: number.value,
+      isCount: true,
+    },
+    {
+      title: '请求总调用',
+      tag: '总数',
+      value: systemInfo.value.total_request_number,
+      isCount: true,
+    },
+    {
+      title: '已稳定运营',
+      tag: '天数',
+      value: systemInfo.value.day,
+      isCount: true,
+    },
+  ]
+
+  const isPresent = (v) => v !== undefined && v !== null && String(v).trim() !== ''
+  const {
+    cpu,
+    memory_used,
+    memory_available,
+    total_network_transmission,
+  } = systemInfo.value || {}
+
+  if (isPresent(cpu)) {
+    list.push({ title: 'CPU使用率', tag: 'CPU', value: cpu, isCount: false })
+  }
+  if (isPresent(memory_used)) {
+    list.push({ title: '已用内存', tag: '已用', value: memory_used, isCount: false })
+  }
+  if (isPresent(memory_available)) {
+    list.push({ title: '可用内存', tag: '可用', value: memory_available, isCount: false })
+  }
+  if (isPresent(total_network_transmission)) {
+    list.push({ title: '已发送', tag: '总量', value: total_network_transmission, isCount: false })
+  }
+
+  return list
+})
 
 // 更新图表数据
 const recentRequest = ref({
