@@ -143,6 +143,7 @@ onMounted(async () => {
   await getData()
   await getRateLimitSettings()
   await getCacheSettings()
+  await getAdvancedSettings()
 })
 
 const updateApiInfo = async () => {
@@ -769,6 +770,92 @@ const validateCacheDuration = () => {
   } else {
     // 如果为空，设置默认值
     cacheInfo.value.cacheDuration = 300
+  }
+}
+
+// 高级设置相关状态（与 webset.vue 保持一致的行为与取值样式）
+const advancedInfo = ref({
+  // 统一使用字符串 'true' / 'false' 以匹配 webset.vue 的选择值
+  phoneBinding: 'false',
+  // 以下为后期更新项（可保存但当前无实际效果）
+  realNameAuth: 'false',
+  enterpriseAuth: 'false',
+  vipAuth: 'false',
+  twoFactorAuth: 'false',
+  // HTTP/PHP-FPM 头信息参数（当前可用）
+  headers: '',
+})
+
+const advancedLoading = ref(false)
+
+// 获取高级设置
+const getAdvancedSettings = async () => {
+  try {
+    const res = await $myFetch('GetApiAdvancedSettings', {
+      params: {
+        id: route.params.id,
+      },
+    })
+
+    if (res.code === 200 && res.data) {
+      // 按照后端返回的字段映射到前端使用的 advancedInfo 结构
+      advancedInfo.value = {
+        phoneBinding:
+          res.data.phone === true || res.data.phone === 1 ? 'true' : 'false',
+        realNameAuth:
+          res.data.realname === true || res.data.realname === 1
+            ? 'true'
+            : 'false',
+        enterpriseAuth:
+          res.data.companyAuth === true || res.data.companyAuth === 1
+            ? 'true'
+            : 'false',
+        vipAuth: res.data.vip === true || res.data.vip === 1 ? 'true' : 'false',
+        twoFactorAuth:
+          res.data.twoFa === true || res.data.twoFa === 1 ? 'true' : 'false',
+        headers: res.data.header ?? '',
+      }
+    }
+  } catch (error) {
+    // 获取失败时保留默认值
+  }
+}
+
+// 更新高级设置
+const updateAdvancedSettings = async () => {
+  advancedLoading.value = true
+
+  const bodyValue = new URLSearchParams()
+  bodyValue.append('aid', route.params.id)
+  // 提交时统一使用后端的驼峰命名字段
+  bodyValue.append('phone', advancedInfo.value.phoneBinding === 'true' ? 1 : 0)
+  bodyValue.append(
+    'realname',
+    advancedInfo.value.realNameAuth === 'true' ? 1 : 0
+  )
+  bodyValue.append(
+    'companyAuth',
+    advancedInfo.value.enterpriseAuth === 'true' ? 1 : 0
+  )
+  bodyValue.append('vip', advancedInfo.value.vipAuth === 'true' ? 1 : 0)
+  bodyValue.append('twoFA', advancedInfo.value.twoFactorAuth === 'true' ? 1 : 0)
+  bodyValue.append('header', advancedInfo.value.headers || '')
+
+  try {
+    const res = await $myFetch('UpdateApiAdvancedSettings', {
+      method: 'POST',
+      body: bodyValue,
+    })
+
+    if (res.code === 200) {
+      msg(res.msg || '高级设置更新成功', 'success')
+    } else {
+      msg(res.msg || '高级设置更新失败', 'error')
+    }
+  } catch (error) {
+    msg('高级设置更新失败', 'error')
+  } finally {
+    advancedLoading.value = false
   }
 }
 
@@ -1625,6 +1712,104 @@ useHead({
                 </div>
               </el-tab-pane>
 
+              <!-- 高级设置 -->
+              <el-tab-pane label="高级设置" name="Advanced">
+                <div class="form">
+                  <el-form
+                    :model="advancedInfo"
+                    label-position="top"
+                    label-width="120px"
+                  >
+                    <!-- 绑定手机号（当前可用） -->
+                    <el-form-item label="绑定手机号">
+                      <el-select
+                        v-model="advancedInfo.phoneBinding"
+                        placeholder="请选择是否绑定手机号"
+                        style="width: 100%"
+                      >
+                        <el-option label="是" value="true"></el-option>
+                        <el-option label="否" value="false"></el-option>
+                      </el-select>
+                      <div class="form-help">
+                        开启后需要用户绑定手机号才可使用
+                      </div>
+                    </el-form-item>
+
+                    <!-- 实名认证（后期更新） -->
+                    <el-form-item label="实名认证（暂未实现）">
+                      <el-select
+                        v-model="advancedInfo.realNameAuth"
+                        placeholder="请选择是否启用实名认证"
+                        style="width: 100%"
+                      >
+                        <el-option label="是" value="true"></el-option>
+                        <el-option label="否" value="false"></el-option>
+                      </el-select>
+                      <div class="form-help">该功能暂未实现，保存不生效</div>
+                    </el-form-item>
+
+                    <!-- 企业认证（后期更新） -->
+                    <el-form-item label="企业认证（暂未实现）">
+                      <el-select
+                        v-model="advancedInfo.enterpriseAuth"
+                        placeholder="请选择是否启用企业认证"
+                        style="width: 100%"
+                      >
+                        <el-option label="是" value="true"></el-option>
+                        <el-option label="否" value="false"></el-option>
+                      </el-select>
+                      <div class="form-help">该功能暂未实现，保存不生效</div>
+                    </el-form-item>
+
+                    <!-- VIP认证（后期更新） -->
+                    <el-form-item label="VIP认证（暂未实现）">
+                      <el-select
+                        v-model="advancedInfo.vipAuth"
+                        placeholder="请选择是否启用VIP认证"
+                        style="width: 100%"
+                      >
+                        <el-option label="是" value="true"></el-option>
+                        <el-option label="否" value="false"></el-option>
+                      </el-select>
+                      <div class="form-help">该功能暂未实现，保存不生效</div>
+                    </el-form-item>
+
+                    <!-- 2FA二次验证（后期更新） -->
+                    <el-form-item label="2FA二次验证（暂未实现）">
+                      <el-select
+                        v-model="advancedInfo.twoFactorAuth"
+                        placeholder="请选择是否启用二次验证"
+                        style="width: 100%"
+                      >
+                        <el-option label="是" value="true"></el-option>
+                        <el-option label="否" value="false"></el-option>
+                      </el-select>
+                      <div class="form-help">该功能暂未实现，保存不生效</div>
+                    </el-form-item>
+
+                    <!-- HTTP/PHP-FPM 头信息配置（当前可用） -->
+                    <el-form-item label="HTTP/PHP-FPM Header">
+                      <el-input
+                        v-model="advancedInfo.headers"
+                        type="textarea"
+                        :rows="4"
+                        placeholder="示例：Authorization=Bearer sk-token&a=1&b=2"
+                        style="width: 100%"
+                      />
+                      <div class="form-help">
+                        保存后用于请求头注入，使用&隔开
+                      </div>
+                    </el-form-item>
+
+                    <el-form-item>
+                      <el-button type="primary" @click="updateAdvancedSettings"
+                        >保存设置</el-button
+                      >
+                    </el-form-item>
+                  </el-form>
+                </div>
+              </el-tab-pane>
+
               <el-tab-pane label="套餐信息" name="Package">
                 <div class="table-container">
                   <div class="card-header">
@@ -1957,6 +2142,49 @@ useHead({
         box-shadow: 0 2px 2px rgb(0 0 0 / 10%);
         margin-top: 20px;
         padding-bottom: 100px;
+
+        // 与 webset.vue 保持一致的表单样式
+        .form {
+          width: 60%;
+
+          :deep(.el-form-item__label) {
+            font-weight: 500;
+            padding-bottom: 8px;
+          }
+
+          :deep(.el-input__wrapper) {
+            box-shadow: 0 0 0 1px #dcdfe6 inset;
+
+            &:hover {
+              box-shadow: 0 0 0 1px #c0c4cc inset;
+            }
+
+            &.is-focus {
+              box-shadow: 0 0 0 1px #409eff inset;
+            }
+          }
+
+          .el-button {
+            padding: 12px 24px;
+            font-weight: 500;
+          }
+
+          :deep(.el-date-editor) {
+            width: 100%;
+
+            .el-input__wrapper {
+              padding: 0 12px;
+            }
+          }
+
+          // 表单帮助文本样式
+          .form-help {
+            margin-top: 8px;
+            font-size: 13px;
+            color: #6b7280;
+            line-height: 1.5;
+          }
+        }
       }
 
       .apiset-footer {
@@ -1973,6 +2201,20 @@ useHead({
           right: 50px;
           top: 50%;
           transform: translateY(-50%);
+        }
+      }
+    }
+  }
+}
+
+@media screen and (max-width: 1200px) {
+  .container {
+    .right {
+      .apiset-container {
+        .apiset-cont {
+          .form {
+            width: 100%;
+          }
         }
       }
     }

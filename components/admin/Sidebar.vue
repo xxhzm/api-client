@@ -255,7 +255,7 @@ if (thirdPath && pathMap[thirdPath]) {
               >接口日志</el-menu-item
             >
             <el-menu-item
-              index="3-6"
+              index="3-7"
               @click="navigateTo('/admin/statistics')"
               v-if="routeShow('/admin/statistics')"
               >统计分析</el-menu-item
