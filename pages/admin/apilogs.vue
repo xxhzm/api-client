@@ -98,10 +98,11 @@ const getData = async () => {
     if (pathAndParams[0].endsWith('?')) {
       pathAndParams[0] = pathAndParams[0].slice(0, -1)
     }
+    // 如果最右侧为&则移除
+    if (pathAndParams[0].endsWith('&')) {
+      pathAndParams[0] = pathAndParams[0].slice(0, -1)
+    }
     res.data.logs[key].path = pathAndParams[0]
-
-    // 移除&符号
-    res.data.logs[key].path = res.data.logs[key].path.replace('&', '')
   })
 
   tableData.value = res.data.logs
