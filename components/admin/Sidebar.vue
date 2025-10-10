@@ -104,6 +104,7 @@ const pathMap = {
   package: '6',
   buy: '6',
   mypackage: '6',
+  userPackageManagement: '6',
   'ip-ban': '7',
   'api-rate-limit': '7',
   key: '8',
@@ -347,6 +348,7 @@ if (thirdPath && pathMap[thirdPath]) {
               '/admin/package',
               '/admin/buy',
               '/admin/mypackage',
+              'userPackageManagement',
             ])
           "
         >
@@ -410,6 +412,12 @@ if (thirdPath && pathMap[thirdPath]) {
               @click="navigateTo('/admin/mypackage')"
               v-if="routeShow('/admin/mypackage')"
               >我的套餐</el-menu-item
+            >
+            <el-menu-item
+              index="6-10"
+              @click="navigateTo('/admin/userPackageManagement')"
+              v-if="routeShow('/admin/userPackageManagement')"
+              >用户套餐管理</el-menu-item
             >
           </el-menu-item-group>
         </el-sub-menu>
