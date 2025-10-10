@@ -606,7 +606,12 @@ useHead({
       </el-dialog>
 
       <!-- 编辑对话框 -->
-      <el-dialog v-model="editDialogVisible" title="编辑套餐记录" width="500px">
+      <el-dialog
+        v-model="editDialogVisible"
+        title="编辑套餐记录"
+        width="500px"
+        :append-to-body="true"
+      >
         <el-form
           ref="editFormRef"
           :model="editForm"
