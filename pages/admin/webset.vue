@@ -31,6 +31,8 @@ const websetInfo = ref({
   feedback: '',
   css: '',
   valueAddedTelecomLicense: '',
+  company_name: '',
+  slogan: '',
 })
 
 // 邮件设置相关
@@ -529,6 +531,8 @@ const websetInfoSubmit = async () => {
   bodyValue.append('notice', websetInfo.value.notice)
   bodyValue.append('feedback', websetInfo.value.feedback)
   bodyValue.append('css', websetInfo.value.css)
+  bodyValue.append('companyName', websetInfo.value.company_name)
+  bodyValue.append('slogan', websetInfo.value.slogan)
   bodyValue.append(
     'valueAddedTelecomLicense',
     websetInfo.value.valueAddedTelecomLicense
@@ -870,6 +874,12 @@ useHead({
                       </el-form-item>
                       <el-form-item label="网站名称">
                         <el-input v-model="websetInfo.website_name" />
+                      </el-form-item>
+                      <el-form-item label="公司名称">
+                        <el-input v-model="websetInfo.company_name" />
+                      </el-form-item>
+                      <el-form-item label="标语">
+                        <el-input v-model="websetInfo.slogan" />
                       </el-form-item>
                       <el-form-item label="首页推荐信息">
                         <el-select

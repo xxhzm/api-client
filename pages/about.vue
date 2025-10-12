@@ -77,6 +77,7 @@ useHead({
 
 <template>
   <div class="about-container">
+    <IndexNavbar></IndexNavbar>
     <IndexNotice :content="options.notice"></IndexNotice>
     <div class="container">
       <div class="section">

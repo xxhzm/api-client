@@ -36,6 +36,7 @@ emit('adInfo', adDate)
 
 <style lang="less" scoped>
 .ad {
+  margin-top: 10px;
   .el-col {
     margin-bottom: 3px;
 

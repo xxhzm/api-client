@@ -94,6 +94,7 @@ if (links.value.length === 0) {
 
 <template>
   <div class="index-container">
+    <IndexNavbar :options="options"></IndexNavbar>
     <IndexNotice :content="options.notice"></IndexNotice>
     <div class="container">
       <client-only>
@@ -278,6 +279,7 @@ if (links.value.length === 0) {
     width: 90%;
     max-width: 1200px;
     margin: 0 auto;
+    padding: 20px 0;
   }
 
   .section {

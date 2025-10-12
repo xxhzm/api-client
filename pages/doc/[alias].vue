@@ -403,6 +403,8 @@ const buyPackage = (pkg) => {
 
 <template>
   <div class="doc-container">
+    <!-- 导航栏 -->
+    <IndexNavbar></IndexNavbar>
     <!-- 公告 -->
     <IndexNotice :content="options.notice"></IndexNotice>
 

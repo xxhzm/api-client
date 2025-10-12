@@ -46,6 +46,7 @@ useHead({
 
 <template>
   <div class="article-container">
+    <IndexNavbar></IndexNavbar>
     <IndexNotice :content="options.notice"></IndexNotice>
     <div class="container">
       <div class="article-card">

@@ -350,7 +350,7 @@ const formatMessageContent = (content) => {
           <span>AI 智能助手</span>
         </div>
         <div class="actions">
-          <el-button type="text" @click="toggleChat" class="close-button">
+          <el-button link @click="toggleChat" class="close-button">
             <el-icon><Close /></el-icon>
           </el-button>
         </div>
