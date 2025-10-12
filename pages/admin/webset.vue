@@ -33,6 +33,10 @@ const websetInfo = ref({
   valueAddedTelecomLicense: '',
   company_name: '',
   slogan: '',
+  contact_email: '',
+  contact_phone: '',
+  contact_address: '',
+  working_hours: '',
 })
 
 // 邮件设置相关
@@ -533,6 +537,10 @@ const websetInfoSubmit = async () => {
   bodyValue.append('css', websetInfo.value.css)
   bodyValue.append('companyName', websetInfo.value.company_name)
   bodyValue.append('slogan', websetInfo.value.slogan)
+  bodyValue.append('contactEmail', websetInfo.value.contact_email)
+  bodyValue.append('contactPhone', websetInfo.value.contact_phone)
+  bodyValue.append('contactAddress', websetInfo.value.contact_address)
+  bodyValue.append('workingHours', websetInfo.value.working_hours)
   bodyValue.append(
     'valueAddedTelecomLicense',
     websetInfo.value.valueAddedTelecomLicense
@@ -915,6 +923,18 @@ useHead({
                           :rows="5"
                           placeholder="请输入自定义CSS"
                         />
+                      </el-form-item>
+                      <el-form-item label="联系邮箱">
+                        <el-input v-model="websetInfo.contact_email" />
+                      </el-form-item>
+                      <el-form-item label="联系电话">
+                        <el-input v-model="websetInfo.contact_phone" />
+                      </el-form-item>
+                      <el-form-item label="联系地址">
+                        <el-input v-model="websetInfo.contact_address" />
+                      </el-form-item>
+                      <el-form-item label="工作时间">
+                        <el-input v-model="websetInfo.working_hours" />
                       </el-form-item>
                       <el-form-item>
                         <el-button type="primary" @click="websetInfoSubmit"
