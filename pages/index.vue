@@ -36,35 +36,11 @@ const search = ref('')
 const list = useState('list')
 const listSearch = useState('listSearch')
 
-// 生成随机数的函数
-const getRandomNumber = (min, max) => {
-  return Math.floor(Math.random() * (max - min + 1)) + min
-}
+// 使用热门API composable
+const { hotApis, initHotApis } = useHotApis()
 
-// 格式化数字为带逗号的字符串
-const formatNumber = (num) => {
-  return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',')
-}
-
-// 从API列表中随机选择4个并添加随机统计数据
-const generateHotApis = computed(() => {
-  if (!list.value) return []
-
-  // 随机打乱数组并取前4个
-  const randomApis = [...list.value].sort(() => Math.random() - 0.5).slice(0, 4)
-
-  // 为每个API添加随机的调用量和收藏数
-  return randomApis.map((api) => ({
-    name: api.name,
-    desc: api.description || '暂无描述',
-    views: formatNumber(getRandomNumber(100000, 2000000)), // 10万到200万之间
-    stars: formatNumber(getRandomNumber(1000, 5000)), // 1千到5千之间
-    alias: api.alias, // 添加alias用于跳转
-  }))
-})
-
-// 替换静态的hotApis为计算属性
-const hotApis = computed(() => generateHotApis.value)
+// 初始化热门API数据
+await initHotApis()
 
 watch(
   () => search.value,
@@ -94,7 +70,7 @@ if (links.value.length === 0) {
 
 <template>
   <div class="index-container">
-    <IndexNavbar :options="options"></IndexNavbar>
+    <IndexNavbar></IndexNavbar>
     <IndexNotice :content="options.notice"></IndexNotice>
     <div class="container">
       <client-only>
@@ -177,6 +153,7 @@ if (links.value.length === 0) {
           </div>
         </client-only>
       </div>
+
       <div class="section seo-section" v-if="options.recommend === 'true'">
         <div class="seo-block">
           <h2 class="section-title">免费API大全</h2>
@@ -265,7 +242,7 @@ if (links.value.length === 0) {
       </div>
     </div>
     <IndexAi></IndexAi>
-    <IndexFooter :options="options"></IndexFooter>
+    <IndexFooter :options="options" :hotApis="hotApis"></IndexFooter>
   </div>
 </template>
 

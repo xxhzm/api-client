@@ -1,5 +1,20 @@
 <script setup>
-const props = defineProps(['options'])
+const props = defineProps(['options', 'hotApis'])
+
+// 使用热门API composable
+const { hotApis: globalHotApis, initHotApis } = useHotApis()
+
+// 计算属性：优先使用传入的hotApis，否则使用全局的
+const displayHotApis = computed(() => {
+  return props.hotApis || globalHotApis.value
+})
+
+// 在组件挂载时初始化热门API数据（如果没有传入数据）
+onMounted(async () => {
+  if (!props.hotApis) {
+    await initHotApis()
+  }
+})
 </script>
 
 <template>
@@ -112,6 +127,20 @@ const props = defineProps(['options'])
             <li><a href="/blog">技术博客</a></li>
           </ul>
         </div> -->
+        <!-- 热门API -->
+        <client-only>
+          <div
+            class="footer-column"
+            v-if="displayHotApis && displayHotApis.length > 0"
+          >
+            <h4>热门API</h4>
+            <ul class="footer-links">
+              <li v-for="api in displayHotApis.slice(0, 4)" :key="api.alias">
+                <a :href="`/doc/${api.alias}`">{{ api.name }}</a>
+              </li>
+            </ul>
+          </div>
+        </client-only>
 
         <!-- 支持帮助 -->
         <div class="footer-column">
@@ -274,11 +303,11 @@ const props = defineProps(['options'])
 
     .footer-container {
       display: grid;
-      grid-template-columns: 1.2fr 1fr 1fr;
+      grid-template-columns: 1.5fr 1fr 1fr 1fr;
       gap: 40px;
 
       @media (max-width: 1024px) {
-        grid-template-columns: 2fr 1fr 1fr;
+        grid-template-columns: 2fr 1fr 1fr 1fr;
         gap: 30px;
       }
 
@@ -468,6 +497,8 @@ const props = defineProps(['options'])
           font-size: 12px;
 
           @media (max-width: 768px) {
+            flex-direction: column;
+            gap: 8px;
             justify-content: center;
           }
 
@@ -500,8 +531,18 @@ const props = defineProps(['options'])
         align-items: center;
         gap: 8px;
 
+        @media (max-width: 768px) {
+          flex-direction: column;
+          gap: 4px;
+          text-align: center;
+        }
+
         .separator {
           opacity: 0.5;
+
+          @media (max-width: 768px) {
+            display: none;
+          }
         }
       }
     }

@@ -9,7 +9,7 @@ import {
   House,
   ChatDotSquare,
 } from '@element-plus/icons-vue'
-const props = defineProps(['options'])
+const options = useState('options')
 
 // 移动端菜单控制
 const isMobileMenuOpen = ref(false)
@@ -82,7 +82,7 @@ const navigateToPath = (path) => {
       <!-- Logo区域 -->
       <div class="navbar-brand">
         <nuxt-link to="/" class="brand-link">
-          <span class="brand-text">{{ props.options?.website_name }}</span>
+          <span class="brand-text">{{ options?.website_name }}</span>
         </nuxt-link>
       </div>
 
