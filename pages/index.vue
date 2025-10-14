@@ -241,8 +241,9 @@ if (links.value.length === 0) {
         </div>
       </div>
     </div>
-    <IndexAi></IndexAi>
-    <IndexFooter :options="options" :hotApis="hotApis"></IndexFooter>
+    <IndexPartners />
+    <IndexAi />
+    <IndexFooter :options="options" :hotApis="hotApis" />
   </div>
 </template>
 

@@ -1,5 +1,6 @@
 <script setup>
 import { Menu, Search } from '@element-plus/icons-vue'
+import { ElMessageBox } from 'element-plus'
 import { watch } from 'vue'
 const { $msg, $myFetch } = useNuxtApp()
 const activeTab = ref('basic')
@@ -202,6 +203,20 @@ const searchData = ref([])
 const searchOldValue = ref('')
 const selectedApi = ref(null)
 const addLoading = ref(false)
+
+// 合作伙伴相关
+const partnerForm = ref({
+  name: '',
+  logo: '',
+  description: '',
+  website: '',
+  category: '',
+})
+const partnerList = ref([])
+const partnerLoading = ref(false)
+const partnerDialogVisible = ref(false)
+const partnerEditMode = ref(false)
+const partnerCurrentId = ref(null)
 
 // 获取网站设置
 const getWebsetInfo = async () => {
@@ -507,6 +522,7 @@ onMounted(() => {
   getAboutInfo()
   getAdvancedInfo()
   getLoginInfo()
+  getPartners()
 })
 
 // 提交网站设置
@@ -742,6 +758,178 @@ const loginInfoSubmit = async () => {
     getLoginInfo()
   } else {
     $msg(res.msg, 'error')
+  }
+}
+
+// 合作伙伴相关API函数
+
+// 获取合作伙伴列表
+const getPartners = async () => {
+  partnerLoading.value = true
+  try {
+    const res = await $myFetch('GetPartnersInfo')
+
+    if (res.code === 200) {
+      partnerList.value = res.data || []
+    } else {
+      $msg(res.msg, 'error')
+    }
+  } catch (error) {
+    $msg('获取合作伙伴列表失败', 'error')
+  } finally {
+    partnerLoading.value = false
+  }
+}
+
+// 创建合作伙伴
+const createPartner = async () => {
+  if (
+    !partnerForm.value.name ||
+    !partnerForm.value.logo ||
+    !partnerForm.value.description ||
+    !partnerForm.value.website ||
+    !partnerForm.value.category
+  ) {
+    $msg('请填写所有必填字段', 'error')
+    return false
+  }
+
+  partnerLoading.value = true
+  try {
+    const bodyValue = new URLSearchParams()
+    bodyValue.append('name', partnerForm.value.name)
+    bodyValue.append('logo', partnerForm.value.logo)
+    bodyValue.append('description', partnerForm.value.description)
+    bodyValue.append('website', partnerForm.value.website)
+    bodyValue.append('category', partnerForm.value.category)
+
+    const res = await $myFetch('CreatePartner', {
+      method: 'POST',
+      body: bodyValue,
+    })
+
+    if (res.code === 200) {
+      $msg('创建合作伙伴成功', 'success')
+      partnerDialogVisible.value = false
+      resetPartnerForm()
+      await getPartners()
+    } else {
+      $msg(res.msg, 'error')
+    }
+  } catch (error) {
+    $msg('创建合作伙伴失败', 'error')
+  } finally {
+    partnerLoading.value = false
+  }
+}
+
+// 更新合作伙伴
+const updatePartner = async () => {
+  if (
+    !partnerForm.value.name ||
+    !partnerForm.value.logo ||
+    !partnerForm.value.description ||
+    !partnerForm.value.website ||
+    !partnerForm.value.category
+  ) {
+    $msg('请填写所有必填字段', 'error')
+    return false
+  }
+
+  partnerLoading.value = true
+  try {
+    const bodyValue = new URLSearchParams()
+    bodyValue.append('id', partnerCurrentId.value)
+    bodyValue.append('name', partnerForm.value.name)
+    bodyValue.append('logo', partnerForm.value.logo)
+    bodyValue.append('description', partnerForm.value.description)
+    bodyValue.append('website', partnerForm.value.website)
+    bodyValue.append('category', partnerForm.value.category)
+
+    const res = await $myFetch('UpdatePartner', {
+      method: 'POST',
+      body: bodyValue,
+    })
+
+    if (res.code === 200) {
+      $msg('更新合作伙伴成功', 'success')
+      partnerDialogVisible.value = false
+      resetPartnerForm()
+      await getPartners()
+    } else {
+      $msg(res.msg, 'error')
+    }
+  } catch (error) {
+    $msg('更新合作伙伴失败', 'error')
+  } finally {
+    partnerLoading.value = false
+  }
+}
+
+// 删除合作伙伴
+const deletePartner = async (id) => {
+  try {
+    await ElMessageBox.confirm('确定要删除这个合作伙伴吗？', '确认删除', {
+      confirmButtonText: '确定',
+      cancelButtonText: '取消',
+      type: 'warning',
+    })
+
+    partnerLoading.value = true
+    const res = await $myFetch('DeletePartner', {
+      params: {
+        id: id,
+      },
+    })
+
+    if (res.code === 200) {
+      $msg('删除合作伙伴成功', 'success')
+      await getPartners()
+    } else {
+      $msg(res.msg, 'error')
+    }
+  } catch (error) {
+    if (error !== 'cancel') {
+      $msg('删除合作伙伴失败', 'error')
+    }
+  } finally {
+    partnerLoading.value = false
+  }
+}
+
+// 重置合作伙伴表单
+const resetPartnerForm = () => {
+  partnerForm.value = {
+    name: '',
+    logo: '',
+    description: '',
+    website: '',
+    category: '',
+  }
+  partnerEditMode.value = false
+  partnerCurrentId.value = null
+}
+
+// 打开新增合作伙伴对话框
+const openAddPartnerDialog = () => {
+  resetPartnerForm()
+  partnerDialogVisible.value = true
+}
+
+// 打开编辑合作伙伴对话框
+const openEditPartnerDialog = (partner) => {
+  partnerForm.value = { ...partner }
+  partnerEditMode.value = true
+  partnerCurrentId.value = partner.id
+  partnerDialogVisible.value = true
+}
+
+// 提交合作伙伴表单
+const submitPartnerForm = async () => {
+  if (partnerEditMode.value) {
+    await updatePartner()
+  } else {
+    await createPartner()
   }
 }
 
@@ -1066,6 +1254,126 @@ useHead({
                         </el-table-column>
                       </el-table>
                     </div>
+                  </div>
+                </el-tab-pane>
+
+                <el-tab-pane label="合作伙伴" name="partners">
+                  <div class="form">
+                    <!-- 操作区域 -->
+                    <div style="margin-bottom: 20px; text-align: right">
+                      <el-button type="primary" @click="openAddPartnerDialog">
+                        新增合作伙伴
+                      </el-button>
+                    </div>
+
+                    <!-- 合作伙伴列表 -->
+                    <div class="partner-list">
+                      <el-table
+                        :data="partnerList"
+                        v-loading="partnerLoading"
+                        style="width: 100%"
+                        stripe
+                        ><el-table-column prop="id" label="ID" width="80" />
+                        <el-table-column prop="name" label="名称" width="120" />
+                        <el-table-column
+                          prop="category"
+                          label="分类"
+                          width="120"
+                        />
+                        <el-table-column
+                          prop="logo"
+                          label="Logo链接"
+                          show-overflow-tooltip
+                        />
+                        <el-table-column
+                          prop="website"
+                          label="网站链接"
+                          show-overflow-tooltip
+                        />
+                        <el-table-column prop="description" label="描述" />
+
+                        <el-table-column label="操作" width="120">
+                          <template #default="scope">
+                            <el-button
+                              type="primary"
+                              link
+                              @click="openEditPartnerDialog(scope.row)"
+                              style="padding: 0"
+                            >
+                              编辑
+                            </el-button>
+                            <el-button
+                              type="danger"
+                              link
+                              @click="deletePartner(scope.row.id)"
+                              style="padding: 0"
+                            >
+                              删除
+                            </el-button>
+                          </template>
+                        </el-table-column>
+                      </el-table>
+                    </div>
+
+                    <!-- 新增/编辑合作伙伴对话框 -->
+                    <el-dialog
+                      v-model="partnerDialogVisible"
+                      :title="partnerEditMode ? '编辑合作伙伴' : '新增合作伙伴'"
+                      width="600px"
+                    >
+                      <el-form
+                        :model="partnerForm"
+                        label-position="top"
+                        label-width="120px"
+                      >
+                        <el-form-item label="名称" required>
+                          <el-input
+                            v-model="partnerForm.name"
+                            placeholder="请输入合作伙伴名称"
+                          />
+                        </el-form-item>
+                        <el-form-item label="Logo URL" required>
+                          <el-input
+                            v-model="partnerForm.logo"
+                            placeholder="请输入Logo图片URL"
+                          />
+                        </el-form-item>
+                        <el-form-item label="描述" required>
+                          <el-input
+                            v-model="partnerForm.description"
+                            type="textarea"
+                            :rows="3"
+                            placeholder="请输入合作伙伴描述"
+                          />
+                        </el-form-item>
+                        <el-form-item label="网站" required>
+                          <el-input
+                            v-model="partnerForm.website"
+                            placeholder="请输入合作伙伴网站URL"
+                          />
+                        </el-form-item>
+                        <el-form-item label="分类" required>
+                          <el-input
+                            v-model="partnerForm.category"
+                            placeholder="请输入分类"
+                          />
+                        </el-form-item>
+                      </el-form>
+                      <template #footer>
+                        <span class="dialog-footer">
+                          <el-button @click="partnerDialogVisible = false"
+                            >取消</el-button
+                          >
+                          <el-button
+                            type="primary"
+                            @click="submitPartnerForm"
+                            :loading="partnerLoading"
+                          >
+                            {{ partnerEditMode ? '更新' : '创建' }}
+                          </el-button>
+                        </span>
+                      </template>
+                    </el-dialog>
                   </div>
                 </el-tab-pane>
               </el-tabs>
@@ -2026,8 +2334,6 @@ useHead({
         }
 
         .form {
-          width: 60%;
-
           :deep(.el-form-item__label) {
             font-weight: 500;
             padding-bottom: 8px;
