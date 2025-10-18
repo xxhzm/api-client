@@ -41,12 +41,12 @@ const isHidden = ref(false)
 const checkShouldShowNotice = () => {
   if (process.client) {
     const hiddenTimestamp = localStorage.getItem(NOTICE_STORAGE_KEY)
-    
+
     if (hiddenTimestamp) {
       const hiddenTime = parseInt(hiddenTimestamp)
       const currentTime = Date.now()
       const timeDiff = currentTime - hiddenTime
-      
+
       // 如果距离关闭时间超过一周，重新显示通知
       if (timeDiff >= ONE_WEEK_MS) {
         localStorage.removeItem(NOTICE_STORAGE_KEY)
@@ -55,18 +55,18 @@ const checkShouldShowNotice = () => {
         return false
       }
     }
-    
+
     // 如果没有存储记录，显示通知
     return true
   }
-  
+
   return true
 }
 
 // 隐藏通知并记录时间
 const hideNotice = () => {
   isHidden.value = true
-  
+
   if (process.client) {
     // 记录关闭时间到本地存储
     localStorage.setItem(NOTICE_STORAGE_KEY, Date.now().toString())
@@ -79,7 +79,7 @@ onMounted(() => {
     isHidden.value = true
     return
   }
-  
+
   // 检查是否应该显示通知
   isHidden.value = !checkShouldShowNotice()
 })
@@ -101,13 +101,14 @@ watch(
 <style lang="less">
 .notice-banner {
   width: 100%;
-  padding: 16px 0;
+  padding: 0;
   background: transparent;
+  margin-bottom: 24px;
 
   .notice-container {
-    max-width: 1200px;
-    margin: 0 auto;
-    padding: 0 20px;
+    max-width: none;
+    margin: 0;
+    padding: 0;
   }
 
   .notice-content {
@@ -115,16 +116,17 @@ watch(
     align-items: flex-start;
     gap: 12px;
     padding: 16px 20px;
-    background: linear-gradient(135deg, #e8f4fd 0%, #f0f9ff 100%);
-    border: 1px solid #b3d8ff;
+    background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+    border: 1px solid #e2e8f0;
     border-radius: 12px;
-    box-shadow: 0 2px 8px rgba(64, 158, 255, 0.1);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
     position: relative;
     transition: all 0.3s ease;
 
     &:hover {
-      box-shadow: 0 4px 12px rgba(64, 158, 255, 0.15);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
       transform: translateY(-1px);
+      border-color: #cbd5e1;
     }
   }
 
@@ -132,7 +134,7 @@ watch(
     flex-shrink: 0;
     width: 20px;
     height: 20px;
-    color: #409eff;
+    color: #64748b;
     font-size: 16px;
     margin-top: 2px;
   }
@@ -164,9 +166,9 @@ watch(
     width: 24px;
     height: 24px;
     border: none;
-    background: rgba(64, 158, 255, 0.1);
+    background: rgba(100, 116, 139, 0.1);
     border-radius: 6px;
-    color: #409eff;
+    color: #64748b;
     cursor: pointer;
     display: flex;
     align-items: center;
@@ -175,7 +177,8 @@ watch(
     font-size: 14px;
 
     &:hover {
-      background: rgba(64, 158, 255, 0.2);
+      background: rgba(100, 116, 139, 0.2);
+      color: #475569;
       transform: scale(1.1);
     }
 

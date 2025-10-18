@@ -1,0 +1,59 @@
+<svg width="120" height="120" viewBox="0 0 120 120" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="serverGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#8B5CF6;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#6D28D9;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="configGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#06B6D4;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#0891B2;stop-opacity:1" />
+    </linearGradient>
+    <filter id="shadow" x="-50%" y="-50%" width="200%" height="200%">
+      <feDropShadow dx="2" dy="4" stdDeviation="3" flood-color="#000000" flood-opacity="0.1"/>
+    </filter>
+  </defs>
+  
+  <!-- Background circle -->
+  <circle cx="60" cy="60" r="50" fill="#F8FAFC" stroke="#E2E8F0" stroke-width="2" filter="url(#shadow)"/>
+  
+  <!-- Main server stack -->
+  <rect x="35" y="30" width="35" height="8" rx="2" fill="url(#serverGradient)" filter="url(#shadow)"/>
+  <rect x="37" y="32" width="4" height="4" rx="1" fill="#FFFFFF" opacity="0.8"/>
+  <rect x="43" y="32" width="4" height="4" rx="1" fill="#FFFFFF" opacity="0.8"/>
+  <rect x="49" y="32" width="15" height="2" rx="1" fill="#FFFFFF" opacity="0.6"/>
+  
+  <rect x="35" y="42" width="35" height="8" rx="2" fill="url(#serverGradient)" filter="url(#shadow)"/>
+  <rect x="37" y="44" width="4" height="4" rx="1" fill="#FFFFFF" opacity="0.8"/>
+  <rect x="43" y="44" width="4" height="4" rx="1" fill="#FFFFFF" opacity="0.8"/>
+  <rect x="49" y="44" width="15" height="2" rx="1" fill="#FFFFFF" opacity="0.6"/>
+  
+  <rect x="35" y="54" width="35" height="8" rx="2" fill="url(#serverGradient)" filter="url(#shadow)"/>
+  <rect x="37" y="56" width="4" height="4" rx="1" fill="#FFFFFF" opacity="0.8"/>
+  <rect x="43" y="56" width="4" height="4" rx="1" fill="#FFFFFF" opacity="0.8"/>
+  <rect x="49" y="56" width="15" height="2" rx="1" fill="#FFFFFF" opacity="0.6"/>
+  
+  <!-- Configuration panels -->
+  <rect x="75" y="25" width="20" height="25" rx="3" fill="url(#configGradient)" filter="url(#shadow)"/>
+  <rect x="78" y="28" width="14" height="2" rx="1" fill="#FFFFFF" opacity="0.8"/>
+  <rect x="78" y="32" width="10" height="2" rx="1" fill="#FFFFFF" opacity="0.6"/>
+  <rect x="78" y="36" width="12" height="2" rx="1" fill="#FFFFFF" opacity="0.6"/>
+  <rect x="78" y="40" width="8" height="2" rx="1" fill="#FFFFFF" opacity="0.6"/>
+  <rect x="78" y="44" width="14" height="2" rx="1" fill="#FFFFFF" opacity="0.6"/>
+  
+  <rect x="75" y="55" width="20" height="25" rx="3" fill="url(#configGradient)" filter="url(#shadow)"/>
+  <rect x="78" y="58" width="14" height="2" rx="1" fill="#FFFFFF" opacity="0.8"/>
+  <rect x="78" y="62" width="10" height="2" rx="1" fill="#FFFFFF" opacity="0.6"/>
+  <rect x="78" y="66" width="12" height="2" rx="1" fill="#FFFFFF" opacity="0.6"/>
+  <rect x="78" y="70" width="8" height="2" rx="1" fill="#FFFFFF" opacity="0.6"/>
+  <rect x="78" y="74" width="14" height="2" rx="1" fill="#FFFFFF" opacity="0.6"/>
+  
+  <!-- Connection lines -->
+  <path d="M70 38 L75 38" stroke="#10B981" stroke-width="2" stroke-linecap="round"/>
+  <path d="M70 46 L75 67" stroke="#10B981" stroke-width="2" stroke-linecap="round"/>
+  <path d="M70 58 L75 67" stroke="#10B981" stroke-width="2" stroke-linecap="round"/>
+  
+  <!-- Settings icon -->
+  <circle cx="25" cy="75" r="8" fill="#F59E0B" filter="url(#shadow)"/>
+  <circle cx="25" cy="75" r="3" fill="none" stroke="#FFFFFF" stroke-width="1.5"/>
+  <path d="M25 68 L25 70 M25 80 L25 82 M18 75 L20 75 M30 75 L32 75" stroke="#FFFFFF" stroke-width="1.5" stroke-linecap="round"/>
+</svg>

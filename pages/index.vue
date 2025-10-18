@@ -1,24 +1,10 @@
 <script setup>
-import {
-  ChatDotSquare,
-  Search,
-  Right,
-  Connection,
-  View,
-  Star,
-} from '@element-plus/icons-vue'
+import { Connection, View, Star, Search } from '@element-plus/icons-vue'
 
 const { $myFetch } = useNuxtApp()
 
 // 配置项
 const options = useState('options')
-const links = ref([])
-
-const {
-  data: { value: linkRes },
-} = await useAsyncData('LinkList', () => $myFetch('LinkList'))
-
-links.value = linkRes.data
 
 useHead({
   title: options.value.title + ' - ' + options.value.subheading,
@@ -31,27 +17,11 @@ useHead({
   ],
 })
 
-// 添加搜索相关的数据和方法
-const search = ref('')
-const list = useState('list')
-const listSearch = useState('listSearch')
-
-// 使用热门API composable
-const { hotApis, initHotApis } = useHotApis()
+// 使用热门API composable，获取8个热门API用于标签显示
+const { hotApis, initHotApis } = useHotApis(8)
 
 // 初始化热门API数据
 await initHotApis()
-
-watch(
-  () => search.value,
-  () => {
-    listSearch.value = list.value.filter(
-      (data) =>
-        !search.value ||
-        data.name.toLowerCase().includes(search.value.toLowerCase())
-    )
-  }
-)
 
 const adDisplay = ref(true)
 
@@ -61,19 +31,43 @@ const adInfo = (info) => {
   }
 }
 
-const linksDisplay = ref(true)
+// 搜索功能
+const searchKeyword = ref('')
 
-if (links.value.length === 0) {
-  linksDisplay.value = false
+// 快速选择热门API
+const selectHotApi = (apiName) => {
+  searchKeyword.value = apiName
+  searchAPI()
+}
+
+// 搜索API函数
+const searchAPI = () => {
+  if (searchKeyword.value.trim()) {
+    // 跳转到市场页面并传递搜索关键词
+    navigateTo(
+      `/api-market?search=${encodeURIComponent(searchKeyword.value.trim())}`
+    )
+  } else {
+    // 如果没有输入关键词，直接跳转到市场页面
+    navigateTo('/api-market')
+  }
+}
+
+// 处理回车键搜索
+const handleEnterSearch = (event) => {
+  if (event.key === 'Enter') {
+    searchAPI()
+  }
 }
 </script>
 
 <template>
   <div class="index-container">
     <IndexNavbar></IndexNavbar>
-    <IndexNotice :content="options.notice"></IndexNotice>
+    <IndexBanner></IndexBanner>
     <div class="container">
-      <client-only>
+      <IndexNotice :content="options.notice"></IndexNotice>
+      <!-- <client-only>
         <div class="section" v-if="adDisplay">
           <h2 class="section-title">广告商</h2>
           <Ad @adInfo="adInfo"></Ad>
@@ -83,167 +77,62 @@ if (links.value.length === 0) {
           <h2 class="section-title" style="margin-bottom: 10px">系统信息</h2>
           <SystemInfo></SystemInfo>
         </div>
-      </client-only>
+      </client-only> -->
 
-      <div class="section">
-        <div class="section-header">
-          <h2 class="section-title">API搜索</h2>
-        </div>
-        <div class="search-box">
-          <el-input
-            v-model="search"
-            placeholder="请输入搜寻的API关键词..."
-            clearable
-            class="search-box__input"
-          >
-            <template #suffix>
-              <el-icon><Search /></el-icon>
-            </template>
-          </el-input>
-        </div>
-      </div>
-
-      <div class="section">
-        <div class="section-header">
-          <h2 class="section-title">API列表</h2>
-          <a
-            :href="options.feedback || '#'"
-            target="_blank"
-            class="feedback-btn"
-          >
-            <el-icon><ChatDotSquare /></el-icon>
-            <span>问题反馈</span>
-            <el-icon class="feedback-btn__arrow"><Right /></el-icon>
-          </a>
-        </div>
-        <IndexApiList></IndexApiList>
-      </div>
-
-      <!-- 热门API推荐 -->
-      <div class="section hot-apis" v-if="options.recommend === 'true'">
-        <div class="section-header">
-          <h2 class="section-title">热门API推荐</h2>
-        </div>
-        <client-only>
-          <div class="hot-apis-grid">
-            <div
-              v-for="(api, index) in hotApis"
-              :key="index"
-              class="hot-api-card"
-              @click="navigateTo(`/doc/${api.alias}`)"
+      <!-- API搜索与热门推荐 -->
+      <div class="section search-section">
+        <h2 class="section-title">搜索API</h2>
+        <div class="search-container">
+          <div class="search-box">
+            <el-input
+              v-model="searchKeyword"
+              placeholder="输入API名称或关键词搜索..."
+              class="search-input"
+              size="large"
+              @keydown="handleEnterSearch"
             >
-              <div class="hot-api-card__icon">
-                <el-icon><Connection /></el-icon>
-              </div>
-              <div class="hot-api-card__content">
-                <h3>{{ api.name }}</h3>
-                <p>{{ api.desc }}</p>
-                <div class="hot-api-card__stats">
-                  <span>
-                    <el-icon><View /></el-icon>
-                    {{ api.views }}次调用
-                  </span>
-                  <span>
-                    <el-icon><Star /></el-icon>
-                    {{ api.stars }}人收藏
-                  </span>
-                </div>
-              </div>
-            </div>
+              <template #suffix>
+                <el-button
+                  type="primary"
+                  :icon="Search"
+                  @click="searchAPI"
+                  class="search-btn"
+                >
+                  搜索
+                </el-button>
+              </template>
+            </el-input>
           </div>
-        </client-only>
-      </div>
-
-      <div class="section seo-section" v-if="options.recommend === 'true'">
-        <div class="seo-block">
-          <h2 class="section-title">免费API大全</h2>
-          <div class="seo-content">
-            <div class="seo-item">
-              <h3>免费工具API</h3>
-              <p>
-                海量免费API接口，包括天气查询API、短网址API、二维码生成API等实用工具接口，支持免费调用。
-              </p>
-            </div>
-            <div class="seo-item">
-              <h3>免费娱乐API</h3>
-              <p>
-                丰富的免费娱乐API，提供网易云音乐API、随机壁纸API、随机图片API等，完全免费使用。
-              </p>
-            </div>
-            <div class="seo-item">
-              <h3>免费查询API</h3>
-              <p>
-                各类免费查询API接口，新闻资讯API、每日一句API、历史上的今天API等，永久免费提供。
-              </p>
-            </div>
-          </div>
-        </div>
-
-        <div class="seo-block">
-          <h2 class="section-title">免费API接口优势</h2>
-          <div class="seo-content">
-            <div class="seo-item">
-              <h3>免费开放接口</h3>
-              <p>
-                所有API接口均为免费开放接口，无需付费即可使用，支持开发者免费调用测试。
-              </p>
-            </div>
-            <div class="seo-item">
-              <h3>免费数据接口</h3>
-              <p>
-                提供海量免费数据接口，所有API数据实时更新，确保免费API数据的准确性。
-              </p>
-            </div>
-            <div class="seo-item">
-              <h3>免费公共API</h3>
-              <p>
-                完全免费的公共API平台，支持免费API在线测试，提供免费API文档说明。
-              </p>
-            </div>
-          </div>
-        </div>
-
-        <div class="seo-item">
-          <h3>免费调用保障</h3>
-          <p>
-            承诺API接口永久免费，无隐藏收费，无调用次数限制，为开发者提供免费服务。
-          </p>
-        </div>
-        <div class="seo-item">
-          <h3>稳定性保障</h3>
-          <p>
-            免费API接口采用高可用架构，确保免费接口7*24小时稳定运行，随时可用。
-          </p>
-        </div>
-        <div class="seo-item">
-          <h3>响应速度保障</h3>
-          <p>
-            优化免费API访问速度，采用多节点部署，让每个免费接口都能快速响应。
-          </p>
-        </div>
-      </div>
-    </div>
-
-    <!-- 友情链接 -->
-    <div class="section friend-links" v-if="linksDisplay">
-      <div class="container">
-        <h2 class="section-title">友情链接</h2>
-        <div class="links-wrapper">
-          <a
-            v-for="item in links"
-            :key="item.id"
-            :href="item.url"
-            target="_blank"
-            class="link-item"
+          <!-- 热门API快速选择标签 -->
+          <div
+            class="hot-tags-section"
+            v-if="options.recommend === 'true' && hotApis && hotApis.length > 0"
           >
-            {{ item.name }}
-          </a>
+            <span class="hot-tags-label">热门搜索：</span>
+            <client-only>
+              <div class="hot-tags-container">
+                <el-tag
+                  v-for="(api, index) in hotApis.slice(0, 8)"
+                  :key="index"
+                  class="hot-tag"
+                  type="info"
+                  effect="plain"
+                  @click="selectHotApi(api.name)"
+                >
+                  {{ api.name }}
+                </el-tag>
+              </div>
+            </client-only>
+          </div>
         </div>
       </div>
     </div>
+
+    <IndexWhyChooseUs />
+    <IndexGlobalNetwork />
     <IndexPartners />
+    <IndexFooter :options="options" />
     <IndexAi />
-    <IndexFooter :options="options" :hotApis="hotApis" />
   </div>
 </template>
 
@@ -254,15 +143,13 @@ if (links.value.length === 0) {
   background: linear-gradient(to bottom, #f7f9fe, #ffffff);
 
   .container {
-    width: 90%;
+    width: 95%;
     max-width: 1200px;
     margin: 0 auto;
-    padding: 20px 0;
+    padding: 32px 0;
   }
 
   .section {
-    margin-bottom: 8px;
-
     &:last-child {
       margin-bottom: 0;
     }
@@ -272,17 +159,17 @@ if (links.value.length === 0) {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    margin-bottom: 20px;
-    padding: 0 4px;
+    margin-bottom: 32px;
+    padding: 0 8px;
   }
 
   .section-title {
     position: relative;
     color: #1f2f3d;
-    font-size: 16px;
-    font-weight: normal;
+    font-size: 20px;
+    font-weight: 600;
     margin: 0;
-    padding-left: 12px;
+    padding-left: 16px;
     line-height: 1.4;
 
     &::before {
@@ -291,209 +178,112 @@ if (links.value.length === 0) {
       left: 0;
       top: 50%;
       transform: translateY(-50%);
-      width: 3px;
-      height: 16px;
+      width: 4px;
+      height: 20px;
       background: #409eff;
-      border-radius: 3px;
+      border-radius: 4px;
     }
   }
 
-  .feedback-btn {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    padding: 6px 14px;
-    background: #fff;
-    border: 1px solid #dcdfe6;
-    border-radius: 6px;
-    color: #606266;
-    text-decoration: none;
-    font-size: 13px;
-    transition: all 0.3s ease;
-
-    i {
-      font-size: 14px;
-    }
-
-    &__arrow {
-      font-size: 12px !important;
-      margin-left: 2px;
-      transition: transform 0.3s ease;
-    }
-
-    &:hover {
-      color: #409eff;
-      border-color: #409eff;
-      background: #fff;
-
-      .feedback-btn__arrow {
-        transform: translateX(3px);
-      }
-    }
-  }
-
-  .search-box,
-  .api-card,
   .system-info {
     margin-top: 4px;
   }
+}
+
+.search-section {
+  margin: 32px 0;
+
+  .search-container {
+    background: #fff;
+    padding: 40px;
+    border: 1px solid #ebeef5;
+    margin-top: 8px;
+  }
 
   .search-box {
-    background: #fff;
-    border-radius: 12px;
-    padding: 16px 20px;
-    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.06);
+    margin-bottom: 12px;
 
-    &__input {
+    .search-input {
       :deep(.el-input__wrapper) {
-        background: #f5f7fa;
         border-radius: 8px;
-        box-shadow: none;
-        transition: all 0.25s ease;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        border: 1px solid #dcdfe6;
+        transition: all 0.3s ease;
+
+        &:hover {
+          border-color: #c0c4cc;
+        }
 
         &.is-focus {
-          background: #fff;
-          box-shadow: 0 0 0 1px #dcdfe6;
+          border-color: #409eff;
+          box-shadow: 0 0 0 2px rgba(64, 158, 255, 0.2);
         }
       }
 
       :deep(.el-input__inner) {
-        height: 40px;
-        font-size: 14px;
-        color: #606266;
-
-        &::placeholder {
-          color: #909399;
-        }
+        font-size: 16px;
+        padding-right: 100px;
       }
 
       :deep(.el-input__suffix) {
-        color: #909399;
+        right: 8px;
       }
     }
-  }
-}
 
-.seo-section {
-  margin: 30px 0;
-  padding: 20px;
-  background: #fff;
-  border-radius: 12px;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.06);
-
-  .seo-block {
-    margin-bottom: 30px;
-
-    &:last-child {
-      margin-bottom: 0;
-    }
-
-    .section-title {
-      margin-bottom: 20px;
-    }
-  }
-
-  .seo-content {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 20px;
-    padding: 0 4px;
-  }
-
-  .seo-item {
-    h3 {
-      font-size: 16px;
-      color: #2c3e50;
-      margin-bottom: 10px;
-      font-weight: 500;
-    }
-
-    p {
-      color: #606266;
+    .search-btn {
+      border-radius: 6px;
       font-size: 14px;
-      line-height: 1.6;
+      padding: 8px 16px;
+      height: 32px;
     }
   }
-}
 
-.hot-apis {
-  margin: 20px 0;
-
-  .hot-apis-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-    gap: 20px;
-    margin-top: 4px;
-  }
-
-  .hot-api-card {
-    background: #fff;
-    border-radius: 12px;
-    padding: 20px;
+  /* 热门API快速选择标签样式 */
+  .hot-tags-section {
+    margin-top: 16px;
     display: flex;
-    align-items: flex-start;
-    gap: 16px;
-    transition: all 0.3s ease;
-    border: 1px solid #ebeef5;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .hot-tags-label {
+    color: #666;
+    font-size: 14px;
+    margin-right: 8px;
+    flex-shrink: 0;
+  }
+
+  .hot-tags-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .hot-tag {
     cursor: pointer;
+    background: #f5f7fa;
+    color: #606266;
+    font-size: 13px;
+    padding: 4px 8px;
+    border-radius: 4px;
+    border: none;
+  }
 
-    &:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-      border-color: #dcdfe6;
+  .hot-tag:hover {
+    background: #409eff;
+    color: #ffffff;
+  }
+
+  /* 响应式设计 */
+  @media (max-width: 768px) {
+    .hot-tags-container {
+      gap: 6px;
     }
 
-    &__icon {
-      width: 40px;
-      height: 40px;
-      border-radius: 10px;
-      background: #ecf5ff;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      color: #409eff;
-      font-size: 20px;
-    }
-
-    &__content {
-      flex: 1;
-
-      h3 {
-        margin: 0 0 8px;
-        font-size: 16px;
-        color: #303133;
-        font-weight: 500;
-      }
-
-      p {
-        margin: 0 0 12px;
-        font-size: 14px;
-        color: #606266;
-        line-height: 1.5;
-        text-indent: 2em;
-        overflow: hidden;
-        text-overflow: ellipsis;
-        display: -webkit-box;
-        -webkit-line-clamp: 3;
-        -webkit-box-orient: vertical;
-      }
-    }
-
-    &__stats {
-      display: flex;
-      gap: 16px;
-      font-size: 13px;
-      color: #909399;
-
-      span {
-        display: flex;
-        align-items: center;
-        gap: 4px;
-
-        .el-icon {
-          font-size: 14px;
-        }
-      }
+    .hot-tag {
+      font-size: 12px;
+      padding: 3px 6px;
     }
   }
 }
@@ -577,17 +367,79 @@ if (links.value.length === 0) {
   }
 }
 
+// 大屏幕优化
+@media screen and (max-width: 1400px) {
+  .index-container {
+    .container {
+      width: 92%;
+      padding: 28px 0;
+    }
+
+    .section-title {
+      font-size: 18px;
+    }
+
+    .search-container {
+      padding: 36px;
+    }
+  }
+}
+
+// 中等屏幕优化
+@media screen and (max-width: 1200px) {
+  .index-container {
+    .container {
+      width: 90%;
+      padding: 24px 0;
+    }
+
+    .section {
+      margin-bottom: 32px;
+    }
+
+    .section-header {
+      margin-bottom: 24px;
+    }
+
+    .section-title {
+      font-size: 17px;
+      padding-left: 14px;
+
+      &::before {
+        width: 3px;
+        height: 18px;
+      }
+    }
+  }
+
+  .search-section {
+    margin: 24px 0;
+
+    .search-container {
+      padding: 32px;
+      border-radius: 14px;
+    }
+  }
+}
+
 @media screen and (max-width: 768px) {
   .index-container {
     .container {
       width: 95%;
+      padding: 16px 0;
+    }
+
+    .section {
+      margin-bottom: 24px;
     }
 
     .section-title {
-      font-size: 15px;
+      font-size: 16px;
+      padding-left: 12px;
 
       &::before {
-        height: 14px;
+        width: 3px;
+        height: 16px;
       }
     }
 
@@ -596,27 +448,36 @@ if (links.value.length === 0) {
     }
 
     .section-header {
-      margin-bottom: 16px;
+      margin-bottom: 20px;
+      padding: 0 4px;
     }
   }
 
-  .seo-section {
+  .search-section {
     margin: 20px 0;
-    padding: 15px;
 
-    .seo-content {
-      grid-template-columns: 1fr;
-      gap: 15px;
+    .search-container {
+      padding: 24px 20px;
+      border-radius: 12px;
     }
 
-    .seo-item {
-      h3 {
-        font-size: 15px;
+    .search-box {
+      .search-input {
+        :deep(.el-input__inner) {
+          font-size: 15px;
+          padding-right: 90px;
+        }
       }
 
-      p {
+      .search-btn {
         font-size: 13px;
+        padding: 6px 12px;
+        height: 28px;
       }
+    }
+
+    .search-tip {
+      font-size: 13px;
     }
   }
 
@@ -662,30 +523,6 @@ if (links.value.length === 0) {
       &__date {
         font-size: 12px;
       }
-    }
-  }
-}
-
-.friend-links {
-  padding: 20px 0;
-  background: #fff;
-  margin-top: 20px;
-
-  .links-wrapper {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 15px;
-    margin-top: 15px;
-  }
-
-  .link-item {
-    color: #606266;
-    text-decoration: none;
-    font-size: 14px;
-    transition: color 0.3s ease;
-
-    &:hover {
-      color: #409eff;
     }
   }
 }

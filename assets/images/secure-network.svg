@@ -1,0 +1,58 @@
+<svg width="120" height="120" viewBox="0 0 120 120" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="shieldGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#10B981;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#059669;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="networkGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#3B82F6;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#1D4ED8;stop-opacity:1" />
+    </linearGradient>
+    <filter id="shadow" x="-50%" y="-50%" width="200%" height="200%">
+      <feDropShadow dx="2" dy="4" stdDeviation="3" flood-color="#000000" flood-opacity="0.1"/>
+    </filter>
+  </defs>
+  
+  <!-- Background circle -->
+  <circle cx="60" cy="60" r="50" fill="#F8FAFC" stroke="#E2E8F0" stroke-width="2" filter="url(#shadow)"/>
+  
+  <!-- Network nodes -->
+  <circle cx="30" cy="35" r="6" fill="url(#networkGradient)" filter="url(#shadow)"/>
+  <circle cx="30" cy="35" r="3" fill="#FFFFFF" opacity="0.8"/>
+  
+  <circle cx="90" cy="35" r="6" fill="url(#networkGradient)" filter="url(#shadow)"/>
+  <circle cx="90" cy="35" r="3" fill="#FFFFFF" opacity="0.8"/>
+  
+  <circle cx="30" cy="85" r="6" fill="url(#networkGradient)" filter="url(#shadow)"/>
+  <circle cx="30" cy="85" r="3" fill="#FFFFFF" opacity="0.8"/>
+  
+  <circle cx="90" cy="85" r="6" fill="url(#networkGradient)" filter="url(#shadow)"/>
+  <circle cx="90" cy="85" r="3" fill="#FFFFFF" opacity="0.8"/>
+  
+  <!-- Network connections -->
+  <path d="M36 35 L54 35" stroke="#3B82F6" stroke-width="2" stroke-dasharray="3,2" opacity="0.6"/>
+  <path d="M66 35 L84 35" stroke="#3B82F6" stroke-width="2" stroke-dasharray="3,2" opacity="0.6"/>
+  <path d="M36 85 L54 85" stroke="#3B82F6" stroke-width="2" stroke-dasharray="3,2" opacity="0.6"/>
+  <path d="M66 85 L84 85" stroke="#3B82F6" stroke-width="2" stroke-dasharray="3,2" opacity="0.6"/>
+  <path d="M30 41 L30 79" stroke="#3B82F6" stroke-width="2" stroke-dasharray="3,2" opacity="0.6"/>
+  <path d="M90 41 L90 79" stroke="#3B82F6" stroke-width="2" stroke-dasharray="3,2" opacity="0.6"/>
+  
+  <!-- Central shield -->
+  <path d="M60 25 C65 25 70 30 70 35 L70 55 C70 65 65 75 60 80 C55 75 50 65 50 55 L50 35 C50 30 55 25 60 25 Z" 
+        fill="url(#shieldGradient)" filter="url(#shadow)"/>
+  
+  <!-- Shield highlight -->
+  <path d="M60 30 C62 30 64 32 64 35 L64 50 C64 57 62 63 60 67 C58 63 56 57 56 50 L56 35 C56 32 58 30 60 30 Z" 
+        fill="#FFFFFF" opacity="0.3"/>
+  
+  <!-- Lock icon in shield -->
+  <rect x="57" y="45" width="6" height="8" rx="1" fill="#FFFFFF" opacity="0.9"/>
+  <path d="M58 45 L58 42 C58 40 59 39 60 39 C61 39 62 40 62 42 L62 45" 
+        stroke="#FFFFFF" stroke-width="1.5" fill="none" opacity="0.9"/>
+  <circle cx="60" cy="49" r="1" fill="#10B981"/>
+  
+  <!-- Security waves -->
+  <circle cx="60" cy="60" r="25" fill="none" stroke="#10B981" stroke-width="1" opacity="0.3"/>
+  <circle cx="60" cy="60" r="30" fill="none" stroke="#10B981" stroke-width="1" opacity="0.2"/>
+  <circle cx="60" cy="60" r="35" fill="none" stroke="#10B981" stroke-width="1" opacity="0.1"/>
+</svg>

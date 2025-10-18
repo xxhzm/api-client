@@ -216,7 +216,7 @@ const submitForm = async () => {
         // 易支付：显示二维码
         mpayQrCode.value = res.data.image_url
         mpayMethod.value = res.data.method // 保存扫码方式
-        mpayAmount.value = res.data.amount // 保存实际支付金额
+        mpayAmount.value = res.data.amount || form.value.amount // 保存实际支付金额
         mpayDialogVisible.value = true
       } else {
         // 支付宝支付：跳转页面

@@ -222,7 +222,6 @@ const contactInfo = ref({
 <template>
   <div class="terms-container">
     <IndexNavbar></IndexNavbar>
-    <IndexNotice :content="options.notice"></IndexNotice>
     <div class="container">
       <!-- 页面标题 -->
       <div class="section">

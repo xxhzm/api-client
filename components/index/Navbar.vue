@@ -8,6 +8,7 @@ import {
   Document,
   House,
   ChatDotSquare,
+  Connection,
 } from '@element-plus/icons-vue'
 const options = useState('options')
 
@@ -23,6 +24,11 @@ const navItems = [
     name: '首页',
     path: '/',
     icon: House,
+  },
+  {
+    name: 'API市场',
+    path: '/api-market',
+    icon: Connection,
   },
   {
     name: '友情链接',

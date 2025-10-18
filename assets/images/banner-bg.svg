@@ -1,0 +1,71 @@
+<svg width="1920" height="450" viewBox="0 0 1920 450" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- 主背景渐变 -->
+  <defs>
+    <linearGradient id="mainGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#f8fafc;stop-opacity:1" />
+      <stop offset="30%" style="stop-color:#e2e8f0;stop-opacity:1" />
+      <stop offset="70%" style="stop-color:#cbd5e1;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#94a3b8;stop-opacity:1" />
+    </linearGradient>
+    
+    <!-- 蓝色渐变 -->
+    <linearGradient id="blueGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#409eff;stop-opacity:0.1" />
+      <stop offset="50%" style="stop-color:#409eff;stop-opacity:0.05" />
+      <stop offset="100%" style="stop-color:#409eff;stop-opacity:0.15" />
+    </linearGradient>
+    
+    <!-- 装饰渐变 -->
+    <radialGradient id="decorGradient" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" style="stop-color:#409eff;stop-opacity:0.08" />
+      <stop offset="100%" style="stop-color:#409eff;stop-opacity:0" />
+    </radialGradient>
+  </defs>
+  
+  <!-- 主背景 -->
+  <rect width="1920" height="450" fill="url(#mainGradient)"/>
+  
+  <!-- 蓝色叠加层 -->
+  <rect width="1920" height="450" fill="url(#blueGradient)"/>
+  
+  <!-- 几何装饰元素 -->
+  <!-- 大圆形装饰 -->
+  <circle cx="1600" cy="100" r="120" fill="url(#decorGradient)" opacity="0.6"/>
+  <circle cx="1700" cy="300" r="80" fill="url(#decorGradient)" opacity="0.4"/>
+  
+  <!-- 小圆点装饰 -->
+  <circle cx="1500" cy="200" r="3" fill="#409eff" opacity="0.3"/>
+  <circle cx="1550" cy="250" r="2" fill="#409eff" opacity="0.4"/>
+  <circle cx="1650" cy="180" r="2.5" fill="#409eff" opacity="0.3"/>
+  <circle cx="1750" cy="220" r="2" fill="#409eff" opacity="0.5"/>
+  
+  <!-- 线条装饰 -->
+  <path d="M1400 150 Q1500 200 1600 150" stroke="#409eff" stroke-width="1" fill="none" opacity="0.2"/>
+  <path d="M1450 280 Q1550 320 1650 280" stroke="#409eff" stroke-width="1" fill="none" opacity="0.15"/>
+  
+  <!-- 矩形装饰 -->
+  <rect x="1520" y="120" width="40" height="40" rx="8" fill="#409eff" opacity="0.1" transform="rotate(15 1540 140)"/>
+  <rect x="1620" y="260" width="30" height="30" rx="6" fill="#409eff" opacity="0.08" transform="rotate(-20 1635 275)"/>
+  
+  <!-- 三角形装饰 -->
+  <polygon points="1480,320 1500,300 1520,320" fill="#409eff" opacity="0.1"/>
+  <polygon points="1680,140 1695,125 1710,140" fill="#409eff" opacity="0.12"/>
+  
+  <!-- 网格纹理 -->
+  <defs>
+    <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
+      <path d="M 40 0 L 0 0 0 40" fill="none" stroke="#409eff" stroke-width="0.5" opacity="0.05"/>
+    </pattern>
+  </defs>
+  <rect width="1920" height="450" fill="url(#grid)"/>
+  
+  <!-- 右侧渐变遮罩 -->
+  <defs>
+    <linearGradient id="rightMask" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" style="stop-color:#ffffff;stop-opacity:0" />
+      <stop offset="60%" style="stop-color:#ffffff;stop-opacity:0.1" />
+      <stop offset="100%" style="stop-color:#ffffff;stop-opacity:0.3" />
+    </linearGradient>
+  </defs>
+  <rect x="1200" y="0" width="720" height="450" fill="url(#rightMask)"/>
+</svg>

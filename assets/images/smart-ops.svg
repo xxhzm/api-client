@@ -1,0 +1,71 @@
+<svg width="120" height="120" viewBox="0 0 120 120" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="brainGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#EC4899;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#BE185D;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="monitorGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#6366F1;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#4338CA;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="chartGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#F59E0B;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#D97706;stop-opacity:1" />
+    </linearGradient>
+    <filter id="shadow" x="-50%" y="-50%" width="200%" height="200%">
+      <feDropShadow dx="2" dy="4" stdDeviation="3" flood-color="#000000" flood-opacity="0.1"/>
+    </filter>
+  </defs>
+  
+  <!-- Background circle -->
+  <circle cx="60" cy="60" r="50" fill="#F8FAFC" stroke="#E2E8F0" stroke-width="2" filter="url(#shadow)"/>
+  
+  <!-- Monitor/Dashboard -->
+  <rect x="25" y="35" width="45" height="30" rx="3" fill="url(#monitorGradient)" filter="url(#shadow)"/>
+  <rect x="28" y="38" width="39" height="24" rx="2" fill="#1E1B4B"/>
+  
+  <!-- Chart lines in monitor -->
+  <path d="M32 55 L38 50 L44 52 L50 45 L56 48 L62 42" stroke="#10B981" stroke-width="2" fill="none" stroke-linecap="round"/>
+  <path d="M32 58 L38 56 L44 58 L50 52 L56 54 L62 50" stroke="#F59E0B" stroke-width="2" fill="none" stroke-linecap="round"/>
+  
+  <!-- Status indicators -->
+  <circle cx="32" cy="42" r="2" fill="#10B981"/>
+  <circle cx="38" cy="42" r="2" fill="#F59E0B"/>
+  <circle cx="44" cy="42" r="2" fill="#EF4444"/>
+  
+  <!-- AI Brain -->
+  <path d="M75 25 C85 25 90 30 90 40 C90 35 85 30 80 32 C82 35 80 40 75 42 C70 40 68 35 70 32 C65 30 60 35 60 40 C60 30 65 25 75 25 Z" 
+        fill="url(#brainGradient)" filter="url(#shadow)"/>
+  
+  <!-- Brain neural connections -->
+  <circle cx="72" cy="32" r="1.5" fill="#FFFFFF" opacity="0.8"/>
+  <circle cx="78" cy="35" r="1.5" fill="#FFFFFF" opacity="0.8"/>
+  <circle cx="75" cy="38" r="1.5" fill="#FFFFFF" opacity="0.8"/>
+  <path d="M72 32 L78 35 M78 35 L75 38 M75 38 L72 32" stroke="#FFFFFF" stroke-width="1" opacity="0.6"/>
+  
+  <!-- Automation gears -->
+  <circle cx="80" cy="65" r="8" fill="url(#chartGradient)" filter="url(#shadow)"/>
+  <path d="M80 57 L82 59 L80 61 L78 59 Z M80 69 L82 71 L80 73 L78 71 Z M72 65 L74 67 L72 69 L70 67 Z M88 65 L90 67 L88 69 L86 67 Z" 
+        fill="url(#chartGradient)"/>
+  <circle cx="80" cy="65" r="4" fill="#FFFFFF" opacity="0.9"/>
+  <circle cx="80" cy="65" r="2" fill="url(#chartGradient)"/>
+  
+  <circle cx="90" cy="75" r="6" fill="url(#chartGradient)" filter="url(#shadow)"/>
+  <path d="M90 69 L91 71 L90 73 L89 71 Z M90 77 L91 79 L90 81 L89 79 Z M84 75 L86 76 L84 77 L82 76 Z M96 75 L98 76 L96 77 L94 76 Z" 
+        fill="url(#chartGradient)"/>
+  <circle cx="90" cy="75" r="3" fill="#FFFFFF" opacity="0.9"/>
+  <circle cx="90" cy="75" r="1.5" fill="url(#chartGradient)"/>
+  
+  <!-- Data flow arrows -->
+  <path d="M70 50 L75 55" stroke="#10B981" stroke-width="2" stroke-linecap="round"/>
+  <path d="M73 52 L75 50 L77 52" stroke="#10B981" stroke-width="2" fill="none" stroke-linecap="round"/>
+  
+  <!-- Analytics chart -->
+  <rect x="25" y="75" width="35" height="20" rx="2" fill="#F8FAFC" stroke="#E2E8F0" stroke-width="1" filter="url(#shadow)"/>
+  <rect x="28" y="85" width="3" height="8" fill="#10B981"/>
+  <rect x="33" y="82" width="3" height="11" fill="#3B82F6"/>
+  <rect x="38" y="87" width="3" height="6" fill="#F59E0B"/>
+  <rect x="43" y="80" width="3" height="13" fill="#EC4899"/>
+  <rect x="48" y="84" width="3" height="9" fill="#8B5CF6"/>
+  <rect x="53" y="88" width="3" height="5" fill="#06B6D4"/>
+</svg>

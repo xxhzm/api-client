@@ -47,7 +47,7 @@ const visitPartner = (website) => {
 </script>
 
 <template>
-  <div class="partners-section">
+  <div class="partners-section" v-if="partners.length">
     <div class="container">
       <div class="section-header">
         <h2 class="section-title">合作伙伴</h2>
@@ -108,7 +108,6 @@ const visitPartner = (website) => {
 .partners-section {
   background: #f8fafc;
   padding: 60px 0;
-  margin-top: 40px;
 
   .container {
     width: 90%;

@@ -405,9 +405,6 @@ const buyPackage = (pkg) => {
   <div class="doc-container">
     <!-- 导航栏 -->
     <IndexNavbar></IndexNavbar>
-    <!-- 公告 -->
-    <IndexNotice :content="options.notice"></IndexNotice>
-
     <div class="apiinfo-container">
       <!-- 侧边导航 -->
       <div class="sidebar">

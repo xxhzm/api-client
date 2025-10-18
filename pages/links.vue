@@ -44,7 +44,6 @@ const handleImageError = (e) => {
 <template>
   <div class="links-container">
     <IndexNavbar></IndexNavbar>
-    <IndexNotice :content="options.notice"></IndexNotice>
     <div class="container">
       <div class="section">
         <h2 class="section-title">友情链接</h2>

@@ -1,4 +1,4 @@
-export const useHotApis = () => {
+export const useHotApis = (count = 4) => {
   const { $myFetch } = useNuxtApp()
 
   // 全局状态存储API列表
@@ -34,21 +34,24 @@ export const useHotApis = () => {
   }
 
   // 生成热门API数据
-  const generateHotApis = async () => {
+  const generateHotApis = async (apiCount = count) => {
     const list = await fetchApiList()
 
     if (!list || list.length === 0) {
       return []
     }
 
-    // 随机打乱数组并取前4个
-    const randomApis = [...list].sort(() => Math.random() - 0.5).slice(0, 4)
+    // 确保请求的数量不超过可用的API数量
+    const actualCount = Math.min(apiCount, list.length)
+    
+    // 随机打乱数组并取指定数量
+    const randomApis = [...list].sort(() => Math.random() - 0.5).slice(0, actualCount)
 
     // 为每个API添加随机的调用量和收藏数
     return randomApis.map((api) => ({
       name: api.name,
       desc: api.description || api.desc || '暂无描述',
-      views: formatNumber(getRandomNumber(100000, 2000000)), // 10万到200万之间
+      views: formatNumber(getRandomNumber(100000, 1000000)), // 10万到200万之间
       stars: formatNumber(getRandomNumber(1000, 5000)), // 1千到5千之间
       alias: api.alias, // 添加alias用于跳转
     }))
@@ -58,16 +61,16 @@ export const useHotApis = () => {
   const hotApis = ref([])
 
   // 初始化热门API数据
-  const initHotApis = async () => {
+  const initHotApis = async (apiCount = count) => {
     if (hotApis.value.length === 0) {
-      hotApis.value = await generateHotApis()
+      hotApis.value = await generateHotApis(apiCount)
     }
     return hotApis.value
   }
 
   // 刷新热门API数据
-  const refreshHotApis = async () => {
-    hotApis.value = await generateHotApis()
+  const refreshHotApis = async (apiCount = count) => {
+    hotApis.value = await generateHotApis(apiCount)
     return hotApis.value
   }
 

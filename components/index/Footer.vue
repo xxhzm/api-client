@@ -2,18 +2,23 @@
 const props = defineProps(['options', 'hotApis'])
 
 // 使用热门API composable
-const { hotApis: globalHotApis, initHotApis } = useHotApis()
+const { hotApis: globalHotApis, initHotApis } = useHotApis(5)
+
+// 使用友情链接 composable
+const { linksList, initLinks, hasLinks } = useLinks()
 
 // 计算属性：优先使用传入的hotApis，否则使用全局的
 const displayHotApis = computed(() => {
   return props.hotApis || globalHotApis.value
 })
 
-// 在组件挂载时初始化热门API数据（如果没有传入数据）
+// 在组件挂载时初始化数据（如果没有传入数据）
 onMounted(async () => {
   if (!props.hotApis) {
     await initHotApis()
   }
+  // 初始化友情链接数据
+  await initLinks()
 })
 </script>
 
@@ -56,77 +61,7 @@ onMounted(async () => {
           <p class="brand-description">
             {{ props.options?.description }}
           </p>
-          <!-- <div class="social-links">
-            <a href="#" class="social-link" title="微信">
-              <svg
-                width="20"
-                height="20"
-                viewBox="0 0 24 24"
-                fill="currentColor"
-              >
-                <path
-                  d="M8.5 12.5c-.5 0-1-.5-1-1s.5-1 1-1 1 .5 1 1-.5 1-1 1zm7 0c-.5 0-1-.5-1-1s.5-1 1-1 1 .5 1 1-.5 1-1 1z"
-                />
-                <path
-                  d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8z"
-                />
-              </svg>
-            </a>
-            <a href="#" class="social-link" title="QQ">
-              <svg
-                width="20"
-                height="20"
-                viewBox="0 0 24 24"
-                fill="currentColor"
-              >
-                <path
-                  d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-1.5-1.5L10 14l2-2 2 2 1.5 1.5L14 17l-2-2-2 2z"
-                />
-              </svg>
-            </a>
-            <a
-              href="https://github.com"
-              class="social-link"
-              title="GitHub"
-              target="_blank"
-            >
-              <svg
-                width="20"
-                height="20"
-                viewBox="0 0 24 24"
-                fill="currentColor"
-              >
-                <path
-                  d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"
-                />
-              </svg>
-            </a>
-          </div> -->
         </div>
-
-        <!-- 产品服务 -->
-        <!-- <div class="footer-column">
-          <h4>产品服务</h4>
-          <ul class="footer-links">
-            <li><a href="/doc/api">API文档</a></li>
-            <li><a href="/doc/sdk">SDK下载</a></li>
-            <li><a href="/pricing">价格方案</a></li>
-            <li><a href="/status">服务状态</a></li>
-            <li><a href="/changelog">更新日志</a></li>
-          </ul>
-        </div> -->
-
-        <!-- 开发者 -->
-        <!-- <div class="footer-column">
-          <h4>开发者</h4>
-          <ul class="footer-links">
-            <li><a href="/doc/guide">快速开始</a></li>
-            <li><a href="/doc/examples">代码示例</a></li>
-            <li><a href="/doc/faq">常见问题</a></li>
-            <li><a href="/community">开发者社区</a></li>
-            <li><a href="/blog">技术博客</a></li>
-          </ul>
-        </div> -->
         <!-- 热门API -->
         <client-only>
           <div
@@ -135,7 +70,7 @@ onMounted(async () => {
           >
             <h4>热门API</h4>
             <ul class="footer-links">
-              <li v-for="api in displayHotApis.slice(0, 4)" :key="api.alias">
+              <li v-for="api in displayHotApis.slice(0, 5)" :key="api.alias">
                 <a :href="`/doc/${api.alias}`">{{ api.name }}</a>
               </li>
             </ul>
@@ -216,6 +151,25 @@ onMounted(async () => {
     <!-- 底部版权区域 -->
     <div class="footer-bottom">
       <div class="footer-container">
+        <!-- 友情链接 -->
+        <div
+          class="friend-links-section"
+          v-if="hasLinks && linksList && linksList.length > 0"
+        >
+          <div class="friend-links-label">友情链接：</div>
+          <div class="friend-links-list">
+            <a
+              v-for="item in linksList"
+              :key="item.id"
+              :href="item.url"
+              target="_blank"
+              class="friend-link"
+            >
+              {{ item.name }}
+            </a>
+          </div>
+        </div>
+
         <div class="bottom-content">
           <div class="copyright">
             <p>&copy; 2025 {{ props.options?.website_name }}. 保留所有权利.</p>
@@ -275,7 +229,6 @@ onMounted(async () => {
 .modern-footer {
   background: #fff;
   color: #606266;
-  margin-top: 60px;
   position: relative;
   overflow: hidden;
 
@@ -470,6 +423,60 @@ onMounted(async () => {
     background: #f5f7fa;
     padding: 24px 0;
     border-top: 1px solid #ebeef5;
+
+    .friend-links-section {
+      display: flex;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-bottom: 20px;
+      padding-bottom: 16px;
+      border-bottom: 1px solid #ebeef5;
+
+      .friend-links-label {
+        color: #606266;
+        font-size: 14px;
+        font-weight: 500;
+        flex-shrink: 0;
+      }
+
+      .friend-links-list {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px 16px;
+        align-items: center;
+
+        .friend-link {
+          color: #606266;
+          text-decoration: none;
+          font-size: 14px;
+          transition: color 0.3s ease;
+          position: relative;
+
+          &:hover {
+            color: #409eff;
+          }
+
+          &:not(:last-child)::after {
+            content: '|';
+            color: #dcdfe6;
+            margin-left: 8px;
+            font-size: 12px;
+          }
+        }
+      }
+
+      @media (max-width: 768px) {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 12px;
+
+        .friend-links-list {
+          justify-content: center;
+          width: 100%;
+        }
+      }
+    }
 
     .bottom-content {
       display: flex;
