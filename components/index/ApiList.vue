@@ -1,15 +1,6 @@
 <script setup>
-const { $myFetch } = useNuxtApp()
-
 const list = useState('list')
 const listSearch = useState('listSearch')
-
-const {
-  data: { value: res },
-} = await useAsyncData('List', () => $myFetch('List'))
-
-list.value = res.data
-listSearch.value = res.data
 </script>
 
 <template>
@@ -19,22 +10,32 @@ listSearch.value = res.data
         :xs="24"
         :sm="12"
         :md="12"
-        :lg="6"
-        :xl="6"
+        :lg="8"
+        :xl="8"
         v-for="item in listSearch"
         :key="item.id"
       >
         <nuxt-link :to="'/doc/' + item.alias" class="item">
           <div class="api-card">
-            <div
-              class="api-card__category"
-              :class="{ 'is-top': item.category === '置顶' }"
-            >
-              {{ item.category }}
-            </div>
             <div class="api-card__content">
               <h2 class="api-card__title">{{ item.name }}</h2>
               <p class="api-card__desc">{{ item.description }}</p>
+              <!-- 新增：费用与权限信息（文本标签） -->
+              <div class="api-card__meta">
+                <span
+                  class="meta-item"
+                  :class="item.isPaid ? 'is-paid' : 'is-free'"
+                >
+                  {{ item.isPaid ? '付费' : '免费' }}
+                </span>
+                <!-- <span class="meta-sep">·</span> -->
+                <span
+                  class="meta-item"
+                  :class="item.key_state === '开启' ? 'need-login' : 'no-login'"
+                >
+                  {{ item.key_state === '开启' ? '需登录' : '无需登录' }}
+                </span>
+              </div>
             </div>
           </div>
         </nuxt-link>
@@ -106,43 +107,18 @@ listSearch.value = res.data
 .api-card {
   position: relative;
   background: #fff;
-  border-radius: 8px;
-  height: 100px;
+  border-radius: 12px;
+  height: 120px;
   padding: 16px;
-  transition: all 0.3s ease;
+  transition: all 0.2s ease;
   border: 1px solid #ebeef5;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.06);
   overflow: hidden;
 
   &:hover {
-    transform: translateY(-4px);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-    border-color: #1890ff;
-
-    .api-card__category {
-      background: #1890ff;
-      color: #fff;
-
-      &.is-top {
-        background: #f56c6c;
-      }
-    }
-  }
-
-  &__category {
-    position: absolute;
-    right: -28px;
-    top: 12px;
-    background: #e6f7ff;
-    color: #1890ff;
-    padding: 4px 30px;
-    font-size: 12px;
-    transform: rotate(45deg);
-    transition: all 0.3s ease;
-
-    &.is-top {
-      background: #fef0f0;
-      color: #f56c6c;
-    }
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    border-color: #409eff;
   }
 
   &__content {
@@ -150,21 +126,68 @@ listSearch.value = res.data
     display: flex;
     flex-direction: column;
     justify-content: space-between;
+    padding-top: 0;
   }
 
   &__title {
-    font-size: 15px;
-    font-weight: 500;
+    font-size: 16px;
+    font-weight: 600;
     color: #1f2f3d;
     margin: 0;
-    padding-right: 40px;
+    padding-right: 16px;
+    line-height: 1.4;
+  }
+
+  /* 新增：费用与权限信息（文本标签）样式 */
+  &__meta {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-top: 4px;
+    font-size: 12px;
+    color: #606266;
+  }
+  .meta-item {
+    display: inline-flex;
+    align-items: center;
+    padding: 2px 8px;
+    border-radius: 6px;
+    border: 1px solid #e6e8eb;
+    background: #f5f7fa;
+    color: #606266;
+    font-weight: 500;
+    line-height: 1.2;
+    transition: all 0.2s ease;
+  }
+  .meta-sep {
+    color: #c0c4cc;
+  }
+  .is-paid {
+    color: #c45656; /* danger text */
+    background: #fef0f0; /* danger bg */
+    border-color: #fbc4c4; /* danger border */
+  }
+  .is-free {
+    color: #3e7b27; /* success text */
+    background: #f0f9eb; /* success bg */
+    border-color: #c2e7b0; /* success border */
+  }
+  .need-login {
+    color: #b88230; /* warning text */
+    background: #fdf6ec; /* warning bg */
+    border-color: #f5dab1; /* warning border */
+  }
+  .no-login {
+    color: #606266; /* info-muted text */
+    background: #f4f4f5; /* info-muted bg */
+    border-color: #e6e8eb; /* info-muted border */
   }
 
   &__desc {
-    font-size: 12px;
+    font-size: 13px;
     color: #606266;
     margin: 0;
-    line-height: 1.5;
+    line-height: 1.6;
     display: -webkit-box;
     -webkit-box-orient: vertical;
     -webkit-line-clamp: 2;
