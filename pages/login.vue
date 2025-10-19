@@ -198,6 +198,15 @@ const register = async () => {
     return false
   }
 
+  if (info.username.length <= 6 || info.password.length <= 6) {
+    $msg('用户名或密码不能小于6位', 'error')
+    return false
+  }
+  if (info.username.length >= 32 || info.password.length >= 32) {
+    $msg('用户名或密码不能大于6位', 'error')
+    return false
+  }
+
   // 注册始终使用邮箱验证
   if (rule.test(info.mail) === false) {
     $msg('请填写正确的邮箱地址', 'error')
