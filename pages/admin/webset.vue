@@ -1934,8 +1934,8 @@ useHead({
 
                         <el-form-item label="短信服务商">
                           <el-radio-group v-model="loginInfo.provider">
-                            <el-radio label="aliyun">阿里云</el-radio>
-                            <el-radio label="tencent">腾讯云</el-radio>
+                            <el-radio value="aliyun">阿里云</el-radio>
+                            <el-radio value="tencent">腾讯云</el-radio>
                           </el-radio-group>
                         </el-form-item>
 

@@ -231,9 +231,9 @@ useHead({
                     size="small"
                     class="filter-radios"
                   >
-                    <el-radio-button label="全部" />
-                    <el-radio-button label="免费" />
-                    <el-radio-button label="付费" />
+                    <el-radio-button value="全部" />
+                    <el-radio-button value="免费" />
+                    <el-radio-button value="付费" />
                   </el-radio-group>
                 </div>
                 <div class="filter-group">
@@ -243,9 +243,9 @@ useHead({
                     size="small"
                     class="filter-radios"
                   >
-                    <el-radio-button label="全部" />
-                    <el-radio-button label="需登录" />
-                    <el-radio-button label="无需登录" />
+                    <el-radio-button value="全部" />
+                    <el-radio-button value="需登录" />
+                    <el-radio-button value="无需登录" />
                   </el-radio-group>
                 </div>
               </div>
@@ -575,6 +575,7 @@ useHead({
     }
     .sidebar {
       width: 100%;
+      position: relative;
     }
     .category-menu :deep(.el-menu-item) {
       padding: 0 12px;
