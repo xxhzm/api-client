@@ -505,10 +505,10 @@ const buyPackage = (pkg) => {
               style="width: 100%"
               class="params-table"
             >
-              <el-table-column prop="name" label="参数名" width="180" />
-              <el-table-column prop="param" label="传递参数" width="180" />
-              <el-table-column prop="position" label="传入位置" width="120" />
-              <el-table-column prop="required" label="类型" width="100">
+              <el-table-column prop="name" label="参数名" :width="isMobile ? 120 : 180" />
+              <el-table-column prop="param" label="传递参数" :width="isMobile ? 140 : 180" />
+              <el-table-column prop="position" label="传入位置" :width="isMobile ? 80 : 120" />
+              <el-table-column prop="required" label="类型" :width="isMobile ? 80 : 100">
                 <template #default="scope">
                   <el-tag
                     :type="scope.row.required === '必传' ? 'danger' : 'info'"
@@ -518,7 +518,7 @@ const buyPackage = (pkg) => {
                   </el-tag>
                 </template>
               </el-table-column>
-              <el-table-column prop="docs" label="参数说明" />
+              <el-table-column prop="docs" label="参数说明" :min-width="isMobile ? 160 : 240" />
             </el-table>
           </div>
         </div>
@@ -806,18 +806,28 @@ const buyPackage = (pkg) => {
   width: 100%;
   min-height: 100vh;
   background: #ffffff;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, 'Noto Sans', 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol';
 
   .apiinfo-container {
-    max-width: 1200px;
+    max-width: 1600px;
     margin: 0 auto;
     padding: 40px 24px;
+    display: grid;
+    grid-template-columns: 260px 1fr;
+    column-gap: 24px;
+    row-gap: 0;
+    align-items: start;
 
     @media (max-width: 1024px) {
       padding: 24px 16px;
+      display: block;
     }
 
     .sidebar {
-      display: none;
+      display: block;
+      position: sticky;
+      top: 24px;
+      align-self: start;
 
       @media (max-width: 1024px) {
         display: none;
@@ -872,7 +882,7 @@ const buyPackage = (pkg) => {
     .box {
       background: transparent;
       padding: 32px 0;
-      border-bottom: 1px solid #f1f5f9;
+      border-bottom: 1px solid #e2e8f0;
 
       &:last-child {
         border-bottom: none;
@@ -928,7 +938,9 @@ const buyPackage = (pkg) => {
           background: #f8fafc;
           padding: 16px;
           border: 1px solid #e2e8f0;
+          border-radius: 0;
           cursor: pointer;
+          transition: background 0.2s ease, border-color 0.2s ease;
 
           .api-url {
             font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
@@ -943,8 +955,13 @@ const buyPackage = (pkg) => {
             color: #64748b;
 
             &:hover {
-              color: #3b82f6;
+              color: #409eff;
             }
+          }
+
+          &:hover {
+            background: #f8fafc;
+            border-color: #cdd5df;
           }
         }
       }
@@ -1046,9 +1063,9 @@ const buyPackage = (pkg) => {
           left: 0;
           top: 50%;
           transform: translateY(-50%);
-          width: 3px;
+          width: 2px;
           height: 16px;
-          background: #334155;
+          background: #cbd5e1;
           border-radius: 3px;
         }
       }
@@ -1151,14 +1168,7 @@ const buyPackage = (pkg) => {
     }
 
     .mac_pre::before {
-      content: '';
-      display: block;
-      height: 12px;
-      margin: 0 0 16px 4px;
-      border-radius: 50%;
-      background: #ff5f56;
-      box-shadow: 20px 0 #ffbd2e, 40px 0 #27c93f;
-      width: 12px;
+      display: none;
     }
 
     // 高级模式HTML容器样式
@@ -1324,25 +1334,26 @@ const buyPackage = (pkg) => {
       }
 
       :deep(.el-tabs__item) {
-        border: 1px solid #e2e8f0;
+        border: 1px solid #eaecf0;
         margin-right: 8px;
-        border-radius: 4px;
+        border-radius: 8px;
         height: 32px;
         line-height: 32px;
 
         &.is-active {
-          border-color: #475569;
-          color: #475569;
+          background: #ecf5ff;
+          border-color: #b3d8ff;
+          color: #409eff;
         }
 
         &:hover {
-          color: #475569;
+          color: #1a1f36;
         }
       }
     }
 
     .el-table {
-      border-radius: 8px;
+      border-radius: 12px;
       overflow: hidden;
 
       :deep(th) {
@@ -1359,8 +1370,8 @@ const buyPackage = (pkg) => {
       }
 
       :deep(.el-table__header) {
-        border-top-left-radius: 8px;
-        border-top-right-radius: 8px;
+        border-top-left-radius: 12px;
+        border-top-right-radius: 12px;
         overflow: hidden;
       }
 
@@ -1375,6 +1386,25 @@ const buyPackage = (pkg) => {
     .apiinfo-container {
       width: 92%;
       padding: 20px 0;
+
+      .table-container {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+      }
+
+      .params-table {
+        :deep(.el-table__header th),
+        :deep(.el-table__body td) {
+          padding: 6px 8px;
+        }
+      }
+
+      :deep(.el-table .cell) {
+        font-size: 12px;
+        line-height: 1.5;
+        white-space: normal;
+        word-break: break-word;
+      }
 
       .box {
         margin-bottom: 32px;
