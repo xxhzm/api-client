@@ -105,6 +105,20 @@ const copy = (value) => {
 // 调试相关的响应式变量
 const debugVisible = ref(false)
 
+// 调试对话框宽度（移动端95%，桌面端60%）
+const isMobile = ref(false)
+const debugDialogWidth = computed(() => (isMobile.value ? '95%' : '60%'))
+const updateIsMobile = () => {
+  isMobile.value = document.body.clientWidth < 768
+}
+onMounted(() => {
+  updateIsMobile()
+  window.addEventListener('resize', updateIsMobile)
+})
+onUnmounted(() => {
+  window.removeEventListener('resize', updateIsMobile)
+})
+
 // 广告显示控制
 const adDisplay = ref(true)
 
@@ -690,7 +704,7 @@ const buyPackage = (pkg) => {
     <el-dialog
       v-model="debugVisible"
       title="接口调试"
-      width="60%"
+      :width="debugDialogWidth"
       :close-on-click-modal="false"
     >
       <div class="debug-container">
