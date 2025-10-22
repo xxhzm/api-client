@@ -2,6 +2,7 @@
 import { Connection, Plus, Menu } from '@element-plus/icons-vue'
 const { $msg, $myFetch } = useNuxtApp()
 const msg = $msg
+const route = useRoute()
 
 // 当前页数
 const page = ref(1)
@@ -86,6 +87,11 @@ const getData = async () => {
 }
 
 onMounted(() => {
+  const qp = Array.isArray(route.query.page) ? route.query.page[0] : route.query.page
+  const p = parseInt((qp || ''), 10)
+  if (!isNaN(p) && p > 0) {
+    page.value = p
+  }
   getData()
 })
 
@@ -159,7 +165,7 @@ const clearSearch = () => {
 }
 
 const handleEdit = (index, row) => {
-  navigateTo('/admin/apiset/' + row.id)
+  navigateTo({ path: '/admin/apiset/' + row.id, query: { page: page.value } })
 }
 
 const handleDelete = async (index, row) => {

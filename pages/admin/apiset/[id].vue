@@ -205,7 +205,7 @@ const updateApiInfo = async () => {
   }
 
   setTimeout(() => {
-    navigateTo('/admin/apilist')
+    navigateTo({ path: '/admin/apilist', query: { page: Array.isArray(route.query.page) ? route.query.page[0] : route.query.page } })
   }, 1000)
 }
 
@@ -2080,7 +2080,7 @@ useHead({
                   color="#ff9e08"
                   style="color: #fff"
                   type="primary"
-                  @click="navigateTo('/admin/apilist')"
+                  @click="navigateTo({ path: '/admin/apilist', query: { page: Array.isArray(route.query.page) ? route.query.page[0] : route.query.page } })"
                   >返回</el-button
                 >
               </div>
