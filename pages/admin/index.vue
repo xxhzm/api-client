@@ -69,11 +69,6 @@ const routeShow = (path) => {
 }
 
 onMounted(async () => {
-  // 如果用户没有权限，那么取消渲染图表
-  if (!routeShow('/admin/EchartDom')) {
-    return false
-  }
-
   // 图表
   chartShow.value = false
   chartShow.value = true
@@ -94,6 +89,8 @@ onMounted(async () => {
     }
     seriesData.push(Number(element.number || 0))
   })
+
+  const hasRecentData = xAxisData.length > 0 && seriesData.length > 0
 
   option = {
     title: {
@@ -158,6 +155,20 @@ onMounted(async () => {
         areaStyle: { color: 'rgba(255,255,255,0)' },
       },
     ],
+    graphic: hasRecentData
+      ? []
+      : [
+          {
+            type: 'text',
+            left: 'center',
+            top: 'middle',
+            style: {
+              text: '暂无调用数据',
+              fill: '#909399',
+              fontSize: 16,
+            },
+          },
+        ],
   }
 
   option && recentRequestChart.setOption(option)
@@ -172,6 +183,8 @@ onMounted(async () => {
 
   const TodayRequestDom = document.getElementById('TodayRequestChart')
   const TodayRequestChart = echarts.init(TodayRequestDom)
+
+  const pieData = todayRequest.value.data.slice(0, 5)
 
   option = {
     title: {
@@ -196,9 +209,23 @@ onMounted(async () => {
         name: '接口名称',
         type: 'pie',
         radius: '50%',
-        data: todayRequest.value.data.slice(0, 5),
+        data: pieData,
       },
     ],
+    graphic: pieData.length
+      ? []
+      : [
+          {
+            type: 'text',
+            left: 'center',
+            top: 'middle',
+            style: {
+              text: '暂无今日请求数据',
+              fill: '#909399',
+              fontSize: 16,
+            },
+          },
+        ],
   }
 
   option && TodayRequestChart.setOption(option)
@@ -218,6 +245,8 @@ onMounted(async () => {
 
   const APIRankingListDom = document.getElementById('APIRankingList')
   const APIRankingListChart = echarts.init(APIRankingListDom)
+
+  const hasBarData = namesArr.length > 0 && valuesArr.length > 0
 
   option = {
     title: {
@@ -262,6 +291,20 @@ onMounted(async () => {
         data: valuesArr,
       },
     ],
+    graphic: hasBarData
+      ? []
+      : [
+          {
+            type: 'text',
+            left: 'center',
+            top: 'middle',
+            style: {
+              text: '暂无排名数据',
+              fill: '#909399',
+              fontSize: 16,
+            },
+          },
+        ],
   }
 
   option && APIRankingListChart.setOption(option)
@@ -303,11 +346,11 @@ useHead({
             style="padding-top: 20px"
           ></SystemInfo>
 
-          <div class="chart" v-if="routeShow('/admin/EchartDom')">
+          <div class="chart">
             <div id="recentRequestChart" v-if="chartShow"></div>
             <div id="TodayRequestChart" v-if="chartShow"></div>
           </div>
-          <div v-if="routeShow('/admin/EchartDom')" id="APIRankingList"></div>
+          <div id="APIRankingList"></div>
         </div>
       </div>
     </div>
