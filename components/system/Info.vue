@@ -1,25 +1,27 @@
 <script setup>
-const { $myFetch } = useNuxtApp()
-
-const systemInfo = ref({
-  day: 0,
-  total_api: 0,
-  recent_request: [],
-  total_request_number: 0,
-  cpu: '0%',
-  memory_used: '0MB',
-  memory_available: '0MB',
-  total_network_transmission: '0GB',
+const props = defineProps({
+  systemInfo: {
+    type: Object,
+    default: () => ({
+      day: 0,
+      total_api: 0,
+      recent_request: [],
+      total_request_number: 0,
+      cpu: '0%',
+      memory_used: '0MB',
+      memory_available: '0MB',
+      total_network_transmission: '0GB',
+    }),
+  },
 })
 
-const number = ref(0)
-
-const res = await $myFetch('SystemInfo')
-systemInfo.value = res.data
-
-// 计算24小时请求总数
-systemInfo.value.recent_request.forEach((element) => {
-  number.value += element.number
+// 计算24小时请求总数（基于传入的 props）
+const total24h = computed(() => {
+  let total = 0
+  ;(props.systemInfo?.recent_request || []).forEach((element) => {
+    total += Number(element?.number || 0)
+  })
+  return total
 })
 
 // 定义卡片数据（当对应值为空时不显示系统信息相关卡片）
@@ -28,25 +30,25 @@ const cards = computed(() => {
     {
       title: '平台接口',
       tag: '接口',
-      value: systemInfo.value.total_api,
+      value: props.systemInfo.total_api,
       isCount: true,
     },
     {
       title: '24小时内总请求',
       tag: '24H',
-      value: number.value,
+      value: total24h.value,
       isCount: true,
     },
     {
       title: '请求总调用',
       tag: '总数',
-      value: systemInfo.value.total_request_number,
+      value: props.systemInfo.total_request_number,
       isCount: true,
     },
     {
       title: '已稳定运营',
       tag: '天数',
-      value: systemInfo.value.day,
+      value: props.systemInfo.day,
       isCount: true,
     },
   ]
@@ -57,7 +59,7 @@ const cards = computed(() => {
     memory_used,
     memory_available,
     total_network_transmission,
-  } = systemInfo.value || {}
+  } = props.systemInfo || {}
 
   if (isPresent(cpu)) {
     list.push({ title: 'CPU使用率', tag: 'CPU', value: cpu, isCount: false })
@@ -75,21 +77,7 @@ const cards = computed(() => {
   return list
 })
 
-// 更新图表数据
-const recentRequest = ref({
-  data: {
-    xAxis: [],
-    series: [],
-  },
-})
 
-systemInfo.value.recent_request.forEach((element) => {
-  recentRequest.value.data.xAxis.push(new Date(element.time).getHours() + '时')
-  recentRequest.value.data.series.push(element.number)
-})
-
-const recentRequestState = useState('recentRequest')
-recentRequestState.value = recentRequest.value
 </script>
 
 <template>

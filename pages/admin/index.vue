@@ -3,12 +3,25 @@ import * as echarts from 'echarts'
 import { Menu } from '@element-plus/icons-vue'
 const { $myFetch } = useNuxtApp()
 
-const { $logout } = useNuxtApp()
 const chartShow = ref(true)
-const recentRequest = useState('recentRequest')
+
 const todayRequest = ref({
   data: [],
 })
+
+const systemInfo = ref({
+  day: 0,
+  total_api: 0,
+  recent_request: [],
+  total_request_number: 0,
+  cpu: '0%',
+  memory_used: '0MB',
+  memory_available: '0MB',
+  total_network_transmission: '0GB',
+})
+
+const sysRes = await $myFetch('SystemInfo')
+systemInfo.value = sysRes.data
 
 const routeInfo = useCookie('routeInfo')
 
@@ -70,6 +83,18 @@ onMounted(async () => {
   const recentRequestChart = echarts.init(recentRequestDom)
   let option
 
+  const xAxisData = []
+  const seriesData = []
+  systemInfo.value.recent_request.forEach((element) => {
+    try {
+      const hour = new Date(element.time).getHours()
+      xAxisData.push(`${hour}时`)
+    } catch {
+      xAxisData.push('未知')
+    }
+    seriesData.push(Number(element.number || 0))
+  })
+
   option = {
     title: {
       text: '调用量统计',
@@ -95,7 +120,7 @@ onMounted(async () => {
     },
     xAxis: {
       type: 'category',
-      data: recentRequest.value.data.xAxis,
+      data: xAxisData,
     },
     yAxis: {
       type: 'value',
@@ -103,7 +128,7 @@ onMounted(async () => {
     dataZoom: [{}],
     series: [
       {
-        data: recentRequest.value.data.series,
+        data: seriesData,
         type: 'line',
         smooth: true,
         symbol: 'circle',
@@ -117,7 +142,6 @@ onMounted(async () => {
           },
         },
         lineStyle: {
-          // 线性渐变，前四个参数分别是 x0, y0, x2, y2, 范围从 0 - 1，相当于在图形包围盒中的百分比，如果 globalCoord 为 `true`，则该四个值是绝对的像素位置
           color: {
             type: 'linear',
             x: 0,
@@ -125,37 +149,26 @@ onMounted(async () => {
             x2: 1,
             y2: 0,
             colorStops: [
-              {
-                offset: 0,
-                color: '#4C84FF', // 0% 处的颜色
-              },
-              {
-                offset: 1,
-                color: '#28d016', // 100% 处的颜色
-              },
+              { offset: 0, color: '#4C84FF' },
+              { offset: 1, color: '#28d016' },
             ],
-            globalCoord: false, // 缺省为 false
+            globalCoord: false,
           },
         },
-        areaStyle: {
-          color: 'rgba(255,255,255,0)',
-        },
+        areaStyle: { color: 'rgba(255,255,255,0)' },
       },
     ],
   }
 
   option && recentRequestChart.setOption(option)
 
-  const res = await $myFetch('TodayRequest')
-
-  if (res.data !== undefined && res.data !== null && res.data !== '') {
-    res.data.forEach((element) => {
-      todayRequest.value.data.push({
-        name: element.alias,
-        value: element.number,
-      })
+  // 使用 SystemInfo 接口中的 today_request 数据
+  todayRequest.value.data = (systemInfo.value?.today_request || []).map(
+    (element) => ({
+      name: element.alias,
+      value: Number(element.number || 0),
     })
-  }
+  )
 
   const TodayRequestDom = document.getElementById('TodayRequestChart')
   const TodayRequestChart = echarts.init(TodayRequestDom)
@@ -285,7 +298,10 @@ useHead({
       <AdminHeader></AdminHeader>
       <div class="main-container">
         <div class="info-container">
-          <SystemInfo style="padding-top: 20px"></SystemInfo>
+          <SystemInfo
+            :system-info="systemInfo"
+            style="padding-top: 20px"
+          ></SystemInfo>
 
           <div class="chart" v-if="routeShow('/admin/EchartDom')">
             <div id="recentRequestChart" v-if="chartShow"></div>
