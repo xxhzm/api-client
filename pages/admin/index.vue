@@ -23,8 +23,6 @@ const systemInfo = ref({
 const sysRes = await $myFetch('SystemInfo')
 systemInfo.value = sysRes.data
 
-const routeInfo = useCookie('routeInfo')
-
 // 控制左侧边栏显示隐藏
 // 获取页面宽度
 const screenWidth = ref(0)
@@ -53,21 +51,6 @@ const handleSidebarShow = () => {
   }
 }
 
-// 判断是否拥有权限，动态显示左侧边栏
-const routeShow = (path) => {
-  if (path === undefined) {
-    return false
-  }
-
-  const state = routeInfo.value.find((obj) => obj.path === path)
-
-  if (state !== undefined) {
-    return true
-  }
-
-  return false
-}
-
 onMounted(async () => {
   // 图表
   chartShow.value = false
@@ -80,6 +63,9 @@ onMounted(async () => {
 
   const xAxisData = []
   const seriesData = []
+  if (systemInfo.value.recent_request == null) {
+    return
+  }
   systemInfo.value.recent_request.forEach((element) => {
     try {
       const hour = new Date(element.time).getHours()

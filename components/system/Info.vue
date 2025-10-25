@@ -34,14 +34,14 @@ const cards = computed(() => {
       isCount: true,
     },
     {
-      title: '24小时内总请求',
+      title: '您24小时内总调用',
       tag: '24H',
       value: total24h.value,
       isCount: true,
     },
     {
-      title: '请求总调用',
-      tag: '总数',
+      title: '系统总调用',
+      tag: '次数',
       value: props.systemInfo.total_request_number,
       isCount: true,
     },
@@ -53,31 +53,41 @@ const cards = computed(() => {
     },
   ]
 
-  const isPresent = (v) => v !== undefined && v !== null && String(v).trim() !== ''
-  const {
-    cpu,
-    memory_used,
-    memory_available,
-    total_network_transmission,
-  } = props.systemInfo || {}
+  const isPresent = (v) =>
+    v !== undefined && v !== null && String(v).trim() !== ''
+  const { cpu, memory_used, memory_available, total_network_transmission } =
+    props.systemInfo || {}
 
   if (isPresent(cpu)) {
     list.push({ title: 'CPU使用率', tag: 'CPU', value: cpu, isCount: false })
   }
   if (isPresent(memory_used)) {
-    list.push({ title: '已用内存', tag: '已用', value: memory_used, isCount: false })
+    list.push({
+      title: '已用内存',
+      tag: '已用',
+      value: memory_used,
+      isCount: false,
+    })
   }
   if (isPresent(memory_available)) {
-    list.push({ title: '可用内存', tag: '可用', value: memory_available, isCount: false })
+    list.push({
+      title: '可用内存',
+      tag: '可用',
+      value: memory_available,
+      isCount: false,
+    })
   }
   if (isPresent(total_network_transmission)) {
-    list.push({ title: '已发送', tag: '总量', value: total_network_transmission, isCount: false })
+    list.push({
+      title: '已发送',
+      tag: '总量',
+      value: total_network_transmission,
+      isCount: false,
+    })
   }
 
   return list
 })
-
-
 </script>
 
 <template>
@@ -89,12 +99,14 @@ const cards = computed(() => {
           <div class="info-card__content">
             <h3 class="info-card__title">{{ item.title }}</h3>
             <div class="info-card__value">
-              <template v-if="item.isCount">
-                <HelpersCount :end="item.value" />
-              </template>
-              <template v-else>
-                {{ item.value }}
-              </template>
+              <client-only>
+                <template v-if="item.isCount">
+                  <HelpersCount :end="item.value" />
+                </template>
+                <template v-else>
+                  {{ item.value }}
+                </template>
+              </client-only>
             </div>
           </div>
         </div>
