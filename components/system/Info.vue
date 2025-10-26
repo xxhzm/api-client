@@ -28,26 +28,23 @@ const total24h = computed(() => {
 const cards = computed(() => {
   const list = [
     {
-      title: '平台接口',
-      tag: '接口',
-      value: props.systemInfo.total_api,
-      isCount: true,
-    },
-    {
-      title: '您24小时内总调用',
-      tag: '24H',
+      title: '今日使用量',
       value: total24h.value,
       isCount: true,
     },
     {
       title: '系统总调用',
-      tag: '次数',
       value: props.systemInfo.total_request_number,
       isCount: true,
     },
     {
+      title: '平台接口',
+      value: props.systemInfo.total_api,
+      isCount: true,
+    },
+
+    {
       title: '已稳定运营',
-      tag: '天数',
       value: props.systemInfo.day,
       isCount: true,
     },
@@ -59,12 +56,11 @@ const cards = computed(() => {
     props.systemInfo || {}
 
   if (isPresent(cpu)) {
-    list.push({ title: 'CPU使用率', tag: 'CPU', value: cpu, isCount: false })
+    list.push({ title: 'CPU使用率', value: cpu, isCount: false })
   }
   if (isPresent(memory_used)) {
     list.push({
       title: '已用内存',
-      tag: '已用',
       value: memory_used,
       isCount: false,
     })
@@ -72,7 +68,6 @@ const cards = computed(() => {
   if (isPresent(memory_available)) {
     list.push({
       title: '可用内存',
-      tag: '可用',
       value: memory_available,
       isCount: false,
     })
@@ -80,7 +75,6 @@ const cards = computed(() => {
   if (isPresent(total_network_transmission)) {
     list.push({
       title: '已发送',
-      tag: '总量',
       value: total_network_transmission,
       isCount: false,
     })
@@ -95,9 +89,9 @@ const cards = computed(() => {
     <div class="system-info__row">
       <div class="system-info__col" v-for="(item, index) in cards" :key="index">
         <div class="info-card">
-          <div class="info-card__category">{{ item.tag }}</div>
-          <div class="info-card__content">
-            <h3 class="info-card__title">{{ item.title }}</h3>
+          <div class="info-card__icon"><span>∿</span></div>
+          <div class="info-card__body">
+            <h3 class="info-card__label">{{ item.title }}</h3>
             <div class="info-card__value">
               <client-only>
                 <template v-if="item.isCount">
@@ -143,72 +137,71 @@ const cards = computed(() => {
 }
 
 .info-card {
-  position: relative;
+  display: flex;
+  align-items: center;
   background: #fff;
-  border-radius: 8px;
-  height: 100px;
-  padding: 16px;
-  transition: all 0.3s ease;
-  border: 1px solid #ebeef5;
-  overflow: hidden;
-  cursor: pointer;
+  border-radius: 12px;
+  padding: 20px;
+  border: 1px solid #eaecf0;
+  box-shadow: 0 2px 8px rgba(16, 24, 40, 0.06);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
 
   &:hover {
-    transform: translateY(-4px);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-    border-color: #ebeef5;
-
-    .info-card__category {
-      background: #409eff;
-      color: #fff;
-    }
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(16, 24, 40, 0.1);
   }
 
-  &__category {
-    position: absolute;
-    right: -28px;
-    top: 12px;
-    background: #e6f7ff;
-    color: #409eff;
-    padding: 4px 30px;
-    font-size: 12px;
-    transform: rotate(45deg);
-    transition: all 0.3s ease;
-  }
-
-  &__content {
-    height: 100%;
+  &__icon {
+    width: 44px;
+    height: 44px;
+    border-radius: 12px;
+    background: #eef4ff;
+    color: #3b82f6;
     display: flex;
-    flex-direction: column;
-    justify-content: space-between;
+    align-items: center;
+    justify-content: center;
+    font-size: 22px;
+    flex-shrink: 0;
   }
 
-  &__title {
+  &__body {
+    position: relative;
+    flex: 1;
+    margin-left: 16px;
+  }
+
+  &__label {
     font-size: 14px;
-    font-weight: normal;
-    color: #909399;
+    font-weight: 500;
+    color: #6b7280;
     margin: 0;
-    padding-right: 40px;
   }
 
   &__value {
-    font-size: 18px;
-    color: #303133;
-    font-weight: 500;
+    margin-top: 6px;
+    font-size: 24px;
+    color: #111827;
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
   }
 }
 
 @media screen and (max-width: 768px) {
   .info-card {
-    height: 90px;
-    padding: 14px;
+    padding: 16px;
 
-    &__title {
+    &__icon {
+      width: 40px;
+      height: 40px;
+      font-size: 20px;
+    }
+
+    &__label {
       font-size: 13px;
     }
 
     &__value {
-      font-size: 16px;
+      font-size: 20px;
     }
   }
 }
