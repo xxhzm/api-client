@@ -9,10 +9,11 @@ import {
   Tickets,
   Plus,
 } from '@element-plus/icons-vue'
+
 const { $myFetch, $msg } = useNuxtApp()
+const username = useCookie('username')
 
 const chartShow = ref(true)
-
 const todayRequest = ref({
   data: [],
 })
@@ -29,10 +30,9 @@ const systemInfo = ref({
 })
 
 // 账户余额相关
-const username = useCookie('username')
 const balance = ref(0)
-const monthSpend = ref(0)
-const totalSpend = ref(0)
+const currentMonthTopUp = ref(0)
+const totalTopUp = ref(0)
 
 const formatCNY = (n) => {
   const num = Number(n || 0)
@@ -48,36 +48,22 @@ const formatCNY = (n) => {
 const getBalance = async (showTip = false) => {
   try {
     const res = await $myFetch('UserBalance', {
-      params: { username: username.value },
+      params: {
+        username: username.value,
+      },
     })
     if (res.code === 200) {
-      balance.value = res.data
+      const data = res.data || {}
+      balance.value = Number(data.AccountBalance || 0)
+      currentMonthTopUp.value = Number(data.CurrentMonthTopUp || 0)
+      totalTopUp.value = Number(data.TotalTopUp || 0)
       if (showTip) $msg('余额刷新成功', 'success')
+    } else {
+      $msg(res.msg || '获取余额失败', 'error')
     }
-  } catch (error) {}
-}
-
-const getMonthlySpend = async () => {
-  try {
-    const res = await $myFetch('GetBuyPackageRecords', {
-      params: { page: 1, limit: 200 },
-    })
-    if (res.code === 200) {
-      const list = res.data?.data || []
-      const now = new Date()
-      const start = new Date(now.getFullYear(), now.getMonth(), 1).getTime()
-      const end = new Date(now.getFullYear(), now.getMonth() + 1, 1).getTime()
-      monthSpend.value = list.reduce((sum, item) => {
-        const t = Number(item.create_time || 0)
-        const amt = Number(item.amount || 0)
-        return t >= start && t < end ? sum + amt : sum
-      }, 0)
-      totalSpend.value = list.reduce(
-        (sum, item) => sum + Number(item.amount || 0),
-        0
-      )
-    }
-  } catch (error) {}
+  } catch (error) {
+    $msg('获取余额失败', 'error')
+  }
 }
 
 const sysRes = await $myFetch('SystemInfo')
@@ -279,7 +265,6 @@ onMounted(async () => {
 
 onMounted(() => {
   getBalance(false)
-  getMonthlySpend()
 })
 
 useHead({
@@ -329,12 +314,14 @@ useHead({
 
               <div class="balance-stats">
                 <div class="stat-item">
-                  <div class="stat-label">本月消费</div>
-                  <div class="stat-value">{{ formatCNY(monthSpend) }}</div>
+                  <div class="stat-label">本月充值</div>
+                  <div class="stat-value">
+                    {{ formatCNY(currentMonthTopUp) }}
+                  </div>
                 </div>
                 <div class="stat-item">
-                  <div class="stat-label">累计消费</div>
-                  <div class="stat-value">{{ formatCNY(totalSpend) }}</div>
+                  <div class="stat-label">累计充值</div>
+                  <div class="stat-value">{{ formatCNY(totalTopUp) }}</div>
                 </div>
               </div>
 
