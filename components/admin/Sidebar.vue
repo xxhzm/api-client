@@ -12,6 +12,8 @@ import {
   Lock,
 } from '@element-plus/icons-vue'
 
+const options = useState('options')
+
 const defaultOpeneds = ref([])
 
 const { $msg, $myFetch } = useNuxtApp()
@@ -129,7 +131,7 @@ if (thirdPath && pathMap[thirdPath]) {
       :default-openeds="defaultOpeneds"
     >
       <el-menu-item index="1" @click="navigateTo('/admin')">
-        <img src="/logo.png" alt="logo" class="logo" style="width: 120px" />
+        <img :src="options.logo" alt="logo" class="logo" style="width: 120px" />
       </el-menu-item>
       <div>
         <el-menu-item

@@ -20,7 +20,12 @@ options.value = res.data
 
 useHead({
   link: [
-    { rel: 'icon', type: 'images/png', sizes: '56x56', href: '/favicon.ico' },
+    {
+      rel: 'icon',
+      type: 'images/png',
+      sizes: '56x56',
+      href: options.value.ico,
+    },
   ],
   // script: [
   //   {
