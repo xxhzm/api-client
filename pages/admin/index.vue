@@ -220,22 +220,78 @@ onMounted(async () => {
   const hasBarData = namesArr.length > 0 && valuesArr.length > 0
 
   option = {
-    title: {
-      text: '调用量统计',
-      top: '4%',
-      left: '2%',
-      textStyle: { color: '#555', fontSize: 16 },
+    backgroundColor: 'transparent',
+    tooltip: {
+      trigger: 'axis',
+      axisPointer: { type: 'line' },
+      formatter: (params) => {
+        const p = Array.isArray(params) ? params[0] : params
+        const v = Number(p?.value || 0)
+        const label = v >= 1000 ? `${(v / 1000).toFixed(1)}K` : `${v}`
+        return `${p?.name || ''}<br/>次数：${label}`
+      },
     },
-    tooltip: { trigger: 'axis', axisPointer: { type: 'shadow' } },
-    grid: { left: '3%', right: '4%', bottom: '12%', containLabel: true },
-    legend: {},
+    grid: {
+      left: '3%',
+      right: '3%',
+      top: '8%',
+      bottom: '12%',
+      containLabel: true,
+    },
     xAxis: {
       type: 'category',
       data: namesArr,
       axisTick: { alignWithLabel: true },
+      axisLabel: {
+        color: '#6b7280',
+        fontSize: 12,
+        rotate: 0,
+        interval: 0,
+        hideOverlap: true,
+        overflow: 'truncate',
+      },
+      axisLine: { lineStyle: { color: '#e5e7eb' } },
     },
-    yAxis: [{ type: 'value' }],
-    series: [{ name: '次数', type: 'bar', barWidth: '60%', data: valuesArr }],
+    yAxis: [
+      {
+        type: 'value',
+        axisLabel: {
+          color: '#9ca3af',
+          formatter: (v) => (v >= 1000 ? `${(v / 1000).toFixed(0)}K` : `${v}`),
+        },
+        splitLine: { show: true, lineStyle: { color: '#eee' } },
+      },
+    ],
+    series: [
+      {
+        name: '次数',
+        type: 'bar',
+        data: valuesArr,
+        barWidth: 28,
+        itemStyle: {
+          borderRadius: [8, 8, 0, 0],
+          color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
+            { offset: 0, color: '#8B5CF6' },
+            { offset: 1, color: '#6366F1' },
+          ]),
+        },
+        label: {
+          show: true,
+          position: 'top',
+          color: '#6b7280',
+          fontSize: 12,
+          formatter: (p) => {
+            const v = Number(p?.value || 0)
+            return v >= 1000 ? `${(v / 1000).toFixed(1)}K` : `${v}`
+          },
+        },
+        emphasis: {
+          itemStyle: { shadowBlur: 10, shadowColor: 'rgba(0,0,0,0.2)' },
+        },
+        animationDuration: 600,
+        animationEasing: 'cubicOut',
+      },
+    ],
     graphic: hasBarData
       ? []
       : [
