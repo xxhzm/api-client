@@ -15,6 +15,7 @@ import {
 const options = useState('options')
 
 const defaultOpeneds = ref([])
+const defaultActive = ref('')
 
 const { $msg, $myFetch } = useNuxtApp()
 const routeInfo = useCookie('routeInfo')
@@ -119,6 +120,56 @@ const thirdPath = pathArr[2] // 注意 pathArr[2] 是第3段
 if (thirdPath && pathMap[thirdPath]) {
   defaultOpeneds.value = [pathMap[thirdPath]]
 }
+
+// 路由与菜单索引映射，用于高亮当前项
+const pathIndexMap = {
+  '/admin': '1',
+  '/admin/webset': '2-1',
+  '/admin/ad': '2-2',
+  '/admin/sitemap': '2-3',
+  '/admin/online-update': '2-4',
+  '/admin/import': '2-5',
+  '/admin/apilist': '3-1',
+  '/admin/createapi': '3-2',
+  '/admin/addparam': '3-3',
+  '/admin/categories': '3-4',
+  '/admin/prefix': '3-5',
+  '/admin/apilogs': '3-6',
+  '/admin/statistics': '3-7',
+  '/admin/userlist': '4-1',
+  '/admin/rolelist': '4-2',
+  '/admin/permissionlist': '4-3',
+  '/admin/keylog': '4-4',
+  '/admin/articlelist': '5-1',
+  '/admin/createarticle': '5-2',
+  '/admin/pay': '6-1',
+  '/admin/createRechargeCard': '6-2',
+  '/admin/useRechargeCard': '6-3',
+  '/admin/rechargeCardHistory': '6-4',
+  '/admin/rechargerecord': '6-5',
+  '/admin/buypackagerecord': '6-6',
+  '/admin/package': '6-7',
+  '/admin/buy': '6-8',
+  '/admin/mypackage': '6-9',
+  '/admin/userPackageManagement': '6-10',
+  '/admin/ip-ban': '7-1',
+  '/admin/api-rate-limit': '7-2',
+  '/admin/key': '8-1',
+  '/admin/password': '8-2',
+  '/admin/phone': '8-3',
+  '/admin/links': '9',
+}
+
+const route = useRoute()
+// 初始化高亮
+defaultActive.value = pathIndexMap[route.path] || ''
+// 路由变化时更新高亮
+watch(
+  () => route.path,
+  (newPath) => {
+    defaultActive.value = pathIndexMap[newPath] || ''
+  }
+)
 </script>
 
 <template>
@@ -129,8 +180,9 @@ if (thirdPath && pathMap[thirdPath]) {
       @close="handleClose"
       :unique-opened="true"
       :default-openeds="defaultOpeneds"
+      :default-active="defaultActive"
     >
-      <el-menu-item index="1" @click="navigateTo('/admin')">
+      <el-menu-item index="logo" @click="navigateTo('/admin')">
         <img :src="options.logo" alt="logo" class="logo" style="width: 120px" />
       </el-menu-item>
       <div>
@@ -522,5 +574,50 @@ if (thirdPath && pathMap[thirdPath]) {
     z-index: 999;
     height: 120vh;
   }
+}
+
+/* 自定义菜单样式，接近示例图片效果 */
+:deep(.el-menu) {
+  border-right: none;
+  background: #ffffff;
+  padding-top: 8px;
+}
+
+:deep(.el-menu-item),
+:deep(.el-sub-menu__title) {
+  height: 44px;
+  line-height: 44px;
+  margin: 6px 12px;
+  border-radius: 10px;
+  color: #333;
+  padding-left: 12px;
+}
+
+:deep(.el-menu-item .el-icon),
+:deep(.el-sub-menu__title .el-icon) {
+  margin-right: 10px;
+}
+
+/* 悬停效果 */
+:deep(.el-menu-item:hover),
+:deep(.el-sub-menu__title:hover) {
+  background: #f0f6ff;
+  color: #1677ff;
+}
+
+/* 激活项高亮为蓝底白字 */
+:deep(.el-menu-item.is-active) {
+  background: #1677ff !important;
+  color: #ffffff !important;
+}
+
+:deep(.el-menu-item.is-active .el-icon) {
+  color: #ffffff !important;
+}
+
+/* 分组标题更紧凑 */
+:deep(.el-menu-item-group__title) {
+  padding-left: 16px;
+  color: #909399;
 }
 </style>
