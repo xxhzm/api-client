@@ -91,7 +91,7 @@ const getBalance = async (showTip = false) => {
     })
 
     if (res.code === 200) {
-      balance.value = res.data
+      balance.value = res.data.AccountBalance
       if (showTip) {
         $msg('余额刷新成功', 'success')
       }
