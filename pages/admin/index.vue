@@ -8,6 +8,8 @@ import {
   Document,
   Tickets,
   Plus,
+  Key,
+  CopyDocument,
 } from '@element-plus/icons-vue'
 
 const { $myFetch, $msg } = useNuxtApp()
@@ -17,6 +19,7 @@ const chartShow = ref(true)
 const todayRequest = ref({
   data: [],
 })
+const todayRanking = ref([])
 
 const systemInfo = ref({
   day: 0,
@@ -184,33 +187,24 @@ onMounted(async () => {
     })
   )
 
-  const TodayRequestDom = document.getElementById('TodayRequestChart')
-  const TodayRequestChart = echarts.init(TodayRequestDom)
+  const rankingColors = ['#4C84FF', '#28d016', '#4B5563', '#F59E0B', '#8B5CF6']
   const pieData = todayRequest.value.data.slice(0, 5)
-
-  option = {
-    title: {
-      top: '4%',
-      text: '接口请求排名',
-      left: 'center',
-      textStyle: { color: '#555', fontSize: 16 },
-    },
-    tooltip: { trigger: 'item' },
-    legend: { bottom: '8%', orient: 'horizontal', left: 'center' },
-    series: [{ name: '接口名称', type: 'pie', radius: '50%', data: pieData }],
-    graphic: pieData.length
-      ? []
-      : [
-          {
-            type: 'text',
-            left: 'center',
-            top: 'middle',
-            style: { text: '暂无今日请求数据', fill: '#909399', fontSize: 16 },
-          },
-        ],
-  }
-
-  option && TodayRequestChart.setOption(option)
+  // 始终渲染5行；不足的用占位补齐
+  todayRanking.value = Array.from({ length: 5 }, (_, idx) => {
+    const item = pieData[idx]
+    if (item) {
+      return {
+        name: item.name,
+        value: Number(item.value || 0),
+        color: rankingColors[idx % rankingColors.length],
+      }
+    }
+    return {
+      name: '—',
+      value: 0,
+      color: '#E5E7EB',
+    }
+  })
 
   const namesArr = []
   const valuesArr = []
@@ -233,7 +227,7 @@ onMounted(async () => {
       textStyle: { color: '#555', fontSize: 16 },
     },
     tooltip: { trigger: 'axis', axisPointer: { type: 'shadow' } },
-    grid: { left: '3%', right: '4%', bottom: '3%', containLabel: true },
+    grid: { left: '3%', right: '4%', bottom: '7%', containLabel: true },
     legend: {},
     xAxis: {
       type: 'category',
@@ -258,13 +252,13 @@ onMounted(async () => {
 
   window.addEventListener('resize', function () {
     recentRequestChart.resize()
-    TodayRequestChart.resize()
     APIRankingListChart.resize()
   })
 })
 
 onMounted(() => {
   getBalance(false)
+  getUserKey(false)
 })
 
 useHead({
@@ -273,6 +267,42 @@ useHead({
     'width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0',
   charset: 'utf-8',
 })
+
+// 用户秘钥：展示并支持复制
+const userAccessKey = ref('')
+const getUserKey = async (showTip = false) => {
+  try {
+    const res = await $myFetch('GetUserKey', {
+      params: {
+        username: username.value,
+      },
+    })
+    if (res.code === 200) {
+      userAccessKey.value = res?.data?.access_key || ''
+      if (showTip) $msg('秘钥刷新成功', 'success')
+    } else {
+      $msg(res.msg || '获取秘钥失败', 'error')
+    }
+  } catch (error) {
+    $msg('获取秘钥失败', 'error')
+  }
+}
+
+const copyKey = async () => {
+  try {
+    if (!userAccessKey.value) {
+      await getUserKey(false)
+    }
+    if (!userAccessKey.value) {
+      $msg('暂无可复制的秘钥', 'warning')
+      return
+    }
+    await navigator.clipboard.writeText(userAccessKey.value)
+    $msg('秘钥已复制', 'success')
+  } catch (error) {
+    $msg('复制失败', 'error')
+  }
+}
 </script>
 
 <template>
@@ -337,7 +367,46 @@ useHead({
                 </el-button>
               </div>
             </el-card>
-            <div id="TodayRequestChart" v-if="chartShow"></div>
+            <div class="right-col">
+              <el-card class="key-card compact">
+                <div class="balance-header">
+                  <div class="title-left">
+                    <el-icon class="title-icon"><Key /></el-icon>
+                    <span class="balance-title">用户秘钥</span>
+                  </div>
+                  <div class="quick-actions">
+                    <el-button type="primary" link @click="copyKey">
+                      <el-icon><CopyDocument /></el-icon>
+                      复制秘钥
+                    </el-button>
+                  </div>
+                </div>
+                <div class="key-value">
+                  <code>{{ userAccessKey || '暂无秘钥' }}</code>
+                </div>
+              </el-card>
+
+              <div id="TodayRequestChart" v-if="chartShow">
+                <div class="ranking-title">接口请求排名</div>
+                <div v-if="todayRanking.length" class="ranking-list">
+                  <div
+                    class="ranking-item"
+                    v-for="(item, idx) in todayRanking"
+                    :key="idx"
+                  >
+                    <div class="ranking-left">
+                      <span
+                        class="ranking-dot"
+                        :style="{ background: item.color }"
+                      ></span>
+                      <span class="ranking-name">{{ item.name }}</span>
+                    </div>
+                    <span class="ranking-percent">{{ item.value }} 次</span>
+                  </div>
+                </div>
+                <div v-else class="ranking-empty">暂无今日请求数据</div>
+              </div>
+            </div>
           </div>
 
           <div class="chart">
@@ -389,6 +458,9 @@ useHead({
       min-height: 100vh;
       padding: 0 10px;
       background-color: #f7f7f7;
+      .info-container {
+        padding-bottom: 50px;
+      }
 
       .createKey {
         float: right;
@@ -409,6 +481,12 @@ useHead({
         align-items: stretch;
       }
 
+      .right-col {
+        width: 35%;
+        display: flex;
+        flex-direction: column;
+      }
+
       .balance-card {
         width: 64%;
         margin-top: 10px;
@@ -422,6 +500,21 @@ useHead({
         display: flex;
         flex-direction: column;
         gap: 16px;
+      }
+
+      .key-card {
+        width: 100%;
+        margin-top: 10px;
+        background: #fff;
+        border-radius: 12px;
+        border: 1px solid #e5e7eb;
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04);
+      }
+      .key-card :deep(.el-card__body) {
+        padding: 12px 16px;
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
       }
       .balance-header {
         display: flex;
@@ -498,6 +591,18 @@ useHead({
         margin-right: 6px;
       }
 
+      .key-value {
+        font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas,
+          'Liberation Mono', 'Courier New', monospace;
+        font-size: 15px;
+        background: #fafafa;
+        border: 1px solid #ebeef5;
+        border-radius: 8px;
+        padding: 12px;
+        color: #303133;
+        word-break: break-all;
+      }
+
       .quick-actions {
         display: flex;
         gap: 10px;
@@ -517,11 +622,59 @@ useHead({
       }
 
       .balance-row #TodayRequestChart {
-        width: 35%;
-        height: 370px;
+        width: 100%;
+        height: 240px;
         margin-top: 10px;
-        box-shadow: 0 2px 2px rgb(0 0 0 / 10%);
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04);
+        border: 1px solid #e5e7eb;
         background: #fff;
+        border-radius: 12px;
+      }
+
+      .ranking-title {
+        padding: 16px 16px 8px;
+        font-size: 16px;
+        font-weight: 600;
+        color: #111827;
+      }
+      .ranking-list {
+        padding: 8px 16px 16px;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-around;
+        height: calc(100% - 45px);
+      }
+      .ranking-item {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 4px 0;
+      }
+      .ranking-left {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+      .ranking-dot {
+        width: 12px;
+        height: 12px;
+        border-radius: 50%;
+        display: inline-block;
+      }
+      .ranking-name {
+        color: #303133;
+      }
+      .ranking-percent {
+        color: #303133;
+        font-weight: 600;
+      }
+      .ranking-empty {
+        height: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #909399;
+        font-size: 16px;
       }
 
       #APIRankingList {
@@ -550,6 +703,13 @@ useHead({
           width: 100%;
         }
         .balance-row #TodayRequestChart {
+          width: 100%;
+        }
+
+        .right-col {
+          width: 100%;
+        }
+        .key-card {
           width: 100%;
         }
 
