@@ -675,6 +675,7 @@ useHead({
     }
 
     .pay_container {
+      min-height: 100vh;
       padding: 20px;
 
       .cont {

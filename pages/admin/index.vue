@@ -227,7 +227,7 @@ onMounted(async () => {
       textStyle: { color: '#555', fontSize: 16 },
     },
     tooltip: { trigger: 'axis', axisPointer: { type: 'shadow' } },
-    grid: { left: '3%', right: '4%', bottom: '7%', containLabel: true },
+    grid: { left: '3%', right: '4%', bottom: '12%', containLabel: true },
     legend: {},
     xAxis: {
       type: 'category',

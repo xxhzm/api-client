@@ -380,6 +380,7 @@ useHead({
 }
 
 .rechargerecord-container {
+  min-height: 100vh;
   flex: 1;
   padding: 20px;
   overflow-y: auto;
