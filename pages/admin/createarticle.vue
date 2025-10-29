@@ -1,5 +1,5 @@
 <script setup>
-import { Menu } from '@element-plus/icons-vue'
+import { Menu, InfoFilled } from '@element-plus/icons-vue'
 
 // 控制左侧边栏显示隐藏
 // 获取页面宽度
@@ -158,17 +158,16 @@ useHead({
         </div>
 
         <!-- 底部操作栏 -->
-        <div class="footer-actions">
-          <div class="action-buttons">
-            <el-button type="primary" size="large" @click="submit"
-              >发布文章</el-button
-            >
-            <el-button
-              type="warning"
-              size="large"
-              @click="navigateTo('/admin/articlelist')"
-              >返回列表</el-button
-            >
+        <div class="createarticle-footer">
+          <div class="footer-content">
+            <div class="left-info">
+              <el-icon><InfoFilled /></el-icon>
+              <span>请仔细检查信息后再提交</span>
+            </div>
+            <div class="right-buttons">
+              <el-button type="primary" size="large" @click="submit">发布文章</el-button>
+              <el-button size="large" plain @click="navigateTo('/admin/articlelist')">返回列表</el-button>
+            </div>
           </div>
         </div>
       </div>
@@ -275,26 +274,49 @@ useHead({
         }
       }
 
-      .footer-actions {
+      .createarticle-footer {
         position: fixed;
-        left: 200px;
-        bottom: 0;
+        left: 0;
         right: 0;
-        padding: 16px 24px;
-        background: #fff;
-        border-top: 1px solid #eaecf0;
-        box-shadow: 0 -1px 2px 0 rgba(0, 0, 0, 0.03);
-        z-index: 10;
+        bottom: 0;
+        display: flex;
+        justify-content: center;
+        padding: 0 20px 20px;
+        background: transparent;
+        z-index: 999;
+        pointer-events: none;
 
-        .action-buttons {
+        .footer-content {
+          width: 100%;
+          max-width: 1200px;
+          background: #fff;
+          border: 1px solid var(--el-border-color);
+          border-radius: 12px;
+          box-shadow: var(--el-box-shadow-light);
+          padding: 14px 16px;
           display: flex;
-          justify-content: flex-end;
-          gap: 12px;
-          margin: 0 auto;
+          justify-content: space-between;
+          align-items: center;
+          pointer-events: auto;
 
-          .el-button {
-            min-width: 100px;
-            font-weight: 500;
+          .left-info {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: var(--el-text-color-secondary);
+            font-size: 14px;
+            .el-icon {
+              color: var(--el-color-warning);
+            }
+          }
+
+          .right-buttons {
+            display: flex;
+            gap: 12px;
+            .el-button {
+              min-width: 100px;
+              font-weight: 500;
+            }
           }
         }
       }
@@ -307,16 +329,26 @@ useHead({
     padding: 16px;
     padding-bottom: 100px;
   }
-
-  .footer-actions {
-    left: 0 !important;
-  }
 }
 
 @media screen and (max-width: 768px) {
   .container .right .createarticle-container {
     padding: 12px;
     padding-bottom: 100px;
+  }
+  .createarticle-footer {
+    padding: 0 12px 12px;
+    .footer-content {
+      flex-direction: column;
+      align-items: stretch;
+      gap: 12px;
+      .right-buttons {
+        flex-direction: column;
+        .el-button {
+          width: 100%;
+        }
+      }
+    }
   }
 }
 </style>

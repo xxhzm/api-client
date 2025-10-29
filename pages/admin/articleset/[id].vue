@@ -1,5 +1,5 @@
 <script setup>
-import { Menu } from '@element-plus/icons-vue'
+import { Menu, InfoFilled } from '@element-plus/icons-vue'
 
 const route = useRoute()
 const { $msg, $myFetch } = useNuxtApp()
@@ -176,23 +176,19 @@ useHead({
           </el-form>
         </div>
         <div class="createArticle-footer">
-          <div class="button">
-            <el-button
-              size="large"
-              color="#626aef"
-              type="primary"
-              @click="submit"
-              >提交</el-button
-            >
-
-            <el-button
-              size="large"
-              color="#ff9e08"
-              style="color: #fff"
-              type="primary"
-              @click="navigateTo('/admin')"
-              >返回</el-button
-            >
+          <div class="footer-content">
+            <div class="left-info">
+              <el-icon><InfoFilled /></el-icon>
+              <span>请仔细检查信息后再提交</span>
+            </div>
+            <div class="right-buttons">
+              <el-button size="large" type="primary" @click="submit"
+                >提交</el-button
+              >
+              <el-button size="large" plain @click="navigateTo('/admin')"
+                >取消</el-button
+              >
+            </div>
           </div>
         </div>
       </div>
@@ -249,17 +245,46 @@ useHead({
 
       .createArticle-footer {
         position: fixed;
-        left: 200px;
+        left: 0;
+        right: 0;
         bottom: 0;
-        width: calc(100% - 200px);
-        height: 80px;
-        background: #fff;
-        box-shadow: 2px 2px 2px rgb(0 0 0 / 10%);
-        .button {
-          position: absolute;
-          right: 50px;
-          top: 50%;
-          transform: translateY(-50%);
+        display: flex;
+        justify-content: right;
+        padding: 0 20px 20px;
+        background: transparent;
+        z-index: 999;
+        pointer-events: none;
+
+        .footer-content {
+          width: calc(100% - 240px);
+          background: #fff;
+          border: 1px solid var(--el-border-color);
+          border-radius: 12px;
+          box-shadow: var(--el-box-shadow-light);
+          padding: 14px 16px;
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          pointer-events: auto;
+
+          .left-info {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: var(--el-text-color-secondary);
+            font-size: 14px;
+            .el-icon {
+              color: var(--el-color-warning);
+            }
+          }
+
+          .right-buttons {
+            display: flex;
+            gap: 12px;
+            .el-button {
+              min-width: 96px;
+            }
+          }
         }
       }
     }
@@ -268,8 +293,18 @@ useHead({
 
 @media screen and (max-width: 768px) {
   .createArticle-footer {
-    left: 0 !important;
-    width: 100% !important;
+    padding: 0 12px 12px;
+    .footer-content {
+      flex-direction: column;
+      align-items: stretch;
+      gap: 12px;
+      .right-buttons {
+        flex-direction: column;
+        .el-button {
+          width: 100%;
+        }
+      }
+    }
   }
 }
 </style>

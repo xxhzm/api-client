@@ -205,7 +205,14 @@ const updateApiInfo = async () => {
   }
 
   setTimeout(() => {
-    navigateTo({ path: '/admin/apilist', query: { page: Array.isArray(route.query.page) ? route.query.page[0] : route.query.page } })
+    navigateTo({
+      path: '/admin/apilist',
+      query: {
+        page: Array.isArray(route.query.page)
+          ? route.query.page[0]
+          : route.query.page,
+      },
+    })
   }, 1000)
 }
 
@@ -2065,24 +2072,37 @@ useHead({
               </el-tab-pane>
             </el-tabs>
             <div class="apiset-footer">
-              <div class="button">
-                <el-button
-                  size="large"
-                  color="#626aef"
-                  type="primary"
-                  :loading="buttonStatus"
-                  @click="updateApiInfo"
-                  >提交</el-button
-                >
+              <div class="footer-content">
+                <div class="left-info">
+                  <el-icon>
+                    <InfoFilled />
+                  </el-icon>
+                  <span>请仔细检查信息后再提交</span>
+                </div>
+                <div class="right-buttons">
+                  <el-button
+                    size="large"
+                    type="primary"
+                    :loading="buttonStatus"
+                    @click="updateApiInfo"
+                    >提交</el-button
+                  >
 
-                <el-button
-                  size="large"
-                  color="#ff9e08"
-                  style="color: #fff"
-                  type="primary"
-                  @click="navigateTo({ path: '/admin/apilist', query: { page: Array.isArray(route.query.page) ? route.query.page[0] : route.query.page } })"
-                  >返回</el-button
-                >
+                  <el-button
+                    size="large"
+                    @click="
+                      navigateTo({
+                        path: '/admin/apilist',
+                        query: {
+                          page: Array.isArray(route.query.page)
+                            ? route.query.page[0]
+                            : route.query.page,
+                        },
+                      })
+                    "
+                    >返回</el-button
+                  >
+                </div>
               </div>
             </div>
           </ClientOnly>
@@ -2189,18 +2209,40 @@ useHead({
 
       .apiset-footer {
         position: fixed;
-        bottom: 0;
-        right: 0;
-        width: calc(100% - 200px);
-        height: 80px;
+        bottom: 20px;
+        right: 20px;
+        width: calc(100% - 240px);
         background: #fff;
-        box-shadow: 0 2px 2px rgb(0 0 0 / 30%);
+        border: 1px solid #eaecf0;
+        border-radius: 8px;
+        padding: 16px 32px;
+        z-index: 10;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 
-        .button {
-          position: absolute;
-          right: 50px;
-          top: 50%;
-          transform: translateY(-50%);
+        .footer-content {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+
+          .left-info {
+            display: flex;
+            align-items: center;
+            color: #606266;
+            font-size: 14px;
+
+            :deep(.el-icon) {
+              margin-right: 8px;
+            }
+          }
+
+          .right-buttons {
+            display: flex;
+            gap: 12px;
+
+            :deep(.el-button) {
+              min-width: 100px;
+            }
+          }
         }
       }
     }
@@ -2214,6 +2256,37 @@ useHead({
         .apiset-cont {
           .form {
             width: 100%;
+          }
+        }
+      }
+    }
+  }
+}
+
+@media screen and (max-width: 768px) {
+  .container {
+    .right {
+      .apiset-container {
+        .apiset-footer {
+          bottom: 10px;
+          right: 10px;
+          left: 10px;
+          width: auto;
+          padding: 12px 16px;
+
+          .footer-content {
+            flex-direction: column;
+            gap: 12px;
+
+            .right-buttons {
+              width: 100%;
+              display: flex;
+              gap: 10px;
+
+              :deep(.el-button) {
+                flex: 1;
+              }
+            }
           }
         }
       }

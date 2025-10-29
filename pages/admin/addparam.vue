@@ -441,13 +441,15 @@ useHead({
 
       .param-footer {
         position: fixed;
-        bottom: 0;
-        right: 0;
-        width: calc(100% - 200px);
+        bottom: 20px;
+        right: 20px;
+        width: calc(100% - 240px);
         background: #fff;
-        border-top: 1px solid #eaecf0;
+        border: 1px solid #eaecf0;
+        border-radius: 8px;
         padding: 16px 32px;
         z-index: 10;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 
         .footer-content {
           display: flex;
@@ -486,6 +488,10 @@ useHead({
                   background: #2563eb;
                 }
               }
+
+              &.el-button--default {
+                min-width: 88px;
+              }
             }
           }
         }
@@ -507,6 +513,13 @@ useHead({
 @media screen and (max-width: 768px) {
   .container .right .addparam_container {
     padding: 16px;
+  }
+  .container .right .addparam_container .param-footer {
+    bottom: 10px;
+    right: 10px;
+    left: 10px;
+    width: auto;
+    padding: 12px 16px;
   }
 }
 </style>
