@@ -13,8 +13,6 @@ import {
   Location,
 } from '@element-plus/icons-vue'
 
-const { $myFetch } = useNuxtApp()
-
 // 配置项
 const options = useState('options')
 

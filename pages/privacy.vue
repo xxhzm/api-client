@@ -227,11 +227,11 @@ const privacyData = ref({
           subtitle: '联系方式',
           description: '如有隐私相关问题，请通过以下方式联系我们：',
           items: [
-            '邮箱：privacy@example.com',
-            '客服热线：400-123-4567',
+            '邮箱：' + options.value?.contact_email || '',
+            '客服热线：' + options.value?.contact_phone || '',
             '在线客服：网站右下角客服窗口',
-            '邮寄地址：[公司地址]',
-            '工作时间：周一至周五 9:00-18:00',
+            '邮寄地址：' + options.value?.contact_address || '',
+            '工作时间：' + options.value?.working_hours || '',
           ],
         },
         {

@@ -182,7 +182,7 @@ onMounted(async () => {
 
   todayRequest.value.data = (systemInfo.value?.today_request || []).map(
     (element) => ({
-      name: element.alias,
+      name: element.name,
       value: Number(element.number || 0),
     })
   )
