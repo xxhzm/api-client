@@ -273,7 +273,7 @@ const navigateToPath = (path) => {
 
   .mobile-menu {
     position: absolute;
-    top: 100%;
+    top: 0%;
     left: 0;
     right: 0;
     background: #fff;
@@ -286,10 +286,10 @@ const navigateToPath = (path) => {
     z-index: 999;
 
     &.mobile-menu-open {
-      transform: translateY(0);
+      transform: translateY(80px);
       opacity: 1;
       visibility: visible;
-      animation: slideDown 0.3s ease;
+      animation: none;
     }
 
     .mobile-nav {

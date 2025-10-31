@@ -277,12 +277,13 @@ const options = useState('options')
 
 @media screen and (max-width: 768px) {
   .banner-container {
-    height: 450px;
+    height: 350px;
   }
 
   .banner-content {
+    align-items: center;
     padding: 0 16px;
-    min-height: 450px;
+    min-height: 350px;
   }
 
   .banner-title {
@@ -330,12 +331,12 @@ const options = useState('options')
 
 @media screen and (max-width: 480px) {
   .banner-container {
-    height: 400px;
+    height: 350px;
   }
 
   .banner-content {
     padding: 0 12px;
-    min-height: 400px;
+    min-height: 350px;
   }
 
   .banner-title {
