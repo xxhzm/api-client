@@ -505,10 +505,26 @@ const buyPackage = (pkg) => {
               style="width: 100%"
               class="params-table"
             >
-              <el-table-column prop="name" label="参数名" :width="isMobile ? 120 : 180" />
-              <el-table-column prop="param" label="传递参数" :width="isMobile ? 140 : 180" />
-              <el-table-column prop="position" label="传入位置" :width="isMobile ? 80 : 120" />
-              <el-table-column prop="required" label="类型" :width="isMobile ? 80 : 100">
+              <el-table-column
+                prop="name"
+                label="参数名"
+                :width="isMobile ? 120 : 180"
+              />
+              <el-table-column
+                prop="param"
+                label="传递参数"
+                :width="isMobile ? 140 : 180"
+              />
+              <el-table-column
+                prop="position"
+                label="传入位置"
+                :width="isMobile ? 80 : 120"
+              />
+              <el-table-column
+                prop="required"
+                label="类型"
+                :width="isMobile ? 80 : 100"
+              >
                 <template #default="scope">
                   <el-tag
                     :type="scope.row.required === '必传' ? 'danger' : 'info'"
@@ -518,14 +534,24 @@ const buyPackage = (pkg) => {
                   </el-tag>
                 </template>
               </el-table-column>
-              <el-table-column prop="docs" label="参数说明" :min-width="isMobile ? 160 : 240" />
+              <el-table-column
+                prop="docs"
+                label="参数说明"
+                :min-width="isMobile ? 160 : 240"
+              />
             </el-table>
           </div>
         </div>
 
         <!-- 广告位 -->
         <client-only>
-          <div class="box ad-section" v-if="adDisplay">
+          <div
+            class="box ad-section"
+            v-if="
+              adDisplay &&
+              !(apiInfo.package_list && apiInfo.package_list.length > 0)
+            "
+          >
             <h2>推荐内容</h2>
             <Ad @adInfo="adInfo"></Ad>
           </div>
@@ -544,12 +570,8 @@ const buyPackage = (pkg) => {
               style="width: 100%"
               class="package-table"
             >
-              <el-table-column prop="name" label="套餐名称" width="180" />
-              <el-table-column
-                prop="description"
-                label="套餐描述"
-                min-width="200"
-              />
+              <el-table-column prop="name" label="套餐名称" />
+              <el-table-column prop="description" label="套餐描述" />
               <el-table-column label="套餐类型" width="100" align="center">
                 <template #default="scope">
                   <el-tag
@@ -806,7 +828,9 @@ const buyPackage = (pkg) => {
   width: 100%;
   min-height: 100vh;
   background: #ffffff;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, 'Noto Sans', 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol';
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto,
+    'Helvetica Neue', Arial, 'Noto Sans', 'Apple Color Emoji', 'Segoe UI Emoji',
+    'Segoe UI Symbol';
 
   .apiinfo-container {
     max-width: 1600px;
