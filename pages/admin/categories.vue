@@ -39,6 +39,11 @@ const search = ref('')
 const getData = async () => {
   const res = await $myFetch('CategoryList')
 
+  if (res.code !== 200) {
+    msg(res.msg, 'error')
+    return false
+  }
+
   res.data = res.data.map((item) => {
     return {
       id: item.id,
@@ -87,6 +92,33 @@ const handleDelete = async (index, row) => {
   loading.value = false
 }
 
+// 查看当前分类下的接口
+const handleViewApis = async (index, row) => {
+  loading.value = true
+  try {
+    const res = await $myFetch('SearchAPI', {
+      params: {
+        category: row.id,
+      },
+    })
+
+    if (res.code !== 200) {
+      msg(res.msg, 'error')
+      return
+    }
+
+    // 仅保留并展示 id 与 name 字段
+    viewApiList.value = Array.isArray(res.data)
+      ? res.data.map((item) => ({ id: item.id, name: item.name }))
+      : []
+    viewApiDialogVisible.value = true
+  } catch (error) {
+    msg('查询失败', 'error')
+  } finally {
+    loading.value = false
+  }
+}
+
 const addcategoryInfo = reactive({
   name: '',
   alias: '',
@@ -102,10 +134,16 @@ const onSubmit = async () => {
   bodyValue.append('name', addcategoryInfo.name)
   bodyValue.append('alias', addcategoryInfo.alias)
 
-  const { data: res } = await $myFetch('CategoryCreate', {
+  const res = await $myFetch('CategoryCreate', {
     method: 'POST',
     body: bodyValue,
   })
+
+  if (res.code !== 200) {
+    msg(res.msg, 'error')
+  } else {
+    msg(res.msg, 'success')
+  }
 
   getData()
 }
@@ -116,6 +154,10 @@ useHead({
     'width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0',
   charset: 'utf-8',
 })
+
+// 展示接口列表弹窗数据
+const viewApiDialogVisible = ref(false)
+const viewApiList = ref([])
 </script>
 
 <template>
@@ -152,6 +194,7 @@ useHead({
                   </template>
                   <template #default="scope">
                     <div class="table-actions">
+                      <el-button type="primary" link @click="handleViewApis(scope.$index, scope.row)"> 查看接口 </el-button>
                       <el-popconfirm
                         confirm-button-text="确定"
                         cancel-button-text="取消"
@@ -191,6 +234,16 @@ useHead({
               </el-table>
             </client-only>
           </div>
+
+          <!-- 查看接口弹窗 -->
+          <el-dialog v-model="viewApiDialogVisible" title="分类接口列表" width="600px">
+            <client-only>
+              <el-table :data="viewApiList" style="width: 100%">
+                <el-table-column prop="id" label="ID" width="100" />
+                <el-table-column prop="name" label="接口名称" />
+              </el-table>
+            </client-only>
+          </el-dialog>
 
           <!-- 新增分类表单 -->
           <div class="form-container">
