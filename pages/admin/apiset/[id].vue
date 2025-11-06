@@ -53,7 +53,6 @@ const apiSetInfo = ref({
   url: '',
   method: '',
   example: '',
-  oldCategoryId: '',
   category: '',
   categoryId: '',
   state: true,
@@ -124,8 +123,6 @@ const getData = async () => {
   apiSetInfo.value.prefixValue = res.data.prefixName
   apiSetInfo.value.prefix = res.data.prefix
 
-  apiSetInfo.value.oldCategoryId = res.data.categoryId
-
   if (res.data.state === '启用') {
     apiSetInfo.value.state = true
   } else {
@@ -137,6 +134,9 @@ const getData = async () => {
   } else {
     apiSetInfo.value.keyState = false
   }
+
+  // 初始化多分类选中状态
+  await initSelectedCategoriesFromApi()
 }
 
 onMounted(async () => {
@@ -147,7 +147,8 @@ onMounted(async () => {
 })
 
 const updateApiInfo = async () => {
-  if (apiSetInfo.value.category === '' || apiSetInfo.value.categoryId === '') {
+  // 至少选择一个分类
+  if (!selectedCategories.value || selectedCategories.value.length === 0) {
     msg('请选择分类', 'error')
     return false
   }
@@ -175,8 +176,9 @@ const updateApiInfo = async () => {
   bodyValue.append('keywords', apiSetInfo.value.keywords)
   bodyValue.append('url', apiSetInfo.value.url)
   bodyValue.append('method', apiSetInfo.value.method)
-  bodyValue.append('categoryId', apiSetInfo.value.categoryId)
-  bodyValue.append('oldCategoryId', apiSetInfo.value.oldCategoryId)
+  // 多分类以 | 拼接传递到后端
+  const categoryIdsJoined = selectedCategories.value.map((c) => c.id).join('|')
+  bodyValue.append('categoryId', categoryIdsJoined)
   bodyValue.append('example', apiSetInfo.value.example)
   bodyValue.append('exampleUrl', apiSetInfo.value.example_url)
   bodyValue.append('prefix', apiSetInfo.value.prefix)
@@ -320,6 +322,38 @@ watch(paramDialogStatus, (newValue) => {
 // 分类的数据
 const categoryData = ref([])
 
+// 多分类选择支持
+const selectedCategories = ref([]) // [{ id, name }]
+const categoryInput = ref('')
+
+const prepareCategoryData = async () => {
+  // 预加载分类数据，用于名称映射
+  if (categoryData.value.length === 0) {
+    const res = await $myFetch('CategoryList')
+
+    res.data = res.data.map((item) => {
+      return {
+        id: item.id,
+        value: item.name,
+      }
+    })
+
+    categoryData.value = res.data
+  }
+}
+
+const initSelectedCategoriesFromApi = async () => {
+  await prepareCategoryData()
+  const idsStr = apiSetInfo.value?.categoryId
+    ? String(apiSetInfo.value.categoryId)
+    : ''
+  const ids = idsStr.split('|').filter((id) => id !== '')
+  selectedCategories.value = ids.map((id) => {
+    const found = categoryData.value.find((c) => String(c.id) === String(id))
+    return { id: Number(id), name: found ? found.value : id }
+  })
+}
+
 const querySearch = async (queryString, cb) => {
   // 如果没有数据则从服务端获取分类内容
   if (categoryData.value.length === 0) {
@@ -352,7 +386,16 @@ const createFilter = (queryString) => {
 }
 
 const handleSelect = (item) => {
-  apiSetInfo.value.categoryId = item.id
+  // 去重添加
+  if (!selectedCategories.value.some((c) => c.id === item.id)) {
+    selectedCategories.value.push({ id: item.id, name: item.value })
+  }
+  // 选择后清空输入框
+  categoryInput.value = ''
+}
+
+const removeSelectedCategory = (index) => {
+  selectedCategories.value.splice(index, 1)
 }
 
 // 接口前缀数据的数据
@@ -1154,11 +1197,27 @@ useHead({
                     <el-col :xs="24" :sm="24" :md="24" :lg="24" :xl="24">
                       <el-form-item label="接口分类" :label-width="90" required>
                         <el-autocomplete
-                          v-model="apiSetInfo.category"
+                          v-model="categoryInput"
                           :fetch-suggestions="querySearch"
-                          placeholder="请选择分类"
+                          placeholder="请选择分类（可多选）"
                           @select="handleSelect"
                         />
+                        <div
+                          v-if="selectedCategories.length > 0"
+                          style="margin-top: 8px"
+                        >
+                          <el-tag
+                            v-for="(cat, idx) in selectedCategories"
+                            :key="cat.id"
+                            closable
+                            @close="removeSelectedCategory(idx)"
+                            style="margin-right: 6px; margin-bottom: 6px"
+                            type="info"
+                            effect="plain"
+                          >
+                            {{ cat.name }}
+                          </el-tag>
+                        </div>
                       </el-form-item>
                     </el-col>
 

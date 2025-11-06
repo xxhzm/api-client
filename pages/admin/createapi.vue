@@ -10,7 +10,6 @@ import {
   Lock,
   Unlock,
 } from '@element-plus/icons-vue'
-const username = useCookie('username')
 
 const { $msg, $myFetch } = useNuxtApp()
 const msg = $msg
@@ -198,7 +197,8 @@ const create = async () => {
     return false
   }
 
-  if (!createapiInfo.categoryId) {
+  // 至少选择一个分类
+  if (!selectedCategories.value || selectedCategories.value.length === 0) {
     msg('请选择分类', 'error')
     return false
   }
@@ -215,9 +215,10 @@ const create = async () => {
   apiBodyValue.append('keywords', createapiInfo.keywords)
   apiBodyValue.append('url', createapiInfo.url)
   apiBodyValue.append('method', createapiInfo.method)
-  apiBodyValue.append('categoryId', createapiInfo.categoryId)
+  // 多分类以 | 拼接传递到后端
+  const categoryIdsJoined = selectedCategories.value.map((c) => c.id).join('|')
+  apiBodyValue.append('categoryId', categoryIdsJoined)
   apiBodyValue.append('example', createapiInfo.example)
-  apiBodyValue.append('uname', username.value)
   apiBodyValue.append('exampleUrl', createapiInfo.exampleUrl)
   apiBodyValue.append('prefix', createapiInfo.prefix)
 
@@ -341,9 +342,21 @@ const createFilter = (queryString) => {
 const handlePrefixSelect = (item) => {
   createapiInfo.prefix = item.id
 }
+// 多分类选择支持
+const selectedCategories = ref([]) // [{ id, name }]
+const categoryInput = ref('')
 
 const handleSelect = (item) => {
-  createapiInfo.categoryId = item.id
+  // 去重添加
+  if (!selectedCategories.value.some((c) => c.id === item.id)) {
+    selectedCategories.value.push({ id: item.id, name: item.value })
+  }
+  // 选择后清空输入框
+  categoryInput.value = ''
+}
+
+const removeSelectedCategory = (index) => {
+  selectedCategories.value.splice(index, 1)
 }
 
 // 参数名称自动完成
@@ -490,11 +503,27 @@ useHead({
                 <el-form-item label="接口分类" required>
                   <client-only>
                     <el-autocomplete
-                      v-model="createapiInfo.category"
+                      v-model="categoryInput"
                       :fetch-suggestions="querySearch"
-                      placeholder="请选择分类"
+                      placeholder="请选择分类（可多选）"
                       @select="handleSelect"
                     />
+                    <div
+                      v-if="selectedCategories.length > 0"
+                      style="margin-top: 8px"
+                    >
+                      <el-tag
+                        v-for="(cat, idx) in selectedCategories"
+                        :key="cat.id"
+                        closable
+                        @close="removeSelectedCategory(idx)"
+                        style="margin-right: 6px; margin-bottom: 6px"
+                        type="info"
+                        effect="plain"
+                      >
+                        {{ cat.name }}
+                      </el-tag>
+                    </div>
                   </client-only>
                 </el-form-item>
               </el-col>
