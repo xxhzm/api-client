@@ -344,13 +344,19 @@ const prepareCategoryData = async () => {
 
 const initSelectedCategoriesFromApi = async () => {
   await prepareCategoryData()
-  const idsStr = apiSetInfo.value?.categoryId
-    ? String(apiSetInfo.value.categoryId)
-    : ''
-  const ids = idsStr.split('|').filter((id) => id !== '')
-  selectedCategories.value = ids.map((id) => {
-    const found = categoryData.value.find((c) => String(c.id) === String(id))
-    return { id: Number(id), name: found ? found.value : id }
+  // 兼容新的接口返回：categories 为 [{ id, name }]
+  const list = Array.isArray(apiSetInfo.value?.categories)
+    ? apiSetInfo.value.categories
+    : []
+  selectedCategories.value = list.map((item) => {
+    // 优先使用服务端返回的名称，其次从本地字典匹配
+    const found = categoryData.value.find(
+      (c) => String(c.id) === String(item.id)
+    )
+    return {
+      id: Number(item.id),
+      name: item.name || (found ? found.value : String(item.id)),
+    }
   })
 }
 
@@ -2156,6 +2162,9 @@ useHead({
                           page: Array.isArray(route.query.page)
                             ? route.query.page[0]
                             : route.query.page,
+                          limit: Array.isArray(route.query.limit)
+                            ? route.query.limit[0]
+                            : route.query.limit,
                         },
                       })
                     "

@@ -6,6 +6,8 @@ const route = useRoute()
 
 // 当前页数
 const page = ref(1)
+// 每页条数
+const pageSize = ref(50)
 // 总页数
 const totalPages = ref(1)
 // 总记录
@@ -14,6 +16,8 @@ const totalRecords = ref(50)
 const pageLoading = ref(false)
 // 搜索状态
 const isSearching = ref(false)
+// 初始化阶段标记，避免初次赋值触发不必要刷新
+const initializing = ref(true)
 
 // 控制左侧边栏显示隐藏
 // 获取页面宽度
@@ -47,6 +51,10 @@ const handleSidebarShow = () => {
 watch(
   () => page.value,
   async (newValue) => {
+    // 初始化阶段或搜索中不刷新
+    if (initializing.value) {
+      return
+    }
     // 如果是搜索状态，不需要重新请求，因为搜索结果没有分页
     if (isSearching.value) {
       return
@@ -61,6 +69,32 @@ watch(
 )
 
 const loading = ref(false)
+// 监听每页条数变化：重置到第一页并刷新数据
+watch(
+  () => pageSize.value,
+  async () => {
+    // 初始化阶段或搜索中不刷新
+    if (initializing.value) {
+      return
+    }
+    if (isSearching.value) {
+      return
+    }
+    // 显示分页loading
+    pageLoading.value = true
+    if (page.value !== 1) {
+      // 非第一页，修改页码触发页数watch来请求数据
+      page.value = 1
+    } else {
+      // 已是第一页，直接刷新数据
+      await getData()
+      setTimeout(() => {
+        pageLoading.value = false
+      }, 300)
+    }
+  }
+)
+
 const tableData = ref([])
 const search = ref('')
 
@@ -68,6 +102,7 @@ const getData = async () => {
   const res = await $myFetch('ApiList', {
     params: {
       page: page.value,
+      limit: pageSize.value,
     },
   })
 
@@ -83,16 +118,26 @@ const getData = async () => {
 
   tableData.value = res.data.list
   totalRecords.value = res.data.count
-  totalPages.value = Math.ceil(res.data.count / 15)
+  totalPages.value = Math.ceil(res.data.count / pageSize.value)
 }
 
-onMounted(() => {
-  const qp = Array.isArray(route.query.page) ? route.query.page[0] : route.query.page
-  const p = parseInt((qp || ''), 10)
+onMounted(async () => {
+  const qp = Array.isArray(route.query.page)
+    ? route.query.page[0]
+    : route.query.page
+  const p = parseInt(qp || '', 10)
   if (!isNaN(p) && p > 0) {
     page.value = p
   }
-  getData()
+  const ql = Array.isArray(route.query.limit)
+    ? route.query.limit[0]
+    : route.query.limit
+  const l = parseInt(ql || '', 10)
+  if (!isNaN(l) && l > 0) {
+    pageSize.value = l
+  }
+  await getData()
+  initializing.value = false
 })
 
 // 搜索接口
@@ -165,7 +210,10 @@ const clearSearch = () => {
 }
 
 const handleEdit = (index, row) => {
-  navigateTo({ path: '/admin/apiset/' + row.id, query: { page: page.value } })
+  navigateTo({
+    path: '/admin/apiset/' + row.id,
+    query: { page: page.value, limit: pageSize.value },
+  })
 }
 
 const handleDelete = async (index, row) => {
@@ -391,7 +439,20 @@ useHead({
                   </template>
                 </el-table-column>
                 <el-table-column prop="uname" label="创建人" width="100" />
-                <el-table-column prop="category" label="分类" width="100" />
+                <el-table-column label="分类" min-width="160" show-overflow-tooltip>
+                  <template #default="scope">
+                    <span>
+                      {{
+                        Array.isArray(scope.row.categories)
+                          ? scope.row.categories
+                              .map((c) => c?.name)
+                              .filter(Boolean)
+                              .join('、')
+                          : (scope.row.category || '未分类')
+                      }}
+                    </span>
+                  </template>
+                </el-table-column>
                 <el-table-column prop="keyState" label="Key验证" width="90">
                   <template #default="scope">
                     <el-tag
@@ -427,13 +488,14 @@ useHead({
               <div class="pagination">
                 <el-pagination
                   v-if="!isSearching"
-                  :page-size="15"
+                  v-model:page-size="pageSize"
+                  :page-sizes="[10, 15, 20, 50, 100]"
                   :pager-count="5"
                   :total="totalRecords"
                   v-model:current-page="page"
                   :disabled="pageLoading"
                   background
-                  layout="total, prev, pager, next"
+                  layout="total, sizes, prev, pager, next"
                 />
                 <div v-else class="search-info">
                   共找到
