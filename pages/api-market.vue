@@ -17,11 +17,22 @@ const listSearch = useState('listSearch')
 // 分类筛选相关
 const selectedCategory = ref('全部')
 const normalizeCategory = (c) => (!c || c.trim() === '' ? '其他' : c)
+const getCategoryNames = (item) => {
+  const names = Array.isArray(item?.categories)
+    ? item.categories.map((c) => normalizeCategory(c?.name)).filter((n) => !!n)
+    : []
+  if (!names.length && item?.category) {
+    names.push(normalizeCategory(item.category))
+  }
+  return names.length ? names : ['其他']
+}
 const categories = computed(() => {
   if (!list.value || list.value.length === 0) return ['全部']
-  const cats = Array.from(
-    new Set(list.value.map((i) => normalizeCategory(i.category)))
-  )
+  const set = new Set()
+  list.value.forEach((item) => {
+    getCategoryNames(item).forEach((n) => set.add(n))
+  })
+  const cats = Array.from(set)
   const rest = cats
     .filter((c) => c !== '置顶')
     .sort((a, b) => a.localeCompare(b))
@@ -31,9 +42,10 @@ const categories = computed(() => {
 })
 const categoryCounts = computed(() => {
   const map = {}
-  ;(list.value || []).forEach((i) => {
-    const c = normalizeCategory(i.category)
-    map[c] = (map[c] || 0) + 1
+  ;(list.value || []).forEach((item) => {
+    getCategoryNames(item).forEach((n) => {
+      map[n] = (map[n] || 0) + 1
+    })
   })
   map['全部'] = list.value ? list.value.length : 0
   return map
@@ -84,11 +96,10 @@ const performSearch = () => {
       (data.desc && data.desc.toLowerCase().includes(keyword)) ||
       (data.description && data.description.toLowerCase().includes(keyword))
 
-    const dataCat = normalizeCategory(data.category)
+    const itemCats = getCategoryNames(data)
     const matchesCategory =
       selectedCategory.value === '全部' ||
-      dataCat === selectedCategory.value ||
-      (selectedCategory.value === '置顶' && data.category === '置顶')
+      itemCats.includes(selectedCategory.value)
 
     // 费用过滤
     const isPaid = !!data.isPaid
