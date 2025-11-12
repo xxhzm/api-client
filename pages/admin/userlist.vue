@@ -33,7 +33,6 @@ const handleSidebarShow = () => {
 const loading = ref(false)
 const tableData = ref([])
 const search = ref('')
-const isSearching = ref(false)
 
 // 当前页数
 const page = ref(1)
@@ -64,6 +63,7 @@ const getData = async () => {
     params: {
       page: page.value,
       limit: pageSize.value,
+      keyword: search.value.trim() ? search.value.trim() : undefined,
     },
   })
 
@@ -97,44 +97,17 @@ onMounted(() => {
 
 // 搜索用户
 const searchUser = async () => {
-  if (!search.value.trim()) {
-    isSearching.value = false
+  const keyword = search.value.trim()
+  if (!keyword) {
+    page.value = 1
     await getData()
     return
   }
 
   pageLoading.value = true
-  isSearching.value = true
+  page.value = 1
   try {
-    const res = await $myFetch('SearchUser', {
-      params: {
-        keyword: search.value.trim(),
-      },
-    })
-
-    if (res.code !== 200) {
-      $msg(res.msg || '搜索失败', 'error')
-      return
-    }
-
-    // 搜索结果是一个数组，不是对象
-    const userList = Array.isArray(res.data) ? res.data : []
-
-    userList.forEach((element, key) => {
-      if (element.status === '0') {
-        userList[key].status = '启用'
-      } else {
-        userList[key].status = '停用'
-      }
-
-      userList[key].login_time = new Date(element.login_time).toLocaleString()
-      userList[key].create_time = new Date(element.create_time).toLocaleString()
-    })
-
-    tableData.value = userList
-    totalRecords.value = userList.length
-    totalPages.value = 1 // 搜索结果没有分页
-    page.value = 1 // 重置到第一页
+    await getData()
   } catch (error) {
     $msg('搜索失败', 'error')
   } finally {
@@ -148,17 +121,8 @@ watch(search, (newValue) => {
   if (debouncedSearch.value) {
     clearTimeout(debouncedSearch.value)
   }
-
-  if (!newValue.trim() && isSearching.value) {
-    isSearching.value = false
-    getData()
-    return
-  }
-
   debouncedSearch.value = setTimeout(() => {
-    if (newValue.trim()) {
-      searchUser()
-    }
+    searchUser()
   }, 500)
 })
 
@@ -320,11 +284,6 @@ watch(createUserStatus, (newValue) => {
 watch(
   () => page.value,
   async (newValue) => {
-    // 如果是搜索状态，不需要重新请求，因为搜索结果没有分页
-    if (isSearching.value) {
-      return
-    }
-
     pageLoading.value = true
     await getData()
     setTimeout(() => {
@@ -335,9 +294,6 @@ watch(
 
 // 监听每页数量变化
 watch(pageSize, async () => {
-  if (isSearching.value) {
-    return
-  }
   page.value = 1
   pageLoading.value = true
   await getData()
@@ -536,13 +492,6 @@ const showBuyPackageDetail = (record) => {
   buyPackageDetailDialogVisible.value = true
 }
 
-// 清除搜索
-const clearSearch = () => {
-  search.value = ''
-  isSearching.value = false
-  getData()
-}
-
 useHead({
   title: '用户列表',
   viewport:
@@ -686,16 +635,12 @@ useHead({
                   width="180"
                 />
                 <el-table-column prop="ip" label="IP" />
-                <el-table-column
-                  prop="key.access_key"
-                  label="Key"
-                  width="160"
-                />
+                <el-table-column prop="key" label="Key" width="160" />
+                <el-table-column prop="phone" label="手机号" width="160" />
               </el-table>
 
               <div class="pagination">
                 <el-pagination
-                  v-if="!isSearching"
                   v-model:page-size="pageSize"
                   :page-sizes="[10, 25, 50, 100]"
                   :pager-count="5"
@@ -705,13 +650,6 @@ useHead({
                   background
                   layout="total, sizes, prev, pager, next, jumper"
                 />
-                <div v-else class="search-info">
-                  共找到
-                  <span class="search-count">{{ totalRecords }}</span> 条结果
-                  <el-button type="primary" link @click="clearSearch"
-                    >返回全部</el-button
-                  >
-                </div>
               </div>
             </client-only>
           </div>
@@ -1215,19 +1153,6 @@ useHead({
             margin-top: 24px;
             display: flex;
             justify-content: flex-end;
-
-            .search-info {
-              display: flex;
-              align-items: center;
-              color: #606266;
-              font-size: 14px;
-
-              .search-count {
-                color: #409eff;
-                font-weight: bold;
-                margin: 0 5px;
-              }
-            }
           }
         }
       }
