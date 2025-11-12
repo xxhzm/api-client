@@ -43,6 +43,8 @@ const totalPages = ref(1)
 const totalRecords = ref(50)
 // 页数loading
 const pageLoading = ref(false)
+// 每页数量
+const pageSize = ref(25)
 
 // 抽屉显示状态
 const createUserStatus = ref(false)
@@ -61,6 +63,7 @@ const getData = async () => {
   const res = await $myFetch('UserList', {
     params: {
       page: page.value,
+      limit: pageSize.value,
     },
   })
 
@@ -329,6 +332,19 @@ watch(
     }, 300)
   }
 )
+
+// 监听每页数量变化
+watch(pageSize, async () => {
+  if (isSearching.value) {
+    return
+  }
+  page.value = 1
+  pageLoading.value = true
+  await getData()
+  setTimeout(() => {
+    pageLoading.value = false
+  }, 300)
+})
 
 // 查询用户拥有的角色
 const userBindRoleListStatus = ref(false)
@@ -680,13 +696,14 @@ useHead({
               <div class="pagination">
                 <el-pagination
                   v-if="!isSearching"
-                  :page-size="25"
+                  v-model:page-size="pageSize"
+                  :page-sizes="[10, 25, 50, 100]"
                   :pager-count="5"
                   :total="totalRecords"
                   v-model:current-page="page"
                   :disabled="pageLoading"
                   background
-                  layout="total, prev, pager, next, jumper"
+                  layout="total, sizes, prev, pager, next, jumper"
                 />
                 <div v-else class="search-info">
                   共找到
