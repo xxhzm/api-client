@@ -54,6 +54,7 @@ const userInfo = ref({
   username: '',
   password: '',
   mail: '',
+  phone: '',
   balance: 0,
   status: '',
 })
@@ -250,6 +251,9 @@ const updateUser = async () => {
     apiBodyValue.append('password', userInfo.value.password)
   }
   apiBodyValue.append('mail', userInfo.value.mail)
+  if (userInfo.value.phone && userInfo.value.phone.trim() !== '') {
+    apiBodyValue.append('phone', userInfo.value.phone.trim())
+  }
   apiBodyValue.append('balance', userInfo.value.balance)
   apiBodyValue.append('status', userInfo.value.status)
 
@@ -276,6 +280,7 @@ watch(createUserStatus, (newValue) => {
     userInfo.value.username = ''
     userInfo.value.password = ''
     userInfo.value.mail = ''
+    userInfo.value.phone = ''
     userInfo.value.balance = 0
   }
 })
@@ -681,6 +686,12 @@ useHead({
                 <el-input
                   v-model="userInfo.mail"
                   placeholder="请输入邮箱地址"
+                />
+              </el-form-item>
+              <el-form-item label="手机号" v-if="disabled">
+                <el-input
+                  v-model="userInfo.phone"
+                  placeholder="留空则不修改当前手机号"
                 />
               </el-form-item>
               <el-form-item label="账户余额" v-if="disabled">
