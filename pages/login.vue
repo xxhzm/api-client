@@ -6,6 +6,13 @@ const router = useRouter()
 
 const username = useCookie('username')
 const token = useCookie('token')
+const policyConsent = useCookie('policyConsent', { default: () => 'false' })
+const isPolicyAgreed = computed({
+  get: () => String(policyConsent.value).toLowerCase() === 'true',
+  set: (v) => {
+    policyConsent.value = v ? 'true' : 'false'
+  },
+})
 
 if (username.value != undefined && token.value != undefined) {
   navigateTo('/admin')
@@ -38,6 +45,10 @@ const goBack = () => {
 const routeInfo = useCookie('routeInfo')
 
 const login = async () => {
+  if (!isPolicyAgreed.value) {
+    $msg('请阅读并同意隐私政策和用户协议', 'error')
+    return false
+  }
   if (info.username === '' || info.password === '' || info.captcha === '') {
     $msg('请填写完整的登录信息', 'error')
     return false
@@ -188,6 +199,10 @@ const getMailCode = async () => {
 }
 
 const register = async () => {
+  if (!isPolicyAgreed.value) {
+    $msg('请阅读并同意隐私政策和用户协议', 'error')
+    return false
+  }
   if (
     info.username === '' ||
     info.password === '' ||
@@ -476,6 +491,10 @@ const getMailLoginCode = async () => {
 
 // 邮箱登录
 const mailLogin = async () => {
+  if (!isPolicyAgreed.value) {
+    $msg('请阅读并同意隐私政策和用户协议', 'error')
+    return false
+  }
   if (info.mail === '' || info.mailCode === '') {
     $msg('请填写完整的登录信息', 'error')
     return false
@@ -662,6 +681,14 @@ useHead({
               />
             </div>
           </el-form-item>
+          <el-form-item>
+            <el-checkbox v-model="isPolicyAgreed">
+              我已阅读并同意
+              <a href="/privacy" target="_blank">隐私政策</a>
+              和
+              <a href="/terms" target="_blank">用户协议</a>
+            </el-checkbox>
+          </el-form-item>
           <el-button
             type="primary"
             class="submit-btn"
@@ -768,6 +795,14 @@ useHead({
                 获取验证码
               </el-button>
             </div>
+          </el-form-item>
+          <el-form-item>
+            <el-checkbox v-model="isPolicyAgreed">
+              我已阅读并同意
+              <a href="/privacy" target="_blank">隐私政策</a>
+              和
+              <a href="/terms" target="_blank">用户协议</a>
+            </el-checkbox>
           </el-form-item>
           <el-button
             type="primary"
@@ -902,6 +937,14 @@ useHead({
               </el-button>
             </div>
           </el-form-item>
+          <el-form-item>
+            <el-checkbox v-model="isPolicyAgreed">
+              我已阅读并同意
+              <a href="/privacy" target="_blank">隐私政策</a>
+              和
+              <a href="/terms" target="_blank">用户协议</a>
+            </el-checkbox>
+          </el-form-item>
           <el-button type="primary" class="submit-btn" @click="register">
             注册
           </el-button>
@@ -923,11 +966,19 @@ useHead({
   justify-content: center;
   background: linear-gradient(135deg, #f5f7fa 0%, #e4e7eb 100%);
   padding: 20px;
+  a {
+    color: #409eff;
+    text-decoration: none;
+  }
+
+  a:hover {
+    text-decoration: underline;
+  }
 
   .login-card {
     width: 100%;
     max-width: 420px;
-    height: 520px;
+    height: 560px;
     background: #fff;
     border-radius: 12px;
     box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
@@ -937,7 +988,7 @@ useHead({
     flex-direction: column;
 
     &.is-register {
-      height: 620px;
+      height: 650px;
     }
 
     &.is-forgot {
@@ -945,7 +996,7 @@ useHead({
     }
 
     &.is-email {
-      height: 480px;
+      height: 530px;
     }
 
     .card-header {
@@ -1053,7 +1104,6 @@ useHead({
         width: 100%;
         height: 40px;
         font-size: 15px;
-        margin-top: 16px;
       }
     }
 

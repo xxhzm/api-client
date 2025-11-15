@@ -148,7 +148,6 @@ const openDebugDialog = () => {
   const i = apiInfo.value?.params?.findIndex(
     (p) => String(p.name).toLowerCase() === 'key'
   )
-  console.log(userAccessKey.value)
   if (i !== undefined && i !== -1 && userAccessKey.value) {
     debugForm.value[i] = userAccessKey.value
   }
