@@ -13,6 +13,7 @@ import {
 } from '@element-plus/icons-vue'
 
 const { $myFetch, $msg } = useNuxtApp()
+const { userAccessKey, fetchUserKey } = useUserKey()
 const username = useCookie('username')
 
 const chartShow = ref(true)
@@ -314,7 +315,7 @@ onMounted(async () => {
 
 onMounted(() => {
   getBalance(false)
-  getUserKey(false)
+  fetchUserKey()
 })
 
 useHead({
@@ -324,30 +325,10 @@ useHead({
   charset: 'utf-8',
 })
 
-// 用户秘钥：展示并支持复制
-const userAccessKey = ref('')
-const getUserKey = async (showTip = false) => {
-  try {
-    const res = await $myFetch('GetUserKey', {
-      params: {
-        username: username.value,
-      },
-    })
-    if (res.code === 200) {
-      userAccessKey.value = res?.data?.access_key || ''
-      if (showTip) $msg('秘钥刷新成功', 'success')
-    } else {
-      $msg(res.msg || '获取秘钥失败', 'error')
-    }
-  } catch (error) {
-    $msg('获取秘钥失败', 'error')
-  }
-}
-
 const copyKey = async () => {
   try {
     if (!userAccessKey.value) {
-      await getUserKey(false)
+      await fetchUserKey()
     }
     if (!userAccessKey.value) {
       $msg('暂无可复制的秘钥', 'warning')

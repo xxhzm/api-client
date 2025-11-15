@@ -68,11 +68,6 @@ const sitemap = async () => {
     $msg(res.msg, 'success')
   }
 }
-
-const openInNewTab = (url) => {
-  window.open(url, '_blank')
-}
-
 // 获取当前打开的菜单
 const path = useRoute().path
 const pathArr = path.split('/')
@@ -545,7 +540,7 @@ watch(
           <template #title>友情链接</template>
         </el-menu-item>
 
-        <el-menu-item index="10" @click="openInNewTab('/')">
+        <el-menu-item index="10" @click="navigateTo('/')">
           <el-icon>
             <Promotion />
           </el-icon>

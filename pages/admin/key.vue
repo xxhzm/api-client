@@ -11,6 +11,7 @@ const { $msg, $myFetch } = useNuxtApp()
 const activeTab = ref('referer')
 const username = useCookie('username')
 const token = useCookie('token')
+const { userAccessKey, fetchUserKey } = useUserKey()
 
 // 控制左侧边栏显示隐藏
 // 获取页面宽度
@@ -55,17 +56,11 @@ const securityInfo = ref({
 
 const signMethodVisible = ref(false)
 
-// 获取Key信息
 const getKeyInfo = async () => {
   if (username.value && token.value) {
-    const res = await $myFetch('GetUserKey', {
-      params: {
-        username: username.value,
-      },
-    })
-
+    const res = await fetchUserKey(username.value)
     if (res.code === 200) {
-      keyInfo.value.key = res.data.access_key
+      keyInfo.value.key = userAccessKey.value
     } else {
       $msg(res.msg, 'error')
     }
