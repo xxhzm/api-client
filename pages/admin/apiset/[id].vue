@@ -833,6 +833,7 @@ const validateCacheDuration = () => {
 const advancedInfo = ref({
   // 统一使用字符串 'true' / 'false' 以匹配 webset.vue 的选择值
   phoneBinding: 'false',
+  sse: 'false',
   // 以下为后期更新项（可保存但当前无实际效果）
   realNameAuth: 'false',
   enterpriseAuth: 'false',
@@ -858,6 +859,7 @@ const getAdvancedSettings = async () => {
       advancedInfo.value = {
         phoneBinding:
           res.data.phone === true || res.data.phone === 1 ? 'true' : 'false',
+        sse: res.data.sse === true || res.data.sse === 1 ? 'true' : 'false',
         realNameAuth:
           res.data.realname === true || res.data.realname === 1
             ? 'true'
@@ -885,6 +887,7 @@ const updateAdvancedSettings = async () => {
   bodyValue.append('aid', route.params.id)
   // 提交时统一使用后端的驼峰命名字段
   bodyValue.append('phone', advancedInfo.value.phoneBinding === 'true' ? 1 : 0)
+  bodyValue.append('sse', advancedInfo.value.sse === 'true' ? 1 : 0)
   bodyValue.append(
     'realname',
     advancedInfo.value.realNameAuth === 'true' ? 1 : 0
@@ -1805,6 +1808,18 @@ useHead({
                       <div class="form-help">
                         开启后需要用户绑定手机号才可使用
                       </div>
+                    </el-form-item>
+
+                    <el-form-item label="SSE">
+                      <el-select
+                        v-model="advancedInfo.sse"
+                        placeholder="请选择是否启用SSE"
+                        style="width: 100%"
+                      >
+                        <el-option label="是" value="true"></el-option>
+                        <el-option label="否" value="false"></el-option>
+                      </el-select>
+                      <div class="form-help">启用后支持流式传输</div>
                     </el-form-item>
 
                     <!-- 实名认证（后期更新） -->
