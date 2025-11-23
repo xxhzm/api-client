@@ -448,6 +448,7 @@ const filterPackageList = computed(() =>
 // 获取套餐类型文字
 const getPackageTypeText = (type) => {
   const types = {
+    4: '直接扣费',
     2: '包月计费',
     3: '点数包',
   }
@@ -457,6 +458,7 @@ const getPackageTypeText = (type) => {
 // 获取套餐类型标签样式
 const getPackageTypeTag = (type) => {
   const types = {
+    4: 'warning',
     2: 'success',
     3: 'primary',
   }
@@ -2065,6 +2067,7 @@ useHead({
                                   placeholder="请选择套餐类型"
                                   class="full-width"
                                 >
+                                  <el-option label="直接扣费" :value="4" />
                                   <el-option label="包月计费" :value="2" />
                                   <el-option label="点数包" :value="3" />
                                 </el-select>

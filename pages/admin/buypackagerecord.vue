@@ -207,6 +207,7 @@ const actionTagType = (action) => {
 
 const formatTypeLabel = (type) => {
   const t = Number(type)
+  if (t === 4) return '直接扣费'
   if (t === 2) return '包月'
   if (t === 3) return '点数'
   return '-'

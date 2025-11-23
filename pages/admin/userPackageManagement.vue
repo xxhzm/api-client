@@ -162,7 +162,7 @@ const fetchAllRecords = async () => {
     }
 
     // 发送请求获取购买套餐记录数据
-    const res = await $myFetch('GetBuyPackageRecords', { params })
+    const res = await $myFetch('GetUserPackageRecords', { params })
     if (res.code === 200) {
       // 保存记录
       filteredData.value = res.data.data || []
