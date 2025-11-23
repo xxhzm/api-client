@@ -294,7 +294,12 @@ useHead({
               style="width: 100%"
               border
             >
-              <el-table-column prop="id" label="ID" width="80" align="center" />
+              <el-table-column
+                prop="id"
+                label="ID"
+                width="100"
+                align="center"
+              />
               <el-table-column prop="name" label="套餐名称" min-width="280">
                 <template #default="{ row }">
                   <div class="name-cell">

@@ -175,6 +175,43 @@ const formatTimestamp = (timestamp) => {
   return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`
 }
 
+const formatAction = (action) => {
+  switch (Number(action)) {
+    case 1:
+      return '购买'
+    case 2:
+      return '续费'
+    case 3:
+      return '自动续费'
+    case 4:
+      return '赠送'
+    default:
+      return '-'
+  }
+}
+
+const actionTagType = (action) => {
+  switch (Number(action)) {
+    case 1:
+      return 'success'
+    case 2:
+      return 'warning'
+    case 3:
+      return 'info'
+    case 4:
+      return 'primary'
+    default:
+      return ''
+  }
+}
+
+const formatTypeLabel = (type) => {
+  const t = Number(type)
+  if (t === 2) return '包月'
+  if (t === 3) return '点数'
+  return '-'
+}
+
 // 页面加载时获取数据
 onMounted(() => {
   fetchAllRecords()
@@ -270,15 +307,33 @@ useHead({
                   min-width="100"
                   show-overflow-tooltip
                 />
-                <el-table-column prop="name" label="套餐名称" min-width="150">
+                <el-table-column prop="uid" label="用户ID" min-width="100" />
+                <el-table-column prop="aid" label="接口ID" min-width="100" />
+                <el-table-column
+                  prop="package_id"
+                  label="套餐ID"
+                  min-width="120"
+                />
+                <el-table-column
+                  prop="package_name"
+                  label="套餐名称"
+                  min-width="150"
+                >
                   <template #default="scope">
-                    <span style="font-weight: bold">{{ scope.row.name }}</span>
+                    <span style="font-weight: bold">{{
+                      scope.row.package_name
+                    }}</span>
                   </template>
                 </el-table-column>
-                <el-table-column prop="amount" label="金额" width="100">
+                <el-table-column prop="amount" label="数量" width="100">
+                  <template #default="scope">
+                    <span>{{ scope.row.amount }}</span>
+                  </template>
+                </el-table-column>
+                <el-table-column prop="price" label="金额" width="100">
                   <template #default="scope">
                     <span style="color: #f56c6c; font-weight: bold"
-                      >¥{{ scope.row.amount }}</span
+                      >¥{{ scope.row.price }}</span
                     >
                   </template>
                 </el-table-column>
@@ -290,21 +345,28 @@ useHead({
                 <el-table-column prop="type" label="套餐类型" width="120">
                   <template #default="scope">
                     <el-tag
-                      :type="scope.row.type === 2 ? 'primary' : 'success'"
+                      :type="
+                        Number(scope.row.type) === 2 ? 'primary' : 'success'
+                      "
                       size="small"
                     >
-                      {{ scope.row.type === 2 ? '包月计费' : '点数包' }}
+                      {{ formatTypeLabel(scope.row.type) }}
                     </el-tag>
                   </template>
                 </el-table-column>
-                <el-table-column prop="status" label="状态" width="100">
+                <el-table-column prop="action" label="操作类型" width="120">
                   <template #default="scope">
                     <el-tag
-                      :type="scope.row.status === 1 ? 'success' : 'warning'"
+                      :type="actionTagType(scope.row.action)"
                       size="small"
                     >
-                      {{ scope.row.status === 1 ? '有效' : '无效' }}
+                      {{ formatAction(scope.row.action) }}
                     </el-tag>
+                  </template>
+                </el-table-column>
+                <el-table-column prop="points" label="点数" width="100">
+                  <template #default="scope">
+                    <span>{{ scope.row.points }}</span>
                   </template>
                 </el-table-column>
                 <el-table-column label="创建时间" min-width="180">
@@ -312,9 +374,14 @@ useHead({
                     {{ formatTimestamp(scope.row.create_time) }}
                   </template>
                 </el-table-column>
+                <el-table-column label="续费前过期时间" min-width="180">
+                  <template #default="scope">
+                    {{ formatTimestamp(scope.row.expire_before) }}
+                  </template>
+                </el-table-column>
                 <el-table-column label="过期时间" min-width="180">
                   <template #default="scope">
-                    {{ formatTimestamp(scope.row.expire_time) }}
+                    {{ formatTimestamp(scope.row.expire_after) }}
                   </template>
                 </el-table-column>
                 <el-table-column label="操作" width="120" fixed="right">
@@ -369,7 +436,7 @@ useHead({
           </div>
           <div class="detail-item">
             <span class="label">套餐名称：</span>
-            <span class="value">{{ currentRecord.name }}</span>
+            <span class="value">{{ currentRecord.package_name }}</span>
           </div>
           <div class="detail-item">
             <span class="label">套餐ID：</span>
@@ -377,42 +444,23 @@ useHead({
           </div>
           <div class="detail-item">
             <span class="label">支付金额：</span>
-            <span class="value amount">¥{{ currentRecord.amount }}</span>
+            <span class="value amount">¥{{ currentRecord.price }}</span>
           </div>
           <div class="detail-item">
+            <span class="label">动作：</span>
+            <span class="value">{{ formatAction(currentRecord.action) }}</span>
+          </div>
+          <div class="detail-item" v-if="Number(currentRecord.type) === 2">
             <span class="label">套餐时长：</span>
             <span class="value">{{ currentRecord.duration }}天</span>
           </div>
           <div class="detail-item">
-            <span class="label">订单状态：</span>
-            <span
-              class="value"
-              :class="`status-${
-                currentRecord.status === 1 ? 'success' : 'pending'
-              }`"
-            >
-              {{ currentRecord.status === 1 ? '有效' : '无效' }}
-            </span>
-          </div>
-          <div class="detail-item">
             <span class="label">套餐类型：</span>
-            <span class="value">{{
-              currentRecord.type === 2 ? '按时间' : '按次数'
-            }}</span>
+            <span class="value">{{ formatTypeLabel(currentRecord.type) }}</span>
           </div>
-          <div class="detail-item" v-if="currentRecord.package_points > 0">
+          <div class="detail-item" v-if="Number(currentRecord.type) === 3">
             <span class="label">套餐点数：</span>
-            <span class="value">{{ currentRecord.package_points }}</span>
-          </div>
-          <div
-            class="detail-item"
-            v-if="currentRecord.points > 0 || currentRecord.points_used > 0"
-          >
-            <span class="label">剩余/已用：</span>
-            <span class="value"
-              >{{ currentRecord.points }} /
-              {{ currentRecord.points_used }}</span
-            >
+            <span class="value">{{ currentRecord.points }}</span>
           </div>
           <div class="detail-item">
             <span class="label">创建时间：</span>
@@ -423,7 +471,13 @@ useHead({
           <div class="detail-item">
             <span class="label">过期时间：</span>
             <span class="value">{{
-              formatTimestamp(currentRecord.expire_time)
+              formatTimestamp(currentRecord.expire_after)
+            }}</span>
+          </div>
+          <div class="detail-item" v-if="currentRecord.expire_before > 0">
+            <span class="label">续费前过期时间：</span>
+            <span class="value">{{
+              formatTimestamp(currentRecord.expire_before)
             }}</span>
           </div>
         </div>
@@ -480,6 +534,7 @@ useHead({
   padding: 20px;
   overflow-y: auto;
   background-color: #f0f2f5;
+  min-height: 100vh;
 }
 
 .record-card {
