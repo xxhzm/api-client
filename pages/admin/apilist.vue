@@ -231,23 +231,18 @@ const handleDelete = async (index, row) => {
   msg('删除成功', 'success')
 }
 
-const handleOpen = async (index, row) => {
-  loading.value = true
-
-  const { data: res } = await $myFetch('ApiOpen', {
-    params: {
-      id: row.id,
-    },
-  })
-
-  await getData()
-
-  loading.value = false
-}
-
 // 修改接口状态
-const handleStateChange = async (row) => {
+const handleToggle = async (row, field) => {
   loading.value = true
+
+  const nextState =
+    field === 'state' ? (row.state === '启用' ? '关闭' : '启用') : row.state
+  const nextKeyState =
+    field === 'keyState'
+      ? row.keyState === '开启'
+        ? '关闭'
+        : '开启'
+      : row.keyState
 
   const bodyValue = new URLSearchParams()
   bodyValue.append('id', row.id)
@@ -257,13 +252,15 @@ const handleStateChange = async (row) => {
   bodyValue.append('keywords', row.keywords)
   bodyValue.append('url', row.url)
   bodyValue.append('method', row.method)
-  bodyValue.append('categoryId', row.categoryId)
-  bodyValue.append('oldCategoryId', row.categoryId)
   bodyValue.append('example', row.example || '')
   bodyValue.append('exampleUrl', row.example_url || '')
   bodyValue.append('prefix', row.prefix)
-  bodyValue.append('state', row.state === '启用' ? '关闭' : '启用')
-  bodyValue.append('keyState', row.keyState)
+  bodyValue.append('state', nextState)
+  bodyValue.append('keyState', nextKeyState)
+  const categoryIds = Array.isArray(row.categories)
+    ? row.categories.map((c) => c?.id).filter(Boolean)
+    : []
+  bodyValue.append('categoryId', categoryIds.join('|'))
 
   const res = await $myFetch('ApiUpdate', {
     method: 'POST',
@@ -271,41 +268,12 @@ const handleStateChange = async (row) => {
   })
 
   if (res.code === 200) {
-    row.state = row.state === '启用' ? '关闭' : '启用'
-    $msg(res.msg, 'success')
-  } else {
-    $msg(res.msg, 'error')
-  }
-
-  loading.value = false
-}
-
-const handleKeyStateChange = async (row) => {
-  loading.value = true
-
-  const bodyValue = new URLSearchParams()
-  bodyValue.append('id', row.id)
-  bodyValue.append('name', row.name)
-  bodyValue.append('alias', row.alias)
-  bodyValue.append('description', row.description)
-  bodyValue.append('keywords', row.keywords)
-  bodyValue.append('url', row.url)
-  bodyValue.append('method', row.method)
-  bodyValue.append('categoryId', row.categoryId)
-  bodyValue.append('oldCategoryId', row.categoryId)
-  bodyValue.append('example', row.example || '')
-  bodyValue.append('exampleUrl', row.example_url || '')
-  bodyValue.append('prefix', row.prefix)
-  bodyValue.append('state', row.state)
-  bodyValue.append('keyState', row.keyState === '开启' ? '关闭' : '开启')
-
-  const res = await $myFetch('ApiUpdate', {
-    method: 'POST',
-    body: bodyValue,
-  })
-
-  if (res.code === 200) {
-    row.keyState = row.keyState === '开启' ? '关闭' : '开启'
+    if (field === 'state') {
+      row.state = nextState
+    } else if (field === 'keyState') {
+      row.keyState = nextKeyState
+    }
+    await (isSearching.value ? searchApi() : getData())
     $msg(res.msg, 'success')
   } else {
     $msg(res.msg, 'error')
@@ -410,7 +378,7 @@ useHead({
                       :type="scope.row.state === '启用' ? 'success' : 'danger'"
                       size="small"
                       style="cursor: pointer"
-                      @click="handleStateChange(scope.row)"
+                      @click="handleToggle(scope.row, 'state')"
                     >
                       {{ scope.row.state }}
                     </el-tag>
@@ -439,7 +407,11 @@ useHead({
                   </template>
                 </el-table-column>
                 <el-table-column prop="uname" label="创建人" width="100" />
-                <el-table-column label="分类" min-width="160" show-overflow-tooltip>
+                <el-table-column
+                  label="分类"
+                  min-width="160"
+                  show-overflow-tooltip
+                >
                   <template #default="scope">
                     <span>
                       {{
@@ -448,7 +420,7 @@ useHead({
                               .map((c) => c?.name)
                               .filter(Boolean)
                               .join('、')
-                          : (scope.row.category || '未分类')
+                          : scope.row.category || '未分类'
                       }}
                     </span>
                   </template>
@@ -459,7 +431,7 @@ useHead({
                       :type="scope.row.keyState === '开启' ? 'warning' : 'info'"
                       size="small"
                       style="cursor: pointer"
-                      @click="handleKeyStateChange(scope.row)"
+                      @click="handleToggle(scope.row, 'keyState')"
                     >
                       {{ scope.row.keyState }}
                     </el-tag>

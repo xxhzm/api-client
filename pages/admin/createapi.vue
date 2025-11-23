@@ -49,7 +49,6 @@ const createapiInfo = reactive({
   keywords: '',
   url: '',
   method: '',
-  oldCategoryId: '',
   categoryId: '',
   example: '',
   state: true,
