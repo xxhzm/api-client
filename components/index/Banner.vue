@@ -2,19 +2,29 @@
   <div class="banner-container">
     <div class="banner-background"></div>
     <div class="banner-overlay"></div>
-    <div class="banner-content">
+    <div class="banner-content" :style="{ alignItems: verticalAlign }">
       <div class="banner-text">
         <div class="text-content">
-          <h1 class="banner-title">
+          <h1 class="banner-title" v-if="!customTitle">
             {{ options.website_name }}-专业的<span class="title-highlight"
               >API服务</span
             >平台
           </h1>
-          <p class="banner-subtitle">{{ options.slogan }}</p>
-          <p class="banner-description">
+          <h1 class="banner-title" v-else v-html="customTitle"></h1>
+
+          <p class="banner-subtitle">{{ customSubtitle || options.slogan }}</p>
+
+          <p
+            class="banner-description"
+            v-if="!customDescription && !customTitle"
+          >
             我们致力于为开发者和企业提供最优质的API服务体验，通过先进的技术架构和完善的服务体系，助力您的业务快速发展和数字化转型。
           </p>
-          <div class="banner-actions">
+          <p class="banner-description" v-else-if="customDescription">
+            {{ customDescription }}
+          </p>
+
+          <div class="banner-actions" v-if="showActions">
             <button class="btn-primary" @click="navigateTo('/api-market')">
               <span class="btn-text">立即体验 </span>
               <span class="btn-icon">→</span>
@@ -28,6 +38,29 @@
 </template>
 
 <script setup>
+const props = defineProps({
+  customTitle: {
+    type: String,
+    default: '',
+  },
+  customSubtitle: {
+    type: String,
+    default: '',
+  },
+  customDescription: {
+    type: String,
+    default: '',
+  },
+  showActions: {
+    type: Boolean,
+    default: true,
+  },
+  verticalAlign: {
+    type: String,
+    default: 'end',
+  },
+})
+
 // 获取Options信息
 const options = useState('options')
 </script>
@@ -78,7 +111,6 @@ const options = useState('options')
   margin: 0 auto;
   padding: 0 40px;
   display: flex;
-  align-items: end;
   min-height: 450px;
 }
 
