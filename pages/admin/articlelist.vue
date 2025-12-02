@@ -155,6 +155,28 @@ const getStatusType = (status) => {
   }
 }
 
+// 获取分类名称
+const getCategoryName = (type) => {
+  const map = {
+    1: '公共通知',
+    2: '行业资讯',
+    3: '产品动态',
+    4: '解决方案',
+  }
+  return map[type] || '未知'
+}
+
+// 获取分类标签类型
+const getCategoryTagType = (type) => {
+  const map = {
+    1: 'danger',
+    2: 'info',
+    3: 'primary',
+    4: 'success',
+  }
+  return map[type] || ''
+}
+
 useHead({
   title: '文章列表',
   viewport:
@@ -245,6 +267,17 @@ useHead({
                   min-width="200"
                   show-overflow-tooltip
                 />
+                <el-table-column prop="type" label="分类" width="120">
+                  <template #default="scope">
+                    <el-tag
+                      :type="getCategoryTagType(scope.row.type)"
+                      size="small"
+                      effect="plain"
+                    >
+                      {{ getCategoryName(scope.row.type) }}
+                    </el-tag>
+                  </template>
+                </el-table-column>
                 <el-table-column
                   prop="keywords"
                   label="关键词"

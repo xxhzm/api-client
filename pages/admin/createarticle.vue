@@ -31,7 +31,6 @@ const handleSidebarShow = () => {
   }
 }
 
-const username = useCookie('username')
 const { $msg, $myFetch } = useNuxtApp()
 
 const createArticleInfo = reactive({
@@ -39,6 +38,7 @@ const createArticleInfo = reactive({
   description: '',
   keywords: '',
   content: '',
+  type: '1',
 })
 
 const submit = async () => {
@@ -46,7 +46,8 @@ const submit = async () => {
     !createArticleInfo.title ||
     !createArticleInfo.description ||
     !createArticleInfo.keywords ||
-    !createArticleInfo.content
+    !createArticleInfo.content ||
+    !createArticleInfo.type
   ) {
     $msg('请填写内容', 'error')
     return false
@@ -62,7 +63,7 @@ const submit = async () => {
   body.append('content', createArticleInfo.content)
   body.append('description', createArticleInfo.description)
   body.append('keywords', createArticleInfo.keywords)
-  body.append('username', username.value)
+  body.append('type', createArticleInfo.type)
 
   const res = await $myFetch('CreateArticle', {
     method: 'POST',
@@ -124,6 +125,20 @@ useHead({
                   </el-form-item>
                 </el-col>
                 <el-col :span="24">
+                  <el-form-item label="文章分类" required>
+                    <el-select
+                      v-model="createArticleInfo.type"
+                      placeholder="请选择分类"
+                      style="width: 100%"
+                    >
+                      <el-option label="公共通知" value="1"></el-option>
+                      <el-option label="行业资讯" value="2"></el-option>
+                      <el-option label="产品动态" value="3"></el-option>
+                      <el-option label="解决方案" value="4"></el-option>
+                    </el-select>
+                  </el-form-item>
+                </el-col>
+                <el-col :span="24">
                   <el-form-item label="关键词" required>
                     <el-input
                       v-model="createArticleInfo.keywords"
@@ -165,8 +180,15 @@ useHead({
               <span>请仔细检查信息后再提交</span>
             </div>
             <div class="right-buttons">
-              <el-button type="primary" size="large" @click="submit">发布文章</el-button>
-              <el-button size="large" plain @click="navigateTo('/admin/articlelist')">返回列表</el-button>
+              <el-button type="primary" size="large" @click="submit"
+                >发布文章</el-button
+              >
+              <el-button
+                size="large"
+                plain
+                @click="navigateTo('/admin/articlelist')"
+                >返回列表</el-button
+              >
             </div>
           </div>
         </div>

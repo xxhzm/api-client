@@ -41,6 +41,7 @@ const updateArticleInfo = ref({
   keywords: '',
   content: '',
   status: '1',
+  type: '1',
 })
 
 const getData = async () => {
@@ -51,6 +52,10 @@ const getData = async () => {
   })
 
   updateArticleInfo.value = res.data
+  // 确保 type 为字符串，以便 select 组件正确显示
+  if (updateArticleInfo.value.type) {
+    updateArticleInfo.value.type = String(updateArticleInfo.value.type)
+  }
 }
 
 onMounted(async () => {
@@ -63,7 +68,8 @@ const submit = async () => {
     !updateArticleInfo.value.description ||
     !updateArticleInfo.value.keywords ||
     !updateArticleInfo.value.content ||
-    !updateArticleInfo.value.status
+    !updateArticleInfo.value.status ||
+    !updateArticleInfo.value.type
   ) {
     $msg('请填写内容', 'error')
     return false
@@ -81,6 +87,7 @@ const submit = async () => {
   body.append('description', updateArticleInfo.value.description)
   body.append('keywords', updateArticleInfo.value.keywords)
   body.append('status', updateArticleInfo.value.status)
+  body.append('type', updateArticleInfo.value.type)
 
   const res = await $myFetch('UpdateArticle', {
     method: 'POST',
@@ -139,6 +146,18 @@ useHead({
                     <el-option label="开启" value="1"></el-option>
                     <el-option label="关闭" value="2"></el-option>
                     <el-option label="草稿" value="3"></el-option>
+                  </el-select> </el-form-item
+              ></el-col>
+              <el-col :xs="24" :sm="24" :md="24" :lg="24" :xl="24">
+                <el-form-item label="文章分类">
+                  <el-select
+                    v-model="updateArticleInfo.type"
+                    placeholder="请选择分类"
+                  >
+                    <el-option label="公共通知" value="1"></el-option>
+                    <el-option label="行业资讯" value="2"></el-option>
+                    <el-option label="产品动态" value="3"></el-option>
+                    <el-option label="解决方案" value="4"></el-option>
                   </el-select> </el-form-item
               ></el-col>
               <el-col :xs="24" :sm="24" :md="24" :lg="24" :xl="24">
