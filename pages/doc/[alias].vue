@@ -412,6 +412,30 @@ const highlightedExample = computed(() => {
   }
 })
 
+const jsonBodyParam = computed(() => {
+  if (!apiInfo.value.params) return null
+  return apiInfo.value.params.find(
+    (p) =>
+      p.name === 'json' &&
+      p.param === 'json' &&
+      p.position === 'body' &&
+      p.required === '必传'
+  )
+})
+
+const formattedJsonDocs = computed(() => {
+  if (!jsonBodyParam.value || !jsonBodyParam.value.docs) return ''
+  try {
+    const parsed =
+      typeof jsonBodyParam.value.docs === 'string'
+        ? JSON.parse(jsonBodyParam.value.docs)
+        : jsonBodyParam.value.docs
+    return JSON.stringify(parsed, null, 2)
+  } catch (e) {
+    return jsonBodyParam.value.docs
+  }
+})
+
 const openInNewWindow = (url) => {
   window.open(url, '_blank')
 }
@@ -506,7 +530,7 @@ const buyPackage = (pkg) => {
         <!-- 请求参数 -->
         <div class="box" id="parameters">
           <h2>请求参数</h2>
-          <div class="table-container">
+          <div class="table-container" v-if="!jsonBodyParam">
             <el-table
               :data="apiInfo.params"
               style="width: 100%"
@@ -548,6 +572,18 @@ const buyPackage = (pkg) => {
               />
             </el-table>
           </div>
+          <div v-else>
+            <div style="margin-bottom: 10px">
+              请使用 POST 请求传递以下 JSON 参数：
+            </div>
+            <pre class="example mac_light mac_pre"><client-only><el-tooltip
+                class="box-item"
+                effect="dark"
+                content="复制"
+                placement="left"
+              ><div class="copy" @click="copy(formattedJsonDocs)"><el-icon size="14"><CopyDocument /></el-icon></div
+              ></el-tooltip></client-only><code class="json" v-text="formattedJsonDocs"></code></pre>
+          </div>
         </div>
 
         <!-- 广告位 -->
@@ -582,6 +618,14 @@ const buyPackage = (pkg) => {
               <el-table-column label="套餐类型" width="100" align="center">
                 <template #default="scope">
                   <el-tag
+                    v-if="scope.row.type === 4"
+                    type="danger"
+                    size="small"
+                  >
+                    直接扣费
+                  </el-tag>
+                  <el-tag
+                    v-else
                     :type="scope.row.type === 2 ? 'success' : 'warning'"
                     size="small"
                   >
@@ -592,25 +636,35 @@ const buyPackage = (pkg) => {
               <el-table-column label="可用次数" width="100" align="center">
                 <template #default="scope">
                   <span v-if="scope.row.type === 2">无限制</span>
+                  <span v-else-if="scope.row.type === 4">按次扣费</span>
                   <span v-else>{{ scope.row.points }}次</span>
                 </template>
               </el-table-column>
               <el-table-column label="有效期" width="100" align="center">
-                <template #default="scope">
-                  <span v-if="scope.row.duration > 0"
-                    >{{ scope.row.duration }}天</span
-                  >
-                  <span v-else>永久</span>
+                <template #default="{ row }">
+                  <span>
+                    <!-- type为4或 duration <= 0 时显示永久 -->
+                    {{
+                      row.type === 4 || row.duration <= 0
+                        ? '永久'
+                        : row.duration + '天'
+                    }}
+                  </span>
                 </template>
               </el-table-column>
               <el-table-column
                 prop="price"
                 label="价格"
-                width="80"
+                width="100"
                 align="center"
               >
                 <template #default="scope">
-                  <span class="package-price-cell">¥{{ scope.row.price }}</span>
+                  <span v-if="scope.row.type === 4" class="package-price-cell"
+                    >¥{{ scope.row.price }}/次</span
+                  >
+                  <span v-else class="package-price-cell"
+                    >¥{{ scope.row.price }}</span
+                  >
                 </template>
               </el-table-column>
               <el-table-column label="操作" width="100" align="center">

@@ -1079,6 +1079,18 @@ const addParam = async () => {
   }
 }
 
+// 一键设置 JSON 参数
+const setJsonParam = () => {
+  addParamInfo.value = {
+    name: 'json',
+    param: 'json',
+    position: 'body',
+    docs: '',
+    required: true,
+  }
+  msg('已设置为 JSON 参数配置，请填写 JSON 内容到参数描述中', 'success')
+}
+
 // 监听添加参数对话框关闭，重置表单
 watch(addParamDialogStatus, (newValue) => {
   if (!newValue) {
@@ -1313,7 +1325,11 @@ useHead({
                   <el-table-column prop="name" label="接口名称" />
                   <el-table-column prop="param" label="传递参数" />
                   <el-table-column prop="position" label="传入位置" />
-                  <el-table-column prop="docs" label="参数描述" />
+                  <el-table-column
+                    prop="docs"
+                    label="参数描述"
+                    show-overflow-tooltip
+                  />
                   <el-table-column prop="required" label="是否必传" />
                   <el-table-column prop="create_time" label="创建时间" />
                   <el-table-column width="160" label="操作">
@@ -1353,6 +1369,31 @@ useHead({
                   class="param-dialog"
                 >
                   <div class="dialog-content">
+                    <el-alert
+                      title="JSON 格式展示说明"
+                      type="info"
+                      show-icon
+                      :closable="false"
+                      style="margin-bottom: 20px"
+                    >
+                      <template #default>
+                        <div>
+                          若需在文档页以 JSON
+                          代码块形式展示参数说明，请添加一个参数：参数名称为
+                          'json'，可传参数为 'json'，传入位置为
+                          'body'，设为'必传'，并将 JSON 内容填入'参数描述'中。
+                        </div>
+                        <div style="margin-top: 10px">
+                          <el-button
+                            type="primary"
+                            size="small"
+                            @click="setJsonParam"
+                          >
+                            一键设置 JSON 参数
+                          </el-button>
+                        </div>
+                      </template>
+                    </el-alert>
                     <el-form :model="addParamInfo" label-width="100px">
                       <el-row :gutter="20">
                         <el-col :span="12">

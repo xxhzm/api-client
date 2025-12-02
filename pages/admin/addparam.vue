@@ -107,6 +107,16 @@ const position = [
   },
 ]
 
+// 一键设置 JSON 参数
+const setJsonParam = () => {
+  addparameter.name = 'json'
+  addparameter.param = 'json'
+  addparameter.position = 'body'
+  addparameter.docs = ''
+  addparameter.required = true
+  msg('已设置为 JSON 参数配置，请填写 JSON 内容到参数描述中', 'success')
+}
+
 const onSubmit = async () => {
   if (
     !addparameter.id ||
@@ -243,6 +253,27 @@ useHead({
           </div>
 
           <div class="form">
+            <el-alert
+              title="JSON 格式展示说明"
+              type="info"
+              show-icon
+              :closable="false"
+              style="margin-bottom: 20px"
+            >
+              <template #default>
+                <div>
+                  若需在文档页以 JSON
+                  代码块形式展示参数说明，请添加一个参数：参数名称为
+                  'json'，可传参数为 'json'，传入位置为 'body'，设为'必传'，并将
+                  JSON 内容填入'参数描述'中。
+                </div>
+                <div style="margin-top: 10px">
+                  <el-button type="primary" size="small" @click="setJsonParam">
+                    一键设置 JSON 参数
+                  </el-button>
+                </div>
+              </template>
+            </el-alert>
             <el-form
               :model="addparameter"
               label-position="top"

@@ -95,6 +95,15 @@ const removeParameter = (index) => {
   }
 }
 
+// 一键设置 JSON 参数
+const setJsonParam = (index) => {
+  parameterList.value[index].name = 'json'
+  parameterList.value[index].param = 'json'
+  parameterList.value[index].position = 'body'
+  parameterList.value[index].required = true
+  msg('已设置为 JSON 参数配置，请填写 JSON 内容到参数描述中', 'success')
+}
+
 const position = [
   {
     value: 'query',
@@ -618,6 +627,36 @@ useHead({
 
                   <!-- 参数配置表单 -->
                   <div class="parameter-form-container">
+                    <el-alert
+                      type="info"
+                      :closable="false"
+                      class="mb-4"
+                      style="margin-bottom: 15px"
+                    >
+                      <template #default>
+                        <div
+                          style="
+                            display: flex;
+                            align-items: center;
+                            justify-content: space-between;
+                          "
+                        >
+                          <span
+                            >如果参数名称和可传参数均为
+                            <b>json</b>，且传入位置为 <b>body</b>，类型为
+                            <b>必传</b>，文档将显示为 JSON 代码块格式。</span
+                          >
+                          <el-button
+                            type="primary"
+                            link
+                            size="small"
+                            @click="setJsonParam(index)"
+                          >
+                            一键设置
+                          </el-button>
+                        </div>
+                      </template>
+                    </el-alert>
                     <el-form
                       :model="parameter"
                       label-width="80px"
