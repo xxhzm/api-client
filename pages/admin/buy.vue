@@ -1,5 +1,11 @@
 <script setup>
-import { Search, Menu, InfoFilled, ShoppingCart } from '@element-plus/icons-vue'
+import {
+  Search,
+  Menu,
+  InfoFilled,
+  ShoppingCart,
+  Check,
+} from '@element-plus/icons-vue'
 
 const { $msg, $myFetch } = useNuxtApp()
 
@@ -71,34 +77,42 @@ const getData = async () => {
 }
 
 // 搜索过滤
-const packages = computed(() => {
-  // 先按接口筛选
-  let filteredByApi = apiList.value.reduce((acc, api) => {
-    if (selectedApi.value && api.id !== selectedApi.value) {
-      return acc
-    }
-    return acc.concat(api.packages)
-  }, [])
-
-  // 再按类型筛选
-  let filteredByType = filteredByApi
-  if (selectedType.value) {
-    filteredByType = filteredByApi.filter(
-      (pkg) => pkg.type === selectedType.value
-    )
+const displayList = computed(() => {
+  // 1. 先根据 API 筛选
+  let apis = apiList.value
+  if (selectedApi.value) {
+    apis = apis.filter((api) => api.id === selectedApi.value)
   }
 
-  // 最后按关键字搜索
-  if (searchKeyword.value) {
-    const keyword = searchKeyword.value.toLowerCase()
-    return filteredByType.filter(
-      (pkg) =>
-        pkg.name.toLowerCase().includes(keyword) ||
-        pkg.api_name.toLowerCase().includes(keyword)
-    )
-  }
+  // 2. 处理每个 API 下的套餐
+  const result = apis
+    .map((api) => {
+      let pkgs = api.packages
 
-  return filteredByType
+      // 按类型筛选
+      if (selectedType.value) {
+        pkgs = pkgs.filter((pkg) => pkg.type === selectedType.value)
+      }
+
+      // 按关键字筛选
+      if (searchKeyword.value) {
+        const keyword = searchKeyword.value.toLowerCase()
+        const apiNameMatch = api.name.toLowerCase().includes(keyword)
+        if (!apiNameMatch) {
+          // 如果 API 名字不匹配，则只保留名字匹配的套餐
+          pkgs = pkgs.filter((pkg) => pkg.name.toLowerCase().includes(keyword))
+        }
+        // 如果 API 名字匹配，则保留所有套餐（已经经过类型筛选）
+      }
+
+      return {
+        ...api,
+        packages: pkgs,
+      }
+    })
+    .filter((api) => api.packages.length > 0) // 只显示有套餐的 API
+
+  return result
 })
 
 // 获取类型文字
@@ -178,22 +192,75 @@ useHead({
       <AdminHeader></AdminHeader>
       <div class="buy_container">
         <div class="cont">
-          <!-- 标题区域 -->
-          <div class="card-header">
-            <div class="header-left">
-              <el-icon class="icon"><ShoppingCart /></el-icon>
-              <span class="title">套餐购买</span>
-              <el-tooltip content="1点数等于1请求次数" placement="top">
-                <el-icon class="info-icon"><InfoFilled /></el-icon>
-              </el-tooltip>
+          <!-- 顶部标题栏 -->
+          <div class="page-header">
+            <div class="header-content">
+              <div class="title-row">
+                <div class="icon-wrapper">
+                  <el-icon><ShoppingCart /></el-icon>
+                </div>
+                <h1 class="page-title">套餐选购</h1>
+              </div>
+              <p class="page-subtitle">
+                选择适合您的 API 套餐，支持包月订阅与按量计费
+                <el-tooltip content="1点数等于1请求次数" placement="top">
+                  <el-icon class="info-icon"><InfoFilled /></el-icon>
+                </el-tooltip>
+              </p>
             </div>
-            <div class="header-right">
+          </div>
+
+          <!-- 筛选工具栏 -->
+          <div class="filter-toolbar">
+            <div class="filter-main">
+              <el-input
+                v-model="searchKeyword"
+                placeholder="搜索接口名称或套餐..."
+                clearable
+                class="search-input-large"
+              >
+                <template #prefix>
+                  <el-icon><Search /></el-icon>
+                </template>
+              </el-input>
+            </div>
+
+            <div class="filter-actions">
+              <!-- 快速分类切换 -->
+              <div class="type-toggles">
+                <div
+                  class="type-toggle-item"
+                  :class="{ active: !selectedType }"
+                  @click="selectedType = null"
+                >
+                  全部
+                </div>
+                <div
+                  class="type-toggle-item"
+                  :class="{ active: selectedType === 2 }"
+                  @click="selectedType = 2"
+                >
+                  包月计费
+                </div>
+                <div
+                  class="type-toggle-item"
+                  :class="{ active: selectedType === 3 }"
+                  @click="selectedType = 3"
+                >
+                  点数包
+                </div>
+              </div>
+
               <el-select
                 v-model="selectedApi"
-                placeholder="选择接口"
+                placeholder="全部接口"
                 clearable
-                class="filter-select"
+                class="api-select"
+                filterable
               >
+                <template #prefix>
+                  <el-icon><Menu /></el-icon>
+                </template>
                 <el-option
                   v-for="api in apiList"
                   :key="api.id"
@@ -201,94 +268,97 @@ useHead({
                   :value="api.id"
                 />
               </el-select>
-              <el-select
-                v-model="selectedType"
-                placeholder="套餐类型"
-                clearable
-                class="filter-select"
-              >
-                <el-option label="包月计费" :value="2" />
-                <el-option label="点数包" :value="3" />
-              </el-select>
-              <el-input
-                v-model="searchKeyword"
-                placeholder="搜索接口或套餐名称"
-                clearable
-                class="search-input"
-              >
-                <template #prefix>
-                  <el-icon><Search /></el-icon>
-                </template>
-              </el-input>
             </div>
           </div>
 
           <!-- 套餐列表 -->
-          <div class="package-list" v-loading="loading">
-            <!-- 套餐卡片列表 -->
-            <div v-if="packages.length > 0" class="package-cards">
-              <el-card
-                v-for="pkg in packages"
-                :key="pkg.id"
-                class="package-card"
-                :body-style="{ padding: '0px' }"
-              >
-                <div class="card-header">
-                  <h3>{{ pkg.name }}</h3>
-                  <el-tag :type="getTypeTag(pkg.type)">
-                    {{ getTypeText(pkg.type) }}
-                  </el-tag>
-                </div>
-
-                <div class="card-content">
-                  <div class="price-section">
-                    <div class="price">
-                      <span class="currency">¥</span>{{ pkg.price }}
-                    </div>
-                  </div>
-
-                  <div class="info-list">
-                    <div class="info-item api-name">
-                      <span class="label">API名称</span>
-                      <span class="value">{{ pkg.api_name }}</span>
-                    </div>
-                    <div class="info-item">
-                      <span class="label">调用次数</span>
-                      <span class="value">{{
-                        pkg.type === 2 ? '不限次数' : `${pkg.points}点`
-                      }}</span>
-                    </div>
-                    <div class="info-item" v-if="pkg.type === 3">
-                      <span class="label">有效期</span>
-                      <span class="value">永久使用</span>
-                    </div>
-                    <div class="info-item" v-if="pkg.type === 2">
-                      <span class="label">有效期</span>
-                      <span class="value">{{ pkg.duration }}天</span>
-                    </div>
-                    <div class="info-item">
-                      <span class="label">描述</span>
-                      <span class="value">{{
-                        pkg.description || '暂无描述'
-                      }}</span>
-                    </div>
+          <div class="package-container" v-loading="loading">
+            <div v-if="displayList.length > 0">
+              <div v-for="api in displayList" :key="api.id" class="api-section">
+                <div class="api-title-bar">
+                  <div class="bar-left">
+                    <h2 class="api-name">{{ api.name }}</h2>
+                    <span class="api-desc">{{
+                      api.description || '暂无描述'
+                    }}</span>
                   </div>
                 </div>
 
-                <div class="card-footer">
-                  <el-button
-                    type="primary"
-                    @click="handleBuy(pkg)"
-                    :loading="pkg.id === buyingId"
+                <div class="package-grid">
+                  <div
+                    v-for="pkg in api.packages"
+                    :key="pkg.id"
+                    class="pricing-card"
+                    :class="{ 'is-popular': pkg.type === 2 }"
                   >
-                    立即购买
-                  </el-button>
+                    <div class="card-top">
+                      <div class="pkg-type">
+                        <span
+                          class="badge"
+                          :class="pkg.type === 2 ? 'monthly' : 'points'"
+                        >
+                          {{ getTypeText(pkg.type) }}
+                        </span>
+                      </div>
+                      <h3 class="pkg-name">{{ pkg.name }}</h3>
+                      <div class="pkg-price">
+                        <span class="currency">¥</span>
+                        <span class="amount">{{ pkg.price }}</span>
+                        <span class="unit" v-if="pkg.type === 2">/月</span>
+                      </div>
+                      <p class="pkg-sub">
+                        {{ pkg.description || '适合大多数开发者使用' }}
+                      </p>
+                    </div>
+
+                    <div class="card-features">
+                      <div class="feature-item">
+                        <el-icon class="check-icon"><Check /></el-icon>
+                        <span
+                          >调用次数:
+                          <b>{{
+                            pkg.type === 2 ? '不限次数' : `${pkg.points}次`
+                          }}</b></span
+                        >
+                      </div>
+                      <div class="feature-item">
+                        <el-icon class="check-icon"><Check /></el-icon>
+                        <span
+                          >有效期:
+                          <b>{{
+                            pkg.type === 2 ? `${pkg.duration}天` : '永久有效'
+                          }}</b></span
+                        >
+                      </div>
+                      <div class="feature-item">
+                        <el-icon class="check-icon"><Check /></el-icon>
+                        <span>API: {{ api.name }}</span>
+                      </div>
+                      <div class="feature-item">
+                        <el-icon class="check-icon"><Check /></el-icon>
+                        <span>如果接口不可用，请联系客服</span>
+                      </div>
+                    </div>
+
+                    <div class="card-action">
+                      <el-button
+                        class="buy-btn"
+                        :type="pkg.type === 2 ? 'primary' : 'default'"
+                        :class="{ 'is-outline': pkg.type !== 2 }"
+                        @click="handleBuy(pkg)"
+                        :loading="pkg.id === buyingId"
+                      >
+                        立即购买
+                      </el-button>
+                    </div>
+                  </div>
                 </div>
-              </el-card>
+              </div>
             </div>
+
             <!-- 暂无套餐时的空状态 -->
             <div v-else class="empty-state">
-              <el-empty description="暂无套餐">
+              <el-empty description="暂无符合条件的套餐">
                 <template #image>
                   <el-icon :size="60" class="empty-icon"
                     ><ShoppingCart
@@ -390,65 +460,145 @@ useHead({
         box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.03);
         border-radius: 12px;
 
-        .card-header {
-          display: flex;
-          justify-content: space-between;
-          align-items: center;
+        .page-header {
           margin-bottom: 32px;
-          padding-bottom: 16px;
-          border-bottom: 1px solid #f0f0f0;
+          text-align: center;
 
-          .header-left {
+          .header-content {
             display: flex;
+            flex-direction: column;
             align-items: center;
-            gap: 12px;
+            gap: 8px;
 
-            .icon {
-              font-size: 24px;
-              color: #3b82f6;
+            .title-row {
+              display: flex;
+              align-items: center;
+              gap: 12px;
+
+              .icon-wrapper {
+                width: 40px;
+                height: 40px;
+                border-radius: 12px;
+                background: #eff6ff;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                color: #3b82f6;
+                font-size: 20px;
+              }
+
+              .page-title {
+                font-size: 24px;
+                font-weight: 700;
+                color: #111827;
+                margin: 0;
+              }
             }
 
-            .title {
-              font-size: 18px;
-              font-weight: 600;
-              color: #1f2937;
-            }
+            .page-subtitle {
+              color: #6b7280;
+              font-size: 14px;
+              margin: 0;
+              display: flex;
+              align-items: center;
+              gap: 6px;
 
-            .info-icon {
-              font-size: 16px;
-              color: #909399;
-              cursor: help;
+              .info-icon {
+                color: #9ca3af;
+                cursor: help;
+                font-size: 14px;
+                &:hover {
+                  color: #3b82f6;
+                }
+              }
+            }
+          }
+        }
+
+        .filter-toolbar {
+          background: #f8fafc;
+          border-radius: 12px;
+          padding: 8px;
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          margin-bottom: 32px;
+          border: 1px solid #e5e7eb;
+          gap: 16px;
+
+          .filter-main {
+            flex: 1;
+            max-width: 400px;
+
+            .search-input-large {
+              :deep(.el-input__wrapper) {
+                box-shadow: none;
+                background: transparent;
+                padding-left: 8px;
+
+                &.is-focus {
+                  box-shadow: none;
+                }
+              }
+
+              :deep(.el-input__inner) {
+                font-size: 15px;
+                color: #1f2937;
+              }
+
+              :deep(.el-input__prefix) {
+                color: #9ca3af;
+                font-size: 18px;
+              }
             }
           }
 
-          .header-right {
+          .filter-actions {
             display: flex;
-            gap: 12px;
             align-items: center;
+            gap: 16px;
 
-            .filter-select {
-              width: 160px;
-              :deep(.el-input__wrapper) {
-                box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
-                border: 1px solid #e5e7eb;
+            .type-toggles {
+              display: flex;
+              background: #fff;
+              padding: 4px;
+              border-radius: 8px;
+              border: 1px solid #e5e7eb;
+
+              .type-toggle-item {
+                padding: 6px 16px;
+                border-radius: 6px;
+                font-size: 13px;
+                font-weight: 500;
+                color: #6b7280;
+                cursor: pointer;
+                transition: all 0.2s;
+
                 &:hover {
-                  border-color: #3b82f6;
+                  color: #1f2937;
                 }
-                &.is-focus {
-                  border-color: #3b82f6;
-                  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.1);
+
+                &.active {
+                  background: #eff6ff;
+                  color: #3b82f6;
+                  font-weight: 600;
                 }
               }
             }
 
-            .search-input {
-              width: 320px;
+            .api-select {
+              width: 200px;
+
               :deep(.el-input__wrapper) {
+                background: #fff;
                 box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
                 border: 1px solid #e5e7eb;
+                border-radius: 8px;
+
                 &:hover {
                   border-color: #3b82f6;
                 }
+
                 &.is-focus {
                   border-color: #3b82f6;
                   box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.1);
@@ -458,12 +608,186 @@ useHead({
           }
         }
 
-        .package-list {
-          display: flex;
-          flex-direction: row;
-          flex-wrap: wrap;
-          gap: 24px;
+        .package-container {
           min-height: 400px;
+          padding: 20px 0;
+
+          .api-section {
+            margin-bottom: 48px;
+
+            .api-title-bar {
+              margin-bottom: 24px;
+              padding-bottom: 12px;
+              border-bottom: 1px dashed #e5e7eb;
+
+              .api-name {
+                font-size: 20px;
+                font-weight: 600;
+                color: #1f2937;
+                margin: 0 0 8px 0;
+              }
+
+              .api-desc {
+                color: #6b7280;
+                font-size: 14px;
+              }
+            }
+
+            .package-grid {
+              display: grid;
+              grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+              gap: 24px;
+              justify-items: center;
+            }
+          }
+
+          .pricing-card {
+            width: 100%;
+            max-width: 320px;
+            background: #fff;
+            border: 1px solid #e5e7eb;
+            border-radius: 16px;
+            padding: 24px;
+            display: flex;
+            flex-direction: column;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+
+            &:hover {
+              transform: translateY(-4px);
+              box-shadow: 0 12px 32px rgba(0, 0, 0, 0.08);
+              border-color: #3b82f6;
+            }
+
+            &.is-popular {
+              border-color: #3b82f6;
+              box-shadow: 0 4px 12px rgba(59, 130, 246, 0.1);
+
+              .card-top {
+                .pkg-type {
+                  .badge {
+                    background: #eff6ff;
+                    color: #3b82f6;
+                  }
+                }
+              }
+            }
+
+            .card-top {
+              text-align: center;
+              margin-bottom: 24px;
+
+              .pkg-type {
+                margin-bottom: 12px;
+                .badge {
+                  display: inline-block;
+                  padding: 4px 12px;
+                  border-radius: 20px;
+                  font-size: 12px;
+                  font-weight: 600;
+                  background: #f3f4f6;
+                  color: #4b5563;
+
+                  &.monthly {
+                    background: #ecfdf5;
+                    color: #059669;
+                  }
+                  &.points {
+                    background: #eff6ff;
+                    color: #2563eb;
+                  }
+                }
+              }
+
+              .pkg-name {
+                font-size: 18px;
+                font-weight: 700;
+                color: #111827;
+                margin: 0 0 16px 0;
+              }
+
+              .pkg-price {
+                display: flex;
+                align-items: baseline;
+                justify-content: center;
+                color: #111827;
+                margin-bottom: 8px;
+
+                .currency {
+                  font-size: 20px;
+                  font-weight: 600;
+                  margin-right: 2px;
+                }
+
+                .amount {
+                  font-size: 42px;
+                  font-weight: 800;
+                  line-height: 1;
+                }
+
+                .unit {
+                  font-size: 14px;
+                  color: #6b7280;
+                  margin-left: 4px;
+                }
+              }
+
+              .pkg-sub {
+                font-size: 13px;
+                color: #6b7280;
+                margin: 0;
+                min-height: 20px;
+              }
+            }
+
+            .card-features {
+              flex: 1;
+              display: flex;
+              flex-direction: column;
+              gap: 12px;
+              margin-bottom: 24px;
+
+              .feature-item {
+                display: flex;
+                align-items: center;
+                font-size: 14px;
+                color: #4b5563;
+
+                .check-icon {
+                  color: #10b981;
+                  margin-right: 8px;
+                  flex-shrink: 0;
+                }
+
+                b {
+                  color: #111827;
+                  margin-left: 4px;
+                }
+              }
+            }
+
+            .card-action {
+              .buy-btn {
+                width: 100%;
+                height: 44px;
+                border-radius: 8px;
+                font-weight: 600;
+                font-size: 15px;
+
+                &.is-outline {
+                  border-color: #e5e7eb;
+                  color: #374151;
+
+                  &:hover {
+                    border-color: #3b82f6;
+                    color: #3b82f6;
+                    background: #eff6ff;
+                  }
+                }
+              }
+            }
+          }
 
           .empty-state {
             width: 100%;
@@ -486,146 +810,6 @@ useHead({
               .el-empty__description {
                 color: #606266;
                 font-size: 14px;
-              }
-            }
-          }
-
-          .package-cards {
-            display: grid;
-            grid-template-columns: repeat(4, 360px);
-            gap: 40px;
-            width: 100%;
-            margin: 0 -24px;
-            padding: 0 24px;
-            justify-content: space-between;
-
-            .package-card {
-              width: 100%;
-              transition: all 0.3s ease;
-              border: 1px solid #e5e7eb;
-              border-radius: 8px;
-              overflow: hidden;
-              background: #fff;
-              display: flex;
-              flex-direction: column;
-              cursor: pointer;
-
-              &:hover {
-                transform: translateY(-2px);
-                box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
-              }
-
-              .card-header {
-                background: #fff;
-                padding: 16px;
-                border-bottom: 1px solid #e5e7eb;
-                text-align: center;
-                margin-bottom: 0;
-
-                h3 {
-                  margin: 0;
-                  font-size: 16px;
-                  color: #333;
-                  font-weight: 600;
-                }
-
-                .el-tag {
-                  margin-top: 8px;
-                  padding: 2px 12px;
-                  font-size: 12px;
-                  border-radius: 4px;
-                  font-weight: 500;
-                }
-              }
-
-              .card-content {
-                padding: 16px;
-                background: #fff;
-                display: flex;
-                flex-direction: column;
-                gap: 12px;
-                flex: 1;
-                min-height: 260px;
-
-                .price-section {
-                  text-align: center;
-                  padding: 12px;
-                  background: #f9fafb;
-                  border-radius: 6px;
-
-                  .price {
-                    font-size: 24px;
-                    font-weight: 600;
-                    color: #f56c6c;
-                    line-height: 1;
-
-                    .currency {
-                      font-size: 14px;
-                      margin-right: 4px;
-                    }
-                  }
-                }
-
-                .info-list {
-                  display: flex;
-                  flex-direction: column;
-                  gap: 10px;
-                  flex: 1;
-
-                  .info-item {
-                    display: flex;
-                    flex-direction: column;
-                    gap: 4px;
-                    padding: 10px;
-                    background: #f9fafb;
-                    border-radius: 6px;
-                    font-size: 13px;
-
-                    .label {
-                      color: #666;
-                      font-size: 12px;
-                    }
-
-                    .value {
-                      color: #333;
-                      font-weight: 500;
-                      font-size: 14px;
-                      word-break: break-all;
-                    }
-
-                    &.api-name {
-                      background: #f5f7fa;
-
-                      .label {
-                        color: #666;
-                      }
-
-                      .value {
-                        color: #409eff;
-                      }
-                    }
-                  }
-                }
-              }
-
-              .card-footer {
-                padding: 14px;
-                border-top: 1px solid #e5e7eb;
-                text-align: center;
-                background: #fff;
-                margin-top: auto;
-
-                .el-button {
-                  width: 90%;
-                  padding: 8px 12px;
-                  font-size: 14px;
-                  font-weight: 500;
-                  border-radius: 4px;
-
-                  &:hover {
-                    transform: translateY(-1px);
-                  }
-                }
               }
             }
           }
@@ -688,50 +872,46 @@ useHead({
         .cont {
           padding: 20px;
 
-          .card-header {
+          .filter-toolbar {
             flex-direction: column;
-            gap: 16px;
-            align-items: flex-start;
+            align-items: stretch;
+            gap: 12px;
+            padding: 12px;
 
-            .header-right {
-              width: 100%;
+            .filter-main {
+              max-width: 100%;
+              border-bottom: 1px solid #e5e7eb;
+              padding-bottom: 12px;
+            }
 
-              .filter-select,
-              .search-input {
+            .filter-actions {
+              flex-direction: column;
+              align-items: stretch;
+
+              .type-toggles {
+                display: flex;
+                justify-content: space-between;
+
+                .type-toggle-item {
+                  flex: 1;
+                  text-align: center;
+                }
+              }
+
+              .api-select {
                 width: 100%;
               }
             }
           }
 
-          .package-list {
-            .package-cards {
+          .package-container {
+            .package-grid {
               grid-template-columns: 1fr;
             }
           }
         }
       }
     }
-  }
-}
-
-@media screen and (max-width: 1600px) {
-  .package-cards {
-    grid-template-columns: repeat(3, 360px) !important;
-  }
-}
-
-@media screen and (max-width: 1200px) {
-  .package-cards {
-    grid-template-columns: repeat(2, 360px) !important;
-    gap: 32px !important;
-  }
-}
-
-@media screen and (max-width: 768px) {
-  .package-cards {
-    grid-template-columns: 360px !important;
-    gap: 24px !important;
-    justify-content: center;
   }
 }
 
