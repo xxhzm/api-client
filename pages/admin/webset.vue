@@ -92,6 +92,7 @@ const advancedInfo = ref({
   clickhouse: 'true',
   system_info: 'true',
   server_ip: '',
+  clickhouse_retention_days: '',
 })
 
 // 登录设置相关
@@ -726,6 +727,10 @@ const advancedInfoSubmit = async () => {
   bodyValue.append('clickhouse', advancedInfo.value.clickhouse)
   bodyValue.append('systemInfo', advancedInfo.value.system_info)
   bodyValue.append('serverIp', advancedInfo.value.server_ip || '')
+  bodyValue.append(
+    'clickhouseRetentionDays',
+    advancedInfo.value.clickhouse_retention_days || ''
+  )
 
   const res = await $myFetch('UpdateAdvancedSetting', {
     method: 'POST',
@@ -1887,6 +1892,18 @@ useHead({
                         </el-select>
                         <div class="form-help">
                           开启后，所有API响应将写入clickhouse数据库，便于问题追踪和调试
+                        </div>
+                      </el-form-item>
+
+                      <el-form-item label="ClickHouse日志保存时间(天)">
+                        <el-input
+                          v-model="advancedInfo.clickhouse_retention_days"
+                          placeholder="请输入日志保存天数，例如：30"
+                          type="number"
+                          style="width: 100%"
+                        />
+                        <div class="form-help">
+                          设置ClickHouse日志的保留时间，单位为天。过期日志将被自动清理。
                         </div>
                       </el-form-item>
 
