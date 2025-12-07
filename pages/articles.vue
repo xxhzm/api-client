@@ -536,6 +536,9 @@ const formatDate = (time) => {
     }
 
     .category-tabs {
+      width: 100%;
+      background: transparent;
+      padding: 0;
       overflow-x: auto;
       white-space: nowrap;
       gap: 15px;
