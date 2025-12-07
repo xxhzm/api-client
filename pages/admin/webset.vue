@@ -93,6 +93,7 @@ const advancedInfo = ref({
   system_info: 'true',
   server_ip: '',
   clickhouse_retention_days: '',
+  api_logs_map_virtual: 'false',
 })
 
 // 登录设置相关
@@ -730,6 +731,10 @@ const advancedInfoSubmit = async () => {
   bodyValue.append(
     'clickhouseRetentionDays',
     advancedInfo.value.clickhouse_retention_days || ''
+  )
+  bodyValue.append(
+    'apiLogsMapVirtual',
+    advancedInfo.value.api_logs_map_virtual || 'false'
   )
 
   const res = await $myFetch('UpdateAdvancedSetting', {
@@ -1904,6 +1909,20 @@ useHead({
                         />
                         <div class="form-help">
                           设置ClickHouse日志的保留时间，单位为天。过期日志将被自动清理。
+                        </div>
+                      </el-form-item>
+
+                      <el-form-item label="ApiLogsMap虚拟数据">
+                        <el-select
+                          v-model="advancedInfo.api_logs_map_virtual"
+                          placeholder="请选择是否启用ApiLogsMap虚拟数据"
+                          style="width: 100%"
+                        >
+                          <el-option label="是" value="true"></el-option>
+                          <el-option label="否" value="false"></el-option>
+                        </el-select>
+                        <div class="form-help">
+                          开启后，ApiLogsMap将使用虚拟数据进行展示
                         </div>
                       </el-form-item>
 
