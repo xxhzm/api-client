@@ -535,6 +535,95 @@ const showBuyPackageDetail = (record) => {
   buyPackageDetailDialogVisible.value = true
 }
 
+// 用户调用记录相关
+const callRecordDialogVisible = ref(false)
+const callRecords = ref([])
+const callRecordLoading = ref(false)
+const callRecordPage = ref(1)
+const callRecordPageSize = ref(10)
+const callRecordMaxPage = ref(1)
+
+// 获取用户调用记录
+const fetchUserCallRecords = async () => {
+  callRecordLoading.value = true
+  try {
+    const params = {
+      page: callRecordPage.value,
+      size: callRecordPageSize.value,
+      uid: currentUserId.value,
+    }
+
+    const res = await $myFetch('ApiLogSearch', { params })
+    if (res.code === 200) {
+      const logs = res.data.logs || []
+      logs.forEach((element, key) => {
+        element.key = key + 1
+        element.timestamp = new Date(element.timestamp).toLocaleString()
+        // 提取URL中的信息
+        if (element.url) {
+          const parts = element.url.split(' ')
+          element.method = parts[0]
+
+          if (parts[1]) {
+            const pathAndParams = parts[1].split('clientIP=')
+            // 如果最右侧为?则移除
+            if (pathAndParams[0].endsWith('?')) {
+              pathAndParams[0] = pathAndParams[0].slice(0, -1)
+            }
+            // 如果最右侧为&则移除
+            if (pathAndParams[0].endsWith('&')) {
+              pathAndParams[0] = pathAndParams[0].slice(0, -1)
+            }
+            element.path = pathAndParams[0]
+          } else {
+            element.path = '-'
+          }
+        }
+      })
+      callRecords.value = logs
+      callRecordMaxPage.value = res.data.max_page_count || 1
+    } else {
+      $msg(res.msg || '获取调用记录失败', 'error')
+    }
+  } catch (error) {
+    console.error(error)
+    $msg('获取调用记录失败', 'error')
+  } finally {
+    callRecordLoading.value = false
+  }
+}
+
+// 处理查看用户调用记录
+const handleUserCallRecord = (row) => {
+  currentUserId.value = row.id
+  callRecordPage.value = 1
+  callRecordDialogVisible.value = true
+  fetchUserCallRecords()
+}
+
+// 监听调用记录页码变化
+watch(callRecordPage, () => {
+  if (callRecordDialogVisible.value) {
+    fetchUserCallRecords()
+  }
+})
+
+// 处理调用记录每页显示数量变化
+const handleCallRecordSizeChange = (newSize) => {
+  callRecordPageSize.value = newSize
+  callRecordPage.value = 1
+  fetchUserCallRecords()
+}
+
+// 监听调用记录对话框关闭
+watch(callRecordDialogVisible, (newValue) => {
+  if (!newValue) {
+    callRecords.value = []
+    callRecordPage.value = 1
+    callRecordMaxPage.value = 1
+  }
+})
+
 useHead({
   title: '用户列表',
   viewport:
@@ -662,6 +751,17 @@ useHead({
                       type="primary"
                       link
                       @click="handleUserBuyPackageRecord(scope.row)"
+                    >
+                      查看记录
+                    </el-button>
+                  </template>
+                </el-table-column>
+                <el-table-column label="调用记录" align="center" width="90">
+                  <template #default="scope">
+                    <el-button
+                      type="warning"
+                      link
+                      @click="handleUserCallRecord(scope.row)"
                     >
                       查看记录
                     </el-button>
@@ -993,6 +1093,109 @@ useHead({
                   layout="total, sizes, prev, pager, next, jumper"
                   @current-change="handleBuyPackagePageChange"
                   @size-change="handleBuyPackageSizeChange"
+                />
+              </div>
+            </div>
+          </el-dialog>
+
+          <!-- 用户调用记录对话框 -->
+          <el-dialog
+            v-model="callRecordDialogVisible"
+            title="调用记录"
+            width="80%"
+            destroy-on-close
+            top="5vh"
+          >
+            <div v-loading="callRecordLoading">
+              <el-table :data="callRecords" style="width: 100%" height="500">
+                <el-table-column prop="key" label="序号" width="60" />
+                <el-table-column
+                  prop="id"
+                  label="请求ID"
+                  min-width="180"
+                  show-overflow-tooltip
+                />
+                <el-table-column
+                  prop="alias"
+                  label="接口名称"
+                  width="120"
+                  show-overflow-tooltip
+                />
+                <el-table-column prop="method" label="请求方法" width="90">
+                  <template #default="scope">
+                    <el-tag
+                      :type="scope.row.method === 'GET' ? 'success' : 'warning'"
+                      size="small"
+                    >
+                      {{ scope.row.method }}
+                    </el-tag>
+                  </template>
+                </el-table-column>
+                <el-table-column
+                  prop="path"
+                  label="请求路径"
+                  min-width="200"
+                  show-overflow-tooltip
+                />
+                <el-table-column
+                  prop="response_time"
+                  label="响应时间"
+                  width="90"
+                />
+                <el-table-column prop="status_code" label="状态码" width="80">
+                  <template #default="scope">
+                    <el-tag
+                      :type="
+                        scope.row.status_code === 200
+                          ? 'success'
+                          : scope.row.status_code === 302 ||
+                            scope.row.status_code === 301
+                          ? 'primary'
+                          : 'danger'
+                      "
+                      size="small"
+                    >
+                      {{ scope.row.status_code }}
+                    </el-tag>
+                  </template>
+                </el-table-column>
+                <el-table-column prop="client_ip" label="IP" width="140" />
+                <el-table-column
+                  prop="address"
+                  label="归属地"
+                  width="130"
+                  show-overflow-tooltip
+                />
+                <el-table-column
+                  prop="timestamp"
+                  label="请求时间"
+                  width="180"
+                />
+                <el-table-column
+                  prop="ua"
+                  label="User Agent"
+                  min-width="200"
+                  show-overflow-tooltip
+                />
+                <el-table-column
+                  prop="referer"
+                  label="来源"
+                  min-width="180"
+                  show-overflow-tooltip
+                />
+              </el-table>
+
+              <div class="pagination" style="margin-top: 20px">
+                <el-pagination
+                  v-model:page-size="callRecordPageSize"
+                  :page-sizes="[10, 25, 50, 100]"
+                  :pager-count="5"
+                  :page-count="callRecordMaxPage"
+                  v-model:current-page="callRecordPage"
+                  :disabled="callRecordLoading"
+                  background
+                  layout="sizes, prev, pager, next, jumper"
+                  @size-change="handleCallRecordSizeChange"
                 />
               </div>
             </div>
