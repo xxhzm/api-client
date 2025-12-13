@@ -247,7 +247,9 @@ useHead({
                         :rows="4"
                         placeholder="使用英文逗号分隔，例如：example.com,example1.com"
                       />
-                      <div class="form-tip">留空表示不限制Referer</div>
+                      <div class="form-tip">
+                        留空表示不限制Referer，设置.a.com代表泛域名
+                      </div>
                     </el-form-item>
                   </el-form>
                 </div>

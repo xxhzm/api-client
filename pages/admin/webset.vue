@@ -94,6 +94,7 @@ const advancedInfo = ref({
   server_ip: '',
   clickhouse_retention_days: '',
   api_logs_map_virtual: 'false',
+  cdn_header: '',
 })
 
 // 登录设置相关
@@ -277,6 +278,9 @@ const getAdvancedInfo = async () => {
   const res = await $myFetch('AdvancedSetting')
   if (res.code === 200) {
     advancedInfo.value = res.data
+    if (advancedInfo.value.cdn_header === undefined) {
+      advancedInfo.value.cdn_header = ''
+    }
   }
 }
 
@@ -736,6 +740,7 @@ const advancedInfoSubmit = async () => {
     'apiLogsMapVirtual',
     advancedInfo.value.api_logs_map_virtual || 'false'
   )
+  bodyValue.append('cdnHeader', advancedInfo.value.cdn_header || '')
 
   const res = await $myFetch('UpdateAdvancedSetting', {
     method: 'POST',
@@ -1912,17 +1917,17 @@ useHead({
                         </div>
                       </el-form-item>
 
-                      <el-form-item label="ApiLogsMap虚拟数据">
+                      <el-form-item label="数据大屏虚拟数据">
                         <el-select
                           v-model="advancedInfo.api_logs_map_virtual"
-                          placeholder="请选择是否启用ApiLogsMap虚拟数据"
+                          placeholder="请选择是否启用数据大屏虚拟数据"
                           style="width: 100%"
                         >
                           <el-option label="是" value="true"></el-option>
                           <el-option label="否" value="false"></el-option>
                         </el-select>
                         <div class="form-help">
-                          开启后，ApiLogsMap将使用虚拟数据进行展示
+                          开启后，数据大屏将使用虚拟数据进行展示
                         </div>
                       </el-form-item>
 
@@ -1943,6 +1948,17 @@ useHead({
                         />
                         <div class="form-help">
                           用于实时监控大屏中显示的服务器地址，必须为有效的IPv4格式
+                        </div>
+                      </el-form-item>
+
+                      <el-form-item label="CDN HTTP头">
+                        <el-input
+                          v-model="advancedInfo.cdn_header"
+                          placeholder="请输入用户开启CDN后获取的HTTP头"
+                          style="width: 100%"
+                        />
+                        <div class="form-help">
+                          用户开启CDN后用于获取IP的HTTP头，例如：X-Forwarded-For
                         </div>
                       </el-form-item>
                       <el-form-item>
