@@ -173,97 +173,103 @@ useHead({
   <div class="api-market-container">
     <IndexNavbar></IndexNavbar>
 
-    <div class="container">
-      <!-- 页面标题 -->
-      <div class="page-header">
-        <h1 class="page-title">API市场</h1>
-        <p class="page-subtitle">发现和使用各种免费的API接口服务</p>
-      </div>
+    <!-- 顶部 Hero 区域：标题 + 搜索 -->
+    <div class="market-hero">
+      <div class="hero-content">
+        <h1 class="page-title">API 市场</h1>
+        <p class="page-subtitle">发现和使用各种优质的 API 接口服务</p>
 
-      <!-- API搜索区域 -->
-      <div class="section">
-        <div class="section-header">
-          <h2 class="section-title">API搜索</h2>
-        </div>
-        <div class="search-box">
+        <div class="search-wrapper">
           <el-input
             v-model="search"
-            placeholder="请输入搜寻的API关键词..."
+            placeholder="搜索 API 名称、描述..."
+            class="hero-search-input"
+            size="large"
             clearable
-            class="search-box__input"
           >
-            <template #suffix>
-              <el-icon><Search /></el-icon>
+            <template #prefix>
+              <el-icon class="search-icon"><Search /></el-icon>
             </template>
           </el-input>
         </div>
       </div>
+    </div>
 
-      <!-- API列表区域 -->
-      <div class="section">
-        <div class="section-header">
-          <h2 class="section-title">API列表</h2>
+    <div class="container">
+      <div class="market-layout">
+        <!-- 左侧分类侧边栏 -->
+        <aside class="sidebar">
+          <div class="sidebar-card">
+            <div class="sidebar-header">
+              <span class="sidebar-title">全部分类</span>
+            </div>
+            <div class="category-list">
+              <div
+                v-for="cat in categories"
+                :key="cat"
+                class="category-item"
+                :class="{ active: selectedCategory === cat }"
+                @click="handleCategorySelect(cat)"
+              >
+                <span class="cat-name">{{ cat }}</span>
+                <span class="cat-count">{{
+                  formatCount(categoryCounts[cat] || 0)
+                }}</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- 反馈按钮 -->
           <a
             :href="options.feedback || '#'"
             target="_blank"
-            class="feedback-btn"
+            class="feedback-card"
           >
-            <el-icon><ChatDotSquare /></el-icon>
-            <span>问题反馈</span>
-            <el-icon class="feedback-btn__arrow"><Right /></el-icon>
+            <div class="feedback-content">
+              <el-icon><ChatDotSquare /></el-icon>
+              <span>提交反馈 / 需求</span>
+            </div>
+            <el-icon><Right /></el-icon>
           </a>
-        </div>
-        <div class="market-layout">
-          <aside class="sidebar">
-            <div class="sidebar-card">
-              <div class="sidebar-header">
-                <div class="sidebar-title">分类</div>
-                <div class="sidebar-subtitle">按类型筛选接口</div>
-              </div>
-              <el-menu
-                :default-active="selectedCategory"
-                class="category-menu"
-                @select="handleCategorySelect"
-              >
-                <el-menu-item v-for="cat in categories" :key="cat" :index="cat">
-                  <span class="category-name">{{ cat }}</span>
-                  <span class="category-count">{{
-                    formatCount(categoryCounts[cat] || 0)
-                  }}</span>
-                </el-menu-item>
-              </el-menu>
+        </aside>
 
-              <!-- 新增：费用与登录状态筛选 -->
-              <div class="filters">
-                <div class="filter-group">
-                  <div class="filter-label">费用</div>
-                  <el-radio-group
-                    v-model="paidFilter"
-                    size="small"
-                    class="filter-radios"
-                  >
-                    <el-radio-button label="全部" />
-                    <el-radio-button label="免费" />
-                    <el-radio-button label="付费" />
-                  </el-radio-group>
-                </div>
-                <div class="filter-group">
-                  <div class="filter-label">登录</div>
-                  <el-radio-group
-                    v-model="loginFilter"
-                    size="small"
-                    class="filter-radios"
-                  >
-                    <el-radio-button label="全部" />
-                    <el-radio-button label="需登录" />
-                    <el-radio-button label="无需登录" />
-                  </el-radio-group>
-                </div>
+        <!-- 右侧内容区域 -->
+        <div class="content">
+          <!-- 顶部筛选栏 -->
+          <div class="filter-bar">
+            <div class="filter-left">
+              <span class="result-count"
+                >共找到 <b>{{ listSearch.length }}</b> 个接口</span
+              >
+            </div>
+            <div class="filter-right">
+              <div class="filter-group">
+                <span class="filter-label">费用：</span>
+                <el-radio-group v-model="paidFilter" size="default">
+                  <el-radio-button label="全部" />
+                  <el-radio-button label="免费" />
+                  <el-radio-button label="付费" />
+                </el-radio-group>
+              </div>
+              <div class="filter-group">
+                <span class="filter-label">权限：</span>
+                <el-radio-group v-model="loginFilter" size="default">
+                  <el-radio-button label="全部" />
+                  <el-radio-button label="需登录" />
+                  <el-radio-button label="无需登录" />
+                </el-radio-group>
               </div>
             </div>
-          </aside>
-          <div class="content">
+          </div>
+
+          <!-- API 列表 -->
+          <div class="api-list-wrapper">
             <IndexApiList />
+          </div>
+
+          <!-- 空状态提示 -->
+          <div v-if="listSearch.length === 0" class="empty-state">
+            <el-empty description="暂无符合条件的 API" />
           </div>
         </div>
       </div>
@@ -277,319 +283,310 @@ useHead({
 .api-market-container {
   width: 100%;
   min-height: 100vh;
-  background: linear-gradient(to bottom, #f7f9fe, #ffffff);
+  background-color: #f8fafc;
+}
 
-  .container {
+/* Hero 区域 */
+.market-hero {
+  background: linear-gradient(135deg, #fff 0%, #f0f4ff 100%);
+  padding: 60px 0 80px;
+  text-align: center;
+  position: relative;
+  border-bottom: 1px solid #eef2f6;
+
+  .hero-content {
     width: 90%;
-    max-width: 1500px;
+    max-width: 800px;
     margin: 0 auto;
-    padding: 20px 0;
   }
 
-  .page-header {
-    text-align: center;
-    padding: 20px 0;
-
-    .page-title {
-      font-size: 32px;
-      font-weight: 600;
-      color: #1f2f3d;
-      margin: 0 0 12px;
-    }
-
-    .page-subtitle {
-      font-size: 16px;
-      color: #606266;
-      margin: 0;
-    }
+  .page-title {
+    font-size: 36px;
+    font-weight: 700;
+    color: #1e293b;
+    margin: 0 0 16px;
+    letter-spacing: -0.5px;
   }
 
-  .section {
-    margin-bottom: 40px;
-
-    &:last-child {
-      margin-bottom: 0;
-    }
+  .page-subtitle {
+    font-size: 16px;
+    color: #64748b;
+    margin: 0 0 40px;
   }
 
-  .section-header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    margin-bottom: 20px;
-    padding: 0 4px;
-  }
+  .search-wrapper {
+    max-width: 600px;
+    margin: 0 auto;
 
-  .section-title {
-    position: relative;
-    color: #1f2f3d;
-    font-size: 18px;
-    font-weight: 500;
-    margin: 0;
-    padding-left: 12px;
-    line-height: 1.4;
-
-    &::before {
-      content: '';
-      position: absolute;
-      left: 0;
-      top: 50%;
-      transform: translateY(-50%);
-      width: 3px;
-      height: 18px;
-      background: #409eff;
-      border-radius: 3px;
-    }
-  }
-
-  .feedback-btn {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    padding: 8px 16px;
-    background: #fff;
-    border: 1px solid #dcdfe6;
-    border-radius: 6px;
-    color: #606266;
-    text-decoration: none;
-    font-size: 14px;
-    transition: all 0.3s ease;
-
-    i {
-      font-size: 14px;
-    }
-
-    &__arrow {
-      font-size: 12px !important;
-      margin-left: 2px;
-      transition: transform 0.3s ease;
-    }
-
-    &:hover {
-      color: #409eff;
-      border-color: #409eff;
-      background: #fff;
-
-      .feedback-btn__arrow {
-        transform: translateX(3px);
-      }
-    }
-  }
-
-  .search-box {
-    background: #fff;
-    border-radius: 12px;
-    padding: 20px 24px;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-
-    &__input {
+    .hero-search-input {
       :deep(.el-input__wrapper) {
-        background: #f5f7fa;
-        border-radius: 8px;
-        box-shadow: none;
-        transition: all 0.25s ease;
+        border-radius: 12px;
+        padding: 4px 16px;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.06);
+        border: 1px solid #e2e8f0;
+        transition: all 0.3s ease;
 
+        &:hover,
         &.is-focus {
-          background: #fff;
-          box-shadow: 0 0 0 1px #dcdfe6;
+          box-shadow: 0 8px 30px rgba(64, 158, 255, 0.12);
+          border-color: #409eff;
         }
       }
 
       :deep(.el-input__inner) {
-        height: 44px;
-        font-size: 15px;
-        color: #606266;
-
-        &::placeholder {
-          color: #909399;
-        }
+        height: 50px;
+        font-size: 16px;
       }
 
-      :deep(.el-input__suffix) {
-        color: #909399;
+      .search-icon {
+        font-size: 20px;
+        color: #94a3b8;
       }
     }
-  }
-
-  /* 分类布局样式 */
-  .market-layout {
-    display: flex;
-    gap: 20px;
-    align-items: flex-start;
-  }
-  .sidebar {
-    width: 240px;
-    flex-shrink: 0;
-    position: sticky;
-    top: 16px;
-  }
-  .content {
-    flex: 1;
-    min-width: 0;
-  }
-  .sidebar-card {
-    background: #fff;
-    border: 1px solid #ebeef5;
-    border-radius: 12px;
-    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.06);
-    overflow: hidden;
-  }
-  .sidebar-header {
-    padding: 14px 16px;
-    border-bottom: 1px solid #ebeef5;
-    background: #fff;
-  }
-  .sidebar-title {
-    font-size: 14px;
-    font-weight: 600;
-    color: #1f2f3d;
-    letter-spacing: 0.2px;
-  }
-  .sidebar-subtitle {
-    margin-top: 2px;
-    font-size: 12px;
-    color: #909399;
-  }
-  .category-menu {
-    background: transparent;
-    border: none;
-    padding: 6px 0;
-  }
-  .category-menu :deep(.el-menu-item) {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    height: 40px;
-    line-height: 40px;
-    padding: 0 16px;
-    border-left: 2px solid transparent;
-    transition: all 0.2s ease;
-    color: #303133;
-  }
-  .category-menu :deep(.el-menu-item:hover) {
-    background: #f5f7fa;
-    border-left-color: #dcdfe6;
-  }
-  .category-menu :deep(.el-menu-item.is-active) {
-    background: #ecf5ff;
-    color: #409eff;
-    font-weight: 600;
-    border-left-color: #409eff;
-  }
-  .category-name {
-    color: #303133;
-    padding: 0;
-  }
-  .category-count {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    min-width: 26px;
-    height: 20px;
-    padding: 0 8px;
-    border-radius: 10px;
-    background: #fff;
-    border: 1px solid #dcdfe6;
-    color: #606266;
-    font-size: 12px;
-    line-height: 20px;
-    font-weight: 500;
-    font-variant-numeric: tabular-nums;
-  }
-  .category-menu :deep(.el-menu-item:hover .category-count) {
-    border-color: #c0c4cc;
-  }
-  .category-menu :deep(.el-menu-item.is-active .category-count) {
-    color: #409eff;
-    background: #ecf5ff;
-    border-color: #409eff;
-  }
-
-  /* 新增：费用与登录状态筛选样式 */
-  .filters {
-    padding: 12px 16px 14px;
-    border-top: 1px solid #ebeef5;
-    background: #fff;
-  }
-  .filter-group {
-    margin-bottom: 10px;
-  }
-  .filter-group:last-child {
-    margin-bottom: 0;
-  }
-  .filter-label {
-    font-size: 12px;
-    color: #909399;
-    margin-bottom: 6px;
-  }
-  .filter-radios :deep(.el-radio-button__inner) {
-    padding: 4px 10px;
-    font-size: 12px;
-    border-color: #dcdfe6;
-  }
-  .filter-radios :deep(.el-radio-button.is-active .el-radio-button__inner) {
-    color: #409eff;
-    background: #ecf5ff;
-    border-color: #409eff;
   }
 }
 
-@media screen and (max-width: 768px) {
-  .api-market-container {
-    .container {
-      width: 95%;
-    }
+.container {
+  width: 90%;
+  max-width: 1440px;
+  margin: -40px auto 40px; // 向上负边距，产生层叠感
+  position: relative;
+  z-index: 10;
+}
 
-    .page-header {
-      padding: 20px 0;
-      margin-bottom: 30px;
+.market-layout {
+  display: flex;
+  gap: 30px;
+  align-items: flex-start;
+}
 
-      .page-title {
-        font-size: 24px;
-      }
+/* 侧边栏 */
+.sidebar {
+  width: 260px;
+  flex-shrink: 0;
+  position: sticky;
+  top: 20px;
 
-      .page-subtitle {
-        font-size: 14px;
-      }
-    }
+  .sidebar-card {
+    background: #fff;
+    border-radius: 16px;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05),
+      0 2px 4px -1px rgba(0, 0, 0, 0.03);
+    overflow: hidden;
+    margin-bottom: 20px;
+  }
 
-    .section-title {
+  .sidebar-header {
+    padding: 20px 24px;
+    border-bottom: 1px solid #f1f5f9;
+
+    .sidebar-title {
       font-size: 16px;
+      font-weight: 600;
+      color: #334155;
+    }
+  }
 
-      &::before {
-        height: 16px;
+  .category-list {
+    padding: 12px;
+  }
+
+  .category-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 16px;
+    margin-bottom: 4px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s;
+    color: #64748b;
+
+    &:hover {
+      background-color: #f8fafc;
+      color: #409eff;
+    }
+
+    &.active {
+      background-color: #eff6ff;
+      color: #409eff;
+      font-weight: 500;
+
+      .cat-count {
+        background-color: #fff;
+        color: #409eff;
       }
     }
 
-    .search-box {
-      padding: 16px 20px;
+    .cat-name {
+      font-size: 14px;
+    }
 
-      &__input {
-        :deep(.el-input__inner) {
-          height: 40px;
-          font-size: 14px;
+    .cat-count {
+      font-size: 12px;
+      background-color: #f1f5f9;
+      padding: 2px 8px;
+      border-radius: 12px;
+      color: #94a3b8;
+      transition: all 0.2s;
+    }
+  }
+
+  .feedback-card {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: #fff;
+    padding: 16px 20px;
+    border-radius: 16px;
+    text-decoration: none;
+    color: #64748b;
+    font-size: 14px;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+    transition: all 0.3s;
+    border: 1px solid transparent;
+
+    &:hover {
+      color: #409eff;
+      border-color: #bfdbfe;
+      transform: translateY(-2px);
+    }
+
+    .feedback-content {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+  }
+}
+
+/* 内容区域 */
+.content {
+  flex: 1;
+  min-width: 0;
+}
+
+.filter-bar {
+  background: #fff;
+  border-radius: 16px;
+  padding: 16px 24px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 20px;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+  flex-wrap: wrap;
+  gap: 16px;
+
+  .filter-left {
+    .result-count {
+      font-size: 14px;
+      color: #64748b;
+
+      b {
+        color: #0f172a;
+        font-weight: 600;
+      }
+    }
+  }
+
+  .filter-right {
+    display: flex;
+    align-items: center;
+    gap: 24px;
+    flex-wrap: wrap;
+
+    .filter-group {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+
+      .filter-label {
+        font-size: 14px;
+        color: #64748b;
+      }
+    }
+  }
+}
+
+.empty-state {
+  background: #fff;
+  border-radius: 16px;
+  padding: 60px 0;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+}
+
+/* Element Plus 覆盖样式 */
+:deep(.el-radio-button__inner) {
+  border: none;
+  background: #f1f5f9;
+  color: #64748b;
+  border-radius: 6px;
+  padding: 6px 16px;
+  margin-right: 8px;
+  font-size: 13px;
+  box-shadow: none !important;
+  transition: all 0.2s;
+}
+
+:deep(.el-radio-button:first-child .el-radio-button__inner) {
+  border-left: none;
+  border-radius: 6px;
+}
+:deep(.el-radio-button:last-child .el-radio-button__inner) {
+  border-radius: 6px;
+}
+
+:deep(.el-radio-button__original-radio:checked + .el-radio-button__inner) {
+  background-color: #409eff;
+  color: #fff;
+  box-shadow: 0 2px 5px rgba(64, 158, 255, 0.3) !important;
+}
+
+/* 移动端适配 */
+@media screen and (max-width: 992px) {
+  .container {
+    margin-top: 20px;
+  }
+
+  .market-layout {
+    flex-direction: column;
+  }
+
+  .sidebar {
+    width: 100%;
+    position: relative;
+    top: 0;
+
+    .category-list {
+      display: flex;
+      overflow-x: auto;
+      padding-bottom: 12px;
+
+      .category-item {
+        flex-shrink: 0;
+        margin-right: 8px;
+        margin-bottom: 0;
+        background: #f8fafc;
+        border: 1px solid #f1f5f9;
+
+        &.active {
+          background: #eff6ff;
+          border-color: #bfdbfe;
         }
       }
     }
+  }
 
-    .section-header {
-      margin-bottom: 16px;
-    }
+  .filter-bar {
+    flex-direction: column;
+    align-items: flex-start;
 
-    .section {
-      margin-bottom: 30px;
-    }
-
-    /* 移动端分类布局 */
-    .market-layout {
-      flex-direction: column;
-    }
-    .sidebar {
+    .filter-right {
       width: 100%;
-      position: relative;
-    }
-    .category-menu :deep(.el-menu-item) {
-      padding: 0 12px;
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 16px;
     }
   }
 }

@@ -24,14 +24,6 @@ const getIconIndex = (item) => {
       >
         <nuxt-link :to="'/doc/' + item.alias" class="item">
           <div class="api-card">
-            <!-- 重新设计：右上角状态标签 -->
-            <div
-              class="api-card__badge"
-              :class="item.isPaid ? 'is-paid' : 'is-free'"
-            >
-              {{ item.isPaid ? '付费' : '免费' }}
-            </div>
-
             <div
               class="api-card__icon"
               :class="'icon-style-' + getIconIndex(item)"
