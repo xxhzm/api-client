@@ -1,5 +1,5 @@
 <script setup>
-import { Connection, View, Star, Search } from '@element-plus/icons-vue'
+import { Search, ArrowRight } from '@element-plus/icons-vue'
 
 const { $myFetch } = useNuxtApp()
 
@@ -25,6 +25,44 @@ const apiList = useState('globalApiList')
 
 // 初始化热门API数据
 await initHotApis()
+
+// 获取新闻列表
+const { data: articleData } = await useAsyncData('HomeArticleList', () =>
+  $myFetch('ArticleListForFrontend', {
+    params: {
+      page: 1,
+      limit: 5,
+      type: '',
+    },
+  })
+)
+
+const articleList = computed(() => articleData.value?.data?.list || [])
+
+const categoriesMap = {
+  1: { name: '公共通知', type: 'danger' },
+  2: { name: '行业资讯', type: 'info' },
+  3: { name: '产品动态', type: 'primary' },
+  4: { name: '解决方案', type: 'success' },
+}
+
+const getCategory = (type) => {
+  return categoriesMap[type] || categoriesMap[1]
+}
+
+const formatDate = (time) => {
+  if (!time) return ''
+  try {
+    const date = new Date(Number(time))
+    if (isNaN(date.getTime())) return ''
+    const year = date.getFullYear()
+    const month = (date.getMonth() + 1).toString().padStart(2, '0')
+    const day = date.getDate().toString().padStart(2, '0')
+    return `${year}-${month}-${day}`
+  } catch (e) {
+    return ''
+  }
+}
 
 // 搜索功能
 const searchKeyword = ref('')
@@ -151,6 +189,83 @@ const handleEnterSearch = (event) => {
 
     <IndexWhyChooseUs />
     <IndexGlobalNetwork />
+
+    <div class="container" v-if="articleList && articleList.length > 0">
+      <!-- 新闻动态 -->
+      <div class="section news-section">
+        <div class="section-header">
+          <h2 class="section-title">新闻动态</h2>
+          <NuxtLink to="/articles" class="more-link">
+            查看更多 <el-icon><ArrowRight /></el-icon>
+          </NuxtLink>
+        </div>
+
+        <div class="news-content">
+          <!-- 左侧：最新一条 -->
+          <NuxtLink
+            :to="'/article/' + articleList[0].id"
+            class="news-featured"
+            v-if="articleList[0]"
+          >
+            <div class="featured-date">
+              <span class="day">{{
+                formatDate(articleList[0].create_time).split('-')[2]
+              }}</span>
+              <span class="year-month">{{
+                formatDate(articleList[0].create_time)
+                  .split('-')
+                  .slice(0, 2)
+                  .join('-')
+              }}</span>
+            </div>
+            <div class="featured-info">
+              <el-tag
+                :type="getCategory(articleList[0].type).type"
+                effect="dark"
+                size="small"
+                class="category-tag"
+              >
+                {{ getCategory(articleList[0].type).name }}
+              </el-tag>
+              <h3 class="featured-title">{{ articleList[0].title }}</h3>
+              <p class="featured-desc">{{ articleList[0].description }}</p>
+              <div class="read-more">
+                阅读详情 <el-icon><ArrowRight /></el-icon>
+              </div>
+            </div>
+          </NuxtLink>
+
+          <!-- 右侧：新闻列表 -->
+          <div class="news-list-wrapper" v-if="articleList.length > 1">
+            <NuxtLink
+              v-for="item in articleList.slice(1)"
+              :key="item.id"
+              :to="'/article/' + item.id"
+              class="news-list-item"
+            >
+              <div class="item-content">
+                <div class="item-header">
+                  <el-tag
+                    :type="getCategory(item.type).type"
+                    effect="plain"
+                    size="small"
+                    class="item-tag"
+                  >
+                    {{ getCategory(item.type).name }}
+                  </el-tag>
+                  <span class="item-date">{{
+                    formatDate(item.create_time)
+                  }}</span>
+                </div>
+                <h4 class="item-title">{{ item.title }}</h4>
+              </div>
+              <el-icon class="item-arrow"><ArrowRight /></el-icon>
+            </NuxtLink>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <IndexPartners />
     <IndexFooter :options="options" />
     <IndexAi />
@@ -338,7 +453,7 @@ const handleEnterSearch = (event) => {
 }
 
 .news-section {
-  margin: 20px 0;
+  margin: 40px 0;
 
   .more-link {
     display: flex;
@@ -363,55 +478,187 @@ const handleEnterSearch = (event) => {
     }
   }
 
-  .news-list {
-    background: #fff;
-    border-radius: 12px;
-    padding: 4px 0;
-    margin-top: 4px;
+  .news-content {
+    display: flex;
+    gap: 24px;
+    margin-top: 16px;
   }
 
-  .news-item {
+  /* 左侧推荐新闻样式 */
+  .news-featured {
+    flex: 0 0 45%;
     display: flex;
-    align-items: center;
-    padding: 16px 20px;
+    gap: 24px;
+    background: #fff;
+    padding: 32px;
+    border-radius: 12px;
+    text-decoration: none;
     transition: all 0.3s ease;
+    border: 1px solid #ebeef5;
+    position: relative;
+    overflow: hidden;
 
     &:hover {
-      background: #f5f7fa;
+      transform: translateY(-4px);
+      box-shadow: 0 12px 32px rgba(0, 0, 0, 0.08);
+      border-color: #dcdfe6;
+
+      .read-more {
+        color: #409eff;
+
+        .el-icon {
+          transform: translateX(4px);
+        }
+      }
     }
 
-    &__tag {
-      padding: 2px 8px;
-      border-radius: 4px;
-      font-size: 12px;
-      margin-right: 12px;
+    .featured-date {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      width: 80px;
+      height: 80px;
+      background: #f0f2f5;
+      border-radius: 8px;
+      flex-shrink: 0;
+      color: #303133;
 
-      &.new {
-        background: #ecf5ff;
+      .day {
+        font-size: 28px;
+        font-weight: 700;
+        line-height: 1;
+        margin-bottom: 4px;
         color: #409eff;
       }
 
-      &.update {
-        background: #f0f9eb;
-        color: #67c23a;
-      }
-
-      &.notice {
-        background: #fdf6ec;
-        color: #e6a23c;
+      .year-month {
+        font-size: 12px;
+        color: #909399;
       }
     }
 
-    &__title {
+    .featured-info {
       flex: 1;
-      font-size: 14px;
-      color: #606266;
+      min-width: 0;
+      display: flex;
+      flex-direction: column;
+
+      .category-tag {
+        width: fit-content;
+        margin-bottom: 12px;
+      }
+
+      .featured-title {
+        font-size: 18px;
+        font-weight: 600;
+        color: #303133;
+        margin: 0 0 12px 0;
+        line-height: 1.4;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+      }
+
+      .featured-desc {
+        font-size: 14px;
+        color: #606266;
+        line-height: 1.6;
+        margin: 0 0 20px 0;
+        display: -webkit-box;
+        -webkit-line-clamp: 3;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+        flex: 1;
+      }
+
+      .read-more {
+        display: flex;
+        align-items: center;
+        gap: 4px;
+        font-size: 14px;
+        color: #909399;
+        margin-top: auto;
+        transition: all 0.3s;
+
+        .el-icon {
+          transition: transform 0.3s;
+        }
+      }
+    }
+  }
+
+  /* 右侧新闻列表样式 */
+  .news-list-wrapper {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    min-width: 0;
+  }
+
+  .news-list-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 20px 24px;
+    background: #fff;
+    border-radius: 12px;
+    text-decoration: none;
+    border: 1px solid #ebeef5;
+    transition: all 0.3s ease;
+
+    &:hover {
+      transform: translateX(4px);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+      border-color: #dcdfe6;
+
+      .item-title {
+        color: #409eff;
+      }
+
+      .item-arrow {
+        opacity: 1;
+        transform: translateX(0);
+        color: #409eff;
+      }
     }
 
-    &__date {
+    .item-content {
+      flex: 1;
+      min-width: 0;
+      margin-right: 20px;
+    }
+
+    .item-header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 8px;
+    }
+
+    .item-date {
       font-size: 13px;
       color: #909399;
-      margin-left: 16px;
+    }
+
+    .item-title {
+      font-size: 15px;
+      color: #303133;
+      margin: 0;
+      font-weight: 500;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      transition: color 0.3s;
+    }
+
+    .item-arrow {
+      opacity: 0;
+      transform: translateX(-10px);
+      transition: all 0.3s;
+      color: #909399;
     }
   }
 }
@@ -562,14 +809,50 @@ const handleEnterSearch = (event) => {
   }
 
   .news-section {
-    .news-item {
-      padding: 12px 16px;
+    .news-content {
+      flex-direction: column;
+      gap: 16px;
+    }
 
-      &__title {
-        font-size: 13px;
+    .news-featured {
+      padding: 20px;
+      flex: none;
+      width: auto;
+
+      .featured-date {
+        width: 60px;
+        height: 60px;
+        margin-right: 16px;
+
+        .day {
+          font-size: 20px;
+        }
       }
 
-      &__date {
+      .featured-title {
+        font-size: 16px;
+        margin-bottom: 8px;
+      }
+
+      .featured-desc {
+        -webkit-line-clamp: 2;
+        margin-bottom: 12px;
+        font-size: 13px;
+      }
+    }
+
+    .news-list-item {
+      padding: 16px;
+
+      .item-content {
+        margin-right: 12px;
+      }
+
+      .item-title {
+        font-size: 14px;
+      }
+
+      .item-date {
         font-size: 12px;
       }
     }
