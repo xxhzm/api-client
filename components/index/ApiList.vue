@@ -1,5 +1,4 @@
 <script setup>
-const list = useState('list')
 const listSearch = useState('listSearch')
 
 // 根据 ID 获取图标索引，确保同一个项目始终显示相同的图标
@@ -7,7 +6,7 @@ const getIconIndex = (item) => {
   if (!item) return 0
   const id = item.id || 0
   const num = typeof id === 'number' ? id : String(id).charCodeAt(0)
-  return num % 20
+  return num % 24
 }
 </script>
 
@@ -25,6 +24,14 @@ const getIconIndex = (item) => {
       >
         <nuxt-link :to="'/doc/' + item.alias" class="item">
           <div class="api-card">
+            <!-- 重新设计：右上角状态标签 -->
+            <div
+              class="api-card__badge"
+              :class="item.isPaid ? 'is-paid' : 'is-free'"
+            >
+              {{ item.isPaid ? '付费' : '免费' }}
+            </div>
+
             <div
               class="api-card__icon"
               :class="'icon-style-' + getIconIndex(item)"
@@ -33,8 +40,8 @@ const getIconIndex = (item) => {
               <svg
                 v-if="getIconIndex(item) === 0"
                 viewBox="0 0 24 24"
-                width="24"
-                height="24"
+                width="36"
+                height="36"
               >
                 <path
                   fill="currentColor"
@@ -45,8 +52,8 @@ const getIconIndex = (item) => {
               <svg
                 v-if="getIconIndex(item) === 1"
                 viewBox="0 0 24 24"
-                width="24"
-                height="24"
+                width="36"
+                height="36"
               >
                 <path
                   fill="currentColor"
@@ -57,8 +64,8 @@ const getIconIndex = (item) => {
               <svg
                 v-if="getIconIndex(item) === 2"
                 viewBox="0 0 24 24"
-                width="24"
-                height="24"
+                width="36"
+                height="36"
               >
                 <path
                   fill="currentColor"
@@ -69,8 +76,8 @@ const getIconIndex = (item) => {
               <svg
                 v-if="getIconIndex(item) === 3"
                 viewBox="0 0 24 24"
-                width="24"
-                height="24"
+                width="36"
+                height="36"
               >
                 <path
                   fill="currentColor"
@@ -81,8 +88,8 @@ const getIconIndex = (item) => {
               <svg
                 v-if="getIconIndex(item) === 4"
                 viewBox="0 0 24 24"
-                width="24"
-                height="24"
+                width="36"
+                height="36"
               >
                 <path
                   fill="currentColor"
@@ -93,8 +100,8 @@ const getIconIndex = (item) => {
               <svg
                 v-if="getIconIndex(item) === 5"
                 viewBox="0 0 24 24"
-                width="24"
-                height="24"
+                width="36"
+                height="36"
               >
                 <path
                   fill="currentColor"
@@ -105,8 +112,8 @@ const getIconIndex = (item) => {
               <svg
                 v-if="getIconIndex(item) === 6"
                 viewBox="0 0 24 24"
-                width="24"
-                height="24"
+                width="36"
+                height="36"
               >
                 <path
                   fill="currentColor"
@@ -117,8 +124,8 @@ const getIconIndex = (item) => {
               <svg
                 v-if="getIconIndex(item) === 7"
                 viewBox="0 0 24 24"
-                width="24"
-                height="24"
+                width="36"
+                height="36"
               >
                 <path
                   fill="currentColor"
@@ -129,8 +136,8 @@ const getIconIndex = (item) => {
               <svg
                 v-if="getIconIndex(item) === 8"
                 viewBox="0 0 24 24"
-                width="32"
-                height="32"
+                width="36"
+                height="36"
               >
                 <path
                   fill="currentColor"
@@ -141,8 +148,8 @@ const getIconIndex = (item) => {
               <svg
                 v-if="getIconIndex(item) === 9"
                 viewBox="0 0 24 24"
-                width="24"
-                height="24"
+                width="36"
+                height="36"
               >
                 <path
                   fill="currentColor"
@@ -153,8 +160,8 @@ const getIconIndex = (item) => {
               <svg
                 v-if="getIconIndex(item) === 10"
                 viewBox="0 0 24 24"
-                width="24"
-                height="24"
+                width="36"
+                height="36"
               >
                 <path
                   fill="currentColor"
@@ -165,8 +172,8 @@ const getIconIndex = (item) => {
               <svg
                 v-if="getIconIndex(item) === 11"
                 viewBox="0 0 24 24"
-                width="24"
-                height="24"
+                width="36"
+                height="36"
               >
                 <path
                   fill="currentColor"
@@ -177,8 +184,8 @@ const getIconIndex = (item) => {
               <svg
                 v-if="getIconIndex(item) === 12"
                 viewBox="0 0 24 24"
-                width="24"
-                height="24"
+                width="36"
+                height="36"
               >
                 <path
                   fill="currentColor"
@@ -189,8 +196,8 @@ const getIconIndex = (item) => {
               <svg
                 v-if="getIconIndex(item) === 13"
                 viewBox="0 0 24 24"
-                width="24"
-                height="24"
+                width="36"
+                height="36"
               >
                 <path
                   fill="currentColor"
@@ -201,8 +208,8 @@ const getIconIndex = (item) => {
               <svg
                 v-if="getIconIndex(item) === 14"
                 viewBox="0 0 24 24"
-                width="24"
-                height="24"
+                width="36"
+                height="36"
               >
                 <path
                   fill="currentColor"
@@ -213,8 +220,8 @@ const getIconIndex = (item) => {
               <svg
                 v-if="getIconIndex(item) === 15"
                 viewBox="0 0 24 24"
-                width="24"
-                height="24"
+                width="36"
+                height="36"
               >
                 <path
                   fill="currentColor"
@@ -225,8 +232,8 @@ const getIconIndex = (item) => {
               <svg
                 v-if="getIconIndex(item) === 16"
                 viewBox="0 0 24 24"
-                width="24"
-                height="24"
+                width="36"
+                height="36"
               >
                 <path
                   fill="currentColor"
@@ -239,8 +246,8 @@ const getIconIndex = (item) => {
               <svg
                 v-if="getIconIndex(item) === 17"
                 viewBox="0 0 24 24"
-                width="24"
-                height="24"
+                width="36"
+                height="36"
               >
                 <path
                   fill="currentColor"
@@ -251,8 +258,8 @@ const getIconIndex = (item) => {
               <svg
                 v-if="getIconIndex(item) === 18"
                 viewBox="0 0 24 24"
-                width="24"
-                height="24"
+                width="36"
+                height="36"
               >
                 <path
                   fill="currentColor"
@@ -263,12 +270,60 @@ const getIconIndex = (item) => {
               <svg
                 v-if="getIconIndex(item) === 19"
                 viewBox="0 0 24 24"
-                width="24"
-                height="24"
+                width="36"
+                height="36"
               >
                 <path
                   fill="currentColor"
                   d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zM12 20c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8zm.5-13H11v6l5.25 3.15.75-1.23-4.5-2.67z"
+                />
+              </svg>
+              <!-- Icon 20: Calendar/Date (Indigo) -->
+              <svg
+                v-if="getIconIndex(item) === 20"
+                viewBox="0 0 24 24"
+                width="36"
+                height="36"
+              >
+                <path
+                  fill="currentColor"
+                  d="M19 4h-1V2h-2v2H8V2H6v2H5c-1.11 0-1.99.9-1.99 2L3 20a2 2 0 0 0 2 2h14c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 16H5V10h14v10zm0-12H5V6h14v2z"
+                />
+              </svg>
+              <!-- Icon 21: Search/Magnify (Green) -->
+              <svg
+                v-if="getIconIndex(item) === 21"
+                viewBox="0 0 24 24"
+                width="36"
+                height="36"
+              >
+                <path
+                  fill="currentColor"
+                  d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"
+                />
+              </svg>
+              <!-- Icon 22: Home/House (Deep Purple) -->
+              <svg
+                v-if="getIconIndex(item) === 22"
+                viewBox="0 0 24 24"
+                width="36"
+                height="36"
+              >
+                <path
+                  fill="currentColor"
+                  d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"
+                />
+              </svg>
+              <!-- Icon 23: UserGroup/Team (Orange) -->
+              <svg
+                v-if="getIconIndex(item) === 23"
+                viewBox="0 0 24 24"
+                width="36"
+                height="36"
+              >
+                <path
+                  fill="currentColor"
+                  d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5c-1.66 0-3 1.34-3 3s1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5C6.34 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z"
                 />
               </svg>
             </div>
@@ -277,13 +332,6 @@ const getIconIndex = (item) => {
               <p class="api-card__desc">{{ item.description }}</p>
               <!-- 新增：费用与权限信息（文本标签） -->
               <div class="api-card__meta">
-                <span
-                  class="meta-item"
-                  :class="item.isPaid ? 'is-paid' : 'is-free'"
-                >
-                  {{ item.isPaid ? '付费' : '免费' }}
-                </span>
-                <!-- <span class="meta-sep">·</span> -->
                 <span
                   class="meta-item"
                   :class="item.key_state === '开启' ? 'need-login' : 'no-login'"
@@ -370,12 +418,16 @@ const getIconIndex = (item) => {
   box-shadow: 0 1px 2px rgba(0, 0, 0, 0.06);
   overflow: hidden;
   display: flex;
-  align-items: flex-start;
+  align-items: center;
 
   &:hover {
     transform: translateY(-2px);
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
     border-color: #409eff;
+
+    .api-card__icon {
+      color: #409eff;
+    }
   }
 
   &__icon {
@@ -387,88 +439,10 @@ const getIconIndex = (item) => {
     display: flex;
     align-items: center;
     justify-content: center;
-
-    /* 不同风格的图标色（无背景） */
-    &.icon-style-0 {
-      background: transparent;
-      color: #409eff;
-    }
-    &.icon-style-1 {
-      background: transparent;
-      color: #67c23a;
-    }
-    &.icon-style-2 {
-      background: transparent;
-      color: #e6a23c;
-    }
-    &.icon-style-3 {
-      background: transparent;
-      color: #909399;
-    }
-    &.icon-style-4 {
-      background: transparent;
-      color: #f56c6c;
-    }
-    &.icon-style-5 {
-      background: transparent;
-      color: #722ed1;
-    }
-    &.icon-style-6 {
-      background: transparent;
-      color: #13c2c2;
-    }
-    &.icon-style-7 {
-      background: transparent;
-      color: #20b2aa;
-    }
-    &.icon-style-8 {
-      background: transparent;
-      color: #606266;
-    }
-    &.icon-style-9 {
-      background: transparent;
-      color: #ff5722;
-    }
-    &.icon-style-10 {
-      background: transparent;
-      color: #ffeb3b;
-    }
-    &.icon-style-11 {
-      background: transparent;
-      color: #2979ff;
-    }
-    &.icon-style-12 {
-      background: transparent;
-      color: #00bcd4;
-    }
-    &.icon-style-13 {
-      background: transparent;
-      color: #607d8b;
-    }
-    &.icon-style-14 {
-      background: transparent;
-      color: #ffc107;
-    }
-    &.icon-style-15 {
-      background: transparent;
-      color: #9c27b0;
-    }
-    &.icon-style-16 {
-      background: transparent;
-      color: #f44336;
-    }
-    &.icon-style-17 {
-      background: transparent;
-      color: #ff9800;
-    }
-    &.icon-style-18 {
-      background: transparent;
-      color: #ff5722;
-    }
-    &.icon-style-19 {
-      background: transparent;
-      color: #2196f3;
-    }
+    /* 统一图标颜色为深灰色，hover时变蓝 */
+    background: transparent;
+    color: #606266;
+    transition: color 0.2s ease;
   }
 
   &__content {
@@ -486,8 +460,31 @@ const getIconIndex = (item) => {
     font-weight: 600;
     color: #1f2f3d;
     margin: 0;
-    padding-right: 16px;
+    padding-right: 36px;
     line-height: 1.4;
+  }
+
+  /* 重新设计：右上角标签样式 */
+  &__badge {
+    position: absolute;
+    top: 0;
+    right: 0;
+    padding: 4px 12px;
+    border-bottom-left-radius: 12px;
+    font-size: 12px;
+    font-weight: 500;
+    line-height: 1.4;
+    z-index: 1;
+
+    &.is-free {
+      background: #f0f9eb; /* 浅绿色背景 */
+      color: #67c23a; /* 绿色文本 */
+    }
+
+    &.is-paid {
+      background: #fef0f0; /* 浅红色背景 */
+      color: #f56c6c; /* 红色文本 */
+    }
   }
 
   /* 新增：费用与权限信息（文本标签）样式 */
@@ -497,42 +494,42 @@ const getIconIndex = (item) => {
     gap: 6px;
     margin-top: 4px;
     font-size: 12px;
-    color: #606266;
+    color: #909399;
   }
   .meta-item {
     display: inline-flex;
     align-items: center;
     padding: 2px 8px;
     border-radius: 6px;
-    border: 1px solid #e6e8eb;
-    background: #f5f7fa;
-    color: #606266;
-    font-weight: 500;
+    background: #f4f4f5;
+    color: #909399;
+    font-weight: 400;
     line-height: 1.2;
     transition: all 0.2s ease;
+
+    &.need-login {
+      background: #ecf5ff;
+      color: #409eff;
+    }
+
+    &.no-login {
+      background: #f4f4f5;
+      color: #909399;
+    }
   }
   .meta-sep {
     color: #c0c4cc;
   }
-  .is-paid {
-    color: #c45656; /* danger text */
-    background: #fef0f0; /* danger bg */
-    border-color: #fbc4c4; /* danger border */
-  }
-  .is-free {
-    color: #3e7b27; /* success text */
-    background: #f0f9eb; /* success bg */
-    border-color: #c2e7b0; /* success border */
-  }
+  /* 移除原有的多色定义，仅保留统一灰色风格，或仅做微调 */
   .need-login {
-    color: #b88230; /* warning text */
-    background: #fdf6ec; /* warning bg */
-    border-color: #f5dab1; /* warning border */
+    /* 需登录：使用橙色，起到警示/注意作用，与蓝绿区分 */
+    background: #fdf6ec;
+    color: #e6a23c;
   }
   .no-login {
-    color: #606266; /* info-muted text */
-    background: #f4f4f5; /* info-muted bg */
-    border-color: #e6e8eb; /* info-muted border */
+    /* 无需登录：保持灰色，表示默认/无门槛 */
+    background: #f4f4f5;
+    color: #909399;
   }
 
   &__desc {
