@@ -546,7 +546,7 @@ const submitPackage = async () => {
     msg('请输入套餐名称', 'error')
     return
   }
-  if (packageInfo.value.price < 0.01) {
+  if (packageInfo.value.price < 0.00001) {
     msg('价格不能小于0.01', 'error')
     return
   }

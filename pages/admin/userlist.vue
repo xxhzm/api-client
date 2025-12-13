@@ -717,7 +717,7 @@ useHead({
                   label="邮箱地址"
                   show-overflow-tooltip
                 />
-                <el-table-column prop="balance" label="账户余额" width="85">
+                <el-table-column prop="balance" label="账户余额" width="150">
                   <template #default="scope">
                     <span class="balance">{{ scope.row.balance }}</span>
                   </template>
