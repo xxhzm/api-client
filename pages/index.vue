@@ -20,16 +20,11 @@ useHead({
 // 使用热门API composable，获取8个热门API用于标签显示
 const { hotApis, initHotApis } = useHotApis(8)
 
+// 全局状态存储API列表
+const apiList = useState('globalApiList')
+
 // 初始化热门API数据
 await initHotApis()
-
-const adDisplay = ref(true)
-
-const adInfo = (info) => {
-  if (info.value.length === 0) {
-    adDisplay.value = false
-  }
-}
 
 // 搜索功能
 const searchKeyword = ref('')
@@ -53,6 +48,32 @@ const searchAPI = () => {
   }
 }
 
+// 搜索建议过滤
+const querySearch = (queryString, cb) => {
+  const results = queryString
+    ? (apiList.value || []).filter(createFilter(queryString))
+    : apiList.value || []
+  // 限制显示前10条建议
+  cb(results.slice(0, 10))
+}
+
+const createFilter = (queryString) => {
+  return (api) => {
+    return (
+      api.name.toLowerCase().includes(queryString.toLowerCase()) ||
+      (api.description &&
+        api.description.toLowerCase().includes(queryString.toLowerCase()))
+    )
+  }
+}
+
+// 处理搜索建议选择
+const handleSelect = (item) => {
+  if (item.alias) {
+    navigateTo('/doc/' + item.alias)
+  }
+}
+
 // 处理回车键搜索
 const handleEnterSearch = (event) => {
   if (event.key === 'Enter') {
@@ -67,30 +88,30 @@ const handleEnterSearch = (event) => {
     <IndexBanner></IndexBanner>
     <div class="container">
       <IndexNotice :content="options.notice"></IndexNotice>
-      <!-- <client-only>
-        <div class="section" v-if="adDisplay">
-          <h2 class="section-title">广告商</h2>
-          <Ad @adInfo="adInfo"></Ad>
-        </div>
-
-        <div class="section">
-          <h2 class="section-title" style="margin-bottom: 10px">系统信息</h2>
-          <SystemInfo></SystemInfo>
-        </div>
-      </client-only> -->
 
       <!-- API搜索与热门推荐 -->
       <div class="section search-section">
         <h2 class="section-title">搜索API</h2>
         <div class="search-container">
           <div class="search-box">
-            <el-input
+            <el-autocomplete
               v-model="searchKeyword"
+              :fetch-suggestions="querySearch"
               placeholder="输入API名称或关键词搜索..."
               class="search-input"
               size="large"
-              @keydown="handleEnterSearch"
+              :trigger-on-focus="false"
+              @select="handleSelect"
+              @keydown.enter="searchAPI"
             >
+              <template #default="{ item }">
+                <div class="search-suggestion-item">
+                  <span class="suggestion-name">{{ item.name }}</span>
+                  <span class="suggestion-desc" v-if="item.description">
+                    {{ item.description }}
+                  </span>
+                </div>
+              </template>
               <template #suffix>
                 <el-button
                   type="primary"
@@ -101,7 +122,7 @@ const handleEnterSearch = (event) => {
                   搜索
                 </el-button>
               </template>
-            </el-input>
+            </el-autocomplete>
           </div>
           <!-- 热门API快速选择标签 -->
           <div
@@ -198,31 +219,46 @@ const handleEnterSearch = (event) => {
     padding: 40px;
     border: 1px solid #ebeef5;
     margin-top: 8px;
+    border-radius: 16px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
   }
 
   .search-box {
-    margin-bottom: 12px;
+    margin-bottom: 20px;
 
     .search-input {
+      width: 100%;
+
       :deep(.el-input__wrapper) {
-        border-radius: 8px;
-        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-        border: 1px solid #dcdfe6;
-        transition: all 0.3s ease;
+        border-radius: 12px;
+        box-shadow: 0 2px 12px rgba(0, 0, 0, 0.04);
+        border: 1px solid #e2e8f0;
+        padding: 4px 12px;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        background-color: #f8fafc;
 
         &:hover {
           border-color: #c0c4cc;
+          background-color: #fff;
+          box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
         }
 
         &.is-focus {
           border-color: #409eff;
-          box-shadow: 0 0 0 2px rgba(64, 158, 255, 0.2);
+          background-color: #fff;
+          box-shadow: 0 0 0 4px rgba(64, 158, 255, 0.15);
         }
       }
 
       :deep(.el-input__inner) {
+        height: 52px;
         font-size: 16px;
-        padding-right: 100px;
+        color: #1e293b;
+        padding-left: 8px;
+
+        &::placeholder {
+          color: #94a3b8;
+        }
       }
 
       :deep(.el-input__suffix) {
@@ -231,10 +267,23 @@ const handleEnterSearch = (event) => {
     }
 
     .search-btn {
-      border-radius: 6px;
-      font-size: 14px;
-      padding: 8px 16px;
-      height: 32px;
+      border-radius: 8px;
+      font-size: 15px;
+      padding: 10px 24px;
+      height: 40px;
+      font-weight: 500;
+      letter-spacing: 0.5px;
+      box-shadow: 0 4px 12px rgba(64, 158, 255, 0.3);
+      transition: all 0.3s ease;
+
+      &:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 6px 16px rgba(64, 158, 255, 0.4);
+      }
+
+      &:active {
+        transform: translateY(1px);
+      }
     }
   }
 
@@ -524,6 +573,27 @@ const handleEnterSearch = (event) => {
         font-size: 12px;
       }
     }
+  }
+}
+
+.search-suggestion-item {
+  display: flex;
+  flex-direction: column;
+  padding: 4px 0;
+  line-height: 1.4;
+
+  .suggestion-name {
+    font-weight: 500;
+    color: #303133;
+  }
+
+  .suggestion-desc {
+    font-size: 12px;
+    color: #909399;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 300px;
   }
 }
 </style>
