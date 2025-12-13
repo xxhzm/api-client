@@ -6,7 +6,10 @@ const router = useRouter()
 
 const username = useCookie('username')
 const token = useCookie('token')
-const policyConsent = useCookie('policyConsent', { default: () => 'false' })
+const policyConsent = useCookie('policyConsent', {
+  default: () => 'false',
+  maxAge: 60 * 60 * 24 * 365,
+})
 const isPolicyAgreed = computed({
   get: () => String(policyConsent.value).toLowerCase() === 'true',
   set: (v) => {
