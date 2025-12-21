@@ -70,7 +70,21 @@ const mpayAmount = ref('') // 新增：存储易支付的实际支付金额
 const handleCustomAmount = (val) => {
   if (val) {
     // 允许输入数字和小数点，但限制只能有一个小数点
-    const numVal = val.replace(/[^\d.]/g, '').replace(/(\..*)\./g, '$1')
+    let numVal = val.replace(/[^\d.]/g, '').replace(/(\..*)\./g, '$1')
+
+    // 限制小数点后两位
+    if (numVal.includes('.')) {
+      const parts = numVal.split('.')
+      if (parts[1].length > 2) {
+        numVal = parts[0] + '.' + parts[1].slice(0, 2)
+      }
+    }
+
+    // 限制最大金额为100000
+    if (parseFloat(numVal) > 100000) {
+      numVal = '100000'
+    }
+
     form.value.customAmount = numVal
     // 转换为数字，保留两位小数
     form.value.amount = parseFloat(numVal) || 0
