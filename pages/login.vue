@@ -763,7 +763,11 @@ useHead({
                   : 'el-icon-message'
               "
               @keyup.enter="mailLogin"
-            />
+            >
+              <template #prepend v-if="currentLoginMethod === 'sms'">
+                <span>+86</span>
+              </template>
+            </el-input>
           </el-form-item>
           <el-form-item>
             <div class="captcha-container">
@@ -817,6 +821,9 @@ useHead({
           </el-button>
         </el-form>
         <div class="form-footer">
+          <span>还没有账号？</span>
+          <a @click="LoginIsRegisterChange">立即注册</a>
+          <br /><br />
           <span>使用其他方式？</span>
           <a @click="toggleEmailLogin(false)">账号登录</a>
           <!-- 只有当支持多种验证码登录方式时才显示切换链接 -->
@@ -995,11 +1002,11 @@ useHead({
     }
 
     &.is-forgot {
-      height: 520px;
+      height: 450px;
     }
 
     &.is-email {
-      height: 530px;
+      height: 550px;
     }
 
     .card-header {
