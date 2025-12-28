@@ -137,6 +137,7 @@ const responseCode = ref(null)
 // 格式化响应结果
 const formatResponse = computed(() => {
   if (!response.value) return ''
+  if (typeof response.value === 'string') return response.value
   return JSON.stringify(response.value, null, 2)
 })
 
@@ -303,10 +304,18 @@ const sendRequest = async () => {
         imageUrl.value = URL.createObjectURL(blob)
         response.value = { code: 200, msg: '图片获取成功' }
       } else {
-        // 处理 JSON 响应
+        // 处理 JSON 或文本响应
         isVideoResponse.value = false
         isImageResponse.value = false
-        const data = await res.json()
+
+        const text = await res.text()
+        let data
+        try {
+          data = JSON.parse(text)
+        } catch (e) {
+          data = text
+        }
+
         response.value = data
         imageUrl.value = ''
         videoUrl.value = ''
@@ -315,14 +324,19 @@ const sendRequest = async () => {
         await nextTick()
         if (preElement.value && responseCode.value) {
           const newCode = document.createElement('code')
-          newCode.className = 'json'
-          newCode.textContent = formatResponse.value
+
+          if (typeof data === 'object') {
+            newCode.className = 'json'
+            newCode.textContent = JSON.stringify(data, null, 2)
+            hljs.registerLanguage('json', json)
+            hljs.highlightElement(newCode)
+          } else {
+            newCode.className = 'text'
+            newCode.textContent = data
+          }
 
           preElement.value.innerHTML = ''
           preElement.value.appendChild(newCode)
-
-          hljs.registerLanguage('json', json)
-          hljs.highlightElement(newCode)
 
           responseCode.value = newCode
         }
