@@ -150,7 +150,7 @@ const handleSearchTime = async (sPage) => {
     params.status_code = searchStatusCode.value
   }
 
-  const res = await $myFetch('ApiLogSearch', { params })
+  const res = await $myFetch('ApiLogList', { params })
 
   if (res.code !== 200) {
     $msg(res.msg, 'error')
@@ -439,6 +439,18 @@ useHead({
                   prop="id"
                   label="请求ID"
                   min-width="180"
+                  show-overflow-tooltip
+                />
+                <el-table-column
+                  prop="uid"
+                  label="用户ID"
+                  width="100"
+                  show-overflow-tooltip
+                />
+                <el-table-column
+                  prop="username"
+                  label="用户名"
+                  width="120"
                   show-overflow-tooltip
                 />
                 <el-table-column

@@ -553,7 +553,7 @@ const fetchUserCallRecords = async () => {
       uid: currentUserId.value,
     }
 
-    const res = await $myFetch('ApiLogSearch', { params })
+    const res = await $myFetch('ApiLogList', { params })
     if (res.code === 200) {
       const logs = res.data.logs || []
       logs.forEach((element, key) => {
