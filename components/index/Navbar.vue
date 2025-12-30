@@ -18,8 +18,17 @@ const isMobileMenuOpen = ref(false)
 // 当前路由
 const route = useRoute()
 
+// 用户登录状态
+const token = useCookie('token')
+const username = useCookie('username')
+const routeInfo = useCookie('routeInfo')
+
+const isLoggedIn = computed(() => {
+  return !!(token.value && username.value && routeInfo.value)
+})
+
 // 导航项配置
-const navItems = [
+const navItems = computed(() => [
   {
     name: '首页',
     path: '/',
@@ -51,11 +60,11 @@ const navItems = [
     icon: Monitor,
   },
   {
-    name: '登录',
-    path: '/login',
+    name: isLoggedIn.value ? '后台' : '登录',
+    path: isLoggedIn.value ? '/admin' : '/login',
     icon: User,
   },
-]
+])
 
 // 切换移动端菜单
 const toggleMobileMenu = () => {

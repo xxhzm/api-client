@@ -521,8 +521,11 @@ useHead({
                     maxlength="11"
                     clearable
                     :prefix-icon="Phone"
+                    @input="
+                      (val) => (formData.newPhone = val.replace(/\D/g, ''))
+                    "
                   >
-                    <template #append>
+                    <template #prepend>
                       <span class="phone-prefix">+86</span>
                     </template>
                   </el-input>
@@ -539,8 +542,11 @@ useHead({
                     maxlength="11"
                     clearable
                     :prefix-icon="Phone"
+                    @input="
+                      (val) => (formData.currentPhone = val.replace(/\D/g, ''))
+                    "
                   >
-                    <template #append>
+                    <template #prepend>
                       <span class="phone-prefix">+86</span>
                     </template>
                   </el-input>
@@ -558,6 +564,9 @@ useHead({
                     clearable
                     :prefix-icon="Key"
                     class="captcha-input"
+                    @input="
+                      (val) => (formData.captcha = val.replace(/\D/g, ''))
+                    "
                   />
                   <div class="captcha-image" @click="getCaptchaInfo">
                     <img :src="captchaInfo.url" alt="验证码" />
@@ -580,6 +589,9 @@ useHead({
                     clearable
                     :prefix-icon="Message"
                     class="sms-input"
+                    @input="
+                      (val) => (formData.newSmsCode = val.replace(/\D/g, ''))
+                    "
                   />
                   <el-input
                     v-else
@@ -589,6 +601,10 @@ useHead({
                     clearable
                     :prefix-icon="Message"
                     class="sms-input"
+                    @input="
+                      (val) =>
+                        (formData.currentSmsCode = val.replace(/\D/g, ''))
+                    "
                   />
                   <el-button
                     type="primary"

@@ -6,6 +6,8 @@ import {
   VideoPlay,
   Download,
   Document,
+  InfoFilled,
+  Connection,
 } from '@element-plus/icons-vue'
 
 import 'highlight.js/styles/github.css'
@@ -137,6 +139,7 @@ const responseCode = ref(null)
 // 格式化响应结果
 const formatResponse = computed(() => {
   if (!response.value) return ''
+  if (typeof response.value === 'string') return response.value
   return JSON.stringify(response.value, null, 2)
 })
 
@@ -195,6 +198,12 @@ const sendRequest = async () => {
       const param = apiInfo.value.params[i]
       const value = debugForm.value[i]
       if (value) {
+        // 特殊处理 Key 参数，将其放入 Authorization header
+        if (String(param.name).toLowerCase() === 'key') {
+          options.headers['Authorization'] = `Bearer ${value}`
+          continue
+        }
+
         if (param.position === 'header') {
           headerParams.push({ name: param.name, value })
         } else if (param.position === 'body') {
@@ -303,10 +312,18 @@ const sendRequest = async () => {
         imageUrl.value = URL.createObjectURL(blob)
         response.value = { code: 200, msg: '图片获取成功' }
       } else {
-        // 处理 JSON 响应
+        // 处理 JSON 或文本响应
         isVideoResponse.value = false
         isImageResponse.value = false
-        const data = await res.json()
+
+        const text = await res.text()
+        let data
+        try {
+          data = JSON.parse(text)
+        } catch (e) {
+          data = text
+        }
+
         response.value = data
         imageUrl.value = ''
         videoUrl.value = ''
@@ -315,14 +332,19 @@ const sendRequest = async () => {
         await nextTick()
         if (preElement.value && responseCode.value) {
           const newCode = document.createElement('code')
-          newCode.className = 'json'
-          newCode.textContent = formatResponse.value
+
+          if (typeof data === 'object') {
+            newCode.className = 'json'
+            newCode.textContent = JSON.stringify(data, null, 2)
+            hljs.registerLanguage('json', json)
+            hljs.highlightElement(newCode)
+          } else {
+            newCode.className = 'text'
+            newCode.textContent = data
+          }
 
           preElement.value.innerHTML = ''
           preElement.value.appendChild(newCode)
-
-          hljs.registerLanguage('json', json)
-          hljs.highlightElement(newCode)
 
           responseCode.value = newCode
         }
@@ -571,6 +593,87 @@ const buyPackage = (pkg) => {
                 :min-width="isMobile ? 160 : 240"
               />
             </el-table>
+
+            <!-- Key传递方式说明 -->
+            <div
+              v-if="
+                apiInfo.params?.some(
+                  (p) => String(p.name).toLowerCase() === 'key'
+                )
+              "
+              class="key-guide-container"
+            >
+              <div class="usage-guide">
+                <div class="guide-title">
+                  <el-icon><Connection /></el-icon>
+                  <span>怎么传递这个 Key？</span>
+                </div>
+                <div class="method-cards">
+                  <!-- 方法1 -->
+                  <div class="method-card recommended">
+                    <div class="card-badge">推荐</div>
+                    <div class="card-title">方法 1：Bearer Token (Header)</div>
+                    <div class="card-desc">标准规范，兼容性最好，最安全</div>
+                    <div
+                      class="code-block"
+                      @click="copy('Authorization: Bearer Key')"
+                    >
+                      <div class="code-line">
+                        <span class="label">Authorization:</span>
+                        <span class="value">Bearer Key</span>
+                      </div>
+                      <el-icon class="copy-icon"><CopyDocument /></el-icon>
+                    </div>
+                  </div>
+
+                  <!-- 方法2 -->
+                  <div class="method-card">
+                    <div class="card-title">方法 2：放在请求头 (Header)</div>
+                    <div class="card-desc">
+                      直接使用 Authorization，无需前缀
+                    </div>
+                    <div class="code-block" @click="copy('Authorization: Key')">
+                      <div class="code-line">
+                        <span class="label">Authorization:</span>
+                        <span class="value">Key</span>
+                      </div>
+                      <el-icon class="copy-icon"><CopyDocument /></el-icon>
+                    </div>
+                  </div>
+
+                  <!-- 方法3 -->
+                  <div class="method-card">
+                    <div class="card-title">方法 3：放在请求头 (Header)</div>
+                    <div class="card-desc">自定义 Header key 字段</div>
+                    <div class="code-block" @click="copy('key: Key')">
+                      <div class="code-line">
+                        <span class="label">key:</span>
+                        <span class="value">Key</span>
+                      </div>
+                      <el-icon class="copy-icon"><CopyDocument /></el-icon>
+                    </div>
+                  </div>
+
+                  <!-- 方法4 -->
+                  <div class="method-card deprecated">
+                    <div class="card-badge">不推荐</div>
+                    <div class="card-title">方法 4：放在网址后面 (Query)</div>
+                    <div class="card-desc">
+                      不安全，可能泄露 Key，<span class="danger-text"
+                        >即将弃用</span
+                      >
+                    </div>
+                    <div class="code-block" @click="copy('?key=Key')">
+                      <div class="code-line">
+                        <span class="label">网址?key=</span>
+                        <span class="value">Key</span>
+                      </div>
+                      <el-icon class="copy-icon"><CopyDocument /></el-icon>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
           <div v-else>
             <div style="margin-bottom: 10px">
@@ -879,6 +982,146 @@ const buyPackage = (pkg) => {
     <IndexFooter :options="options"></IndexFooter>
   </div>
 </template>
+
+<style lang="less" scoped>
+.key-guide-container {
+  margin-top: 24px;
+
+  .usage-guide {
+    .guide-title {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 20px;
+      font-size: 16px;
+      font-weight: 600;
+      color: #2e3033;
+
+      .el-icon {
+        color: #4096ff;
+        font-size: 20px;
+      }
+    }
+
+    .method-cards {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 20px;
+
+      .method-card {
+        position: relative;
+        background: #fff;
+        border: 1px solid #edf1f7;
+        border-radius: 12px;
+        padding: 20px;
+        transition: all 0.3s;
+
+        &:hover {
+          transform: translateY(-2px);
+          box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+          border-color: #d9e1ec;
+
+          .code-block {
+            background: #ecf5ff;
+            border-color: #c6e2ff;
+
+            .copy-icon {
+              opacity: 1;
+            }
+          }
+        }
+
+        &.recommended {
+          border: 1px solid #b3d8ff;
+          background: #f0f9ff;
+
+          .card-badge {
+            background: #4096ff;
+            color: #fff;
+          }
+        }
+
+        &.deprecated {
+          border: 1px solid #ffccc7;
+          background: #fff2f0;
+
+          .card-badge {
+            background: #ff4d4f;
+            color: #fff;
+          }
+
+          .danger-text {
+            color: #ff4d4f;
+            font-weight: 500;
+          }
+        }
+
+        .card-badge {
+          position: absolute;
+          top: 0;
+          right: 0;
+          font-size: 12px;
+          padding: 2px 10px;
+          border-bottom-left-radius: 8px;
+          border-top-right-radius: 12px;
+        }
+
+        .card-title {
+          font-size: 15px;
+          font-weight: 600;
+          color: #2e3033;
+          margin-bottom: 8px;
+        }
+
+        .card-desc {
+          font-size: 13px;
+          color: #8c95a5;
+          margin-bottom: 16px;
+          line-height: 1.5;
+        }
+
+        .code-block {
+          background: #f8fafc;
+          border: 1px solid #e1e5eb;
+          border-radius: 8px;
+          padding: 12px;
+          cursor: pointer;
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          transition: all 0.2s;
+
+          .code-line {
+            font-family: 'Roboto Mono', monospace;
+            font-size: 13px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            margin-right: 10px;
+
+            .label {
+              color: #d63200;
+              margin-right: 8px;
+            }
+
+            .value {
+              color: #0052d9;
+              font-weight: 500;
+            }
+          }
+
+          .copy-icon {
+            font-size: 16px;
+            color: #4096ff;
+            opacity: 0.5;
+            transition: all 0.2s;
+          }
+        }
+      }
+    }
+  }
+}
+</style>
 
 <style lang="less">
 .el-message {
