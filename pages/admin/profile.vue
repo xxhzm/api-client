@@ -1,34 +1,7 @@
 <script setup>
-// --- Imports ---
 import { Menu } from '@element-plus/icons-vue'
 
-// --- Nuxt Composables ---
-const { $msg, $myFetch } = useNuxtApp()
-const username = useCookie('username')
-const { userAccessKey, fetchUserKey } = useUserKey()
-
 // --- State Management ---
-const loading = ref(false)
-
-const userInfo = reactive({
-  id: 0,
-  username: '',
-  mail: '',
-  phone: '',
-  key: '',
-  balance: 0,
-  status: '',
-  rawStatus: '',
-  create_time: '',
-  login_time: '',
-  ip: '',
-})
-
-// --- Balance State ---
-const balance = ref(0)
-const currentMonthTopUp = ref(0)
-const totalTopUp = ref(0)
-const total24h = ref(0) // Note: Profile page might not have chart data source for this, so it might stay 0 or need fetching
 
 // --- Sidebar & Layout Control ---
 const screenWidth = ref(0)
@@ -45,8 +18,6 @@ onMounted(() => {
     iscontrolShow.value = true
     isSidebarShow.value = false
   }
-
-  getData()
 })
 
 // --- Methods ---
@@ -62,81 +33,6 @@ const handleSidebarShow = () => {
     document.body.style.overflow = 'hidden'
   } else {
     document.body.style.overflow = ''
-  }
-}
-
-/**
- * Fetch user data
- */
-const getData = async () => {
-  loading.value = true
-  try {
-    const res = await $myFetch('UserList', {
-      params: {
-        page: 1,
-        limit: 10,
-        keyword: username.value,
-      },
-    })
-
-    if (res.code === 200 && res.data.userList && res.data.userList.length > 0) {
-      // Find the exact user
-      const currentUser = res.data.userList.find(
-        (u) => u.username === username.value
-      )
-
-      if (currentUser) {
-        userInfo.id = currentUser.id
-        userInfo.username = currentUser.username
-        userInfo.mail = currentUser.mail
-        userInfo.phone = currentUser.phone
-        userInfo.balance = currentUser.balance
-        // Store raw status for update, display text in template
-        userInfo.rawStatus = currentUser.status
-        userInfo.status = currentUser.status === '0' ? '启用' : '停用'
-        userInfo.create_time = new Date(
-          currentUser.create_time
-        ).toLocaleString()
-        userInfo.login_time = new Date(currentUser.login_time).toLocaleString()
-        userInfo.ip = currentUser.ip
-
-        // Sync balance refs
-        balance.value = Number(currentUser.balance || 0)
-
-        // 获取用户Key
-        userInfo.key = userAccessKey.value
-
-        // Fetch detailed balance info
-        await getBalance()
-      }
-    }
-  } catch (error) {
-    $msg('获取用户信息失败', 'error')
-  } finally {
-    loading.value = false
-  }
-}
-
-// Get Balance (Dedicated refresh)
-const getBalance = async (showTip = false) => {
-  try {
-    const res = await $myFetch('UserBalance', {
-      params: {
-        username: username.value,
-      },
-    })
-    if (res.code === 200) {
-      const data = res.data || {}
-      balance.value = Number(data.AccountBalance || 0)
-      userInfo.balance = balance.value // Sync
-      currentMonthTopUp.value = Number(data.CurrentMonthTopUp || 0)
-      totalTopUp.value = Number(data.TotalTopUp || 0)
-      if (showTip) $msg('余额刷新成功', 'success')
-    } else {
-      if (showTip) $msg(res.msg || '获取余额失败', 'error')
-    }
-  } catch (error) {
-    if (showTip) $msg('获取余额失败', 'error')
   }
 }
 </script>
@@ -156,15 +52,8 @@ const getBalance = async (showTip = false) => {
 
       <AdminHeader></AdminHeader>
 
-      <div class="profile-container" v-loading="loading">
-        <AdminUserProfileCard
-          :user-info="userInfo"
-          :balance="balance"
-          :current-month-top-up="currentMonthTopUp"
-          :total-top-up="totalTopUp"
-          :total24h="total24h"
-          @refresh-balance="getBalance(true)"
-        />
+      <div class="profile-container">
+        <AdminUserProfileCard />
       </div>
     </div>
   </div>

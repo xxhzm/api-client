@@ -1,6 +1,5 @@
 <script setup>
 import {
-  User,
   Message,
   Timer,
   Wallet,
@@ -14,33 +13,96 @@ import {
   DataAnalysis,
 } from '@element-plus/icons-vue'
 
-const props = defineProps({
-  userInfo: {
-    type: Object,
-    required: true,
-  },
-  balance: {
-    type: Number,
-    default: 0,
-  },
-  currentMonthTopUp: {
-    type: Number,
-    default: 0,
-  },
-  totalTopUp: {
-    type: Number,
-    default: 0,
-  },
-  total24h: {
-    type: Number,
-    default: 0,
-  },
+const props = defineProps({})
+
+const emit = defineEmits(['loaded'])
+
+const { $myFetch, $msg } = useNuxtApp()
+const { userAccessKey } = useUserKey()
+const username = useCookie('username')
+
+// User Info State
+const userInfo = reactive({
+  id: 0,
+  username: '',
+  mail: '',
+  phone: '',
+  key: '',
+  ip: '',
+  login_time: '',
+  create_time: '',
 })
 
-const emit = defineEmits(['refresh-balance'])
+const total24h = ref(0)
+const balance = ref(0)
+const currentMonthTopUp = ref(0)
+const totalTopUp = ref(0)
 
-const { $msg } = useNuxtApp()
-const { userAccessKey, fetchUserKey } = useUserKey()
+// Fetch Profile
+const fetchProfile = async () => {
+  try {
+    const res = await $myFetch('Profile')
+    if (res.code === 200) {
+      const data = res.data
+      userInfo.id = data.id
+      userInfo.username = username.value || '用户'
+      userInfo.mail = data.mail
+      userInfo.ip = data.ip
+      // Handle timestamps
+      userInfo.create_time = data.create_time
+        ? new Date(data.create_time).toLocaleString()
+        : '-'
+      userInfo.login_time = data.login_time
+        ? new Date(data.login_time).toLocaleString()
+        : '-'
+      userInfo.key = userAccessKey.value
+      // Assuming phone might be in data, or leave empty if not provided
+      userInfo.phone = data.phone || ''
+
+      // Calculate 24h total
+      let total = 0
+      ;(data.recent_request || []).forEach((element) => {
+        total += Number(element?.number || 0)
+      })
+      total24h.value = total
+
+      // Emit data for parent charts
+      emit('loaded', {
+        recent_request: data.recent_request || [],
+        today_request: data.today_request || [],
+      })
+    }
+  } catch (error) {
+    console.error('Failed to fetch profile:', error)
+  }
+}
+
+// Fetch Balance
+const fetchBalance = async (showTip = false) => {
+  try {
+    const res = await $myFetch('UserBalance', {
+      params: {
+        username: username.value,
+      },
+    })
+    if (res.code === 200) {
+      const data = res.data || {}
+      balance.value = Number(data.AccountBalance || 0)
+      currentMonthTopUp.value = Number(data.CurrentMonthTopUp || 0)
+      totalTopUp.value = Number(data.TotalTopUp || 0)
+      if (showTip) $msg('余额刷新成功', 'success')
+    } else {
+      if (showTip) $msg(res.msg || '获取余额失败', 'error')
+    }
+  } catch (error) {
+    if (showTip) $msg('获取余额失败', 'error')
+  }
+}
+
+onMounted(() => {
+  fetchProfile()
+  fetchBalance()
+})
 
 // UI State
 const activeTab = ref('details')
@@ -58,7 +120,7 @@ const formatCNY = (n) => {
 }
 
 const handleRefreshBalance = () => {
-  emit('refresh-balance')
+  fetchBalance(true)
 }
 
 const copyKey = async () => {
@@ -191,7 +253,7 @@ const copyKey = async () => {
                 <div class="info-content">
                   <div class="label">注册时间</div>
                   <div class="value">
-                    {{ userInfo.create_time?.split(' ')[0] || '-' }}
+                    {{ userInfo.create_time || '-' }}
                   </div>
                 </div>
               </div>

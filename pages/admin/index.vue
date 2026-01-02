@@ -2,144 +2,25 @@
 import * as echarts from 'echarts'
 import { Menu } from '@element-plus/icons-vue'
 
-const { $myFetch, $msg } = useNuxtApp()
-const { userAccessKey, fetchUserKey } = useUserKey()
-const username = useCookie('username')
-
 // --- UI Control State ---
 const screenWidth = ref(0)
 const isSidebarShow = ref(true)
 const iscontrolShow = ref(false)
 const isoverlay = ref(false)
-const loading = ref(false)
 
-// --- User Profile State ---
-const userInfo = reactive({
-  id: 0,
-  username: '',
-  mail: '',
-  phone: '',
-  key: '',
-  balance: 0,
-  status: '',
-  rawStatus: '',
-  create_time: '',
-  login_time: '',
-  ip: '',
-})
-
-// --- Dashboard/Charts State ---
-const chartShow = ref(true)
 const todayRequest = ref({ data: [] })
 const systemInfo = ref({
   total_api: 0,
   recent_request: [],
 })
 
-// --- Balance State ---
-const balance = ref(0)
-const currentMonthTopUp = ref(0)
-const totalTopUp = ref(0)
-
-// --- Computed ---
-const total24h = computed(() => {
-  let total = 0
-  ;(systemInfo.value?.recent_request || []).forEach((element) => {
-    total += Number(element?.number || 0)
-  })
-  return total
-})
-
 // --- Methods ---
 
-const formatCNY = (n) => {
-  const num = Number(n || 0)
-  return (
-    '¥ ' +
-    num.toLocaleString('zh-CN', {
-      minimumFractionDigits: 5,
-      maximumFractionDigits: 5,
-    })
-  )
-}
-
-// Fetch System Info
-const fetchSystemInfo = async () => {
-  try {
-    const sysRes = await $myFetch('SystemInfo')
-    if (sysRes.code === 200) {
-      systemInfo.value = sysRes.data
-      initCharts()
-    }
-  } catch (e) {
-    console.error(e)
-  }
-}
-
-// Fetch User Profile (Merged from profile.vue)
-const getUserProfile = async () => {
-  loading.value = true
-  try {
-    const res = await $myFetch('UserList', {
-      params: {
-        page: 1,
-        limit: 10,
-        keyword: username.value,
-      },
-    })
-
-    if (res.code === 200 && res.data.userList && res.data.userList.length > 0) {
-      const currentUser = res.data.userList.find(
-        (u) => u.username === username.value
-      )
-
-      if (currentUser) {
-        userInfo.id = currentUser.id
-        userInfo.username = currentUser.username
-        userInfo.mail = currentUser.mail
-        userInfo.phone = currentUser.phone
-        userInfo.balance = currentUser.balance
-        userInfo.rawStatus = currentUser.status
-        userInfo.status = currentUser.status === '0' ? '启用' : '停用'
-        userInfo.create_time = new Date(
-          currentUser.create_time
-        ).toLocaleString()
-        userInfo.login_time = new Date(currentUser.login_time).toLocaleString()
-        userInfo.ip = currentUser.ip
-
-        // Sync balance refs
-        balance.value = Number(currentUser.balance || 0)
-      }
-    }
-    userInfo.key = userAccessKey.value
-  } catch (error) {
-    $msg('获取用户信息失败', 'error')
-  } finally {
-    loading.value = false
-  }
-}
-
-// Get Balance (Dedicated refresh)
-const getBalance = async (showTip = false) => {
-  try {
-    const res = await $myFetch('UserBalance', {
-      params: {
-        username: username.value,
-      },
-    })
-    if (res.code === 200) {
-      const data = res.data || {}
-      balance.value = Number(data.AccountBalance || 0)
-      userInfo.balance = balance.value // Sync
-      currentMonthTopUp.value = Number(data.CurrentMonthTopUp || 0)
-      totalTopUp.value = Number(data.TotalTopUp || 0)
-      if (showTip) $msg('余额刷新成功', 'success')
-    } else {
-      if (showTip) $msg(res.msg || '获取余额失败', 'error')
-    }
-  } catch (error) {
-    if (showTip) $msg('获取余额失败', 'error')
-  }
+// Handle Profile Data Loaded from Child
+const handleProfileLoaded = (data) => {
+  systemInfo.value.recent_request = data.recent_request || []
+  systemInfo.value.today_request = data.today_request || []
+  initCharts()
 }
 
 const handleSidebarShow = () => {
@@ -350,9 +231,6 @@ onMounted(async () => {
     iscontrolShow.value = true
     isSidebarShow.value = false
   }
-
-  // Load data
-  await Promise.all([fetchSystemInfo(), getUserProfile(), getBalance(false)])
 })
 
 useHead({
@@ -377,14 +255,7 @@ useHead({
       <div class="main-container">
         <div class="dashboard-content">
           <!-- Top Section: User Profile & System Info -->
-          <AdminUserProfileCard
-            :user-info="userInfo"
-            :balance="balance"
-            :current-month-top-up="currentMonthTopUp"
-            :total-top-up="totalTopUp"
-            :total24h="total24h"
-            @refresh-balance="getBalance(true)"
-          />
+          <AdminUserProfileCard @loaded="handleProfileLoaded" />
 
           <!-- Bottom Section: Charts -->
           <div class="charts-section">
