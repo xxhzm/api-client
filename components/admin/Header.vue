@@ -40,6 +40,7 @@ const routeNameMap = {
   '/admin/userPackageManagement': '用户套餐',
   '/admin/ip-ban': 'IP封禁',
   '/admin/api-rate-limit': '速率限制',
+  '/admin/profile': '个人信息',
   '/admin/key': '秘钥管理',
   '/admin/password': '修改密码',
   '/admin/phone': '换绑手机',
@@ -270,6 +271,11 @@ const handleSelect = (key) => {
   // 更改密码
   if (key === '0-1') {
     navigateTo('/admin/password')
+  }
+
+  // 个人信息
+  if (key === '0-3') {
+    navigateTo('/admin/profile')
   }
 
   // 退出登录

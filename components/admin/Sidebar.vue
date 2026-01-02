@@ -108,6 +108,7 @@ const pathMap = {
   key: '8',
   password: '8',
   phone: '8',
+  profile: '8',
 }
 
 const thirdPath = pathArr[2] // 注意 pathArr[2] 是第3段
@@ -149,9 +150,9 @@ const pathIndexMap = {
   '/admin/userPackageManagement': '6-10',
   '/admin/ip-ban': '7-1',
   '/admin/api-rate-limit': '7-2',
-  '/admin/key': '8-1',
-  '/admin/password': '8-2',
-  '/admin/phone': '8-3',
+  '/admin/key': '8-2',
+  '/admin/password': '8-3',
+  '/admin/phone': '8-4',
   '/admin/links': '9',
 }
 
@@ -499,7 +500,14 @@ watch(
 
         <el-sub-menu
           index="8"
-          v-if="routeShowArr(['/admin/key', '/admin/password', '/admin/phone'])"
+          v-if="
+            routeShowArr([
+              '/admin/profile',
+              '/admin/key',
+              '/admin/password',
+              '/admin/phone',
+            ])
+          "
         >
           <template #title>
             <el-icon>
@@ -510,18 +518,24 @@ watch(
           <el-menu-item-group title="个人中心">
             <el-menu-item
               index="8-1"
+              @click="navigateTo('/admin/profile')"
+              v-if="routeShow('/admin/profile')"
+              >个人信息</el-menu-item
+            >
+            <el-menu-item
+              index="8-2"
               @click="navigateTo('/admin/key')"
               v-if="routeShow('/admin/key')"
               >API密钥管理</el-menu-item
             >
             <el-menu-item
-              index="8-2"
+              index="8-3"
               @click="navigateTo('/admin/password')"
               v-if="routeShow('/admin/password')"
               >修改密码</el-menu-item
             >
             <el-menu-item
-              index="8-3"
+              index="8-4"
               @click="navigateTo('/admin/phone')"
               v-if="routeShow('/admin/phone')"
               >手机号管理</el-menu-item
