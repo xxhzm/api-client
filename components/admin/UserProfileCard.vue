@@ -64,9 +64,6 @@ const handleRefreshBalance = () => {
 const copyKey = async () => {
   try {
     if (!userAccessKey.value) {
-      await fetchUserKey()
-    }
-    if (!userAccessKey.value) {
       $msg('暂无可复制的秘钥', 'warning')
       return
     }

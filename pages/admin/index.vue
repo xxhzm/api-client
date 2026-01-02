@@ -111,11 +111,6 @@ const getUserProfile = async () => {
         balance.value = Number(currentUser.balance || 0)
       }
     }
-
-    // Fetch Key
-    if (!userAccessKey.value) {
-      await fetchUserKey(username.value)
-    }
     userInfo.key = userAccessKey.value
   } catch (error) {
     $msg('获取用户信息失败', 'error')

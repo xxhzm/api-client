@@ -1,12 +1,14 @@
 export const useUserKey = () => {
   const { $myFetch } = useNuxtApp()
   const username = useCookie('username')
-  const userAccessKey = useCookie('userAccessKey', () => '')
-  const fetchUserKey = async (name) => {
-    const uname = name ?? username.value
+  const userAccessKey = useCookie('userAccessKey', {
+    decode: (v) => v,
+    encode: (v) => v,
+  })
+  const fetchUserKey = async () => {
     const res = await $myFetch('GetUserKey', {
       params: {
-        username: uname,
+        username: username.value,
       },
     })
     if (res.code === 200) {

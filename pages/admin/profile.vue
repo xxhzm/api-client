@@ -104,10 +104,7 @@ const getData = async () => {
         balance.value = Number(currentUser.balance || 0)
 
         // 获取用户Key
-        const keyRes = await fetchUserKey(currentUser.username)
-        if (keyRes.code === 200) {
-          userInfo.key = userAccessKey.value
-        }
+        userInfo.key = userAccessKey.value
 
         // Fetch detailed balance info
         await getBalance()

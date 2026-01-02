@@ -73,7 +73,7 @@ const activeCodeTab = ref('js')
 
 const getKeyInfo = async () => {
   if (username.value && token.value) {
-    const res = await fetchUserKey(username.value)
+    const res = await fetchUserKey()
     if (res.code === 200) {
       keyInfo.value.key = userAccessKey.value
     } else {
