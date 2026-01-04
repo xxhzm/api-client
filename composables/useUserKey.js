@@ -18,5 +18,10 @@ export const useUserKey = () => {
     }
     return res
   }
+
+  if (!userAccessKey.value) {
+    fetchUserKey()
+  }
+
   return { userAccessKey: readonly(userAccessKey), fetchUserKey }
 }
