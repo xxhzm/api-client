@@ -9,29 +9,27 @@ let chart = null
 // 添加 updateTimer 声明
 let updateTimer = null
 
-// 城市坐标数据
-const geoCoordMap = {
-  北京: [116.407526, 39.90403],
-  上海: [121.473701, 31.230416],
-  广州: [113.264385, 23.12911],
-  深圳: [114.057868, 22.543099],
-  南京: [118.796877, 32.060255],
-  杭州: [120.15507, 30.274084],
-  武汉: [114.298572, 30.584355],
-  成都: [104.066541, 30.572269],
-  重庆: [106.504962, 29.533155],
-}
-
 // 添加数据响应式
 const attackData = ref([])
+const mapType = ref('china')
 
-// 提取城市名称的函数
-const extractCityName = (fullName) => {
-  // 移除"省"、"市"、"区"等后缀，并提取主要城市名
-  const match = fullName.match(
-    /([\u4e00-\u9fa5]{2,})(?:省|市|自治区)?(?:[\u4e00-\u9fa5]*?市)?/
-  )
-  return match ? match[1] : fullName
+// 切换地图类型的函数
+const toggleMapType = () => {
+  mapType.value = mapType.value === 'china' ? 'world' : 'china'
+
+  if (chart) {
+    chart.setOption({
+      geo: {
+        map: mapType.value,
+        center: mapType.value === 'china' ? [105.97, 29.71] : [0, -10],
+        zoom: mapType.value === 'china' ? 1.5 : 1.8,
+        label: {
+          show: mapType.value === 'china',
+        },
+      },
+    })
+    updateChart()
+  }
 }
 
 // 添加一个辅助函数来检查坐标是否有效
@@ -42,6 +40,13 @@ const isValidCoordinate = (coord) => {
     coord.length === 2 &&
     (coord[0] !== 0 || coord[1] !== 0)
   )
+}
+
+// 判断坐标是否在中国境内
+const isInChina = (coord) => {
+  if (!isValidCoordinate(coord)) return false
+  const [lng, lat] = coord
+  return lng >= 73 && lng <= 136 && lat >= 18 && lat <= 54
 }
 
 // 修改数据转换函数
@@ -70,7 +75,7 @@ const convertData = (data) => {
 }
 
 // 图表配置
-const getOption = () => ({
+const getOption = (nameMap = {}) => ({
   backgroundColor: {
     type: 'radial',
     x: 0.5,
@@ -93,6 +98,9 @@ const getOption = () => ({
       if (params.seriesName === '起始点' || params.seriesName === '攻击点') {
         return params.name
       }
+      if (params.componentType === 'geo') {
+        return params.name
+      }
       return null
     },
     backgroundColor: 'rgba(0, 43, 77, 0.9)',
@@ -105,15 +113,16 @@ const getOption = () => ({
     },
   },
   geo: {
-    map: 'china',
+    map: mapType.value,
+    nameMap: nameMap,
     roam: false,
-    center: [105.97, 29.71],
-    zoom: 1.5,
+    center: mapType.value === 'china' ? [105.97, 29.71] : [0, 60],
+    zoom: mapType.value === 'china' ? 1.5 : 1.2,
     layoutCenter: ['50%', '65%'],
     layoutSize: '85%',
     aspectScale: 0.85,
     label: {
-      show: true,
+      show: mapType.value === 'china',
       position: 'inside',
       color: 'rgba(220, 246, 255, 0.8)',
       fontSize: 10,
@@ -156,7 +165,6 @@ const getOption = () => ({
         areaColor: 'rgba(5, 121, 148, 0.8)',
       },
     },
-    silent: true,
   },
   series: [
     {
@@ -311,11 +319,28 @@ const updateChart = () => {
   if (!chart) return
 
   // 过滤掉无效坐标的数据
-  const validData = attackData.value.filter(
+  let validData = attackData.value.filter(
     (item) =>
       isValidCoordinate(item[0].coordinate) &&
       isValidCoordinate(item[1].coordinate)
   )
+
+  // 如果是世界地图，只显示跨国数据（保留中国与境外的交互数据）
+  if (mapType.value === 'world') {
+    validData = validData.filter((item) => {
+      const sourceIsChina = item[0].name.includes('中国')
+      const targetIsChina = item[1].name.includes('中国')
+      // 只保留起点和终点一个在境内一个在境外的数据
+      return sourceIsChina !== targetIsChina
+    })
+  } else if (mapType.value === 'china') {
+    validData = validData.filter((item) => {
+      const sourceIsChina = item[0].name.includes('中国')
+      const targetIsChina = item[1].name.includes('中国')
+      // 只保留起点和终点都在境内的数据
+      return sourceIsChina && targetIsChina
+    })
+  }
 
   const convertedData = convertData(validData)
 
@@ -373,12 +398,15 @@ const initChart = async () => {
 
     // 导入本地地图数据
     const chinaJSON = await import('@/assets/map.json')
+    const worldJSON = await import('@/assets/world.json')
+    const countryNameMap = await import('@/assets/countryNameMap.json')
 
     // 注册地图数据
     echarts.registerMap('china', chinaJSON.default)
+    echarts.registerMap('world', worldJSON.default)
 
     chart = echarts.init(chartRef.value)
-    chart.setOption(getOption())
+    chart.setOption(getOption(countryNameMap.default))
 
     // 首次获取数据
     await fetchAttackData()
@@ -426,6 +454,9 @@ useHead({
     <div class="attack-info">
       <div class="attack-count">实时请求: {{ attackCount }}</div>
       <div class="update-time">更新时间: {{ currentTime }}</div>
+      <div class="map-switch" @click="toggleMapType">
+        切换至{{ mapType === 'china' ? '世界' : '中国' }}地图
+      </div>
     </div>
   </div>
 </template>
@@ -496,6 +527,22 @@ body {
 
   .update-time {
     color: rgba(255, 255, 255, 0.7);
+  }
+
+  .map-switch {
+    margin-top: 10px;
+    padding: 5px 10px;
+    background: rgba(0, 255, 255, 0.1);
+    border: 1px solid rgba(0, 255, 255, 0.3);
+    border-radius: 4px;
+    cursor: pointer;
+    text-align: center;
+    transition: all 0.3s;
+    color: #0ff;
+
+    &:hover {
+      background: rgba(0, 255, 255, 0.2);
+    }
   }
 }
 
