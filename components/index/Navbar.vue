@@ -9,6 +9,7 @@ import {
   House,
   ChatDotSquare,
   Connection,
+  Shop,
 } from '@element-plus/icons-vue'
 const options = useState('options')
 
@@ -40,14 +41,14 @@ const navItems = computed(() => [
     icon: Connection,
   },
   {
-    name: '友情链接',
-    path: '/links',
-    icon: Link,
-  },
-  {
     name: '新闻',
     path: '/articles',
     icon: Document,
+  },
+  {
+    name: '商户入驻',
+    path: '/merchant',
+    icon: Shop,
   },
   {
     name: '关于我们',
@@ -362,7 +363,7 @@ const navigateToPath = (path) => {
 }
 
 // 响应式设计
-@media (max-width: 768px) {
+@media (max-width: 1024px) {
   .navbar {
     .navbar-container {
       padding: 0 16px;

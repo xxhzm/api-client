@@ -81,6 +81,7 @@ onMounted(async () => {
         <div class="footer-column">
           <h4>支持帮助</h4>
           <ul class="footer-links">
+            <li><a href="/links">友情链接</a></li>
             <li><a href="/terms">服务条款</a></li>
             <li><a href="/privacy">隐私政策</a></li>
           </ul>
