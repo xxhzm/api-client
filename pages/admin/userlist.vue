@@ -540,8 +540,17 @@ const callRecordDialogVisible = ref(false)
 const callRecords = ref([])
 const callRecordLoading = ref(false)
 const callRecordPage = ref(1)
-const callRecordPageSize = ref(10)
+const callRecordPageSize = ref(25)
 const callRecordMaxPage = ref(1)
+
+// 用户调用统计相关
+const userCallStats = ref({
+  day1: 0,
+  day3: 0,
+  day7: 0,
+  month1: 0,
+})
+const userTopApis = ref([])
 
 // 获取用户调用记录
 const fetchUserCallRecords = async () => {
@@ -555,6 +564,29 @@ const fetchUserCallRecords = async () => {
 
     const res = await $myFetch('ApiLogList', { params })
     if (res.code === 200) {
+      // 处理统计数据
+      if (res.data.call_stat) {
+        userCallStats.value = {
+          day1: res.data.call_stat.day_1 || 0,
+          day3: res.data.call_stat.day_3 || 0,
+          day7: res.data.call_stat.day_7 || 0,
+          month1: res.data.call_stat.day_30 || 0,
+        }
+      }
+
+      // 处理Top API数据
+      if (res.data.top_apis && Array.isArray(res.data.top_apis)) {
+        const topList = res.data.top_apis
+        const max = topList.length > 0 ? topList[0].count : 0
+        userTopApis.value = topList.map((item) => ({
+          name: item.name,
+          count: item.count,
+          percentage: max > 0 ? Math.round((item.count / max) * 100) : 0,
+        }))
+      } else {
+        userTopApis.value = []
+      }
+
       const logs = res.data.logs || []
       logs.forEach((element, key) => {
         element.key = key + 1
@@ -599,6 +631,16 @@ const handleUserCallRecord = (row) => {
   callRecordPage.value = 1
   callRecordDialogVisible.value = true
   fetchUserCallRecords()
+}
+
+const handleCallRecordClosed = () => {
+  userCallStats.value = {
+    day1: 0,
+    day3: 0,
+    day7: 0,
+    month1: 0,
+  }
+  userTopApis.value = []
 }
 
 // 监听调用记录页码变化
@@ -1105,7 +1147,67 @@ useHead({
             width="80%"
             destroy-on-close
             top="5vh"
+            @closed="handleCallRecordClosed"
           >
+            <!-- 统计区域 -->
+            <div class="stats-overview">
+              <el-row :gutter="20">
+                <el-col :span="6">
+                  <div class="stat-item">
+                    <div class="stat-label">近1天调用</div>
+                    <div class="stat-value">{{ userCallStats.day1 }}</div>
+                  </div>
+                </el-col>
+                <el-col :span="6">
+                  <div class="stat-item">
+                    <div class="stat-label">近3天调用</div>
+                    <div class="stat-value">{{ userCallStats.day3 }}</div>
+                  </div>
+                </el-col>
+                <el-col :span="6">
+                  <div class="stat-item">
+                    <div class="stat-label">近7天调用</div>
+                    <div class="stat-value">{{ userCallStats.day7 }}</div>
+                  </div>
+                </el-col>
+                <el-col :span="6">
+                  <div class="stat-item">
+                    <div class="stat-label">近30天调用</div>
+                    <div class="stat-value">{{ userCallStats.month1 }}</div>
+                  </div>
+                </el-col>
+              </el-row>
+
+              <!-- 接口调用排行 -->
+              <div class="top-apis-section" v-if="userTopApis.length > 0">
+                <div class="section-title">常用接口 Top 5 (近7天调用)</div>
+                <div class="top-api-list">
+                  <div
+                    v-for="(api, index) in userTopApis"
+                    :key="index"
+                    class="top-api-item"
+                  >
+                    <div class="api-info">
+                      <span class="api-name">{{ api.name }}</span>
+                      <span class="api-count">{{ api.count }}次</span>
+                    </div>
+                    <el-progress
+                      :percentage="api.percentage"
+                      :show-text="false"
+                      :stroke-width="8"
+                      :color="
+                        index === 0
+                          ? '#f56c6c'
+                          : index === 1
+                          ? '#e6a23c'
+                          : '#409eff'
+                      "
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
+
             <div v-loading="callRecordLoading">
               <el-table :data="callRecords" style="width: 100%" height="500">
                 <el-table-column prop="key" label="序号" width="60" />
@@ -1547,6 +1649,71 @@ useHead({
 @media screen and (max-width: 768px) {
   .container .right .userlist-container {
     padding: 12px;
+  }
+}
+
+.stats-overview {
+  margin-bottom: 20px;
+
+  .stat-item {
+    background: #f8fafc;
+    border-radius: 8px;
+    padding: 16px;
+    text-align: center;
+    border: 1px solid #eaecf0;
+
+    .stat-label {
+      color: #64748b;
+      font-size: 14px;
+      margin-bottom: 8px;
+    }
+
+    .stat-value {
+      color: #0f172a;
+      font-size: 24px;
+      font-weight: 600;
+    }
+  }
+}
+
+.top-apis-section {
+  margin-top: 24px;
+  padding-top: 20px;
+  border-top: 1px solid #eaecf0;
+
+  .section-title {
+    font-size: 15px;
+    font-weight: 600;
+    color: #1e293b;
+    margin-bottom: 16px;
+  }
+
+  .top-api-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+    gap: 16px;
+
+    .top-api-item {
+      .api-info {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 8px;
+        font-size: 13px;
+
+        .api-name {
+          color: #334155;
+          font-weight: 500;
+          white-space: nowrap;
+          overflow: hidden;
+          text-overflow: ellipsis;
+          max-width: 70%;
+        }
+
+        .api-count {
+          color: #64748b;
+        }
+      }
+    }
   }
 }
 </style>

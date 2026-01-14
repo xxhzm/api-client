@@ -71,6 +71,15 @@ watch(
 const loading = ref(false)
 const tableData = ref([])
 
+// 统计数据
+const callStats = ref({
+  day1: 0,
+  day3: 0,
+  day7: 0,
+  month1: 0,
+})
+const topApis = ref([])
+
 const getData = async () => {
   const res = await $myFetch('ApiLogList', {
     params: {
@@ -84,6 +93,29 @@ const getData = async () => {
     tableData.value = []
     maxPage.value = 1
     return
+  }
+
+  // 处理统计数据
+  if (res.data.call_stat) {
+    callStats.value = {
+      day1: res.data.call_stat.day_1 || 0,
+      day3: res.data.call_stat.day_3 || 0,
+      day7: res.data.call_stat.day_7 || 0,
+      month1: res.data.call_stat.day_30 || 0,
+    }
+  }
+
+  // 处理Top API数据
+  if (res.data.top_apis && Array.isArray(res.data.top_apis)) {
+    const topList = res.data.top_apis
+    const max = topList.length > 0 ? topList[0].count : 0
+    topApis.value = topList.map((item) => ({
+      name: item.name,
+      count: item.count,
+      percentage: max > 0 ? Math.round((item.count / max) * 100) : 0,
+    }))
+  } else {
+    topApis.value = []
   }
 
   res.data.logs.forEach((element, key) => {
@@ -157,6 +189,29 @@ const handleSearchTime = async (sPage) => {
     tableData.value = []
     maxPage.value = 1
     return false
+  }
+
+  // 处理统计数据
+  if (res.data.call_stat) {
+    callStats.value = {
+      day1: res.data.call_stat.day_1 || 0,
+      day3: res.data.call_stat.day_3 || 0,
+      day7: res.data.call_stat.day_7 || 0,
+      month1: res.data.call_stat.day_30 || 0,
+    }
+  }
+
+  // 处理Top API数据
+  if (res.data.top_apis && Array.isArray(res.data.top_apis)) {
+    const topList = res.data.top_apis
+    const max = topList.length > 0 ? topList[0].count : 0
+    topApis.value = topList.map((item) => ({
+      name: item.name,
+      count: item.count,
+      percentage: max > 0 ? Math.round((item.count / max) * 100) : 0,
+    }))
+  } else {
+    topApis.value = []
   }
 
   res.data.logs.forEach((element, key) => {
@@ -341,6 +396,65 @@ useHead({
                 layout="sizes, prev, pager, next, jumper"
                 @size-change="getData"
               />
+            </div>
+          </div>
+
+          <!-- 统计区域 -->
+          <div class="stats-overview">
+            <el-row :gutter="20">
+              <el-col :span="6">
+                <div class="stat-item">
+                  <div class="stat-label">近1天调用</div>
+                  <div class="stat-value">{{ callStats.day1 }}</div>
+                </div>
+              </el-col>
+              <el-col :span="6">
+                <div class="stat-item">
+                  <div class="stat-label">近3天调用</div>
+                  <div class="stat-value">{{ callStats.day3 }}</div>
+                </div>
+              </el-col>
+              <el-col :span="6">
+                <div class="stat-item">
+                  <div class="stat-label">近7天调用</div>
+                  <div class="stat-value">{{ callStats.day7 }}</div>
+                </div>
+              </el-col>
+              <el-col :span="6">
+                <div class="stat-item">
+                  <div class="stat-label">近30天调用</div>
+                  <div class="stat-value">{{ callStats.month1 }}</div>
+                </div>
+              </el-col>
+            </el-row>
+
+            <!-- 接口调用排行 -->
+            <div class="top-apis-section" v-if="topApis.length > 0">
+              <div class="section-title">常用接口 Top 5</div>
+              <div class="top-api-list">
+                <div
+                  v-for="(api, index) in topApis"
+                  :key="index"
+                  class="top-api-item"
+                >
+                  <div class="api-info">
+                    <span class="api-name">{{ api.name }}</span>
+                    <span class="api-count">{{ api.count }}次</span>
+                  </div>
+                  <el-progress
+                    :percentage="api.percentage"
+                    :show-text="false"
+                    :stroke-width="8"
+                    :color="
+                      index === 0
+                        ? '#f56c6c'
+                        : index === 1
+                        ? '#e6a23c'
+                        : '#409eff'
+                    "
+                  />
+                </div>
+              </div>
             </div>
           </div>
 
@@ -732,6 +846,77 @@ useHead({
 
           .search-buttons {
             justify-content: flex-end;
+          }
+        }
+      }
+    }
+  }
+}
+
+.stats-overview {
+  background: #fff;
+  border: 1px solid #eaecf0;
+  border-radius: 12px;
+  padding: 24px;
+  margin-bottom: 16px;
+  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.03);
+
+  .stat-item {
+    background: #f8fafc;
+    border-radius: 8px;
+    padding: 16px;
+    text-align: center;
+    border: 1px solid #eaecf0;
+    margin-bottom: 16px;
+
+    .stat-label {
+      color: #64748b;
+      font-size: 14px;
+      margin-bottom: 8px;
+    }
+
+    .stat-value {
+      color: #0f172a;
+      font-size: 24px;
+      font-weight: 600;
+    }
+  }
+
+  .top-apis-section {
+    margin-top: 8px;
+    padding-top: 20px;
+    border-top: 1px solid #eaecf0;
+
+    .section-title {
+      font-size: 15px;
+      font-weight: 600;
+      color: #1e293b;
+      margin-bottom: 16px;
+    }
+
+    .top-api-list {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+      gap: 16px;
+
+      .top-api-item {
+        .api-info {
+          display: flex;
+          justify-content: space-between;
+          margin-bottom: 8px;
+          font-size: 13px;
+
+          .api-name {
+            color: #334155;
+            font-weight: 500;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-width: 70%;
+          }
+
+          .api-count {
+            color: #64748b;
           }
         }
       }
