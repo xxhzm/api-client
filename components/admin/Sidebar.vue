@@ -11,6 +11,7 @@ import {
   Wallet,
   Lock,
   Shop,
+  Document,
 } from '@element-plus/icons-vue'
 
 const options = useState('options')
@@ -112,6 +113,7 @@ const pathMap = {
   profile: '8',
   merchant: '11',
   'merchant-manage': '11',
+  logs: '12',
 }
 
 const thirdPath = pathArr[2] // 注意 pathArr[2] 是第3段
@@ -159,6 +161,7 @@ const pathIndexMap = {
   '/admin/links': '9',
   '/admin/merchant': '11-1',
   '/admin/merchant-manage': '11-2',
+  '/admin/logs': '12-1',
 }
 
 const route = useRoute()
@@ -169,7 +172,7 @@ watch(
   () => route.path,
   (newPath) => {
     defaultActive.value = pathIndexMap[newPath] || ''
-  }
+  },
 )
 </script>
 
@@ -577,6 +580,20 @@ watch(
               index="11-2"
               @click="navigateTo('/admin/merchant-manage')"
               >商户列表</el-menu-item
+            >
+          </el-menu-item-group>
+        </el-sub-menu>
+
+        <el-sub-menu index="12">
+          <template #title>
+            <el-icon>
+              <Document />
+            </el-icon>
+            <span>日志管理</span>
+          </template>
+          <el-menu-item-group title="日志管理">
+            <el-menu-item index="12-1" @click="navigateTo('/admin/logs')"
+              >综合日志</el-menu-item
             >
           </el-menu-item-group>
         </el-sub-menu>

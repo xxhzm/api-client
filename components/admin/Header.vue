@@ -47,6 +47,7 @@ const routeNameMap = {
   '/admin/links': '友情链接',
   '/admin/merchant': '商户审核',
   '/admin/merchant-manage': '商户管理',
+  '/admin/logs': '综合日志',
 }
 
 // 动态路由名称处理

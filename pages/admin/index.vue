@@ -119,7 +119,7 @@ const initCharts = () => {
     (element) => ({
       name: element.name,
       value: Number(element.number || 0),
-    })
+    }),
   )
 
   // API Bar Chart
