@@ -45,6 +45,8 @@ const routeNameMap = {
   '/admin/password': '修改密码',
   '/admin/phone': '换绑手机',
   '/admin/links': '友情链接',
+  '/admin/merchant': '商户审核',
+  '/admin/merchant-manage': '商户管理',
 }
 
 // 动态路由名称处理
@@ -91,6 +93,8 @@ const parentNameMap = {
   '/admin/password': '个人中心',
   '/admin/phone': '个人中心',
   '/admin/links': '友情链接',
+  '/admin/merchant': '商户管理',
+  '/admin/merchant-manage': '商户管理',
 }
 
 const breadcrumbs = computed(() => {
@@ -237,7 +241,7 @@ watch(
   () => {
     addVisitedView()
   },
-  { immediate: true }
+  { immediate: true },
 )
 
 onMounted(() => {
@@ -263,7 +267,7 @@ watch(
     }
     checkTagsWidth()
   },
-  { deep: true }
+  { deep: true },
 )
 // --- End Visited Views Logic ---
 

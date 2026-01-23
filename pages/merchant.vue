@@ -98,6 +98,8 @@ const processSteps = [
 
 const form = reactive({
   name: '',
+  enterprise_name: '',
+  credit_code: '',
   contact: '',
   phone: '',
   email: '',
@@ -106,16 +108,68 @@ const form = reactive({
 
 const formRef = ref(null)
 
-const submitForm = () => {
-  if (!form.name || !form.contact || !form.phone) {
+const rules = reactive({
+  name: [{ required: true, message: '请输入商户名称', trigger: 'blur' }],
+  contact: [{ required: true, message: '请输入联系人', trigger: 'blur' }],
+  phone: [{ required: true, message: '请输入联系电话', trigger: 'blur' }],
+  email: [
+    { required: true, message: '请输入电子邮箱', trigger: 'blur' },
+    {
+      type: 'email',
+      message: '请输入正确的邮箱地址',
+      trigger: ['blur', 'change'],
+    },
+  ],
+})
+
+const loading = ref(false)
+
+const submitForm = async () => {
+  if (!formRef.value) return
+  try {
+    await formRef.value.validate()
+  } catch (error) {
     ElMessage.warning('请填写必填项')
     return
   }
-  // 模拟提交
-  ElMessage.success({
-    message: '申请提交成功！我们的商务经理将尽快联系您。',
-    duration: 3000,
-  })
+
+  loading.value = true
+  try {
+    const apiBodyValue = new URLSearchParams()
+    apiBodyValue.append('merchantName', form.name)
+    apiBodyValue.append('companyName', form.enterprise_name)
+    apiBodyValue.append('ceditCode', form.credit_code)
+    apiBodyValue.append('contactName', form.contact)
+    apiBodyValue.append('contactPhone', form.phone)
+    apiBodyValue.append('contactEmail', form.email)
+    apiBodyValue.append('cooperationIntent', form.description)
+
+    const res = await $myFetch('MerchantCreate', {
+      method: 'POST',
+      body: apiBodyValue,
+    })
+
+    if (res.code === 200) {
+      ElMessage.success({
+        message: res.msg || '申请提交成功！我们的商务经理将尽快联系您。',
+        duration: 3000,
+      })
+      // 重置表单
+      form.name = ''
+      form.enterprise_name = ''
+      form.credit_code = ''
+      form.contact = ''
+      form.phone = ''
+      form.email = ''
+      form.description = ''
+    } else {
+      ElMessage.error(res.msg || '提交失败，请稍后重试')
+    }
+  } catch (error) {
+    ElMessage.error('网络错误，请稍后重试')
+  } finally {
+    loading.value = false
+  }
 }
 
 const scrollToForm = () => {
@@ -288,13 +342,28 @@ const scrollToForm = () => {
           <div class="form-right">
             <el-form
               :model="form"
+              :rules="rules"
               ref="formRef"
               label-position="top"
               class="business-form"
             >
               <div class="form-row">
-                <el-form-item label="企业/商户名称" prop="name" class="flex-1">
+                <el-form-item label="商户名称" prop="name" class="flex-1">
                   <el-input v-model="form.name" placeholder="请输入完整名称" />
+                </el-form-item>
+              </div>
+              <div class="form-row two-cols">
+                <el-form-item label="企业名称" prop="enterprise_name">
+                  <el-input
+                    v-model="form.enterprise_name"
+                    placeholder="请输入营业执照上的企业名称"
+                  />
+                </el-form-item>
+                <el-form-item label="统一社会信用代码" prop="credit_code">
+                  <el-input
+                    v-model="form.credit_code"
+                    placeholder="请输入18位信用代码"
+                  />
                 </el-form-item>
               </div>
               <div class="form-row two-cols">
@@ -316,7 +385,12 @@ const scrollToForm = () => {
                   placeholder="简单描述您的 API 资源或合作想法..."
                 />
               </el-form-item>
-              <el-button type="primary" class="submit-btn" @click="submitForm">
+              <el-button
+                type="primary"
+                class="submit-btn"
+                @click="submitForm"
+                :loading="loading"
+              >
                 提交申请
               </el-button>
               <p class="privacy-tip">
@@ -335,7 +409,12 @@ const scrollToForm = () => {
 <style scoped lang="less">
 /* Global Reset & Fonts */
 .merchant-page {
-  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto,
+  font-family:
+    'Inter',
+    -apple-system,
+    BlinkMacSystemFont,
+    'Segoe UI',
+    Roboto,
     sans-serif;
   color: #1e293b;
   background-color: #ffffff;

@@ -10,6 +10,7 @@ import {
   Connection,
   Wallet,
   Lock,
+  Shop,
 } from '@element-plus/icons-vue'
 
 const options = useState('options')
@@ -109,6 +110,8 @@ const pathMap = {
   password: '8',
   phone: '8',
   profile: '8',
+  merchant: '11',
+  'merchant-manage': '11',
 }
 
 const thirdPath = pathArr[2] // 注意 pathArr[2] 是第3段
@@ -154,6 +157,8 @@ const pathIndexMap = {
   '/admin/password': '8-3',
   '/admin/phone': '8-4',
   '/admin/links': '9',
+  '/admin/merchant': '11-1',
+  '/admin/merchant-manage': '11-2',
 }
 
 const route = useRoute()
@@ -553,6 +558,28 @@ watch(
           </el-icon>
           <template #title>友情链接</template>
         </el-menu-item>
+
+        <el-sub-menu index="11">
+          <template #title>
+            <el-icon>
+              <Shop />
+            </el-icon>
+            <span>商户管理</span>
+          </template>
+          <el-menu-item-group title="商户管理">
+            <el-menu-item
+              index="11-1"
+              @click="navigateTo('/admin/merchant')"
+              v-if="routeShow('/admin/merchant')"
+              >商户审核</el-menu-item
+            >
+            <el-menu-item
+              index="11-2"
+              @click="navigateTo('/admin/merchant-manage')"
+              >商户列表</el-menu-item
+            >
+          </el-menu-item-group>
+        </el-sub-menu>
 
         <el-menu-item index="10" @click="navigateTo('/')">
           <el-icon>
