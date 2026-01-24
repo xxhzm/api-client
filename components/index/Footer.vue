@@ -12,6 +12,12 @@ const displayHotApis = computed(() => {
   return props.hotApis || globalHotApis.value
 })
 
+// 过滤全站友链 (type === 1)
+const footerLinks = computed(() => {
+  if (!linksList.value) return []
+  return linksList.value.filter((item) => item.type === 1)
+})
+
 // 在组件挂载时初始化数据（如果没有传入数据）
 onMounted(async () => {
   if (!props.hotApis) {
@@ -160,7 +166,7 @@ onMounted(async () => {
           <div class="friend-links-label">友情链接：</div>
           <div class="friend-links-list">
             <a
-              v-for="item in linksList"
+              v-for="item in footerLinks"
               :key="item.id"
               :href="item.url"
               target="_blank"

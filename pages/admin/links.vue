@@ -21,6 +21,7 @@ const linkInfo = ref({
   description: '',
   url: '',
   image: '',
+  type: 1,
 })
 
 // 获取数据信息
@@ -52,6 +53,7 @@ const handleEdit = (index, row) => {
   linkInfo.value.description = row.description
   linkInfo.value.url = row.url
   linkInfo.value.image = row.image
+  linkInfo.value.type = row.type || 1
 }
 
 // 删除链接
@@ -91,6 +93,7 @@ const submit = async () => {
   body.append('description', linkInfo.value.description)
   body.append('url', linkInfo.value.url)
   body.append('image', linkInfo.value.image)
+  body.append('type', linkInfo.value.type)
 
   const url = ref('')
 
@@ -135,6 +138,7 @@ watch(dialogStatus, (newValue) => {
     linkInfo.value.description = ''
     linkInfo.value.url = ''
     linkInfo.value.image = ''
+    linkInfo.value.type = 1
   }
 })
 
@@ -198,6 +202,13 @@ useHead({
               </template>
             </el-table-column>
             <el-table-column prop="id" label="ID" width="50" />
+            <el-table-column label="类型" width="100">
+              <template #default="scope">
+                <el-tag :type="scope.row.type === 1 ? 'success' : 'info'">
+                  {{ scope.row.type === 1 ? '全站友链' : '内页友链' }}
+                </el-tag>
+              </template>
+            </el-table-column>
             <el-table-column
               prop="name"
               label="链接名称"
@@ -234,6 +245,16 @@ useHead({
         destroy-on-close
       >
         <el-form :model="linkInfo" label-width="90px">
+          <el-form-item label="链接类型" required>
+            <el-select
+              v-model="linkInfo.type"
+              placeholder="请选择链接类型"
+              style="width: 100%"
+            >
+              <el-option label="全站友链" :value="1" />
+              <el-option label="内页友链" :value="2" />
+            </el-select>
+          </el-form-item>
           <el-form-item label="链接名称" required>
             <el-input v-model="linkInfo.name" placeholder="请输入链接名称" />
           </el-form-item>
