@@ -94,6 +94,7 @@ const pathMap = {
   keylog: '4',
   articlelist: '5',
   createarticle: '5',
+  'ai-article': '5',
   articleset: '5',
   pay: '6',
   createRechargeCard: '6',
@@ -143,6 +144,7 @@ const pathIndexMap = {
   '/admin/keylog': '4-4',
   '/admin/articlelist': '5-1',
   '/admin/createarticle': '5-2',
+  '/admin/ai-article': '5-3',
   '/admin/pay': '6-1',
   '/admin/createRechargeCard': '6-2',
   '/admin/useRechargeCard': '6-3',
@@ -389,6 +391,12 @@ watch(
               @click="navigateTo('/admin/createarticle')"
               v-if="routeShow('/admin/createarticle')"
               >新增文章</el-menu-item
+            >
+            <el-menu-item
+              index="5-3"
+              @click="navigateTo('/admin/ai-article')"
+              v-if="routeShow('/admin/createarticle')"
+              >AI生成文章</el-menu-item
             >
           </el-menu-item-group>
         </el-sub-menu>
