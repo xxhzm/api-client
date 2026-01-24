@@ -1,7 +1,11 @@
 <script setup>
-import { Menu, Lock, Key } from '@element-plus/icons-vue'
+import { Lock, Key } from '@element-plus/icons-vue'
 const { $enCode, $msg, $myFetch } = useNuxtApp()
 const msg = $msg
+
+definePageMeta({
+  layout: 'admin',
+})
 
 const username = useCookie('username')
 const token = useCookie('token')
@@ -13,34 +17,6 @@ const passwordInfo = reactive({
 })
 
 const loading = ref(false)
-
-// 控制左侧边栏显示隐藏
-// 获取页面宽度
-const screenWidth = ref(0)
-const isSidebarShow = ref(true)
-const iscontrolShow = ref(false)
-const isoverlay = ref(false)
-onMounted(() => {
-  screenWidth.value = document.body.clientWidth
-  document.body.style.overflow = ''
-
-  if (screenWidth.value < 768) {
-    iscontrolShow.value = true
-    isSidebarShow.value = false
-  }
-})
-
-const handleSidebarShow = () => {
-  isSidebarShow.value = !isSidebarShow.value
-  iscontrolShow.value = !iscontrolShow.value
-  isoverlay.value = !isoverlay.value
-  // 禁止页面滑动
-  if (isSidebarShow.value) {
-    document.body.style.overflow = 'hidden'
-  } else {
-    document.body.style.overflow = ''
-  }
-}
 
 const onSubmit = async () => {
   if (!passwordInfo.oldPassword || !passwordInfo.newPassword) {
@@ -98,244 +74,198 @@ const resetForm = () => {
 </script>
 
 <template>
-  <div class="container">
-    <AdminSidebar v-show="isSidebarShow"></AdminSidebar>
-
-    <div class="right">
-      <!-- 遮罩层 -->
-      <div class="overlay" v-show="isoverlay" @click="handleSidebarShow"></div>
-      <!-- 侧边栏控制按钮 -->
-      <div class="control-sidebar" v-show="iscontrolShow">
-        <el-icon @click="handleSidebarShow"><Menu /></el-icon>
-      </div>
-      <AdminHeader></AdminHeader>
-
-      <div class="password-container">
-        <div class="cont">
-          <!-- 标题区域 -->
-          <div class="card-header">
-            <div class="header-left">
-              <el-icon class="icon">
-                <Lock />
-              </el-icon>
-              <span class="title">修改密码</span>
-            </div>
-          </div>
-
-          <!-- 表单区域 -->
-          <div class="form-container">
-            <el-form
-              :model="passwordInfo"
-              label-position="top"
-              label-width="120px"
-            >
-              <el-form-item label="旧密码">
-                <el-input
-                  v-model="passwordInfo.oldPassword"
-                  type="password"
-                  show-password
-                  placeholder="请输入当前使用的密码"
-                  :prefix-icon="Key"
-                />
-              </el-form-item>
-              <el-form-item label="新密码">
-                <el-input
-                  v-model="passwordInfo.newPassword"
-                  type="password"
-                  show-password
-                  placeholder="请输入新密码（至少6位）"
-                  :prefix-icon="Lock"
-                />
-              </el-form-item>
-              <el-form-item label="确认新密码">
-                <el-input
-                  v-model="passwordInfo.confirmPassword"
-                  type="password"
-                  show-password
-                  placeholder="请再次输入新密码"
-                  :prefix-icon="Lock"
-                />
-              </el-form-item>
-              <el-form-item>
-                <div class="button-container">
-                  <el-button
-                    type="primary"
-                    @click="onSubmit"
-                    class="submit-button"
-                    :loading="loading"
-                  >
-                    确认修改
-                  </el-button>
-                  <el-button @click="resetForm" class="reset-button">
-                    重置
-                  </el-button>
-                </div>
-              </el-form-item>
-            </el-form>
-          </div>
-
-          <!-- 温馨提示 -->
-          <div class="tips">
-            <h4>温馨提示：</h4>
-            <ul>
-              <li>为了您的账户安全，建议定期更换密码</li>
-              <li>新密码长度至少为6位，建议包含字母和数字</li>
-              <li>修改密码后，需要重新登录才能生效</li>
-              <li>请牢记您的新密码，如果忘记密码，可以通过绑定的手机号找回</li>
-            </ul>
-          </div>
+  <div class="password-container">
+    <div class="cont">
+      <!-- 标题区域 -->
+      <div class="card-header">
+        <div class="header-left">
+          <el-icon class="icon">
+            <Lock />
+          </el-icon>
+          <span class="title">修改密码</span>
         </div>
+      </div>
+
+      <!-- 表单区域 -->
+      <div class="form-container">
+        <el-form
+          :model="passwordInfo"
+          label-position="top"
+          label-width="120px"
+        >
+          <el-form-item label="旧密码">
+            <el-input
+              v-model="passwordInfo.oldPassword"
+              type="password"
+              show-password
+              placeholder="请输入当前使用的密码"
+              :prefix-icon="Key"
+            />
+          </el-form-item>
+          <el-form-item label="新密码">
+            <el-input
+              v-model="passwordInfo.newPassword"
+              type="password"
+              show-password
+              placeholder="请输入新密码（至少6位）"
+              :prefix-icon="Lock"
+            />
+          </el-form-item>
+          <el-form-item label="确认新密码">
+            <el-input
+              v-model="passwordInfo.confirmPassword"
+              type="password"
+              show-password
+              placeholder="请再次输入新密码"
+              :prefix-icon="Lock"
+            />
+          </el-form-item>
+          <el-form-item>
+            <div class="button-container">
+              <el-button
+                type="primary"
+                @click="onSubmit"
+                class="submit-button"
+                :loading="loading"
+              >
+                确认修改
+              </el-button>
+              <el-button @click="resetForm" class="reset-button">
+                重置
+              </el-button>
+            </div>
+          </el-form-item>
+        </el-form>
+      </div>
+
+      <!-- 温馨提示 -->
+      <div class="tips">
+        <h4>温馨提示：</h4>
+        <ul>
+          <li>为了您的账户安全，建议定期更换密码</li>
+          <li>新密码长度至少为6位，建议包含字母和数字</li>
+          <li>修改密码后，需要重新登录才能生效</li>
+          <li>请牢记您的新密码，如果忘记密码，可以通过绑定的手机号找回</li>
+        </ul>
       </div>
     </div>
   </div>
 </template>
 
 <style lang="less" scoped>
-.container {
-  display: flex;
+.password-container {
+  min-height: 100vh;
+  padding: 10px;
+  background-color: #f8fafc;
 
-  .right {
+  .cont {
     width: 100%;
-    .overlay {
-      position: absolute;
-      top: 0;
-      left: 0;
-      z-index: 998;
-      width: 100%;
-      height: 100%;
-      background-color: rgba(0, 0, 0, 0.5);
-    }
-    .control-sidebar {
-      position: absolute;
-      width: 35px;
-      height: 35px;
-      top: 10px;
-      left: 10px;
-      z-index: 9999;
-      text-align: center;
-      background: #fff;
-      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
-      .el-icon {
-        margin-top: 10px;
-        font-size: 16px;
+    height: 100%;
+    padding: 20px;
+    background: #fff;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+    border-radius: 8px;
+
+    .card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+      padding-bottom: 20px;
+      border-bottom: 1px solid #edf1f7;
+
+      .header-left {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+
+        .icon {
+          font-size: 20px;
+          color: #4096ff;
+        }
+
+        .title {
+          font-size: 16px;
+          font-weight: 600;
+          color: #2e3033;
+        }
       }
     }
 
-    .password-container {
-      min-height: 100vh;
-      padding: 10px;
-      background-color: #f8fafc;
+    .form-container {
+      max-width: 600px;
 
-      .cont {
-        width: 100%;
-        height: 100%;
-        padding: 20px;
-        background: #fff;
-        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
-        border-radius: 8px;
+      :deep(.el-form-item__label) {
+        font-weight: 500;
+        padding-bottom: 8px;
+        color: #2e3033;
+      }
 
-        .card-header {
-          display: flex;
-          justify-content: space-between;
-          align-items: center;
-          margin-bottom: 20px;
-          padding-bottom: 20px;
-          border-bottom: 1px solid #edf1f7;
+      :deep(.el-input__wrapper) {
+        background-color: #fafbfc;
+        border: 1px solid #edf1f7;
+        box-shadow: none;
 
-          .header-left {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-
-            .icon {
-              font-size: 20px;
-              color: #4096ff;
-            }
-
-            .title {
-              font-size: 16px;
-              font-weight: 600;
-              color: #2e3033;
-            }
-          }
+        &:hover {
+          border-color: #d9e1ec;
         }
 
-        .form-container {
-          max-width: 600px;
+        &.is-focus {
+          border-color: #4096ff;
+          box-shadow: 0 0 0 2px rgba(64, 150, 255, 0.1);
+        }
+      }
 
-          :deep(.el-form-item__label) {
-            font-weight: 500;
-            padding-bottom: 8px;
-            color: #2e3033;
-          }
+      .button-container {
+        display: flex;
+        gap: 16px;
+        margin-top: 20px;
 
-          :deep(.el-input__wrapper) {
-            background-color: #fafbfc;
-            border: 1px solid #edf1f7;
-            box-shadow: none;
-
-            &:hover {
-              border-color: #d9e1ec;
-            }
-
-            &.is-focus {
-              border-color: #4096ff;
-              box-shadow: 0 0 0 2px rgba(64, 150, 255, 0.1);
-            }
-          }
-
-          .button-container {
-            display: flex;
-            gap: 16px;
-            margin-top: 20px;
-
-            .submit-button {
-              min-width: 140px;
-            }
-
-            .reset-button {
-              min-width: 100px;
-            }
-          }
-
-          :deep(.el-button--primary) {
-            background-color: #4096ff;
-            border-color: #4096ff;
-            &:hover {
-              background-color: #1677ff;
-              border-color: #1677ff;
-            }
-          }
+        .submit-button {
+          min-width: 140px;
         }
 
-        .tips {
-          margin-top: 30px;
-          padding: 16px 20px;
-          background: #fafbfc;
-          border: 1px solid #edf1f7;
-          border-radius: 6px;
+        .reset-button {
+          min-width: 100px;
+        }
+      }
 
-          h4 {
-            margin: 0 0 12px 0;
-            color: #2e3033;
-            font-size: 14px;
-            font-weight: 600;
-          }
+      :deep(.el-button--primary) {
+        background-color: #4096ff;
+        border-color: #4096ff;
+        &:hover {
+          background-color: #1677ff;
+          border-color: #1677ff;
+        }
+      }
+    }
 
-          ul {
-            margin: 0;
-            padding-left: 20px;
+    .tips {
+      margin-top: 30px;
+      padding: 16px 20px;
+      background: #fafbfc;
+      border: 1px solid #edf1f7;
+      border-radius: 6px;
 
-            li {
-              color: #5a6478;
-              font-size: 13px;
-              line-height: 1.6;
-              margin-bottom: 4px;
+      h4 {
+        margin: 0 0 12px 0;
+        color: #2e3033;
+        font-size: 14px;
+        font-weight: 600;
+      }
 
-              &:last-child {
-                margin-bottom: 0;
-              }
-            }
+      ul {
+        margin: 0;
+        padding-left: 20px;
+
+        li {
+          color: #5a6478;
+          font-size: 13px;
+          line-height: 1.6;
+          margin-bottom: 4px;
+
+          &:last-child {
+            margin-bottom: 0;
           }
         }
       }
@@ -344,21 +274,17 @@ const resetForm = () => {
 }
 
 @media screen and (max-width: 768px) {
-  .container {
-    .right {
-      .password-container {
-        .cont {
-          padding: 15px;
+  .password-container {
+    .cont {
+      padding: 15px;
 
-          .card-header {
-            padding-bottom: 15px;
-            margin-bottom: 15px;
+      .card-header {
+        padding-bottom: 15px;
+        margin-bottom: 15px;
 
-            .header-left {
-              .title {
-                font-size: 15px;
-              }
-            }
+        .header-left {
+          .title {
+            font-size: 15px;
           }
         }
       }

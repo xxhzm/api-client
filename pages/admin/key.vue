@@ -4,7 +4,6 @@ import {
   Refresh,
   Document,
   InfoFilled,
-  Menu,
   Connection,
   CopyDocument,
 } from '@element-plus/icons-vue'
@@ -22,38 +21,14 @@ hljs.registerLanguage('java', java)
 
 const { $msg, $myFetch } = useNuxtApp()
 
+definePageMeta({
+  layout: 'admin',
+})
+
 const activeTab = ref('referer')
 const username = useCookie('username')
 const token = useCookie('token')
 const { userAccessKey, fetchUserKey } = useUserKey()
-
-// 控制左侧边栏显示隐藏
-// 获取页面宽度
-const screenWidth = ref(0)
-const isSidebarShow = ref(true)
-const iscontrolShow = ref(false)
-const isoverlay = ref(false)
-onMounted(() => {
-  screenWidth.value = document.body.clientWidth
-  document.body.style.overflow = ''
-
-  if (screenWidth.value < 768) {
-    iscontrolShow.value = true
-    isSidebarShow.value = false
-  }
-})
-
-const handleSidebarShow = () => {
-  isSidebarShow.value = !isSidebarShow.value
-  iscontrolShow.value = !iscontrolShow.value
-  isoverlay.value = !isoverlay.value
-  // 禁止页面滑动
-  if (isSidebarShow.value) {
-    document.body.style.overflow = 'hidden'
-  } else {
-    document.body.style.overflow = ''
-  }
-}
 
 // Key信息
 const keyInfo = ref({
@@ -116,7 +91,7 @@ const refreshKey = async () => {
         confirmButtonText: '确定重置',
         cancelButtonText: '取消',
         type: 'warning',
-      }
+      },
     )
   } catch (e) {
     return
@@ -335,271 +310,234 @@ useHead({
 </script>
 
 <template>
-  <div>
-    <div class="container">
-      <AdminSidebar v-show="isSidebarShow"></AdminSidebar>
-
-      <div class="right">
-        <!-- 遮罩层 -->
-        <div
-          class="overlay"
-          v-show="isoverlay"
-          @click="handleSidebarShow"
-        ></div>
-        <!-- 侧边栏控制按钮 -->
-        <div class="control-sidebar" v-show="iscontrolShow">
-          <el-icon @click="handleSidebarShow"><Menu /></el-icon>
+  <div class="key-container">
+    <div class="cont">
+      <div class="card-header">
+        <div class="header-left">
+          <el-icon class="icon"><Key /></el-icon>
+          <span class="title">API密钥管理</span>
         </div>
-        <AdminHeader></AdminHeader>
-        <div class="key-container">
-          <div class="cont">
-            <div class="card-header">
-              <div class="header-left">
-                <el-icon class="icon"><Key /></el-icon>
-                <span class="title">API密钥管理</span>
-              </div>
-            </div>
+      </div>
 
-            <div class="key-info">
-              <el-row :gutter="20">
-                <el-col :span="24">
-                  <el-card class="key-card" shadow="never">
-                    <div class="key-content">
-                      <div class="key-header">
-                        <div class="key-title">
-                          <el-icon><Key /></el-icon>
-                          <span>API Access Key</span>
+      <div class="key-info">
+        <el-row :gutter="20">
+          <el-col :span="24">
+            <el-card class="key-card" shadow="never">
+              <div class="key-content">
+                <div class="key-header">
+                  <div class="key-title">
+                    <el-icon><Key /></el-icon>
+                    <span>API Access Key</span>
+                  </div>
+                </div>
+                <div class="key-body">
+                  <div class="key-display">
+                    <span class="key-value">{{ keyInfo.key }}</span>
+                  </div>
+                  <div class="key-actions">
+                    <el-tooltip content="复制密钥" placement="top">
+                      <el-button
+                        type="primary"
+                        @click="copyKey"
+                        :icon="Document"
+                        circle
+                      ></el-button>
+                    </el-tooltip>
+                    <el-tooltip content="重新生成密钥" placement="top">
+                      <el-button
+                        type="danger"
+                        @click="refreshKey"
+                        :icon="Refresh"
+                        circle
+                      ></el-button>
+                    </el-tooltip>
+                  </div>
+                </div>
+                <div class="key-footer">
+                  <el-alert
+                    type="warning"
+                    :closable="false"
+                    show-icon
+                    class="security-alert"
+                  >
+                    <template #title>
+                      请妥善保管您的密钥，泄露可能导致安全风险
+                    </template>
+                  </el-alert>
+
+                  <div class="usage-guide">
+                    <div class="guide-title">
+                      <el-icon><Connection /></el-icon>
+                      <span>怎么使用这个 Key？</span>
+                    </div>
+                    <div class="method-cards">
+                      <!-- 方法1 -->
+                      <div class="method-card recommended">
+                        <div class="card-badge">推荐</div>
+                        <div class="card-title">
+                          方法 1：Bearer Token (Header)
                         </div>
-                      </div>
-                      <div class="key-body">
-                        <div class="key-display">
-                          <span class="key-value">{{ keyInfo.key }}</span>
+                        <div class="card-desc">
+                          标准规范，兼容性最好，最安全
                         </div>
-                        <div class="key-actions">
-                          <el-tooltip content="复制密钥" placement="top">
-                            <el-button
-                              type="primary"
-                              @click="copyKey"
-                              :icon="Document"
-                              circle
-                            ></el-button>
-                          </el-tooltip>
-                          <el-tooltip content="重新生成密钥" placement="top">
-                            <el-button
-                              type="danger"
-                              @click="refreshKey"
-                              :icon="Refresh"
-                              circle
-                            ></el-button>
-                          </el-tooltip>
-                        </div>
-                      </div>
-                      <div class="key-footer">
-                        <el-alert
-                          type="warning"
-                          :closable="false"
-                          show-icon
-                          class="security-alert"
+                        <div
+                          class="code-block"
+                          @click="
+                            copyText(`Authorization: Bearer ${keyInfo.key}`)
+                          "
                         >
-                          <template #title>
-                            请妥善保管您的密钥，泄露可能导致安全风险
-                          </template>
-                        </el-alert>
-
-                        <div class="usage-guide">
-                          <div class="guide-title">
-                            <el-icon><Connection /></el-icon>
-                            <span>怎么使用这个 Key？</span>
+                          <div class="code-line">
+                            <span class="label">Authorization:</span>
+                            <span class="value">Bearer {{ keyInfo.key }}</span>
                           </div>
-                          <div class="method-cards">
-                            <!-- 方法1 -->
-                            <div class="method-card recommended">
-                              <div class="card-badge">推荐</div>
-                              <div class="card-title">
-                                方法 1：Bearer Token (Header)
-                              </div>
-                              <div class="card-desc">
-                                标准规范，兼容性最好，最安全
-                              </div>
-                              <div
-                                class="code-block"
-                                @click="
-                                  copyText(
-                                    `Authorization: Bearer ${keyInfo.key}`
-                                  )
-                                "
-                              >
-                                <div class="code-line">
-                                  <span class="label">Authorization:</span>
-                                  <span class="value"
-                                    >Bearer {{ keyInfo.key }}</span
-                                  >
-                                </div>
-                                <el-icon class="copy-icon"
-                                  ><CopyDocument
-                                /></el-icon>
-                              </div>
-                            </div>
+                          <el-icon class="copy-icon"><CopyDocument /></el-icon>
+                        </div>
+                      </div>
 
-                            <!-- 方法2 -->
-                            <div class="method-card">
-                              <div class="card-title">
-                                方法 2：放在请求头 (Header)
-                              </div>
-                              <div class="card-desc">
-                                直接使用 Authorization，无需前缀
-                              </div>
-                              <div
-                                class="code-block"
-                                @click="
-                                  copyText(`Authorization: ${keyInfo.key}`)
-                                "
-                              >
-                                <div class="code-line">
-                                  <span class="label">Authorization:</span>
-                                  <span class="value">{{ keyInfo.key }}</span>
-                                </div>
-                                <el-icon class="copy-icon"
-                                  ><CopyDocument
-                                /></el-icon>
-                              </div>
-                            </div>
-
-                            <!-- 方法3 -->
-                            <div class="method-card">
-                              <div class="card-title">
-                                方法 3：放在请求头 (Header)
-                              </div>
-                              <div class="card-desc">
-                                自定义 Header key 字段
-                              </div>
-                              <div
-                                class="code-block"
-                                @click="copyText(`key: ${keyInfo.key}`)"
-                              >
-                                <div class="code-line">
-                                  <span class="label">key:</span>
-                                  <span class="value">{{ keyInfo.key }}</span>
-                                </div>
-                                <el-icon class="copy-icon"
-                                  ><CopyDocument
-                                /></el-icon>
-                              </div>
-                            </div>
-
-                            <!-- 方法4 -->
-                            <div class="method-card deprecated">
-                              <div class="card-badge">不推荐</div>
-                              <div class="card-title">
-                                方法 4：放在网址后面 (Query)
-                              </div>
-                              <div class="card-desc">
-                                不安全，可能泄露 Key，<span class="danger-text"
-                                  >即将弃用</span
-                                >
-                              </div>
-                              <div
-                                class="code-block"
-                                @click="copyText(`?key=${keyInfo.key}`)"
-                              >
-                                <div class="code-line">
-                                  <span class="label">网址?key=</span>
-                                  <span class="value">{{ keyInfo.key }}</span>
-                                </div>
-                                <el-icon class="copy-icon"
-                                  ><CopyDocument
-                                /></el-icon>
-                              </div>
-                            </div>
+                      <!-- 方法2 -->
+                      <div class="method-card">
+                        <div class="card-title">
+                          方法 2：放在请求头 (Header)
+                        </div>
+                        <div class="card-desc">
+                          直接使用 Authorization，无需前缀
+                        </div>
+                        <div
+                          class="code-block"
+                          @click="copyText(`Authorization: ${keyInfo.key}`)"
+                        >
+                          <div class="code-line">
+                            <span class="label">Authorization:</span>
+                            <span class="value">{{ keyInfo.key }}</span>
                           </div>
+                          <el-icon class="copy-icon"><CopyDocument /></el-icon>
+                        </div>
+                      </div>
+
+                      <!-- 方法3 -->
+                      <div class="method-card">
+                        <div class="card-title">
+                          方法 3：放在请求头 (Header)
+                        </div>
+                        <div class="card-desc">自定义 Header key 字段</div>
+                        <div
+                          class="code-block"
+                          @click="copyText(`key: ${keyInfo.key}`)"
+                        >
+                          <div class="code-line">
+                            <span class="label">key:</span>
+                            <span class="value">{{ keyInfo.key }}</span>
+                          </div>
+                          <el-icon class="copy-icon"><CopyDocument /></el-icon>
+                        </div>
+                      </div>
+
+                      <!-- 方法4 -->
+                      <div class="method-card deprecated">
+                        <div class="card-badge">不推荐</div>
+                        <div class="card-title">
+                          方法 4：放在网址后面 (Query)
+                        </div>
+                        <div class="card-desc">
+                          不安全，可能泄露 Key，<span class="danger-text"
+                            >即将弃用</span
+                          >
+                        </div>
+                        <div
+                          class="code-block"
+                          @click="copyText(`?key=${keyInfo.key}`)"
+                        >
+                          <div class="code-line">
+                            <span class="label">网址?key=</span>
+                            <span class="value">{{ keyInfo.key }}</span>
+                          </div>
+                          <el-icon class="copy-icon"><CopyDocument /></el-icon>
                         </div>
                       </div>
                     </div>
-                  </el-card>
-                </el-col>
-              </el-row>
+                  </div>
+                </div>
+              </div>
+            </el-card>
+          </el-col>
+        </el-row>
+      </div>
+
+      <div class="security-settings">
+        <el-alert type="warning" :closable="false" show-icon>
+          <template #title>
+            注意：IP白名单优先级最高，其次是Referer，最后为Sign签名
+          </template>
+        </el-alert>
+        <el-tabs
+          v-model="activeTab"
+          class="setting-tabs"
+          style="margin-top: 20px"
+        >
+          <el-tab-pane label="Referer限制" name="referer">
+            <div class="form">
+              <el-form :model="securityInfo" label-position="top">
+                <el-form-item label="Referer白名单">
+                  <el-input
+                    v-model="securityInfo.allowed_referers"
+                    type="textarea"
+                    :rows="4"
+                    placeholder="使用英文逗号分隔，例如：example.com,example1.com"
+                  />
+                  <div class="form-tip">
+                    留空表示不限制Referer，设置.a.com代表泛域名
+                  </div>
+                </el-form-item>
+              </el-form>
             </div>
+          </el-tab-pane>
 
-            <div class="security-settings">
-              <el-alert type="warning" :closable="false" show-icon>
-                <template #title>
-                  注意：IP白名单优先级最高，其次是Referer，最后为Sign签名
-                </template>
-              </el-alert>
-              <el-tabs
-                v-model="activeTab"
-                class="setting-tabs"
-                style="margin-top: 20px"
-              >
-                <el-tab-pane label="Referer限制" name="referer">
-                  <div class="form">
-                    <el-form :model="securityInfo" label-position="top">
-                      <el-form-item label="Referer白名单">
-                        <el-input
-                          v-model="securityInfo.allowed_referers"
-                          type="textarea"
-                          :rows="4"
-                          placeholder="使用英文逗号分隔，例如：example.com,example1.com"
-                        />
-                        <div class="form-tip">
-                          留空表示不限制Referer，设置.a.com代表泛域名
-                        </div>
-                      </el-form-item>
-                    </el-form>
-                  </div>
-                </el-tab-pane>
-
-                <el-tab-pane label="IP白名单" name="ip">
-                  <div class="form">
-                    <el-form :model="securityInfo" label-position="top">
-                      <el-form-item label="IP白名单">
-                        <el-input
-                          v-model="securityInfo.allowed_ips"
-                          type="textarea"
-                          :rows="4"
-                          placeholder="使用英文逗号分隔，例如：192.168.1.1,192.168.1.2"
-                        />
-                        <div class="form-tip">留空表示不限制IP</div>
-                      </el-form-item>
-                    </el-form>
-                  </div>
-                </el-tab-pane>
-
-                <el-tab-pane label="Sign签名" name="sign">
-                  <div class="form">
-                    <el-form :model="securityInfo" label-position="top">
-                      <el-form-item label="是否启用签名">
-                        <div class="sign-header">
-                          <el-switch v-model="securityInfo.signed" />
-                          <el-button type="info" link @click="showSignMethod">
-                            <el-icon><InfoFilled /></el-icon>
-                            查看签名方法
-                          </el-button>
-                        </div>
-                      </el-form-item>
-                      <el-form-item label="签名密钥" v-if="securityInfo.signed">
-                        <el-input v-model="securityInfo.appid" disabled>
-                          <template #append>
-                            <el-button
-                              :icon="CopyDocument"
-                              @click="copyText(securityInfo.appid)"
-                            />
-                          </template>
-                        </el-input>
-                        <div class="form-tip">
-                          签名密钥用于生成API调用签名，请妥善保管
-                        </div>
-                      </el-form-item>
-                    </el-form>
-                  </div>
-                </el-tab-pane>
-              </el-tabs>
-              <el-button type="primary" @click="saveSecurityInfo"
-                >保存设置</el-button
-              >
+          <el-tab-pane label="IP白名单" name="ip">
+            <div class="form">
+              <el-form :model="securityInfo" label-position="top">
+                <el-form-item label="IP白名单">
+                  <el-input
+                    v-model="securityInfo.allowed_ips"
+                    type="textarea"
+                    :rows="4"
+                    placeholder="使用英文逗号分隔，例如：192.168.1.1,192.168.1.2"
+                  />
+                  <div class="form-tip">留空表示不限制IP</div>
+                </el-form-item>
+              </el-form>
             </div>
-          </div>
-        </div>
+          </el-tab-pane>
+
+          <el-tab-pane label="Sign签名" name="sign">
+            <div class="form">
+              <el-form :model="securityInfo" label-position="top">
+                <el-form-item label="是否启用签名">
+                  <div class="sign-header">
+                    <el-switch v-model="securityInfo.signed" />
+                    <el-button type="info" link @click="showSignMethod">
+                      <el-icon><InfoFilled /></el-icon>
+                      查看签名方法
+                    </el-button>
+                  </div>
+                </el-form-item>
+                <el-form-item label="签名密钥" v-if="securityInfo.signed">
+                  <el-input v-model="securityInfo.appid" disabled>
+                    <template #append>
+                      <el-button
+                        :icon="CopyDocument"
+                        @click="copyText(securityInfo.appid)"
+                      />
+                    </template>
+                  </el-input>
+                  <div class="form-tip">
+                    签名密钥用于生成API调用签名，请妥善保管
+                  </div>
+                </el-form-item>
+              </el-form>
+            </div>
+          </el-tab-pane>
+        </el-tabs>
+        <el-button type="primary" @click="saveSecurityInfo">保存设置</el-button>
       </div>
     </div>
 
@@ -767,384 +705,353 @@ useHead({
 </template>
 
 <style lang="less" scoped>
-.container {
-  display: flex;
+.key-container {
+  min-height: 100vh;
+  padding: 10px;
+  background-color: #f8fafc;
 
-  .right {
+  .cont {
     width: 100%;
-    .overlay {
-      position: absolute;
-      top: 0;
-      left: 0;
-      z-index: 998;
-      width: 100%;
-      height: 100%;
-      background-color: rgba(0, 0, 0, 0.5);
-    }
-    .control-sidebar {
-      position: absolute;
-      width: 35px;
-      height: 35px;
-      top: 10px;
-      left: 10px;
-      z-index: 9999;
-      text-align: center;
-      background: #fff;
-      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
-      .el-icon {
-        margin-top: 10px;
-        font-size: 16px;
+    height: 100%;
+    padding: 20px;
+    background: #fff;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+    border-radius: 8px;
+
+    .card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+      padding-bottom: 20px;
+      border-bottom: 1px solid #edf1f7;
+
+      .header-left {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+
+        .icon {
+          font-size: 20px;
+          color: #4096ff;
+        }
+
+        .title {
+          font-size: 16px;
+          font-weight: 600;
+          color: #2e3033;
+        }
       }
     }
-    .key-container {
-      min-height: 100vh;
-      padding: 10px;
-      background-color: #f8fafc;
 
-      .cont {
-        width: 100%;
-        height: 100%;
-        padding: 20px;
+    .key-info {
+      margin-bottom: 30px;
+
+      .key-card {
         background: #fff;
-        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+        border: 1px solid #edf1f7;
         border-radius: 8px;
+        overflow: hidden;
 
-        .card-header {
+        :deep(.el-card__body) {
+          padding: 0;
+        }
+      }
+
+      .key-content {
+        .key-header {
           display: flex;
           justify-content: space-between;
           align-items: center;
-          margin-bottom: 20px;
-          padding-bottom: 20px;
+          padding: 20px 24px;
+          background: #fafbfc;
           border-bottom: 1px solid #edf1f7;
 
-          .header-left {
+          .key-title {
             display: flex;
             align-items: center;
-            gap: 12px;
+            gap: 10px;
+            font-size: 15px;
+            font-weight: 500;
+            color: #2e3033;
 
-            .icon {
-              font-size: 20px;
+            .el-icon {
+              font-size: 18px;
               color: #4096ff;
             }
+          }
+        }
 
-            .title {
+        .key-body {
+          padding: 24px;
+          background: #fff;
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          gap: 20px;
+
+          .key-display {
+            flex: 1;
+            background: #fafbfc;
+            border: 1px solid #edf1f7;
+            border-radius: 6px;
+            padding: 12px 16px;
+
+            .key-value {
+              font-family: 'Roboto Mono', monospace;
+              font-size: 14px;
+              color: #5a6478;
+              letter-spacing: 0.5px;
+            }
+          }
+
+          .key-actions {
+            display: flex;
+            gap: 12px;
+
+            :deep(.el-button) {
+              &.el-button--primary {
+                background-color: #4096ff;
+                border-color: #4096ff;
+                &:hover {
+                  background-color: #1677ff;
+                  border-color: #1677ff;
+                }
+              }
+              &.el-button--danger {
+                background-color: #ff4d4f;
+                border-color: #ff4d4f;
+                &:hover {
+                  background-color: #f5222d;
+                  border-color: #f5222d;
+                }
+              }
+            }
+          }
+        }
+
+        .key-footer {
+          padding: 24px;
+          background: #fff;
+          border-top: 1px solid #edf1f7;
+
+          .security-alert {
+            padding: 10px 16px;
+            border-radius: 6px;
+            background-color: #fff9f0;
+            border: 1px solid #ffe7ba;
+            margin-bottom: 20px;
+
+            :deep(.el-alert__title) {
+              font-size: 13px;
+              color: #d48806;
+            }
+
+            :deep(.el-alert__icon) {
+              color: #faad14;
+            }
+          }
+
+          .usage-guide {
+            margin-top: 20px;
+
+            .guide-title {
+              display: flex;
+              align-items: center;
+              gap: 8px;
+              margin-bottom: 20px;
               font-size: 16px;
               font-weight: 600;
               color: #2e3033;
-            }
-          }
-        }
 
-        .key-info {
-          margin-bottom: 30px;
-
-          .key-card {
-            background: #fff;
-            border: 1px solid #edf1f7;
-            border-radius: 8px;
-            overflow: hidden;
-
-            :deep(.el-card__body) {
-              padding: 0;
-            }
-          }
-
-          .key-content {
-            .key-header {
-              display: flex;
-              justify-content: space-between;
-              align-items: center;
-              padding: 20px 24px;
-              background: #fafbfc;
-              border-bottom: 1px solid #edf1f7;
-
-              .key-title {
-                display: flex;
-                align-items: center;
-                gap: 10px;
-                font-size: 15px;
-                font-weight: 500;
-                color: #2e3033;
-
-                .el-icon {
-                  font-size: 18px;
-                  color: #4096ff;
-                }
+              .el-icon {
+                color: #4096ff;
+                font-size: 20px;
               }
             }
 
-            .key-body {
-              padding: 24px;
-              background: #fff;
-              display: flex;
-              align-items: center;
-              justify-content: space-between;
+            .method-cards {
+              display: grid;
+              grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
               gap: 20px;
 
-              .key-display {
-                flex: 1;
-                background: #fafbfc;
+              .method-card {
+                position: relative;
+                background: #fff;
                 border: 1px solid #edf1f7;
-                border-radius: 6px;
-                padding: 12px 16px;
+                border-radius: 12px;
+                padding: 20px;
+                transition: all 0.3s;
 
-                .key-value {
-                  font-family: 'Roboto Mono', monospace;
-                  font-size: 14px;
-                  color: #5a6478;
-                  letter-spacing: 0.5px;
-                }
-              }
+                &:hover {
+                  transform: translateY(-2px);
+                  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+                  border-color: #d9e1ec;
 
-              .key-actions {
-                display: flex;
-                gap: 12px;
+                  .code-block {
+                    background: #ecf5ff;
+                    border-color: #c6e2ff;
 
-                :deep(.el-button) {
-                  &.el-button--primary {
-                    background-color: #4096ff;
-                    border-color: #4096ff;
-                    &:hover {
-                      background-color: #1677ff;
-                      border-color: #1677ff;
-                    }
-                  }
-                  &.el-button--danger {
-                    background-color: #ff4d4f;
-                    border-color: #ff4d4f;
-                    &:hover {
-                      background-color: #f5222d;
-                      border-color: #f5222d;
+                    .copy-icon {
+                      opacity: 1;
                     }
                   }
                 }
-              }
-            }
 
-            .key-footer {
-              padding: 24px;
-              background: #fff;
-              border-top: 1px solid #edf1f7;
+                &.recommended {
+                  border: 1px solid #b3d8ff;
+                  background: #f0f9ff;
 
-              .security-alert {
-                padding: 10px 16px;
-                border-radius: 6px;
-                background-color: #fff9f0;
-                border: 1px solid #ffe7ba;
-                margin-bottom: 20px;
-
-                :deep(.el-alert__title) {
-                  font-size: 13px;
-                  color: #d48806;
+                  .card-badge {
+                    background: #4096ff;
+                    color: #fff;
+                  }
                 }
 
-                :deep(.el-alert__icon) {
-                  color: #faad14;
+                &.deprecated {
+                  border: 1px solid #ffccc7;
+                  background: #fff2f0;
+
+                  .card-badge {
+                    background: #ff4d4f;
+                    color: #fff;
+                  }
+
+                  .danger-text {
+                    color: #ff4d4f;
+                    font-weight: 500;
+                  }
                 }
-              }
 
-              .usage-guide {
-                margin-top: 20px;
+                .card-badge {
+                  position: absolute;
+                  top: 0;
+                  right: 0;
+                  font-size: 12px;
+                  padding: 2px 10px;
+                  border-bottom-left-radius: 8px;
+                  border-top-right-radius: 12px;
+                }
 
-                .guide-title {
-                  display: flex;
-                  align-items: center;
-                  gap: 8px;
-                  margin-bottom: 20px;
-                  font-size: 16px;
+                .card-title {
+                  font-size: 15px;
                   font-weight: 600;
                   color: #2e3033;
-
-                  .el-icon {
-                    color: #4096ff;
-                    font-size: 20px;
-                  }
+                  margin-bottom: 8px;
                 }
 
-                .method-cards {
-                  display: grid;
-                  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-                  gap: 20px;
+                .card-desc {
+                  font-size: 13px;
+                  color: #8c95a5;
+                  margin-bottom: 16px;
+                  line-height: 1.5;
+                }
 
-                  .method-card {
-                    position: relative;
-                    background: #fff;
-                    border: 1px solid #edf1f7;
-                    border-radius: 12px;
-                    padding: 20px;
-                    transition: all 0.3s;
+                .code-block {
+                  background: #f8fafc;
+                  border: 1px solid #e1e5eb;
+                  border-radius: 8px;
+                  padding: 12px;
+                  cursor: pointer;
+                  display: flex;
+                  justify-content: space-between;
+                  align-items: center;
+                  transition: all 0.2s;
 
-                    &:hover {
-                      transform: translateY(-2px);
-                      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
-                      border-color: #d9e1ec;
+                  .code-line {
+                    font-family: 'Roboto Mono', monospace;
+                    font-size: 13px;
+                    overflow: hidden;
+                    text-overflow: ellipsis;
+                    white-space: nowrap;
+                    margin-right: 10px;
 
-                      .code-block {
-                        background: #ecf5ff;
-                        border-color: #c6e2ff;
-
-                        .copy-icon {
-                          opacity: 1;
-                        }
-                      }
+                    .label {
+                      color: #d63200;
+                      margin-right: 8px;
                     }
 
-                    &.recommended {
-                      border: 1px solid #b3d8ff;
-                      background: #f0f9ff;
-
-                      .card-badge {
-                        background: #4096ff;
-                        color: #fff;
-                      }
+                    .value {
+                      color: #0052d9;
+                      font-weight: 500;
                     }
+                  }
 
-                    &.deprecated {
-                      border: 1px solid #ffccc7;
-                      background: #fff2f0;
-
-                      .card-badge {
-                        background: #ff4d4f;
-                        color: #fff;
-                      }
-
-                      .danger-text {
-                        color: #ff4d4f;
-                        font-weight: 500;
-                      }
-                    }
-
-                    .card-badge {
-                      position: absolute;
-                      top: 0;
-                      right: 0;
-                      font-size: 12px;
-                      padding: 2px 10px;
-                      border-bottom-left-radius: 8px;
-                      border-top-right-radius: 12px;
-                    }
-
-                    .card-title {
-                      font-size: 15px;
-                      font-weight: 600;
-                      color: #2e3033;
-                      margin-bottom: 8px;
-                    }
-
-                    .card-desc {
-                      font-size: 13px;
-                      color: #8c95a5;
-                      margin-bottom: 16px;
-                      line-height: 1.5;
-                    }
-
-                    .code-block {
-                      background: #f8fafc;
-                      border: 1px solid #e1e5eb;
-                      border-radius: 8px;
-                      padding: 12px;
-                      cursor: pointer;
-                      display: flex;
-                      justify-content: space-between;
-                      align-items: center;
-                      transition: all 0.2s;
-
-                      .code-line {
-                        font-family: 'Roboto Mono', monospace;
-                        font-size: 13px;
-                        overflow: hidden;
-                        text-overflow: ellipsis;
-                        white-space: nowrap;
-                        margin-right: 10px;
-
-                        .label {
-                          color: #d63200;
-                          margin-right: 8px;
-                        }
-
-                        .value {
-                          color: #0052d9;
-                          font-weight: 500;
-                        }
-                      }
-
-                      .copy-icon {
-                        font-size: 16px;
-                        color: #4096ff;
-                        opacity: 0.5;
-                        transition: all 0.2s;
-                      }
-                    }
+                  .copy-icon {
+                    font-size: 16px;
+                    color: #4096ff;
+                    opacity: 0.5;
+                    transition: all 0.2s;
                   }
                 }
               }
             }
           }
         }
+      }
+    }
 
-        .security-settings {
-          :deep(.el-tabs__nav-wrap::after) {
-            height: 1px;
-            background-color: #edf1f7;
+    .security-settings {
+      :deep(.el-tabs__nav-wrap::after) {
+        height: 1px;
+        background-color: #edf1f7;
+      }
+
+      :deep(.el-tabs__item) {
+        font-size: 14px;
+        padding: 0 24px;
+        height: 40px;
+        line-height: 40px;
+        color: #5a6478;
+
+        &.is-active {
+          font-weight: 500;
+          color: #4096ff;
+        }
+      }
+
+      :deep(.el-tabs__active-bar) {
+        background-color: #4096ff;
+      }
+
+      .form {
+        max-width: 600px;
+        margin-top: 20px;
+
+        :deep(.el-form-item__label) {
+          font-weight: 500;
+          padding-bottom: 8px;
+          color: #2e3033;
+        }
+
+        :deep(.el-input__wrapper) {
+          background-color: #fafbfc;
+          border: 1px solid #edf1f7;
+          box-shadow: none;
+
+          &:hover {
+            border-color: #d9e1ec;
           }
 
-          :deep(.el-tabs__item) {
-            font-size: 14px;
-            padding: 0 24px;
-            height: 40px;
-            line-height: 40px;
-            color: #5a6478;
-
-            &.is-active {
-              font-weight: 500;
-              color: #4096ff;
-            }
+          &.is-focus {
+            border-color: #4096ff;
+            box-shadow: 0 0 0 2px rgba(64, 150, 255, 0.1);
           }
+        }
 
-          :deep(.el-tabs__active-bar) {
-            background-color: #4096ff;
+        :deep(.el-button--primary) {
+          background-color: #4096ff;
+          border-color: #4096ff;
+          &:hover {
+            background-color: #1677ff;
+            border-color: #1677ff;
           }
+        }
 
-          .form {
-            max-width: 600px;
-            margin-top: 20px;
-
-            :deep(.el-form-item__label) {
-              font-weight: 500;
-              padding-bottom: 8px;
-              color: #2e3033;
-            }
-
-            :deep(.el-input__wrapper) {
-              background-color: #fafbfc;
-              border: 1px solid #edf1f7;
-              box-shadow: none;
-
-              &:hover {
-                border-color: #d9e1ec;
-              }
-
-              &.is-focus {
-                border-color: #4096ff;
-                box-shadow: 0 0 0 2px rgba(64, 150, 255, 0.1);
-              }
-            }
-
-            :deep(.el-button--primary) {
-              background-color: #4096ff;
-              border-color: #4096ff;
-              &:hover {
-                background-color: #1677ff;
-                border-color: #1677ff;
-              }
-            }
-
-            .form-tip {
-              margin-top: 4px;
-              color: #8c95a5;
-              font-size: 13px;
-            }
-          }
+        .form-tip {
+          margin-top: 4px;
+          color: #8c95a5;
+          font-size: 13px;
         }
       }
     }
@@ -1152,21 +1059,17 @@ useHead({
 }
 
 @media screen and (max-width: 768px) {
-  .container {
-    .right {
-      .key-container {
-        .cont {
-          padding: 15px;
+  .key-container {
+    .cont {
+      padding: 15px;
 
-          .card-header {
-            padding-bottom: 15px;
-            margin-bottom: 15px;
+      .card-header {
+        padding-bottom: 15px;
+        margin-bottom: 15px;
 
-            .header-left {
-              .title {
-                font-size: 15px;
-              }
-            }
+        .header-left {
+          .title {
+            font-size: 15px;
           }
         }
       }

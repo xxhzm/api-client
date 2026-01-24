@@ -1,7 +1,11 @@
 <script setup>
-import { Wallet, Search, Menu } from '@element-plus/icons-vue'
+import { Wallet, Search } from '@element-plus/icons-vue'
 
 const { $myFetch, $msg } = useNuxtApp()
+
+definePageMeta({
+  layout: 'admin',
+})
 
 // 加载状态
 const loading = ref(false)
@@ -24,34 +28,6 @@ const apiList = ref([]) // 接口列表
 const selectedApiId = ref('') // 选中的接口ID
 const apiSearchKeyword = ref('') // 接口搜索关键词
 const apiSearchLoading = ref(false)
-
-// 控制左侧边栏显示隐藏
-// 获取页面宽度
-const screenWidth = ref(0)
-const isSidebarShow = ref(true)
-const iscontrolShow = ref(false)
-const isoverlay = ref(false)
-onMounted(() => {
-  screenWidth.value = document.body.clientWidth
-  document.body.style.overflow = ''
-
-  if (screenWidth.value < 768) {
-    iscontrolShow.value = true
-    isSidebarShow.value = false
-  }
-})
-
-const handleSidebarShow = () => {
-  isSidebarShow.value = !isSidebarShow.value
-  iscontrolShow.value = !iscontrolShow.value
-  isoverlay.value = !isoverlay.value
-  // 禁止页面滑动
-  if (isSidebarShow.value) {
-    document.body.style.overflow = 'hidden'
-  } else {
-    document.body.style.overflow = ''
-  }
-}
 
 // 搜索接口列表
 const searchApiList = async (keyword = '') => {
@@ -134,7 +110,7 @@ watch(
   (newValue, oldValue) => {
     pageLoading.value = true
     fetchAllRecords() // 页码变化时重新获取数据
-  }
+  },
 )
 
 // 监听接口选择变化
@@ -227,309 +203,245 @@ useHead({
 </script>
 
 <template>
-  <div class="container">
-    <AdminSidebar v-show="isSidebarShow"></AdminSidebar>
-
-    <div class="right">
-      <!-- 遮罩层 -->
-      <div class="overlay" v-show="isoverlay" @click="handleSidebarShow"></div>
-      <!-- 侧边栏控制按钮 -->
-      <div class="control-sidebar" v-show="iscontrolShow">
-        <el-icon @click="handleSidebarShow"><Menu /></el-icon>
+  <div class="buypackagerecord-container" v-loading="loading">
+    <div class="record-card">
+      <!-- 标题区域 -->
+      <div class="card-header">
+        <div class="header-left">
+          <el-icon class="icon">
+            <Wallet />
+          </el-icon>
+          <span class="title">购买记录</span>
+        </div>
+        <div class="header-right">
+          <el-button type="primary" @click="fetchAllRecords">
+            <el-icon>
+              <Search />
+            </el-icon>
+            <span>刷新</span>
+          </el-button>
+        </div>
       </div>
-      <AdminHeader></AdminHeader>
-      <div class="buypackagerecord-container" v-loading="loading">
-        <div class="record-card">
-          <!-- 标题区域 -->
-          <div class="card-header">
-            <div class="header-left">
-              <el-icon class="icon">
-                <Wallet />
-              </el-icon>
-              <span class="title">购买记录</span>
-            </div>
-            <div class="header-right">
-              <el-button type="primary" @click="fetchAllRecords">
-                <el-icon>
-                  <Search />
-                </el-icon>
-                <span>刷新</span>
-              </el-button>
-            </div>
-          </div>
 
-          <!-- 筛选区域 -->
-          <div class="filter-section">
-            <div class="filter-item">
-              <label class="filter-label">接口筛选：</label>
-              <div class="api-filter-container">
-                <el-select
-                  v-model="selectedApiId"
-                  placeholder="搜索并选择接口"
-                  filterable
-                  remote
-                  clearable
-                  :remote-method="searchApiList"
-                  :loading="apiSearchLoading"
-                  style="width: 300px"
-                  @clear="clearApiFilter"
-                >
-                  <el-option
-                    v-for="api in apiList"
-                    :key="api.id"
-                    :label="`${api.name} (${api.alias})`"
-                    :value="api.id"
-                  />
-                </el-select>
-                <el-button
-                  v-if="selectedApiId"
-                  type="info"
-                  plain
-                  @click="clearApiFilter"
-                  style="margin-left: 10px"
-                >
-                  清空筛选
-                </el-button>
-              </div>
-            </div>
-          </div>
-
-          <!-- 表格区域 -->
-          <div class="table-container">
-            <client-only>
-              <el-table
-                :data="filteredData"
-                style="width: 100%"
-                v-loading="pageLoading"
-              >
-                <el-table-column
-                  prop="id"
-                  label="ID"
-                  min-width="100"
-                  show-overflow-tooltip
-                />
-                <el-table-column prop="uid" label="用户ID" min-width="100" />
-                <el-table-column prop="aid" label="接口ID" min-width="100" />
-                <el-table-column
-                  prop="package_id"
-                  label="套餐ID"
-                  min-width="120"
-                />
-                <el-table-column
-                  prop="package_name"
-                  label="套餐名称"
-                  min-width="150"
-                >
-                  <template #default="scope">
-                    <span style="font-weight: bold">{{
-                      scope.row.package_name
-                    }}</span>
-                  </template>
-                </el-table-column>
-                <el-table-column prop="amount" label="数量" width="100">
-                  <template #default="scope">
-                    <span>{{ scope.row.amount }}</span>
-                  </template>
-                </el-table-column>
-                <el-table-column prop="price" label="金额" width="100">
-                  <template #default="scope">
-                    <span style="color: #f56c6c; font-weight: bold"
-                      >¥{{ scope.row.price }}</span
-                    >
-                  </template>
-                </el-table-column>
-                <el-table-column prop="duration" label="时长" width="100">
-                  <template #default="scope">
-                    <span>{{ scope.row.duration }}天</span>
-                  </template>
-                </el-table-column>
-                <el-table-column prop="type" label="套餐类型" width="120">
-                  <template #default="scope">
-                    <el-tag
-                      :type="
-                        Number(scope.row.type) === 2 ? 'primary' : 'success'
-                      "
-                      size="small"
-                    >
-                      {{ formatTypeLabel(scope.row.type) }}
-                    </el-tag>
-                  </template>
-                </el-table-column>
-                <el-table-column prop="action" label="操作类型" width="120">
-                  <template #default="scope">
-                    <el-tag
-                      :type="actionTagType(scope.row.action)"
-                      size="small"
-                    >
-                      {{ formatAction(scope.row.action) }}
-                    </el-tag>
-                  </template>
-                </el-table-column>
-                <el-table-column prop="points" label="点数" width="100">
-                  <template #default="scope">
-                    <span>{{ scope.row.points }}</span>
-                  </template>
-                </el-table-column>
-                <el-table-column label="创建时间" min-width="180">
-                  <template #default="scope">
-                    {{ formatTimestamp(scope.row.create_time) }}
-                  </template>
-                </el-table-column>
-                <el-table-column label="续费前过期时间" min-width="180">
-                  <template #default="scope">
-                    {{ formatTimestamp(scope.row.expire_before) }}
-                  </template>
-                </el-table-column>
-                <el-table-column label="过期时间" min-width="180">
-                  <template #default="scope">
-                    {{ formatTimestamp(scope.row.expire_after) }}
-                  </template>
-                </el-table-column>
-                <el-table-column label="操作" width="120" fixed="right">
-                  <template #default="scope">
-                    <div class="table-actions">
-                      <el-button
-                        type="primary"
-                        link
-                        @click="showDetail(scope.row)"
-                      >
-                        详情
-                      </el-button>
-                    </div>
-                  </template>
-                </el-table-column>
-              </el-table>
-
-              <!-- 分页 -->
-              <div class="pagination">
-                <el-pagination
-                  :page-size="pageSize"
-                  :pager-count="5"
-                  :total="totalRecords"
-                  v-model:current-page="page"
-                  :disabled="pageLoading"
-                  background
-                  :page-sizes="[10, 20, 30, 50, 100]"
-                  layout="total, sizes, prev, pager, next"
-                  @current-change="handlePageChange"
-                  @size-change="handleSizeChange"
-                />
-              </div>
-            </client-only>
+      <!-- 筛选区域 -->
+      <div class="filter-section">
+        <div class="filter-item">
+          <label class="filter-label">接口筛选：</label>
+          <div class="api-filter-container">
+            <el-select
+              v-model="selectedApiId"
+              placeholder="搜索并选择接口"
+              filterable
+              remote
+              clearable
+              :remote-method="searchApiList"
+              :loading="apiSearchLoading"
+              style="width: 300px"
+              @clear="clearApiFilter"
+            >
+              <el-option
+                v-for="api in apiList"
+                :key="api.id"
+                :label="`${api.name} (${api.alias})`"
+                :value="api.id"
+              />
+            </el-select>
+            <el-button
+              v-if="selectedApiId"
+              type="info"
+              plain
+              @click="clearApiFilter"
+              style="margin-left: 10px"
+            >
+              清空筛选
+            </el-button>
           </div>
         </div>
       </div>
 
-      <!-- 详情对话框 -->
-      <el-dialog v-model="dialogVisible" title="套餐购买详情" width="500px">
-        <div class="detail-content" v-if="currentRecord">
-          <div class="detail-item">
-            <span class="label">订单ID：</span>
-            <span class="value">{{ currentRecord.id }}</span>
+      <!-- 表格区域 -->
+      <div class="table-container">
+        <client-only>
+          <el-table
+            :data="filteredData"
+            style="width: 100%"
+            v-loading="pageLoading"
+          >
+            <el-table-column
+              prop="id"
+              label="ID"
+              min-width="100"
+              show-overflow-tooltip
+            />
+            <el-table-column prop="uid" label="用户ID" min-width="100" />
+            <el-table-column prop="aid" label="接口ID" min-width="100" />
+            <el-table-column prop="package_id" label="套餐ID" min-width="120" />
+            <el-table-column
+              prop="package_name"
+              label="套餐名称"
+              min-width="150"
+            >
+              <template #default="scope">
+                <span style="font-weight: bold">{{
+                  scope.row.package_name
+                }}</span>
+              </template>
+            </el-table-column>
+            <el-table-column prop="amount" label="数量" width="100">
+              <template #default="scope">
+                <span>{{ scope.row.amount }}</span>
+              </template>
+            </el-table-column>
+            <el-table-column prop="price" label="金额" width="100">
+              <template #default="scope">
+                <span style="color: #f56c6c; font-weight: bold"
+                  >¥{{ scope.row.price }}</span
+                >
+              </template>
+            </el-table-column>
+            <el-table-column prop="duration" label="时长" width="100">
+              <template #default="scope">
+                <span>{{ scope.row.duration }}天</span>
+              </template>
+            </el-table-column>
+            <el-table-column prop="type" label="套餐类型" width="120">
+              <template #default="scope">
+                <el-tag
+                  :type="Number(scope.row.type) === 2 ? 'primary' : 'success'"
+                  size="small"
+                >
+                  {{ formatTypeLabel(scope.row.type) }}
+                </el-tag>
+              </template>
+            </el-table-column>
+            <el-table-column prop="action" label="操作类型" width="120">
+              <template #default="scope">
+                <el-tag :type="actionTagType(scope.row.action)" size="small">
+                  {{ formatAction(scope.row.action) }}
+                </el-tag>
+              </template>
+            </el-table-column>
+            <el-table-column prop="points" label="点数" width="100">
+              <template #default="scope">
+                <span>{{ scope.row.points }}</span>
+              </template>
+            </el-table-column>
+            <el-table-column label="创建时间" min-width="180">
+              <template #default="scope">
+                {{ formatTimestamp(scope.row.create_time) }}
+              </template>
+            </el-table-column>
+            <el-table-column label="续费前过期时间" min-width="180">
+              <template #default="scope">
+                {{ formatTimestamp(scope.row.expire_before) }}
+              </template>
+            </el-table-column>
+            <el-table-column label="过期时间" min-width="180">
+              <template #default="scope">
+                {{ formatTimestamp(scope.row.expire_after) }}
+              </template>
+            </el-table-column>
+            <el-table-column label="操作" width="120" fixed="right">
+              <template #default="scope">
+                <div class="table-actions">
+                  <el-button type="primary" link @click="showDetail(scope.row)">
+                    详情
+                  </el-button>
+                </div>
+              </template>
+            </el-table-column>
+          </el-table>
+
+          <!-- 分页 -->
+          <div class="pagination">
+            <el-pagination
+              :page-size="pageSize"
+              :pager-count="5"
+              :total="totalRecords"
+              v-model:current-page="page"
+              :disabled="pageLoading"
+              background
+              :page-sizes="[10, 20, 30, 50, 100]"
+              layout="total, sizes, prev, pager, next"
+              @current-change="handlePageChange"
+              @size-change="handleSizeChange"
+            />
           </div>
-          <div class="detail-item">
-            <span class="label">用户ID：</span>
-            <span class="value">{{ currentRecord.uid }}</span>
-          </div>
-          <div class="detail-item">
-            <span class="label">接口ID：</span>
-            <span class="value">{{ currentRecord.aid }}</span>
-          </div>
-          <div class="detail-item">
-            <span class="label">套餐名称：</span>
-            <span class="value">{{ currentRecord.package_name }}</span>
-          </div>
-          <div class="detail-item">
-            <span class="label">套餐ID：</span>
-            <span class="value">{{ currentRecord.package_id }}</span>
-          </div>
-          <div class="detail-item">
-            <span class="label">支付金额：</span>
-            <span class="value amount">¥{{ currentRecord.price }}</span>
-          </div>
-          <div class="detail-item">
-            <span class="label">动作：</span>
-            <span class="value">{{ formatAction(currentRecord.action) }}</span>
-          </div>
-          <div class="detail-item" v-if="Number(currentRecord.type) === 2">
-            <span class="label">套餐时长：</span>
-            <span class="value">{{ currentRecord.duration }}天</span>
-          </div>
-          <div class="detail-item">
-            <span class="label">套餐类型：</span>
-            <span class="value">{{ formatTypeLabel(currentRecord.type) }}</span>
-          </div>
-          <div class="detail-item" v-if="Number(currentRecord.type) === 3">
-            <span class="label">套餐点数：</span>
-            <span class="value">{{ currentRecord.points }}</span>
-          </div>
-          <div class="detail-item">
-            <span class="label">创建时间：</span>
-            <span class="value">{{
-              formatTimestamp(currentRecord.create_time)
-            }}</span>
-          </div>
-          <div class="detail-item">
-            <span class="label">过期时间：</span>
-            <span class="value">{{
-              formatTimestamp(currentRecord.expire_after)
-            }}</span>
-          </div>
-          <div class="detail-item" v-if="currentRecord.expire_before > 0">
-            <span class="label">续费前过期时间：</span>
-            <span class="value">{{
-              formatTimestamp(currentRecord.expire_before)
-            }}</span>
-          </div>
-        </div>
-        <template #footer>
-          <span class="dialog-footer">
-            <el-button @click="dialogVisible = false">关闭</el-button>
-          </span>
-        </template>
-      </el-dialog>
+        </client-only>
+      </div>
     </div>
+    <!-- 详情对话框 -->
+    <el-dialog v-model="dialogVisible" title="套餐购买详情" width="500px">
+      <div class="detail-content" v-if="currentRecord">
+        <div class="detail-item">
+          <span class="label">订单ID：</span>
+          <span class="value">{{ currentRecord.id }}</span>
+        </div>
+        <div class="detail-item">
+          <span class="label">用户ID：</span>
+          <span class="value">{{ currentRecord.uid }}</span>
+        </div>
+        <div class="detail-item">
+          <span class="label">接口ID：</span>
+          <span class="value">{{ currentRecord.aid }}</span>
+        </div>
+        <div class="detail-item">
+          <span class="label">套餐名称：</span>
+          <span class="value">{{ currentRecord.package_name }}</span>
+        </div>
+        <div class="detail-item">
+          <span class="label">套餐ID：</span>
+          <span class="value">{{ currentRecord.package_id }}</span>
+        </div>
+        <div class="detail-item">
+          <span class="label">支付金额：</span>
+          <span class="value amount">¥{{ currentRecord.price }}</span>
+        </div>
+        <div class="detail-item">
+          <span class="label">动作：</span>
+          <span class="value">{{ formatAction(currentRecord.action) }}</span>
+        </div>
+        <div class="detail-item" v-if="Number(currentRecord.type) === 2">
+          <span class="label">套餐时长：</span>
+          <span class="value">{{ currentRecord.duration }}天</span>
+        </div>
+        <div class="detail-item">
+          <span class="label">套餐类型：</span>
+          <span class="value">{{ formatTypeLabel(currentRecord.type) }}</span>
+        </div>
+        <div class="detail-item" v-if="Number(currentRecord.type) === 3">
+          <span class="label">套餐点数：</span>
+          <span class="value">{{ currentRecord.points }}</span>
+        </div>
+        <div class="detail-item">
+          <span class="label">创建时间：</span>
+          <span class="value">{{
+            formatTimestamp(currentRecord.create_time)
+          }}</span>
+        </div>
+        <div class="detail-item">
+          <span class="label">过期时间：</span>
+          <span class="value">{{
+            formatTimestamp(currentRecord.expire_after)
+          }}</span>
+        </div>
+        <div class="detail-item" v-if="currentRecord.expire_before > 0">
+          <span class="label">续费前过期时间：</span>
+          <span class="value">{{
+            formatTimestamp(currentRecord.expire_before)
+          }}</span>
+        </div>
+      </div>
+      <template #footer>
+        <span class="dialog-footer">
+          <el-button @click="dialogVisible = false">关闭</el-button>
+        </span>
+      </template>
+    </el-dialog>
   </div>
 </template>
 
 <style lang="less" scoped>
-.container {
-  display: flex;
-  width: 100%;
-  overflow: hidden;
-}
-
-.right {
-  flex: 1;
-  overflow: hidden;
-  display: flex;
-  flex-direction: column;
-  .overlay {
-    position: absolute;
-    top: 0;
-    left: 0;
-    z-index: 998;
-    width: 100%;
-    height: 100%;
-    background-color: rgba(0, 0, 0, 0.5);
-  }
-  .control-sidebar {
-    position: absolute;
-    width: 35px;
-    height: 35px;
-    top: 10px;
-    left: 10px;
-    z-index: 9999;
-    text-align: center;
-    background: #fff;
-    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
-    .el-icon {
-      margin-top: 10px;
-      font-size: 16px;
-    }
-  }
-}
-
 .buypackagerecord-container {
   flex: 1;
   padding: 20px;

@@ -1,34 +1,10 @@
 <script setup>
-import { User, Menu } from '@element-plus/icons-vue'
+import { User } from '@element-plus/icons-vue'
 const { $msg, $myFetch } = useNuxtApp()
 
-// 控制左侧边栏显示隐藏
-// 获取页面宽度
-const screenWidth = ref(0)
-const isSidebarShow = ref(true)
-const iscontrolShow = ref(false)
-const isoverlay = ref(false)
-onMounted(() => {
-  screenWidth.value = document.body.clientWidth
-  document.body.style.overflow = ''
-
-  if (screenWidth.value < 768) {
-    iscontrolShow.value = true
-    isSidebarShow.value = false
-  }
+definePageMeta({
+  layout: 'admin',
 })
-
-const handleSidebarShow = () => {
-  isSidebarShow.value = !isSidebarShow.value
-  iscontrolShow.value = !iscontrolShow.value
-  isoverlay.value = !isoverlay.value
-  // 禁止页面滑动
-  if (isSidebarShow.value) {
-    document.body.style.overflow = 'hidden'
-  } else {
-    document.body.style.overflow = ''
-  }
-}
 
 const loading = ref(false)
 const tableData = ref([])
@@ -80,10 +56,10 @@ const getData = async () => {
     }
 
     res.data.userList[key].login_time = new Date(
-      element.login_time
+      element.login_time,
     ).toLocaleString()
     res.data.userList[key].create_time = new Date(
-      element.create_time
+      element.create_time,
     ).toLocaleString()
   })
 
@@ -294,7 +270,7 @@ watch(
     setTimeout(() => {
       pageLoading.value = false
     }, 300)
-  }
+  },
 )
 
 // 监听每页数量变化
@@ -675,864 +651,786 @@ useHead({
 </script>
 
 <template>
-  <div class="container">
-    <AdminSidebar v-show="isSidebarShow"></AdminSidebar>
-
-    <div class="right">
-      <!-- 遮罩层 -->
-      <div class="overlay" v-show="isoverlay" @click="handleSidebarShow"></div>
-      <!-- 侧边栏控制按钮 -->
-      <div class="control-sidebar" v-show="iscontrolShow">
-        <el-icon @click="handleSidebarShow"><Menu /></el-icon>
-      </div>
-      <AdminHeader></AdminHeader>
-      <div class="userlist-container" v-loading="loading">
-        <div class="user-card">
-          <!-- 标题区域 -->
-          <div class="card-header">
-            <div class="header-left">
-              <el-icon class="icon">
-                <User />
-              </el-icon>
-              <span class="title">用户列表</span>
-            </div>
-            <div class="header-right">
-              <el-button type="primary" @click="createUserStatus = true">
-                <span>新增用户</span>
-              </el-button>
-            </div>
-          </div>
-
-          <!-- 表格区域 -->
-          <div class="table-container">
-            <client-only>
-              <el-table
-                :data="tableData"
-                style="width: 100%"
-                v-loading="pageLoading"
-              >
-                <el-table-column fixed="right" width="150">
-                  <template #header>
-                    <div class="search-wrapper">
-                      <el-input
-                        v-model="search"
-                        placeholder="搜索"
-                        clearable
-                        style="width: 100%"
-                      >
-                      </el-input>
-                    </div>
-                  </template>
-                  <template #default="scope">
-                    <div class="table-actions">
-                      <el-button
-                        type="primary"
-                        link
-                        @click="handleEdit(scope.$index, scope.row)"
-                      >
-                        编辑
-                      </el-button>
-                      <el-button
-                        type="info"
-                        link
-                        @click="handleUserBindRoleList(scope.$index, scope.row)"
-                      >
-                        角色
-                      </el-button>
-                      <el-popconfirm
-                        confirm-button-text="确定"
-                        cancel-button-text="取消"
-                        title="确定要删除吗？"
-                        @confirm="handleDelete(scope.$index, scope.row)"
-                      >
-                        <template #reference>
-                          <el-button type="danger" link> 删除 </el-button>
-                        </template>
-                      </el-popconfirm>
-                    </div>
-                  </template>
-                </el-table-column>
-                <el-table-column prop="id" label="ID" width="70" />
-                <el-table-column prop="username" label="用户名称" />
-                <el-table-column
-                  prop="mail"
-                  label="邮箱地址"
-                  show-overflow-tooltip
-                />
-                <el-table-column prop="balance" label="账户余额" width="150">
-                  <template #default="scope">
-                    <span class="balance">{{ scope.row.balance }}</span>
-                  </template>
-                </el-table-column>
-                <el-table-column prop="status" label="状态" width="65">
-                  <template #default="scope">
-                    <el-tag
-                      :type="scope.row.status === '启用' ? 'success' : 'danger'"
-                      size="small"
-                      style="cursor: pointer"
-                      @click="handleStatusChange(scope.row)"
-                    >
-                      {{ scope.row.status }}
-                    </el-tag>
-                  </template>
-                </el-table-column>
-                <el-table-column label="充值记录" align="center" width="90">
-                  <template #default="scope">
-                    <el-button
-                      type="success"
-                      link
-                      @click="handleUserRechargeRecord(scope.row)"
-                    >
-                      查看记录
-                    </el-button>
-                  </template>
-                </el-table-column>
-                <el-table-column label="购买记录" align="center" width="90">
-                  <template #default="scope">
-                    <el-button
-                      type="primary"
-                      link
-                      @click="handleUserBuyPackageRecord(scope.row)"
-                    >
-                      查看记录
-                    </el-button>
-                  </template>
-                </el-table-column>
-                <el-table-column label="调用记录" align="center" width="90">
-                  <template #default="scope">
-                    <el-button
-                      type="warning"
-                      link
-                      @click="handleUserCallRecord(scope.row)"
-                    >
-                      查看记录
-                    </el-button>
-                  </template>
-                </el-table-column>
-                <el-table-column
-                  prop="create_time"
-                  label="注册时间"
-                  width="180"
-                />
-                <el-table-column
-                  prop="login_time"
-                  label="上次登录时间"
-                  width="180"
-                />
-                <el-table-column prop="ip" label="IP" />
-                <el-table-column prop="key" label="Key" width="160" />
-                <el-table-column prop="phone" label="手机号" width="160" />
-              </el-table>
-
-              <div class="pagination">
-                <el-pagination
-                  v-model:page-size="pageSize"
-                  :page-sizes="[10, 25, 50, 100]"
-                  :pager-count="5"
-                  :total="totalRecords"
-                  v-model:current-page="page"
-                  :disabled="pageLoading"
-                  background
-                  layout="total, sizes, prev, pager, next, jumper"
-                />
-              </div>
-            </client-only>
-          </div>
-
-          <!-- 新增/编辑用户对话框 -->
-          <el-dialog
-            v-model="createUserStatus"
-            :title="disabled ? '修改用户' : '新增用户'"
-            width="500px"
-            destroy-on-close
-          >
-            <el-form :model="userInfo" label-width="90px">
-              <el-form-item label="用户名称" required>
-                <el-input
-                  v-model="userInfo.username"
-                  :disabled="disabled"
-                  placeholder="请输入用户名称"
-                />
-              </el-form-item>
-              <el-form-item label="密码" required>
-                <el-input
-                  type="password"
-                  v-model="userInfo.password"
-                  show-password
-                  placeholder="请输入密码"
-                />
-              </el-form-item>
-              <el-form-item label="邮箱地址" required>
-                <el-input
-                  v-model="userInfo.mail"
-                  placeholder="请输入邮箱地址"
-                />
-              </el-form-item>
-              <el-form-item label="手机号" v-if="disabled">
-                <el-input
-                  v-model="userInfo.phone"
-                  placeholder="留空则不修改当前手机号"
-                />
-              </el-form-item>
-              <el-form-item label="账户余额" v-if="disabled">
-                <el-input
-                  v-model="userInfo.balance"
-                  placeholder="请输入账户余额"
-                />
-              </el-form-item>
-              <el-form-item label="用户状态" v-if="disabled">
-                <el-select
-                  v-model="userInfo.status"
-                  placeholder="请选择用户状态"
-                  class="full-width"
-                >
-                  <el-option label="启用" value="启用" />
-                  <el-option label="停用" value="停用" />
-                </el-select>
-              </el-form-item>
-              <el-form-item label="绑定角色" v-if="disabled">
-                <el-select
-                  v-model="bindRoleInfo"
-                  multiple
-                  collapse-tags
-                  collapse-tags-tooltip
-                  placeholder="请选择要绑定的角色"
-                  class="full-width"
-                >
-                  <el-option
-                    v-for="item in roleList"
-                    :key="item.role_id"
-                    :label="item.role_name"
-                    :value="item.role_id"
-                  />
-                </el-select>
-              </el-form-item>
-            </el-form>
-            <template #footer>
-              <div class="dialog-footer">
-                <el-button @click="createUserStatus = false">取消</el-button>
-                <el-button type="primary" @click="submit">{{
-                  disabled ? '修改' : '创建'
-                }}</el-button>
-              </div>
-            </template>
-          </el-dialog>
-
-          <!-- 用户角色列表对话框 -->
-          <el-dialog
-            v-model="userBindRoleListStatus"
-            title="用户角色"
-            width="500px"
-            destroy-on-close
-          >
-            <el-table :data="userBindRoleList">
-              <el-table-column prop="role_id" label="ID" width="80" />
-              <el-table-column prop="role_name" label="角色名称" width="200" />
-              <el-table-column
-                prop="description"
-                label="描述"
-                min-width="200"
-                show-overflow-tooltip
-              />
-            </el-table>
-          </el-dialog>
-
-          <!-- 用户充值记录对话框 -->
-          <el-dialog
-            v-model="rechargeRecordDialogVisible"
-            title="用户充值记录"
-            width="800px"
-            destroy-on-close
-          >
-            <div v-loading="rechargeLoading">
-              <el-table :data="rechargeRecords" style="width: 100%">
-                <el-table-column
-                  prop="id"
-                  label="ID"
-                  min-width="180"
-                  show-overflow-tooltip
-                />
-                <el-table-column prop="amount" label="充值金额" width="120">
-                  <template #default="scope">
-                    <span style="color: #f56c6c; font-weight: bold"
-                      >¥{{ scope.row.amount }}</span
-                    >
-                  </template>
-                </el-table-column>
-                <el-table-column prop="method" label="支付方式" width="120">
-                  <template #default="scope">
-                    <el-tag
-                      :type="
-                        scope.row.method === 'alipay' ? 'primary' : 'success'
-                      "
-                      size="small"
-                    >
-                      {{ scope.row.method === 'alipay' ? '支付宝' : '微信' }}
-                    </el-tag>
-                  </template>
-                </el-table-column>
-                <el-table-column prop="status" label="状态" width="100">
-                  <template #default="scope">
-                    <el-tag
-                      :type="scope.row.status === '2' ? 'success' : 'warning'"
-                      size="small"
-                    >
-                      {{ scope.row.status === '2' ? '已支付' : '未支付' }}
-                    </el-tag>
-                  </template>
-                </el-table-column>
-                <el-table-column label="创建时间" min-width="180">
-                  <template #default="scope">
-                    {{ formatTimestamp(scope.row.create_time) }}
-                  </template>
-                </el-table-column>
-                <el-table-column label="支付时间" min-width="180">
-                  <template #default="scope">
-                    {{
-                      scope.row.pay_time && scope.row.pay_time !== 0
-                        ? formatTimestamp(scope.row.pay_time)
-                        : '-'
-                    }}
-                  </template>
-                </el-table-column>
-              </el-table>
-
-              <!-- 分页 -->
-              <div class="pagination" style="margin-top: 20px">
-                <el-pagination
-                  :page-size="rechargePageSize"
-                  :pager-count="5"
-                  :total="rechargeTotalRecords"
-                  v-model:current-page="rechargePage"
-                  :disabled="rechargeLoading"
-                  background
-                  :page-sizes="[10, 20, 30, 50]"
-                  layout="total, sizes, prev, pager, next, jumper"
-                  @current-change="handleRechargePageChange"
-                  @size-change="handleRechargeSizeChange"
-                />
-              </div>
-            </div>
-          </el-dialog>
-
-          <!-- 用户购买记录对话框 -->
-          <el-dialog
-            v-model="buyPackageRecordDialogVisible"
-            title="用户购买记录"
-            width="800px"
-            destroy-on-close
-          >
-            <div v-loading="buyPackageLoading">
-              <el-table :data="buyPackageRecords" style="width: 100%">
-                <el-table-column
-                  prop="id"
-                  label="ID"
-                  min-width="100"
-                  show-overflow-tooltip
-                />
-                <el-table-column prop="uid" label="用户ID" min-width="100" />
-                <el-table-column prop="aid" label="接口ID" min-width="100" />
-                <el-table-column
-                  prop="package_id"
-                  label="套餐ID"
-                  min-width="120"
-                />
-                <el-table-column
-                  prop="package_name"
-                  label="套餐名称"
-                  min-width="150"
-                >
-                  <template #default="scope">
-                    <span style="font-weight: bold">{{
-                      scope.row.package_name
-                    }}</span>
-                  </template>
-                </el-table-column>
-                <el-table-column prop="amount" label="数量" width="100">
-                  <template #default="scope">
-                    <span>{{ scope.row.amount }}</span>
-                  </template>
-                </el-table-column>
-                <el-table-column prop="price" label="金额" width="100">
-                  <template #default="scope">
-                    <span style="color: #f56c6c; font-weight: bold"
-                      >¥{{ scope.row.price }}</span
-                    >
-                  </template>
-                </el-table-column>
-                <el-table-column prop="duration" label="时长" width="100">
-                  <template #default="scope">
-                    <span>{{ scope.row.duration }}天</span>
-                  </template>
-                </el-table-column>
-                <el-table-column prop="type" label="套餐类型" width="120">
-                  <template #default="scope">
-                    <el-tag
-                      :type="
-                        Number(scope.row.type) === 2 ? 'primary' : 'success'
-                      "
-                      size="small"
-                    >
-                      {{ formatTypeLabel(scope.row.type) }}
-                    </el-tag>
-                  </template>
-                </el-table-column>
-                <el-table-column prop="action" label="操作类型" width="120">
-                  <template #default="scope">
-                    <el-tag
-                      :type="actionTagType(scope.row.action)"
-                      size="small"
-                    >
-                      {{ formatAction(scope.row.action) }}
-                    </el-tag>
-                  </template>
-                </el-table-column>
-                <el-table-column prop="points" label="点数" width="100">
-                  <template #default="scope">
-                    <span>{{ scope.row.points }}</span>
-                  </template>
-                </el-table-column>
-                <el-table-column label="创建时间" min-width="180">
-                  <template #default="scope">
-                    {{ formatTimestamp(scope.row.create_time) }}
-                  </template>
-                </el-table-column>
-                <el-table-column label="续费前过期时间" min-width="180">
-                  <template #default="scope">
-                    {{ formatTimestamp(scope.row.expire_before) }}
-                  </template>
-                </el-table-column>
-                <el-table-column label="过期时间" min-width="180">
-                  <template #default="scope">
-                    {{ formatTimestamp(scope.row.expire_after) }}
-                  </template>
-                </el-table-column>
-                <el-table-column label="操作" width="120" fixed="right">
-                  <template #default="scope">
-                    <div class="table-actions">
-                      <el-button
-                        type="primary"
-                        link
-                        @click="showBuyPackageDetail(scope.row)"
-                      >
-                        详情
-                      </el-button>
-                    </div>
-                  </template>
-                </el-table-column>
-              </el-table>
-
-              <!-- 分页 -->
-              <div class="pagination" style="margin-top: 20px">
-                <el-pagination
-                  :page-size="buyPackagePageSize"
-                  :pager-count="5"
-                  :total="buyPackageTotalRecords"
-                  v-model:current-page="buyPackagePage"
-                  :disabled="buyPackageLoading"
-                  background
-                  :page-sizes="[10, 20, 30, 50]"
-                  layout="total, sizes, prev, pager, next, jumper"
-                  @current-change="handleBuyPackagePageChange"
-                  @size-change="handleBuyPackageSizeChange"
-                />
-              </div>
-            </div>
-          </el-dialog>
-
-          <!-- 用户调用记录对话框 -->
-          <el-dialog
-            v-model="callRecordDialogVisible"
-            title="调用记录"
-            width="80%"
-            destroy-on-close
-            top="5vh"
-            @closed="handleCallRecordClosed"
-          >
-            <!-- 统计区域 -->
-            <div class="stats-overview">
-              <el-row :gutter="20">
-                <el-col :span="6">
-                  <div class="stat-item">
-                    <div class="stat-label">近1天调用</div>
-                    <div class="stat-value">{{ userCallStats.day1 }}</div>
-                  </div>
-                </el-col>
-                <el-col :span="6">
-                  <div class="stat-item">
-                    <div class="stat-label">近3天调用</div>
-                    <div class="stat-value">{{ userCallStats.day3 }}</div>
-                  </div>
-                </el-col>
-                <el-col :span="6">
-                  <div class="stat-item">
-                    <div class="stat-label">近7天调用</div>
-                    <div class="stat-value">{{ userCallStats.day7 }}</div>
-                  </div>
-                </el-col>
-                <el-col :span="6">
-                  <div class="stat-item">
-                    <div class="stat-label">近30天调用</div>
-                    <div class="stat-value">{{ userCallStats.month1 }}</div>
-                  </div>
-                </el-col>
-              </el-row>
-
-              <!-- 接口调用排行 -->
-              <div class="top-apis-section" v-if="userTopApis.length > 0">
-                <div class="section-title">常用接口 Top 5 (近7天调用)</div>
-                <div class="top-api-list">
-                  <div
-                    v-for="(api, index) in userTopApis"
-                    :key="index"
-                    class="top-api-item"
-                  >
-                    <div class="api-info">
-                      <span class="api-name">{{ api.name }}</span>
-                      <span class="api-count">{{ api.count }}次</span>
-                    </div>
-                    <el-progress
-                      :percentage="api.percentage"
-                      :show-text="false"
-                      :stroke-width="8"
-                      :color="
-                        index === 0
-                          ? '#f56c6c'
-                          : index === 1
-                          ? '#e6a23c'
-                          : '#409eff'
-                      "
-                    />
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <div v-loading="callRecordLoading">
-              <el-table :data="callRecords" style="width: 100%" height="500">
-                <el-table-column prop="key" label="序号" width="60" />
-                <el-table-column
-                  prop="id"
-                  label="请求ID"
-                  min-width="180"
-                  show-overflow-tooltip
-                />
-                <el-table-column
-                  prop="alias"
-                  label="接口名称"
-                  width="120"
-                  show-overflow-tooltip
-                />
-                <el-table-column prop="method" label="请求方法" width="90">
-                  <template #default="scope">
-                    <el-tag
-                      :type="scope.row.method === 'GET' ? 'success' : 'warning'"
-                      size="small"
-                    >
-                      {{ scope.row.method }}
-                    </el-tag>
-                  </template>
-                </el-table-column>
-                <el-table-column
-                  prop="path"
-                  label="请求路径"
-                  min-width="200"
-                  show-overflow-tooltip
-                />
-                <el-table-column
-                  prop="response_time"
-                  label="响应时间"
-                  width="90"
-                />
-                <el-table-column prop="status_code" label="状态码" width="80">
-                  <template #default="scope">
-                    <el-tag
-                      :type="
-                        scope.row.status_code === 200
-                          ? 'success'
-                          : scope.row.status_code === 302 ||
-                            scope.row.status_code === 301
-                          ? 'primary'
-                          : 'danger'
-                      "
-                      size="small"
-                    >
-                      {{ scope.row.status_code }}
-                    </el-tag>
-                  </template>
-                </el-table-column>
-                <el-table-column prop="client_ip" label="IP" width="140" />
-                <el-table-column
-                  prop="address"
-                  label="归属地"
-                  width="130"
-                  show-overflow-tooltip
-                />
-                <el-table-column
-                  prop="timestamp"
-                  label="请求时间"
-                  width="180"
-                />
-                <el-table-column
-                  prop="ua"
-                  label="User Agent"
-                  min-width="200"
-                  show-overflow-tooltip
-                />
-                <el-table-column
-                  prop="referer"
-                  label="来源"
-                  min-width="180"
-                  show-overflow-tooltip
-                />
-              </el-table>
-
-              <div class="pagination" style="margin-top: 20px">
-                <el-pagination
-                  v-model:page-size="callRecordPageSize"
-                  :page-sizes="[10, 25, 50, 100]"
-                  :pager-count="5"
-                  :page-count="callRecordMaxPage"
-                  v-model:current-page="callRecordPage"
-                  :disabled="callRecordLoading"
-                  background
-                  layout="sizes, prev, pager, next, jumper"
-                  @size-change="handleCallRecordSizeChange"
-                />
-              </div>
-            </div>
-          </el-dialog>
-
-          <!-- 购买记录详情对话框 -->
-          <el-dialog
-            v-model="buyPackageDetailDialogVisible"
-            title="套餐购买详情"
-            width="500px"
-          >
-            <div class="detail-content" v-if="currentBuyPackageRecord">
-              <div class="detail-item">
-                <span class="label">订单ID：</span>
-                <span class="value">{{ currentBuyPackageRecord.id }}</span>
-              </div>
-              <div class="detail-item">
-                <span class="label">用户ID：</span>
-                <span class="value">{{ currentBuyPackageRecord.uid }}</span>
-              </div>
-              <div class="detail-item">
-                <span class="label">接口ID：</span>
-                <span class="value">{{ currentBuyPackageRecord.aid }}</span>
-              </div>
-              <div class="detail-item">
-                <span class="label">套餐名称：</span>
-                <span class="value">{{
-                  currentBuyPackageRecord.package_name
-                }}</span>
-              </div>
-              <div class="detail-item">
-                <span class="label">套餐ID：</span>
-                <span class="value">{{
-                  currentBuyPackageRecord.package_id
-                }}</span>
-              </div>
-              <div class="detail-item">
-                <span class="label">支付金额：</span>
-                <span class="value amount"
-                  >¥{{ currentBuyPackageRecord.price }}</span
-                >
-              </div>
-              <div class="detail-item">
-                <span class="label">套餐类型：</span>
-                <span class="value">{{
-                  formatTypeLabel(currentBuyPackageRecord.type)
-                }}</span>
-              </div>
-              <div
-                class="detail-item"
-                v-if="Number(currentBuyPackageRecord.type) === 2"
-              >
-                <span class="label">套餐时长：</span>
-                <span class="value"
-                  >{{ currentBuyPackageRecord.duration }}天</span
-                >
-              </div>
-              <div
-                class="detail-item"
-                v-if="Number(currentBuyPackageRecord.type) === 3"
-              >
-                <span class="label">套餐点数：</span>
-                <span class="value">{{ currentBuyPackageRecord.points }}</span>
-              </div>
-              <div class="detail-item">
-                <span class="label">动作：</span>
-                <span class="value">{{
-                  formatAction(currentBuyPackageRecord.action)
-                }}</span>
-              </div>
-              <div class="detail-item">
-                <span class="label">创建时间：</span>
-                <span class="value">{{
-                  formatTimestamp(currentBuyPackageRecord.create_time)
-                }}</span>
-              </div>
-              <div class="detail-item">
-                <span class="label">过期时间：</span>
-                <span class="value">{{
-                  formatTimestamp(currentBuyPackageRecord.expire_after)
-                }}</span>
-              </div>
-              <div
-                class="detail-item"
-                v-if="currentBuyPackageRecord.expire_before > 0"
-              >
-                <span class="label">续费前过期时间：</span>
-                <span class="value">{{
-                  formatTimestamp(currentBuyPackageRecord.expire_before)
-                }}</span>
-              </div>
-            </div>
-            <template #footer>
-              <span class="dialog-footer">
-                <el-button @click="buyPackageDetailDialogVisible = false"
-                  >关闭</el-button
-                >
-              </span>
-            </template>
-          </el-dialog>
+  <div class="userlist-container" v-loading="loading">
+    <div class="user-card">
+      <!-- 标题区域 -->
+      <div class="card-header">
+        <div class="header-left">
+          <el-icon class="icon">
+            <User />
+          </el-icon>
+          <span class="title">用户列表</span>
+        </div>
+        <div class="header-right">
+          <el-button type="primary" @click="createUserStatus = true">
+            <span>新增用户</span>
+          </el-button>
         </div>
       </div>
+
+      <!-- 表格区域 -->
+      <div class="table-container">
+        <client-only>
+          <el-table
+            :data="tableData"
+            style="width: 100%"
+            v-loading="pageLoading"
+          >
+            <el-table-column fixed="right" width="150">
+              <template #header>
+                <div class="search-wrapper">
+                  <el-input
+                    v-model="search"
+                    placeholder="搜索"
+                    clearable
+                    style="width: 100%"
+                  >
+                  </el-input>
+                </div>
+              </template>
+              <template #default="scope">
+                <div class="table-actions">
+                  <el-button
+                    type="primary"
+                    link
+                    @click="handleEdit(scope.$index, scope.row)"
+                  >
+                    编辑
+                  </el-button>
+                  <el-button
+                    type="info"
+                    link
+                    @click="handleUserBindRoleList(scope.$index, scope.row)"
+                  >
+                    角色
+                  </el-button>
+                  <el-popconfirm
+                    confirm-button-text="确定"
+                    cancel-button-text="取消"
+                    title="确定要删除吗？"
+                    @confirm="handleDelete(scope.$index, scope.row)"
+                  >
+                    <template #reference>
+                      <el-button type="danger" link> 删除 </el-button>
+                    </template>
+                  </el-popconfirm>
+                </div>
+              </template>
+            </el-table-column>
+            <el-table-column prop="id" label="ID" width="70" />
+            <el-table-column prop="username" label="用户名称" />
+            <el-table-column
+              prop="mail"
+              label="邮箱地址"
+              show-overflow-tooltip
+            />
+            <el-table-column prop="balance" label="账户余额" width="150">
+              <template #default="scope">
+                <span class="balance">{{ scope.row.balance }}</span>
+              </template>
+            </el-table-column>
+            <el-table-column prop="status" label="状态" width="65">
+              <template #default="scope">
+                <el-tag
+                  :type="scope.row.status === '启用' ? 'success' : 'danger'"
+                  size="small"
+                  style="cursor: pointer"
+                  @click="handleStatusChange(scope.row)"
+                >
+                  {{ scope.row.status }}
+                </el-tag>
+              </template>
+            </el-table-column>
+            <el-table-column label="充值记录" align="center" width="90">
+              <template #default="scope">
+                <el-button
+                  type="success"
+                  link
+                  @click="handleUserRechargeRecord(scope.row)"
+                >
+                  查看记录
+                </el-button>
+              </template>
+            </el-table-column>
+            <el-table-column label="购买记录" align="center" width="90">
+              <template #default="scope">
+                <el-button
+                  type="primary"
+                  link
+                  @click="handleUserBuyPackageRecord(scope.row)"
+                >
+                  查看记录
+                </el-button>
+              </template>
+            </el-table-column>
+            <el-table-column label="调用记录" align="center" width="90">
+              <template #default="scope">
+                <el-button
+                  type="warning"
+                  link
+                  @click="handleUserCallRecord(scope.row)"
+                >
+                  查看记录
+                </el-button>
+              </template>
+            </el-table-column>
+            <el-table-column prop="create_time" label="注册时间" width="180" />
+            <el-table-column
+              prop="login_time"
+              label="上次登录时间"
+              width="180"
+            />
+            <el-table-column prop="ip" label="IP" />
+            <el-table-column prop="key" label="Key" width="160" />
+            <el-table-column prop="phone" label="手机号" width="160" />
+          </el-table>
+
+          <div class="pagination">
+            <el-pagination
+              v-model:page-size="pageSize"
+              :page-sizes="[10, 25, 50, 100]"
+              :pager-count="5"
+              :total="totalRecords"
+              v-model:current-page="page"
+              :disabled="pageLoading"
+              background
+              layout="total, sizes, prev, pager, next, jumper"
+            />
+          </div>
+        </client-only>
+      </div>
+
+      <!-- 新增/编辑用户对话框 -->
+      <el-dialog
+        v-model="createUserStatus"
+        :title="disabled ? '修改用户' : '新增用户'"
+        width="500px"
+        destroy-on-close
+      >
+        <el-form :model="userInfo" label-width="90px">
+          <el-form-item label="用户名称" required>
+            <el-input
+              v-model="userInfo.username"
+              :disabled="disabled"
+              placeholder="请输入用户名称"
+            />
+          </el-form-item>
+          <el-form-item label="密码" required>
+            <el-input
+              type="password"
+              v-model="userInfo.password"
+              show-password
+              placeholder="请输入密码"
+            />
+          </el-form-item>
+          <el-form-item label="邮箱地址" required>
+            <el-input v-model="userInfo.mail" placeholder="请输入邮箱地址" />
+          </el-form-item>
+          <el-form-item label="手机号" v-if="disabled">
+            <el-input
+              v-model="userInfo.phone"
+              placeholder="留空则不修改当前手机号"
+            />
+          </el-form-item>
+          <el-form-item label="账户余额" v-if="disabled">
+            <el-input v-model="userInfo.balance" placeholder="请输入账户余额" />
+          </el-form-item>
+          <el-form-item label="用户状态" v-if="disabled">
+            <el-select
+              v-model="userInfo.status"
+              placeholder="请选择用户状态"
+              class="full-width"
+            >
+              <el-option label="启用" value="启用" />
+              <el-option label="停用" value="停用" />
+            </el-select>
+          </el-form-item>
+          <el-form-item label="绑定角色" v-if="disabled">
+            <el-select
+              v-model="bindRoleInfo"
+              multiple
+              collapse-tags
+              collapse-tags-tooltip
+              placeholder="请选择要绑定的角色"
+              class="full-width"
+            >
+              <el-option
+                v-for="item in roleList"
+                :key="item.role_id"
+                :label="item.role_name"
+                :value="item.role_id"
+              />
+            </el-select>
+          </el-form-item>
+        </el-form>
+        <template #footer>
+          <div class="dialog-footer">
+            <el-button @click="createUserStatus = false">取消</el-button>
+            <el-button type="primary" @click="submit">{{
+              disabled ? '修改' : '创建'
+            }}</el-button>
+          </div>
+        </template>
+      </el-dialog>
+
+      <!-- 用户角色列表对话框 -->
+      <el-dialog
+        v-model="userBindRoleListStatus"
+        title="用户角色"
+        width="500px"
+        destroy-on-close
+      >
+        <el-table :data="userBindRoleList">
+          <el-table-column prop="role_id" label="ID" width="80" />
+          <el-table-column prop="role_name" label="角色名称" width="200" />
+          <el-table-column
+            prop="description"
+            label="描述"
+            min-width="200"
+            show-overflow-tooltip
+          />
+        </el-table>
+      </el-dialog>
+
+      <!-- 用户充值记录对话框 -->
+      <el-dialog
+        v-model="rechargeRecordDialogVisible"
+        title="用户充值记录"
+        width="800px"
+        destroy-on-close
+      >
+        <div v-loading="rechargeLoading">
+          <el-table :data="rechargeRecords" style="width: 100%">
+            <el-table-column
+              prop="id"
+              label="ID"
+              min-width="180"
+              show-overflow-tooltip
+            />
+            <el-table-column prop="amount" label="充值金额" width="120">
+              <template #default="scope">
+                <span style="color: #f56c6c; font-weight: bold"
+                  >¥{{ scope.row.amount }}</span
+                >
+              </template>
+            </el-table-column>
+            <el-table-column prop="method" label="支付方式" width="120">
+              <template #default="scope">
+                <el-tag
+                  :type="scope.row.method === 'alipay' ? 'primary' : 'success'"
+                  size="small"
+                >
+                  {{ scope.row.method === 'alipay' ? '支付宝' : '微信' }}
+                </el-tag>
+              </template>
+            </el-table-column>
+            <el-table-column prop="status" label="状态" width="100">
+              <template #default="scope">
+                <el-tag
+                  :type="scope.row.status === '2' ? 'success' : 'warning'"
+                  size="small"
+                >
+                  {{ scope.row.status === '2' ? '已支付' : '未支付' }}
+                </el-tag>
+              </template>
+            </el-table-column>
+            <el-table-column label="创建时间" min-width="180">
+              <template #default="scope">
+                {{ formatTimestamp(scope.row.create_time) }}
+              </template>
+            </el-table-column>
+            <el-table-column label="支付时间" min-width="180">
+              <template #default="scope">
+                {{
+                  scope.row.pay_time && scope.row.pay_time !== 0
+                    ? formatTimestamp(scope.row.pay_time)
+                    : '-'
+                }}
+              </template>
+            </el-table-column>
+          </el-table>
+
+          <!-- 分页 -->
+          <div class="pagination" style="margin-top: 20px">
+            <el-pagination
+              :page-size="rechargePageSize"
+              :pager-count="5"
+              :total="rechargeTotalRecords"
+              v-model:current-page="rechargePage"
+              :disabled="rechargeLoading"
+              background
+              :page-sizes="[10, 20, 30, 50]"
+              layout="total, sizes, prev, pager, next, jumper"
+              @current-change="handleRechargePageChange"
+              @size-change="handleRechargeSizeChange"
+            />
+          </div>
+        </div>
+      </el-dialog>
+
+      <!-- 用户购买记录对话框 -->
+      <el-dialog
+        v-model="buyPackageRecordDialogVisible"
+        title="用户购买记录"
+        width="800px"
+        destroy-on-close
+      >
+        <div v-loading="buyPackageLoading">
+          <el-table :data="buyPackageRecords" style="width: 100%">
+            <el-table-column
+              prop="id"
+              label="ID"
+              min-width="100"
+              show-overflow-tooltip
+            />
+            <el-table-column prop="uid" label="用户ID" min-width="100" />
+            <el-table-column prop="aid" label="接口ID" min-width="100" />
+            <el-table-column prop="package_id" label="套餐ID" min-width="120" />
+            <el-table-column
+              prop="package_name"
+              label="套餐名称"
+              min-width="150"
+            >
+              <template #default="scope">
+                <span style="font-weight: bold">{{
+                  scope.row.package_name
+                }}</span>
+              </template>
+            </el-table-column>
+            <el-table-column prop="amount" label="数量" width="100">
+              <template #default="scope">
+                <span>{{ scope.row.amount }}</span>
+              </template>
+            </el-table-column>
+            <el-table-column prop="price" label="金额" width="100">
+              <template #default="scope">
+                <span style="color: #f56c6c; font-weight: bold"
+                  >¥{{ scope.row.price }}</span
+                >
+              </template>
+            </el-table-column>
+            <el-table-column prop="duration" label="时长" width="100">
+              <template #default="scope">
+                <span>{{ scope.row.duration }}天</span>
+              </template>
+            </el-table-column>
+            <el-table-column prop="type" label="套餐类型" width="120">
+              <template #default="scope">
+                <el-tag
+                  :type="Number(scope.row.type) === 2 ? 'primary' : 'success'"
+                  size="small"
+                >
+                  {{ formatTypeLabel(scope.row.type) }}
+                </el-tag>
+              </template>
+            </el-table-column>
+            <el-table-column prop="action" label="操作类型" width="120">
+              <template #default="scope">
+                <el-tag :type="actionTagType(scope.row.action)" size="small">
+                  {{ formatAction(scope.row.action) }}
+                </el-tag>
+              </template>
+            </el-table-column>
+            <el-table-column prop="points" label="点数" width="100">
+              <template #default="scope">
+                <span>{{ scope.row.points }}</span>
+              </template>
+            </el-table-column>
+            <el-table-column label="创建时间" min-width="180">
+              <template #default="scope">
+                {{ formatTimestamp(scope.row.create_time) }}
+              </template>
+            </el-table-column>
+            <el-table-column label="续费前过期时间" min-width="180">
+              <template #default="scope">
+                {{ formatTimestamp(scope.row.expire_before) }}
+              </template>
+            </el-table-column>
+            <el-table-column label="过期时间" min-width="180">
+              <template #default="scope">
+                {{ formatTimestamp(scope.row.expire_after) }}
+              </template>
+            </el-table-column>
+            <el-table-column label="操作" width="120" fixed="right">
+              <template #default="scope">
+                <div class="table-actions">
+                  <el-button
+                    type="primary"
+                    link
+                    @click="showBuyPackageDetail(scope.row)"
+                  >
+                    详情
+                  </el-button>
+                </div>
+              </template>
+            </el-table-column>
+          </el-table>
+
+          <!-- 分页 -->
+          <div class="pagination" style="margin-top: 20px">
+            <el-pagination
+              :page-size="buyPackagePageSize"
+              :pager-count="5"
+              :total="buyPackageTotalRecords"
+              v-model:current-page="buyPackagePage"
+              :disabled="buyPackageLoading"
+              background
+              :page-sizes="[10, 20, 30, 50]"
+              layout="total, sizes, prev, pager, next, jumper"
+              @current-change="handleBuyPackagePageChange"
+              @size-change="handleBuyPackageSizeChange"
+            />
+          </div>
+        </div>
+      </el-dialog>
+
+      <!-- 用户调用记录对话框 -->
+      <el-dialog
+        v-model="callRecordDialogVisible"
+        title="调用记录"
+        width="80%"
+        destroy-on-close
+        top="5vh"
+        @closed="handleCallRecordClosed"
+      >
+        <!-- 统计区域 -->
+        <div class="stats-overview">
+          <el-row :gutter="20">
+            <el-col :span="6">
+              <div class="stat-item">
+                <div class="stat-label">近1天调用</div>
+                <div class="stat-value">{{ userCallStats.day1 }}</div>
+              </div>
+            </el-col>
+            <el-col :span="6">
+              <div class="stat-item">
+                <div class="stat-label">近3天调用</div>
+                <div class="stat-value">{{ userCallStats.day3 }}</div>
+              </div>
+            </el-col>
+            <el-col :span="6">
+              <div class="stat-item">
+                <div class="stat-label">近7天调用</div>
+                <div class="stat-value">{{ userCallStats.day7 }}</div>
+              </div>
+            </el-col>
+            <el-col :span="6">
+              <div class="stat-item">
+                <div class="stat-label">近30天调用</div>
+                <div class="stat-value">{{ userCallStats.month1 }}</div>
+              </div>
+            </el-col>
+          </el-row>
+
+          <!-- 接口调用排行 -->
+          <div class="top-apis-section" v-if="userTopApis.length > 0">
+            <div class="section-title">常用接口 Top 5 (近7天调用)</div>
+            <div class="top-api-list">
+              <div
+                v-for="(api, index) in userTopApis"
+                :key="index"
+                class="top-api-item"
+              >
+                <div class="api-info">
+                  <span class="api-name">{{ api.name }}</span>
+                  <span class="api-count">{{ api.count }}次</span>
+                </div>
+                <el-progress
+                  :percentage="api.percentage"
+                  :show-text="false"
+                  :stroke-width="8"
+                  :color="
+                    index === 0
+                      ? '#f56c6c'
+                      : index === 1
+                        ? '#e6a23c'
+                        : '#409eff'
+                  "
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div v-loading="callRecordLoading">
+          <el-table :data="callRecords" style="width: 100%" height="500">
+            <el-table-column prop="key" label="序号" width="60" />
+            <el-table-column
+              prop="id"
+              label="请求ID"
+              min-width="180"
+              show-overflow-tooltip
+            />
+            <el-table-column
+              prop="alias"
+              label="接口名称"
+              width="120"
+              show-overflow-tooltip
+            />
+            <el-table-column prop="method" label="请求方法" width="90">
+              <template #default="scope">
+                <el-tag
+                  :type="scope.row.method === 'GET' ? 'success' : 'warning'"
+                  size="small"
+                >
+                  {{ scope.row.method }}
+                </el-tag>
+              </template>
+            </el-table-column>
+            <el-table-column
+              prop="path"
+              label="请求路径"
+              min-width="200"
+              show-overflow-tooltip
+            />
+            <el-table-column prop="response_time" label="响应时间" width="90" />
+            <el-table-column prop="status_code" label="状态码" width="80">
+              <template #default="scope">
+                <el-tag
+                  :type="
+                    scope.row.status_code === 200
+                      ? 'success'
+                      : scope.row.status_code === 302 ||
+                          scope.row.status_code === 301
+                        ? 'primary'
+                        : 'danger'
+                  "
+                  size="small"
+                >
+                  {{ scope.row.status_code }}
+                </el-tag>
+              </template>
+            </el-table-column>
+            <el-table-column prop="client_ip" label="IP" width="140" />
+            <el-table-column
+              prop="address"
+              label="归属地"
+              width="130"
+              show-overflow-tooltip
+            />
+            <el-table-column prop="timestamp" label="请求时间" width="180" />
+            <el-table-column
+              prop="ua"
+              label="User Agent"
+              min-width="200"
+              show-overflow-tooltip
+            />
+            <el-table-column
+              prop="referer"
+              label="来源"
+              min-width="180"
+              show-overflow-tooltip
+            />
+          </el-table>
+
+          <div class="pagination" style="margin-top: 20px">
+            <el-pagination
+              v-model:page-size="callRecordPageSize"
+              :page-sizes="[10, 25, 50, 100]"
+              :pager-count="5"
+              :page-count="callRecordMaxPage"
+              v-model:current-page="callRecordPage"
+              :disabled="callRecordLoading"
+              background
+              layout="sizes, prev, pager, next, jumper"
+              @size-change="handleCallRecordSizeChange"
+            />
+          </div>
+        </div>
+      </el-dialog>
+
+      <!-- 购买记录详情对话框 -->
+      <el-dialog
+        v-model="buyPackageDetailDialogVisible"
+        title="套餐购买详情"
+        width="500px"
+      >
+        <div class="detail-content" v-if="currentBuyPackageRecord">
+          <div class="detail-item">
+            <span class="label">订单ID：</span>
+            <span class="value">{{ currentBuyPackageRecord.id }}</span>
+          </div>
+          <div class="detail-item">
+            <span class="label">用户ID：</span>
+            <span class="value">{{ currentBuyPackageRecord.uid }}</span>
+          </div>
+          <div class="detail-item">
+            <span class="label">接口ID：</span>
+            <span class="value">{{ currentBuyPackageRecord.aid }}</span>
+          </div>
+          <div class="detail-item">
+            <span class="label">套餐名称：</span>
+            <span class="value">{{
+              currentBuyPackageRecord.package_name
+            }}</span>
+          </div>
+          <div class="detail-item">
+            <span class="label">套餐ID：</span>
+            <span class="value">{{ currentBuyPackageRecord.package_id }}</span>
+          </div>
+          <div class="detail-item">
+            <span class="label">支付金额：</span>
+            <span class="value amount"
+              >¥{{ currentBuyPackageRecord.price }}</span
+            >
+          </div>
+          <div class="detail-item">
+            <span class="label">套餐类型：</span>
+            <span class="value">{{
+              formatTypeLabel(currentBuyPackageRecord.type)
+            }}</span>
+          </div>
+          <div
+            class="detail-item"
+            v-if="Number(currentBuyPackageRecord.type) === 2"
+          >
+            <span class="label">套餐时长：</span>
+            <span class="value">{{ currentBuyPackageRecord.duration }}天</span>
+          </div>
+          <div
+            class="detail-item"
+            v-if="Number(currentBuyPackageRecord.type) === 3"
+          >
+            <span class="label">套餐点数：</span>
+            <span class="value">{{ currentBuyPackageRecord.points }}</span>
+          </div>
+          <div class="detail-item">
+            <span class="label">动作：</span>
+            <span class="value">{{
+              formatAction(currentBuyPackageRecord.action)
+            }}</span>
+          </div>
+          <div class="detail-item">
+            <span class="label">创建时间：</span>
+            <span class="value">{{
+              formatTimestamp(currentBuyPackageRecord.create_time)
+            }}</span>
+          </div>
+          <div class="detail-item">
+            <span class="label">过期时间：</span>
+            <span class="value">{{
+              formatTimestamp(currentBuyPackageRecord.expire_after)
+            }}</span>
+          </div>
+          <div
+            class="detail-item"
+            v-if="currentBuyPackageRecord.expire_before > 0"
+          >
+            <span class="label">续费前过期时间：</span>
+            <span class="value">{{
+              formatTimestamp(currentBuyPackageRecord.expire_before)
+            }}</span>
+          </div>
+        </div>
+        <template #footer>
+          <span class="dialog-footer">
+            <el-button @click="buyPackageDetailDialogVisible = false"
+              >关闭</el-button
+            >
+          </span>
+        </template>
+      </el-dialog>
     </div>
   </div>
 </template>
 
 <style lang="less" scoped>
-.container {
+.userlist-container {
+  position: relative;
+  min-height: 100vh;
+  padding: 24px;
   display: flex;
+  justify-content: center;
   background: #f5f7fa;
 
-  .right {
+  .user-card {
     width: 100%;
-    min-width: 0;
-    .overlay {
-      position: absolute;
-      top: 0;
-      left: 0;
-      z-index: 998;
-      width: 100%;
-      height: 100%;
-      background-color: rgba(0, 0, 0, 0.5);
-    }
-    .control-sidebar {
-      position: absolute;
-      width: 35px;
-      height: 35px;
-      top: 10px;
-      left: 10px;
-      z-index: 9999;
-      text-align: center;
+    border-radius: 12px;
+    margin: 0 auto;
+
+    .card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 20px 24px;
       background: #fff;
-      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
-      .el-icon {
-        margin-top: 10px;
-        font-size: 16px;
+      border: 1px solid #eaecf0;
+      border-radius: 12px;
+      box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.03);
+      margin-bottom: 16px;
+
+      .header-left {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+
+        .icon {
+          font-size: 20px;
+          color: #4b5563;
+        }
+
+        .title {
+          font-size: 16px;
+          font-weight: 600;
+          color: #1a1f36;
+        }
+      }
+
+      .header-right {
+        .el-button {
+          display: flex;
+          align-items: center;
+          gap: 6px;
+        }
       }
     }
-    .userlist-container {
-      position: relative;
-      min-height: 100vh;
+
+    .table-container {
       padding: 24px;
-      display: flex;
-      justify-content: center;
+      background: #fff;
+      border: 1px solid #eaecf0;
+      border-radius: 12px;
+      box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.03);
 
-      .user-card {
-        width: 100%;
-        border-radius: 12px;
-        margin: 0 auto;
+      :deep(.el-table) {
+        border: none;
 
-        .card-header {
-          display: flex;
-          justify-content: space-between;
-          align-items: center;
-          padding: 20px 24px;
-          background: #fff;
-          border: 1px solid #eaecf0;
-          border-radius: 12px;
-          box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.03);
-          margin-bottom: 16px;
+        .search-wrapper {
+          padding: 0;
+          margin: 0;
+          line-height: 1;
+        }
 
-          .header-left {
-            display: flex;
-            align-items: center;
-            gap: 12px;
+        .el-input {
+          width: 220px;
+          margin: 0;
+        }
 
-            .icon {
-              font-size: 20px;
-              color: #4b5563;
-            }
-
-            .title {
-              font-size: 16px;
-              font-weight: 600;
-              color: #1a1f36;
-            }
-          }
-
-          .header-right {
-            .el-button {
-              display: flex;
-              align-items: center;
-              gap: 6px;
-            }
+        .el-table__header-wrapper {
+          th {
+            background: #f8fafc;
+            color: #1f2937;
+            font-weight: 600;
           }
         }
 
-        .table-container {
-          padding: 24px;
-          background: #fff;
-          border: 1px solid #eaecf0;
-          border-radius: 12px;
-          box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.03);
-
-          :deep(.el-table) {
-            border: none;
-
-            .search-wrapper {
-              padding: 0;
-              margin: 0;
-              line-height: 1;
-            }
-
-            .el-input {
-              width: 220px;
-              margin: 0;
-            }
-
-            .el-table__header-wrapper {
-              th {
-                background: #f8fafc;
-                color: #1f2937;
-                font-weight: 600;
-              }
-            }
-
-            .balance {
-              color: #0ea5e9;
-              font-weight: 500;
-            }
-          }
-
-          .table-actions {
-            display: flex;
-            gap: 4px;
-            margin: 0;
-            padding: 0;
-          }
-
-          .pagination {
-            margin-top: 24px;
-            display: flex;
-            justify-content: flex-end;
-          }
+        .balance {
+          color: #0ea5e9;
+          font-weight: 500;
         }
+      }
+
+      .table-actions {
+        display: flex;
+        gap: 4px;
+        margin: 0;
+        padding: 0;
+      }
+
+      .pagination {
+        margin-top: 24px;
+        display: flex;
+        justify-content: flex-end;
       }
     }
   }
@@ -1641,13 +1539,13 @@ useHead({
 }
 
 @media screen and (max-width: 1200px) {
-  .container .right .userlist-container {
+  .userlist-container {
     padding: 16px;
   }
 }
 
 @media screen and (max-width: 768px) {
-  .container .right .userlist-container {
+  .userlist-container {
     padding: 12px;
   }
 }

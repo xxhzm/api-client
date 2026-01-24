@@ -364,9 +364,17 @@ const handleSelect = (key) => {
 
   .left-section {
     flex: 1;
+
+    @media screen and (max-width: 768px) {
+      display: none;
+    }
   }
 
   .right-section {
+    @media screen and (max-width: 768px) {
+      margin-left: auto;
+    }
+
     .el-menu-demo {
       border-bottom: none;
       height: 50px;

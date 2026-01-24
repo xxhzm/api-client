@@ -1,35 +1,12 @@
 <script setup>
-import { Menu, Connection, Plus } from '@element-plus/icons-vue'
+import { Connection, Plus } from '@element-plus/icons-vue'
 import { ref, onMounted, reactive } from 'vue'
 
 const { $msg, $myFetch } = useNuxtApp()
 
-// 控制左侧边栏显示隐藏
-const screenWidth = ref(0)
-const isSidebarShow = ref(true)
-const iscontrolShow = ref(false)
-const isoverlay = ref(false)
-
-onMounted(() => {
-  screenWidth.value = document.body.clientWidth
-  document.body.style.overflow = ''
-
-  if (screenWidth.value < 768) {
-    iscontrolShow.value = true
-    isSidebarShow.value = false
-  }
+definePageMeta({
+  layout: 'admin',
 })
-
-const handleSidebarShow = () => {
-  isSidebarShow.value = !isSidebarShow.value
-  iscontrolShow.value = !iscontrolShow.value
-  isoverlay.value = !isoverlay.value
-  if (isSidebarShow.value) {
-    document.body.style.overflow = 'hidden'
-  } else {
-    document.body.style.overflow = ''
-  }
-}
 
 // 页面数据
 const loading = ref(false)
@@ -182,104 +159,91 @@ useHead({
 </script>
 
 <template>
-  <div class="container">
-    <AdminSidebar v-show="isSidebarShow"></AdminSidebar>
-
-    <div class="right">
-      <!-- 遮罩层 -->
-      <div class="overlay" v-show="isoverlay" @click="handleSidebarShow"></div>
-      <!-- 侧边栏控制按钮 -->
-      <div class="control-sidebar" v-show="iscontrolShow">
-        <el-icon @click="handleSidebarShow"><Menu /></el-icon>
+  <div class="import-container" v-loading="loading">
+    <div class="import-card">
+      <!-- 标题区域 -->
+      <div class="card-header">
+        <div class="header-left">
+          <el-icon class="icon">
+            <Connection />
+          </el-icon>
+          <span class="title">一键对接</span>
+        </div>
+        <div class="header-right">
+          <el-button type="primary" @click="importDialogVisible = true">
+            <el-icon><Plus /></el-icon>
+            <span>开始对接</span>
+          </el-button>
+        </div>
       </div>
-      <AdminHeader></AdminHeader>
-      <div class="import-container" v-loading="loading">
-        <div class="import-card">
-          <!-- 标题区域 -->
-          <div class="card-header">
-            <div class="header-left">
-              <el-icon class="icon">
-                <Connection />
-              </el-icon>
-              <span class="title">一键对接</span>
+
+      <!-- 内容区域 -->
+      <div class="content-container">
+        <div class="system-info-section">
+          <div class="section-header">
+            <h3>本系统对接信息</h3>
+            <p>其他系统可以使用以下信息对接本系统的API</p>
+          </div>
+
+          <div class="info-cards">
+            <div class="info-card">
+              <div class="card-title">
+                <span>系统地址</span>
+              </div>
+              <div class="card-content">
+                <div class="value-display">
+                  <span class="value">{{ systemInfo.website }}</span>
+                  <el-button
+                    type="primary"
+                    link
+                    @click="copyToClipboard(systemInfo.website, '系统地址')"
+                  >
+                    复制
+                  </el-button>
+                </div>
+              </div>
             </div>
-            <div class="header-right">
-              <el-button type="primary" @click="importDialogVisible = true">
-                <el-icon><Plus /></el-icon>
-                <span>开始对接</span>
-              </el-button>
+
+            <div class="info-card">
+              <div class="card-title">
+                <span>API密钥</span>
+                <el-button
+                  type="primary"
+                  link
+                  @click="generateNewApiKey"
+                  size="small"
+                >
+                  重新生成
+                </el-button>
+              </div>
+              <div class="card-content">
+                <div class="value-display">
+                  <span class="value api-key">{{ systemInfo.apiKey }}</span>
+                  <el-button
+                    type="primary"
+                    link
+                    @click="copyToClipboard(systemInfo.apiKey, 'API密钥')"
+                  >
+                    复制
+                  </el-button>
+                </div>
+              </div>
             </div>
           </div>
 
-          <!-- 内容区域 -->
-          <div class="content-container">
-            <div class="system-info-section">
-              <div class="section-header">
-                <h3>本系统对接信息</h3>
-                <p>其他系统可以使用以下信息对接本系统的API</p>
-              </div>
-
-              <div class="info-cards">
-                <div class="info-card">
-                  <div class="card-title">
-                    <span>系统地址</span>
-                  </div>
-                  <div class="card-content">
-                    <div class="value-display">
-                      <span class="value">{{ systemInfo.website }}</span>
-                      <el-button
-                        type="primary"
-                        link
-                        @click="copyToClipboard(systemInfo.website, '系统地址')"
-                      >
-                        复制
-                      </el-button>
-                    </div>
-                  </div>
-                </div>
-
-                <div class="info-card">
-                  <div class="card-title">
-                    <span>API密钥</span>
-                    <el-button
-                      type="primary"
-                      link
-                      @click="generateNewApiKey"
-                      size="small"
-                    >
-                      重新生成
-                    </el-button>
-                  </div>
-                  <div class="card-content">
-                    <div class="value-display">
-                      <span class="value api-key">{{ systemInfo.apiKey }}</span>
-                      <el-button
-                        type="primary"
-                        link
-                        @click="copyToClipboard(systemInfo.apiKey, 'API密钥')"
-                      >
-                        复制
-                      </el-button>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              <div class="usage-tips">
-                <h4>对接说明</h4>
-                <div class="tips-content">
-                  <div class="section">
-                    <h5>注意事项</h5>
-                    <ul>
-                      <li style="color: red">对接成功后，请重启网关服务</li>
-                      <li style="color: red">如果别名重复将会自动跳过该接口</li>
-                      <li>请确保网络连接正常，能够访问对方系统</li>
-                      <li>API密钥具有敏感性，请妥善保管</li>
-                      <li>建议定期更新密钥以确保安全性</li>
-                      <li>对接失败时请检查地址和密钥是否正确</li>
-                    </ul>
-                  </div>
-                </div>
+          <div class="usage-tips">
+            <h4>对接说明</h4>
+            <div class="tips-content">
+              <div class="section">
+                <h5>注意事项</h5>
+                <ul>
+                  <li style="color: red">对接成功后，请重启网关服务</li>
+                  <li style="color: red">如果别名重复将会自动跳过该接口</li>
+                  <li>请确保网络连接正常，能够访问对方系统</li>
+                  <li>API密钥具有敏感性，请妥善保管</li>
+                  <li>建议定期更新密钥以确保安全性</li>
+                  <li>对接失败时请检查地址和密钥是否正确</li>
+                </ul>
               </div>
             </div>
           </div>
@@ -332,221 +296,189 @@ useHead({
 </template>
 
 <style lang="less" scoped>
-.container {
+.import-container {
+  position: relative;
+  min-height: 100vh;
+  padding: 24px;
   display: flex;
+  justify-content: center;
   background: #f5f7fa;
 
-  .right {
+  .import-card {
     width: 100%;
-    min-width: 0;
-    .overlay {
-      position: absolute;
-      top: 0;
-      left: 0;
-      z-index: 998;
-      width: 100%;
-      height: 100%;
-      background-color: rgba(0, 0, 0, 0.5);
-    }
-    .control-sidebar {
-      position: absolute;
-      width: 35px;
-      height: 35px;
-      top: 10px;
-      left: 10px;
-      z-index: 9999;
-      text-align: center;
+    border-radius: 12px;
+    margin: 0 auto;
+
+    .card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 20px 24px;
       background: #fff;
-      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
-      .el-icon {
-        margin-top: 10px;
-        font-size: 16px;
+      border: 1px solid #eaecf0;
+      border-radius: 12px;
+      box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.03);
+      margin-bottom: 16px;
+
+      .header-left {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+
+        .icon {
+          font-size: 20px;
+          color: #4b5563;
+        }
+
+        .title {
+          font-size: 16px;
+          font-weight: 600;
+          color: #1a1f36;
+        }
+      }
+
+      .header-right {
+        .el-button {
+          display: flex;
+          align-items: center;
+          gap: 6px;
+        }
       }
     }
-    .import-container {
-      position: relative;
-      min-height: 100vh;
+
+    .content-container {
       padding: 24px;
-      display: flex;
-      justify-content: center;
+      background: #fff;
+      border: 1px solid #eaecf0;
+      border-radius: 12px;
+      box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.03);
 
-      .import-card {
-        width: 100%;
-        border-radius: 12px;
-        margin: 0 auto;
+      .system-info-section {
+        padding: 30px;
 
-        .card-header {
-          display: flex;
-          justify-content: space-between;
-          align-items: center;
-          padding: 20px 24px;
-          background: #fff;
-          border: 1px solid #eaecf0;
-          border-radius: 12px;
-          box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.03);
-          margin-bottom: 16px;
+        .section-header {
+          text-align: center;
+          margin-bottom: 30px;
 
-          .header-left {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-
-            .icon {
-              font-size: 20px;
-              color: #4b5563;
-            }
-
-            .title {
-              font-size: 16px;
-              font-weight: 600;
-              color: #1a1f36;
-            }
+          h3 {
+            margin: 0 0 8px 0;
+            color: #1a1f36;
+            font-size: 20px;
+            font-weight: 600;
           }
 
-          .header-right {
-            .el-button {
+          p {
+            margin: 0;
+            color: #6b7280;
+            font-size: 14px;
+            line-height: 1.5;
+          }
+        }
+
+        .info-cards {
+          display: grid;
+          gap: 20px;
+          margin-bottom: 30px;
+
+          .info-card {
+            border: 1px solid #eaecf0;
+            border-radius: 8px;
+            padding: 20px;
+            background: #f9fafb;
+
+            .card-title {
               display: flex;
+              justify-content: space-between;
               align-items: center;
-              gap: 6px;
+              margin-bottom: 12px;
+
+              span {
+                font-size: 14px;
+                font-weight: 500;
+                color: #374151;
+              }
+            }
+
+            .card-content {
+              .value-display {
+                display: flex;
+                align-items: center;
+                gap: 12px;
+
+                .value {
+                  flex: 1;
+                  font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+                  font-size: 13px;
+                  color: #1a1f36;
+                  background: #fff;
+                  padding: 8px 12px;
+                  border: 1px solid #d1d5db;
+                  border-radius: 4px;
+                  word-break: break-all;
+
+                  &.api-key {
+                    letter-spacing: 1px;
+                  }
+                }
+              }
             }
           }
         }
 
-        .content-container {
-          padding: 24px;
-          background: #fff;
-          border: 1px solid #eaecf0;
-          border-radius: 12px;
-          box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.03);
+        .usage-tips {
+          border-top: 1px solid #eaecf0;
+          padding-top: 30px;
 
-          .system-info-section {
-            padding: 30px;
+          h4 {
+            margin: 0 0 20px 0;
+            color: #1a1f36;
+            font-size: 16px;
+            font-weight: 600;
+          }
 
-            .section-header {
-              text-align: center;
-              margin-bottom: 30px;
+          .tips-content {
+            .section {
+              margin-bottom: 24px;
 
-              h3 {
-                margin: 0 0 8px 0;
-                color: #1a1f36;
-                font-size: 20px;
+              &:last-child {
+                margin-bottom: 0;
+              }
+
+              h5 {
+                margin: 0 0 12px 0;
+                color: #374151;
+                font-size: 14px;
                 font-weight: 600;
               }
 
               p {
-                margin: 0;
+                margin: 8px 0;
                 color: #6b7280;
                 font-size: 14px;
-                line-height: 1.5;
+                line-height: 1.6;
               }
-            }
 
-            .info-cards {
-              display: grid;
-              gap: 20px;
-              margin-bottom: 30px;
+              ul {
+                margin: 8px 0;
+                padding-left: 20px;
 
-              .info-card {
-                border: 1px solid #eaecf0;
-                border-radius: 8px;
-                padding: 20px;
-                background: #f9fafb;
+                li {
+                  margin: 6px 0;
+                  color: #6b7280;
+                  font-size: 14px;
+                  line-height: 1.6;
 
-                .card-title {
-                  display: flex;
-                  justify-content: space-between;
-                  align-items: center;
-                  margin-bottom: 12px;
-
-                  span {
-                    font-size: 14px;
-                    font-weight: 500;
+                  strong {
                     color: #374151;
                   }
-                }
 
-                .card-content {
-                  .value-display {
-                    display: flex;
-                    align-items: center;
-                    gap: 12px;
-
-                    .value {
-                      flex: 1;
-                      font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
-                      font-size: 13px;
-                      color: #1a1f36;
-                      background: #fff;
-                      padding: 8px 12px;
-                      border: 1px solid #d1d5db;
-                      border-radius: 4px;
-                      word-break: break-all;
-
-                      &.api-key {
-                        letter-spacing: 1px;
-                      }
-                    }
-                  }
-                }
-              }
-            }
-
-            .usage-tips {
-              border-top: 1px solid #eaecf0;
-              padding-top: 30px;
-
-              h4 {
-                margin: 0 0 20px 0;
-                color: #1a1f36;
-                font-size: 16px;
-                font-weight: 600;
-              }
-
-              .tips-content {
-                .section {
-                  margin-bottom: 24px;
-
-                  &:last-child {
-                    margin-bottom: 0;
-                  }
-
-                  h5 {
-                    margin: 0 0 12px 0;
-                    color: #374151;
-                    font-size: 14px;
-                    font-weight: 600;
-                  }
-
-                  p {
-                    margin: 8px 0;
-                    color: #6b7280;
-                    font-size: 14px;
-                    line-height: 1.6;
-                  }
-
-                  ul {
-                    margin: 8px 0;
-                    padding-left: 20px;
-
-                    li {
-                      margin: 6px 0;
-                      color: #6b7280;
-                      font-size: 14px;
-                      line-height: 1.6;
-
-                      strong {
-                        color: #374151;
-                      }
-
-                      code {
-                        background: #f3f4f6;
-                        color: #e96900;
-                        padding: 2px 6px;
-                        border-radius: 3px;
-                        font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
-                        font-size: 12px;
-                      }
-                    }
+                  code {
+                    background: #f3f4f6;
+                    color: #e96900;
+                    padding: 2px 6px;
+                    border-radius: 3px;
+                    font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+                    font-size: 12px;
                   }
                 }
               }
@@ -557,7 +489,6 @@ useHead({
     }
   }
 }
-
 .form-tip {
   font-size: 12px;
   color: #6b7280;
@@ -638,13 +569,13 @@ useHead({
 }
 
 @media screen and (max-width: 1200px) {
-  .container .right .import-container {
+  .import-container {
     padding: 16px;
   }
 }
 
 @media screen and (max-width: 768px) {
-  .container .right .import-container {
+  .import-container {
     padding: 12px;
 
     .import-card {

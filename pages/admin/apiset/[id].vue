@@ -1,44 +1,19 @@
 <script setup>
 import {
   Tickets,
-  Menu,
   InfoFilled,
   SuccessFilled,
   WarningFilled,
 } from '@element-plus/icons-vue'
 
+definePageMeta({
+  layout: 'admin',
+})
+
 const route = useRoute()
 
 const { $msg, $myFetch } = useNuxtApp()
 const msg = $msg
-
-// 控制左侧边栏显示隐藏
-// 获取页面宽度
-const screenWidth = ref(0)
-const isSidebarShow = ref(true)
-const iscontrolShow = ref(false)
-const isoverlay = ref(false)
-onMounted(() => {
-  screenWidth.value = document.body.clientWidth
-  document.body.style.overflow = ''
-
-  if (screenWidth.value < 768) {
-    iscontrolShow.value = true
-    isSidebarShow.value = false
-  }
-})
-
-const handleSidebarShow = () => {
-  isSidebarShow.value = !isSidebarShow.value
-  iscontrolShow.value = !iscontrolShow.value
-  isoverlay.value = !isoverlay.value
-  // 禁止页面滑动
-  if (isSidebarShow.value) {
-    document.body.style.overflow = 'hidden'
-  } else {
-    document.body.style.overflow = ''
-  }
-}
 
 // 标签页
 const activeName = ref('Base')
@@ -351,7 +326,7 @@ const initSelectedCategoriesFromApi = async () => {
   selectedCategories.value = list.map((item) => {
     // 优先使用服务端返回的名称，其次从本地字典匹配
     const found = categoryData.value.find(
-      (c) => String(c.id) === String(item.id)
+      (c) => String(c.id) === String(item.id),
     )
     return {
       id: Number(item.id),
@@ -441,8 +416,8 @@ const filterPackageList = computed(() =>
   packageList.value.filter(
     (data) =>
       !packageSearch.value ||
-      data.name.toLowerCase().includes(packageSearch.value.toLowerCase())
-  )
+      data.name.toLowerCase().includes(packageSearch.value.toLowerCase()),
+  ),
 )
 
 // 获取套餐类型文字
@@ -892,11 +867,11 @@ const updateAdvancedSettings = async () => {
   bodyValue.append('sse', advancedInfo.value.sse === 'true' ? 1 : 0)
   bodyValue.append(
     'realname',
-    advancedInfo.value.realNameAuth === 'true' ? 1 : 0
+    advancedInfo.value.realNameAuth === 'true' ? 1 : 0,
   )
   bodyValue.append(
     'companyAuth',
-    advancedInfo.value.enterpriseAuth === 'true' ? 1 : 0
+    advancedInfo.value.enterpriseAuth === 'true' ? 1 : 0,
   )
   bodyValue.append('vip', advancedInfo.value.vipAuth === 'true' ? 1 : 0)
   bodyValue.append('twoFA', advancedInfo.value.twoFactorAuth === 'true' ? 1 : 0)
@@ -1028,7 +1003,7 @@ const handleAddParam = () => {
 const queryParamNameAsync = (queryString, cb) => {
   const results = queryString
     ? commonParamNames.filter((item) =>
-        item.value.toLowerCase().includes(queryString.toLowerCase())
+        item.value.toLowerCase().includes(queryString.toLowerCase()),
       )
     : commonParamNames
 
@@ -1039,7 +1014,7 @@ const queryParamNameAsync = (queryString, cb) => {
 const queryParamValueAsync = (queryString, cb) => {
   const results = queryString
     ? commonParamValues.filter((item) =>
-        item.value.toLowerCase().includes(queryString.toLowerCase())
+        item.value.toLowerCase().includes(queryString.toLowerCase()),
       )
     : commonParamValues
 
@@ -1113,67 +1088,300 @@ useHead({
 </script>
 
 <template>
-  <div class="container">
-    <AdminSidebar v-show="isSidebarShow"></AdminSidebar>
+  <div class="apiset-container">
+    <div class="apiset-cont">
+      <ClientOnly>
+        <el-tabs v-model="activeName">
+          <el-tab-pane label="基本信息" name="Base">
+            <el-form :model="apiSetInfo">
+              <el-row :gutter="12">
+                <el-col :xs="24" :sm="24" :md="24" :lg="24" :xl="24">
+                  <el-form-item label="接口名称" :label-width="90" required
+                    ><el-input
+                      v-model="apiSetInfo.name"
+                      maxlength="25"
+                      show-word-limit
+                  /></el-form-item>
+                </el-col>
 
-    <div class="right">
-      <!-- 遮罩层 -->
-      <div class="overlay" v-show="isoverlay" @click="handleSidebarShow"></div>
-      <!-- 侧边栏控制按钮 -->
-      <div class="control-sidebar" v-show="iscontrolShow">
-        <el-icon @click="handleSidebarShow">
-          <Menu />
-        </el-icon>
-      </div>
-      <AdminHeader></AdminHeader>
-      <div class="apiset-container">
-        <div class="apiset-cont">
-          <ClientOnly>
-            <el-tabs v-model="activeName">
-              <el-tab-pane label="基本信息" name="Base">
-                <el-form :model="apiSetInfo">
-                  <el-row :gutter="12">
-                    <el-col :xs="24" :sm="24" :md="24" :lg="24" :xl="24">
-                      <el-form-item label="接口名称" :label-width="90" required
-                        ><el-input
-                          v-model="apiSetInfo.name"
-                          maxlength="25"
-                          show-word-limit
-                      /></el-form-item>
-                    </el-col>
+                <el-col :xs="24" :sm="24" :md="24" :lg="24" :xl="24">
+                  <el-form-item label="接口别名" :label-width="90" required>
+                    <el-input
+                      v-model="apiSetInfo.alias"
+                      maxlength="25"
+                      show-word-limit
+                    />
+                  </el-form-item>
+                </el-col>
 
-                    <el-col :xs="24" :sm="24" :md="24" :lg="24" :xl="24">
-                      <el-form-item label="接口别名" :label-width="90" required>
-                        <el-input
-                          v-model="apiSetInfo.alias"
-                          maxlength="25"
-                          show-word-limit
+                <el-col :xs="24" :sm="24" :md="24" :lg="24" :xl="24">
+                  <el-form-item label="接口地址" :label-width="90">
+                    <el-input v-model="apiSetInfo.url" />
+                    <div class="form-tip">
+                      <el-text type="info" size="small">
+                        PHP-FPM 提示：直接填写项目文件夹路径即可，如
+                        /www/wwwroot/tcping，系统会自动访问该目录下的 index.php
+                        文件
+                      </el-text>
+                    </div>
+                  </el-form-item>
+                </el-col>
+
+                <el-col :xs="24" :sm="24" :md="24" :lg="24" :xl="24">
+                  <el-form-item label="请求类型" :label-width="90" required>
+                    <el-select
+                      v-model="apiSetInfo.method"
+                      placeholder="请选择请求类型"
+                      style="width: 100%"
+                    >
+                      <el-option
+                        v-for="item in methodOptions"
+                        :key="item.value"
+                        :label="item.label"
+                        :value="item.value"
+                      />
+                    </el-select>
+                  </el-form-item>
+                </el-col>
+
+                <el-col :xs="24" :sm="24" :md="24" :lg="24" :xl="24">
+                  <el-form-item label="接口示例" :label-width="90">
+                    <el-input v-model="apiSetInfo.example_url" />
+                  </el-form-item>
+                </el-col>
+
+                <el-col :xs="24" :sm="24" :md="24" :lg="24" :xl="24">
+                  <el-form-item label="接口描述" :label-width="90" required>
+                    <el-input v-model="apiSetInfo.description" />
+                  </el-form-item>
+                </el-col>
+
+                <el-col :xs="24" :sm="24" :md="24" :lg="24" :xl="24">
+                  <el-form-item label="接口关键词" :label-width="95" required>
+                    <el-input v-model="apiSetInfo.keywords" />
+                  </el-form-item>
+                </el-col>
+
+                <el-col :xs="24" :sm="24" :md="24" :lg="24" :xl="24">
+                  <el-form-item label="接口前缀" :label-width="90" required>
+                    <client-only>
+                      <el-autocomplete
+                        v-model="apiSetInfo.prefixValue"
+                        :fetch-suggestions="querySearchPrefix"
+                        placeholder="请选择服务"
+                        @select="handlePrefixSelect"
+                      />
+                    </client-only>
+                  </el-form-item>
+                </el-col>
+
+                <el-col :xs="24" :sm="24" :md="24" :lg="24" :xl="24">
+                  <el-form-item label="接口分类" :label-width="90" required>
+                    <el-autocomplete
+                      v-model="categoryInput"
+                      :fetch-suggestions="querySearch"
+                      placeholder="请选择分类（可多选）"
+                      @select="handleSelect"
+                    />
+                    <div
+                      v-if="selectedCategories.length > 0"
+                      style="margin-top: 8px"
+                    >
+                      <el-tag
+                        v-for="(cat, idx) in selectedCategories"
+                        :key="cat.id"
+                        closable
+                        @close="removeSelectedCategory(idx)"
+                        style="margin-right: 6px; margin-bottom: 6px"
+                        type="info"
+                        effect="plain"
+                      >
+                        {{ cat.name }}
+                      </el-tag>
+                    </div>
+                  </el-form-item>
+                </el-col>
+
+                <el-col :xs="24" :sm="24" :md="24" :lg="24" :xl="24">
+                  <el-form-item label="接口状态" :label-width="90" required>
+                    <el-select
+                      v-model="apiSetInfo.state"
+                      placeholder="请选择状态"
+                    >
+                      <el-option label="启用" :value="true"></el-option>
+                      <el-option label="停用" :value="false"></el-option>
+                    </el-select>
+                  </el-form-item>
+                </el-col>
+
+                <el-col :xs="24" :sm="24" :md="24" :lg="24" :xl="24">
+                  <el-form-item label="秘钥验证" :label-width="90" required>
+                    <el-select
+                      v-model="apiSetInfo.keyState"
+                      placeholder="请选择状态"
+                    >
+                      <el-option label="开启" :value="true"></el-option>
+                      <el-option label="关闭" :value="false"></el-option>
+                    </el-select>
+                  </el-form-item>
+                </el-col>
+
+                <el-col :xs="24" :sm="24" :md="24" :lg="24" :xl="24">
+                  <el-form-item label="返回示例" :label-width="90" required>
+                    <div class="example-editor-container">
+                      <div class="editor-type-selector">
+                        <el-radio-group
+                          v-model="exampleEditorType"
+                          size="small"
+                        >
+                          <el-radio-button value="basic">基础</el-radio-button>
+                          <el-radio-button value="advanced"
+                            >高级</el-radio-button
+                          >
+                        </el-radio-group>
+                      </div>
+
+                      <!-- 基础文本框 -->
+                      <el-input
+                        v-if="exampleEditorType === 'basic'"
+                        :rows="10"
+                        v-model="apiSetInfo.example"
+                        type="textarea"
+                        placeholder="请输入返回示例"
+                      />
+
+                      <!-- 高级编辑器 -->
+                      <div v-else class="advanced-editor">
+                        <TinyMCEEditor
+                          v-model="apiSetInfo.example"
+                          :height="400"
+                        />
+                      </div>
+                    </div>
+                  </el-form-item>
+                </el-col>
+              </el-row>
+            </el-form>
+          </el-tab-pane>
+
+          <el-tab-pane label="参数信息" name="Parameter">
+            <div class="param-header">
+              <div class="header-left">
+                <span class="param-title">参数列表</span>
+              </div>
+              <div class="header-right">
+                <el-button type="primary" @click="handleAddParam">
+                  <span>添加参数</span>
+                </el-button>
+              </div>
+            </div>
+
+            <el-table :data="paramsArr">
+              <el-table-column prop="aid" label="id" />
+              <el-table-column prop="name" label="接口名称" />
+              <el-table-column prop="param" label="传递参数" />
+              <el-table-column prop="position" label="传入位置" />
+              <el-table-column
+                prop="docs"
+                label="参数描述"
+                show-overflow-tooltip
+              />
+              <el-table-column prop="required" label="是否必传" />
+              <el-table-column prop="create_time" label="创建时间" />
+              <el-table-column width="160" label="操作">
+                <template #default="scope">
+                  <div class="table-actions">
+                    <el-button
+                      size="small"
+                      type="primary"
+                      @click="handleParamEdit(scope.$index, scope.row)"
+                    >
+                      编辑
+                    </el-button>
+                    <el-popconfirm
+                      confirm-button-text="确定"
+                      cancel-button-text="取消"
+                      title="您确定要删除吗?"
+                      width="160px"
+                      @confirm="handleDelete(scope.$index, scope.row)"
+                    >
+                      <template #reference>
+                        <el-button size="small" type="danger">删除</el-button>
+                      </template>
+                    </el-popconfirm>
+                  </div>
+                </template>
+              </el-table-column>
+            </el-table>
+
+            <!-- 添加参数对话框 -->
+            <el-dialog
+              v-model="addParamDialogStatus"
+              title="添加参数"
+              width="600px"
+              destroy-on-close
+              class="param-dialog"
+            >
+              <div class="dialog-content">
+                <el-alert
+                  title="JSON 格式展示说明"
+                  type="info"
+                  show-icon
+                  :closable="false"
+                  style="margin-bottom: 20px"
+                >
+                  <template #default>
+                    <div>
+                      若需在文档页以 JSON
+                      代码块形式展示参数说明，请添加一个参数：参数名称为
+                      'json'，可传参数为 'json'，传入位置为
+                      'body'，设为'必传'，并将 JSON 内容填入'参数描述'中。
+                    </div>
+                    <div style="margin-top: 10px">
+                      <el-button
+                        type="primary"
+                        size="small"
+                        @click="setJsonParam"
+                      >
+                        一键设置 JSON 参数
+                      </el-button>
+                    </div>
+                  </template>
+                </el-alert>
+                <el-form :model="addParamInfo" label-width="100px">
+                  <el-row :gutter="20">
+                    <el-col :span="12">
+                      <el-form-item label="参数名称" required>
+                        <el-autocomplete
+                          v-model="addParamInfo.name"
+                          :fetch-suggestions="queryParamNameAsync"
+                          placeholder="请输入参数名称，或从常用参数中选择"
+                          style="width: 100%"
                         />
                       </el-form-item>
                     </el-col>
-
-                    <el-col :xs="24" :sm="24" :md="24" :lg="24" :xl="24">
-                      <el-form-item label="接口地址" :label-width="90">
-                        <el-input v-model="apiSetInfo.url" />
-                        <div class="form-tip">
-                          <el-text type="info" size="small">
-                            PHP-FPM 提示：直接填写项目文件夹路径即可，如
-                            /www/wwwroot/tcping，系统会自动访问该目录下的
-                            index.php 文件
-                          </el-text>
-                        </div>
+                    <el-col :span="12">
+                      <el-form-item label="可传参数" required>
+                        <el-autocomplete
+                          v-model="addParamInfo.param"
+                          :fetch-suggestions="queryParamValueAsync"
+                          placeholder="请输入可传参数，或从常用值中选择"
+                          style="width: 100%"
+                        />
                       </el-form-item>
                     </el-col>
+                  </el-row>
 
-                    <el-col :xs="24" :sm="24" :md="24" :lg="24" :xl="24">
-                      <el-form-item label="请求类型" :label-width="90" required>
+                  <el-row :gutter="20">
+                    <el-col :span="12">
+                      <el-form-item label="传入位置" required>
                         <el-select
-                          v-model="apiSetInfo.method"
-                          placeholder="请选择请求类型"
-                          style="width: 100%"
+                          v-model="addParamInfo.position"
+                          placeholder="请选择传入位置"
+                          class="full-width"
                         >
                           <el-option
-                            v-for="item in methodOptions"
+                            v-for="item in position"
                             :key="item.value"
                             :label="item.label"
                             :value="item.value"
@@ -1181,238 +1389,633 @@ useHead({
                         </el-select>
                       </el-form-item>
                     </el-col>
-
-                    <el-col :xs="24" :sm="24" :md="24" :lg="24" :xl="24">
-                      <el-form-item label="接口示例" :label-width="90">
-                        <el-input v-model="apiSetInfo.example_url" />
-                      </el-form-item>
-                    </el-col>
-
-                    <el-col :xs="24" :sm="24" :md="24" :lg="24" :xl="24">
-                      <el-form-item label="接口描述" :label-width="90" required>
-                        <el-input v-model="apiSetInfo.description" />
-                      </el-form-item>
-                    </el-col>
-
-                    <el-col :xs="24" :sm="24" :md="24" :lg="24" :xl="24">
-                      <el-form-item
-                        label="接口关键词"
-                        :label-width="95"
-                        required
-                      >
-                        <el-input v-model="apiSetInfo.keywords" />
-                      </el-form-item>
-                    </el-col>
-
-                    <el-col :xs="24" :sm="24" :md="24" :lg="24" :xl="24">
-                      <el-form-item label="接口前缀" :label-width="90" required>
-                        <client-only>
-                          <el-autocomplete
-                            v-model="apiSetInfo.prefixValue"
-                            :fetch-suggestions="querySearchPrefix"
-                            placeholder="请选择服务"
-                            @select="handlePrefixSelect"
-                          />
-                        </client-only>
-                      </el-form-item>
-                    </el-col>
-
-                    <el-col :xs="24" :sm="24" :md="24" :lg="24" :xl="24">
-                      <el-form-item label="接口分类" :label-width="90" required>
-                        <el-autocomplete
-                          v-model="categoryInput"
-                          :fetch-suggestions="querySearch"
-                          placeholder="请选择分类（可多选）"
-                          @select="handleSelect"
-                        />
-                        <div
-                          v-if="selectedCategories.length > 0"
-                          style="margin-top: 8px"
-                        >
-                          <el-tag
-                            v-for="(cat, idx) in selectedCategories"
-                            :key="cat.id"
-                            closable
-                            @close="removeSelectedCategory(idx)"
-                            style="margin-right: 6px; margin-bottom: 6px"
-                            type="info"
-                            effect="plain"
-                          >
-                            {{ cat.name }}
-                          </el-tag>
-                        </div>
-                      </el-form-item>
-                    </el-col>
-
-                    <el-col :xs="24" :sm="24" :md="24" :lg="24" :xl="24">
-                      <el-form-item label="接口状态" :label-width="90" required>
-                        <el-select
-                          v-model="apiSetInfo.state"
-                          placeholder="请选择状态"
-                        >
-                          <el-option label="启用" :value="true"></el-option>
-                          <el-option label="停用" :value="false"></el-option>
-                        </el-select>
-                      </el-form-item>
-                    </el-col>
-
-                    <el-col :xs="24" :sm="24" :md="24" :lg="24" :xl="24">
-                      <el-form-item label="秘钥验证" :label-width="90" required>
-                        <el-select
-                          v-model="apiSetInfo.keyState"
-                          placeholder="请选择状态"
-                        >
-                          <el-option label="开启" :value="true"></el-option>
-                          <el-option label="关闭" :value="false"></el-option>
-                        </el-select>
-                      </el-form-item>
-                    </el-col>
-
-                    <el-col :xs="24" :sm="24" :md="24" :lg="24" :xl="24">
-                      <el-form-item label="返回示例" :label-width="90" required>
-                        <div class="example-editor-container">
-                          <div class="editor-type-selector">
-                            <el-radio-group
-                              v-model="exampleEditorType"
-                              size="small"
-                            >
-                              <el-radio-button value="basic"
-                                >基础</el-radio-button
-                              >
-                              <el-radio-button value="advanced"
-                                >高级</el-radio-button
-                              >
-                            </el-radio-group>
-                          </div>
-
-                          <!-- 基础文本框 -->
-                          <el-input
-                            v-if="exampleEditorType === 'basic'"
-                            :rows="10"
-                            v-model="apiSetInfo.example"
-                            type="textarea"
-                            placeholder="请输入返回示例"
-                          />
-
-                          <!-- 高级编辑器 -->
-                          <div v-else class="advanced-editor">
-                            <TinyMCEEditor
-                              v-model="apiSetInfo.example"
-                              :height="400"
-                            />
-                          </div>
-                        </div>
+                    <el-col :span="12">
+                      <el-form-item label="是否必传">
+                        <el-switch v-model="addParamInfo.required" />
                       </el-form-item>
                     </el-col>
                   </el-row>
-                </el-form>
-              </el-tab-pane>
 
-              <el-tab-pane label="参数信息" name="Parameter">
-                <div class="param-header">
-                  <div class="header-left">
-                    <span class="param-title">参数列表</span>
-                  </div>
-                  <div class="header-right">
-                    <el-button type="primary" @click="handleAddParam">
-                      <span>添加参数</span>
+                  <el-form-item label="参数描述" required>
+                    <el-input
+                      v-model="addParamInfo.docs"
+                      type="textarea"
+                      :rows="3"
+                      placeholder="请输入参数描述"
+                    />
+                  </el-form-item>
+                </el-form>
+              </div>
+              <template #footer>
+                <div class="dialog-footer">
+                  <el-button @click="addParamDialogStatus = false">
+                    取消
+                  </el-button>
+                  <el-button type="primary" @click="addParam"> 添加 </el-button>
+                </div>
+              </template>
+            </el-dialog>
+
+            <!-- 编辑参数对话框 -->
+            <el-dialog
+              v-model="paramDialogStatus"
+              title="编辑参数"
+              width="600px"
+              destroy-on-close
+              class="param-dialog"
+            >
+              <div class="dialog-content">
+                <el-form :model="paramEditInfo" label-width="100px">
+                  <el-row :gutter="20">
+                    <el-col :span="12">
+                      <el-form-item label="参数名称" required>
+                        <el-input
+                          v-model="paramEditInfo.name"
+                          placeholder="请输入参数名称"
+                        />
+                      </el-form-item>
+                    </el-col>
+                    <el-col :span="12">
+                      <el-form-item label="可传参数" required>
+                        <el-input
+                          v-model="paramEditInfo.param"
+                          placeholder="请输入可传参数"
+                        />
+                      </el-form-item>
+                    </el-col>
+                  </el-row>
+
+                  <el-row :gutter="20">
+                    <el-col :span="12">
+                      <el-form-item label="传入位置" required>
+                        <el-select
+                          v-model="paramEditInfo.position"
+                          placeholder="请选择传入位置"
+                          class="full-width"
+                        >
+                          <el-option
+                            v-for="item in position"
+                            :key="item.value"
+                            :label="item.label"
+                            :value="item.value"
+                          />
+                        </el-select>
+                      </el-form-item>
+                    </el-col>
+                    <el-col :span="12">
+                      <el-form-item label="是否必传">
+                        <el-switch v-model="paramEditInfo.required" />
+                      </el-form-item>
+                    </el-col>
+                  </el-row>
+
+                  <el-form-item label="参数描述" required>
+                    <el-input
+                      v-model="paramEditInfo.docs"
+                      type="textarea"
+                      :rows="3"
+                      placeholder="请输入参数描述"
+                    />
+                  </el-form-item>
+                </el-form>
+              </div>
+              <template #footer>
+                <div class="dialog-footer">
+                  <el-button @click="paramDialogStatus = false">
+                    取消
+                  </el-button>
+                  <el-button type="primary" @click="updateParam">
+                    更新
+                  </el-button>
+                </div>
+              </template>
+            </el-dialog>
+          </el-tab-pane>
+
+          <el-tab-pane label="QPS限制" name="RateLimit">
+            <div class="rate-limit-container">
+              <el-form :model="rateLimitInfo" label-width="120px">
+                <el-row :gutter="24">
+                  <el-col :xs="24" :sm="12" :md="8">
+                    <el-form-item label="请求限制" required>
+                      <el-input
+                        v-model="rateLimitInfo.requestLimit"
+                        placeholder="请输入每个时间窗口内的最大请求数"
+                        @input="validateRateLimitNumber('requestLimit')"
+                      >
+                        <template #suffix>次</template>
+                      </el-input>
+                      <div class="form-help">
+                        每个时间窗口内允许的最大请求次数
+                      </div>
+                    </el-form-item>
+                  </el-col>
+
+                  <el-col :xs="24" :sm="12" :md="8">
+                    <el-form-item label="时间窗口" required>
+                      <el-input
+                        v-model="rateLimitInfo.timeFrame"
+                        placeholder="请输入时间窗口"
+                        @input="validateRateLimitNumber('timeFrame')"
+                      >
+                        <template #suffix>秒</template>
+                      </el-input>
+                      <div class="form-help">统计请求次数的时间窗口长度</div>
+                    </el-form-item>
+                  </el-col>
+
+                  <el-col :xs="24" :sm="12" :md="8">
+                    <el-form-item label="黑名单时长" required>
+                      <el-input
+                        v-model="rateLimitInfo.blacklistDuration"
+                        placeholder="请输入黑名单时长"
+                        @input="validateRateLimitNumber('blacklistDuration')"
+                      >
+                        <template #suffix>秒</template>
+                      </el-input>
+                      <div class="form-help">超限后被加入黑名单的时间</div>
+                    </el-form-item>
+                  </el-col>
+                </el-row>
+
+                <el-row>
+                  <el-col :span="24">
+                    <div class="rate-limit-example">
+                      <h4>当前设置说明：</h4>
+                      <p v-if="!isRateLimitSet">
+                        <span class="no-setting">该接口尚未设置QPS限制</span>
+                      </p>
+                      <p
+                        v-else-if="
+                          rateLimitInfo.requestLimit &&
+                          rateLimitInfo.timeFrame &&
+                          rateLimitInfo.blacklistDuration
+                        "
+                      >
+                        用户在
+                        <strong>{{ rateLimitInfo.timeFrame }}秒</strong>
+                        内最多可以请求
+                        <strong>{{ rateLimitInfo.requestLimit }}次</strong>，
+                        超过限制后将被加入黑名单
+                        <strong>{{ rateLimitInfo.blacklistDuration }}秒</strong>
+                      </p>
+                      <p v-else>
+                        <span class="incomplete-setting"
+                          >请完善所有设置项以启用QPS限制</span
+                        >
+                      </p>
+                    </div>
+                  </el-col>
+                </el-row>
+
+                <el-row>
+                  <el-col :span="24">
+                    <el-form-item>
+                      <el-button
+                        type="primary"
+                        @click="updateRateLimitSettings"
+                        :loading="rateLimitLoading"
+                        size="large"
+                      >
+                        {{ rateLimitLoading ? '保存中...' : '保存QPS设置' }}
+                      </el-button>
+                    </el-form-item>
+                  </el-col>
+                </el-row>
+              </el-form>
+            </div>
+          </el-tab-pane>
+
+          <el-tab-pane label="接口缓存" name="Cache">
+            <div class="cache-container">
+              <el-form :model="cacheInfo" label-width="120px">
+                <div class="cache-section">
+                  <h3 class="section-title">缓存策略配置</h3>
+                  <p class="section-description">
+                    选择适合的缓存策略可以显著提高接口响应速度，减少服务器负载。
+                  </p>
+
+                  <el-form-item label="缓存类型" required>
+                    <el-radio-group
+                      v-model="cacheInfo.cacheType"
+                      class="cache-radio-group"
+                    >
+                      <!-- 不使用缓存选项 -->
+                      <div class="cache-option">
+                        <el-radio value="no_cache" class="cache-radio">
+                          <div class="option-content">
+                            <div class="option-header">
+                              <span class="option-label">不使用缓存</span>
+                              <el-tag type="info" size="small">默认</el-tag>
+                            </div>
+                            <div class="option-description">
+                              每次请求都会直接访问后端服务，不使用任何缓存
+                            </div>
+                          </div>
+                        </el-radio>
+                      </div>
+
+                      <!-- 基于参数缓存选项 -->
+                      <div class="cache-option">
+                        <el-radio value="cache_with_params" class="cache-radio">
+                          <div class="option-content">
+                            <div class="option-header">
+                              <span class="option-label">基于参数缓存</span>
+                              <el-tag type="success" size="small">推荐</el-tag>
+                            </div>
+                            <div class="option-description">
+                              根据请求参数的不同组合进行缓存，相同参数返回缓存结果
+                            </div>
+                          </div>
+                        </el-radio>
+                      </div>
+
+                      <!-- 忽略参数缓存选项 -->
+                      <div class="cache-option">
+                        <el-radio
+                          value="cache_without_params"
+                          class="cache-radio"
+                        >
+                          <div class="option-content">
+                            <div class="option-header">
+                              <span class="option-label">忽略参数缓存</span>
+                              <el-tag type="warning" size="small">高效</el-tag>
+                            </div>
+                            <div class="option-description">
+                              忽略请求参数，所有请求返回相同的缓存结果，性能最佳
+                            </div>
+                          </div>
+                        </el-radio>
+                      </div>
+                    </el-radio-group>
+                  </el-form-item>
+
+                  <!-- 缓存时间设置 -->
+                  <el-form-item
+                    v-if="cacheInfo.cacheType !== CACHE_TYPE.NO_CACHE"
+                    label="缓存时间"
+                    required
+                  >
+                    <div class="cache-duration-container">
+                      <el-input
+                        v-model="cacheInfo.cacheDuration"
+                        placeholder="请输入缓存时间"
+                        class="cache-duration-input"
+                        @input="validateCacheDuration"
+                      >
+                        <template #suffix>秒</template>
+                      </el-input>
+                      <div class="duration-presets">
+                        <span class="preset-label">快速设置：</span>
+                        <div class="preset-buttons">
+                          <el-button
+                            size="small"
+                            type="primary"
+                            plain
+                            @click="cacheInfo.cacheDuration = 60"
+                          >
+                            1分钟
+                          </el-button>
+                          <el-button
+                            size="small"
+                            type="primary"
+                            plain
+                            @click="cacheInfo.cacheDuration = 300"
+                          >
+                            5分钟
+                          </el-button>
+                          <el-button
+                            size="small"
+                            type="primary"
+                            plain
+                            @click="cacheInfo.cacheDuration = 600"
+                          >
+                            10分钟
+                          </el-button>
+                          <el-button
+                            size="small"
+                            type="primary"
+                            plain
+                            @click="cacheInfo.cacheDuration = 1800"
+                          >
+                            30分钟
+                          </el-button>
+                          <el-button
+                            size="small"
+                            type="primary"
+                            plain
+                            @click="cacheInfo.cacheDuration = 3600"
+                          >
+                            1小时
+                          </el-button>
+                        </div>
+                      </div>
+                      <div class="duration-help">
+                        <el-text type="info" size="small">
+                          缓存时间建议：数据更新频率高的接口建议设置较短时间（1-5分钟），
+                          相对稳定的数据可以设置较长时间（10分钟以上）
+                        </el-text>
+                      </div>
+                    </div>
+                  </el-form-item>
+
+                  <!-- 提交按钮 -->
+                  <el-form-item>
+                    <el-button
+                      type="primary"
+                      @click="updateCacheSettings"
+                      :loading="cacheLoading"
+                      size="large"
+                    >
+                      {{ cacheLoading ? '保存中...' : '保存缓存设置' }}
                     </el-button>
+                  </el-form-item>
+
+                  <!-- 缓存说明 -->
+                  <div class="cache-explanation">
+                    <h4>缓存类型说明：</h4>
+                    <div class="explanation-item">
+                      <el-icon class="explanation-icon"><InfoFilled /></el-icon>
+                      <div class="explanation-content">
+                        <strong>不使用缓存：</strong
+                        >适用于数据实时性要求极高的接口，每次请求都会获取最新数据。
+                      </div>
+                    </div>
+                    <div class="explanation-item">
+                      <el-icon class="explanation-icon"
+                        ><SuccessFilled
+                      /></el-icon>
+                      <div class="explanation-content">
+                        <strong>基于参数缓存：</strong
+                        >适用于大多数查询接口，相同参数的请求会返回缓存结果，不同参数会分别缓存。
+                      </div>
+                    </div>
+                    <div class="explanation-item">
+                      <el-icon class="explanation-icon"
+                        ><WarningFilled
+                      /></el-icon>
+                      <div class="explanation-content">
+                        <strong>忽略参数缓存：</strong
+                        >适用于返回固定内容的接口，所有请求都返回相同的缓存结果，性能最佳。
+                      </div>
+                    </div>
                   </div>
                 </div>
+              </el-form>
+            </div>
+          </el-tab-pane>
 
-                <el-table :data="paramsArr">
-                  <el-table-column prop="aid" label="id" />
-                  <el-table-column prop="name" label="接口名称" />
-                  <el-table-column prop="param" label="传递参数" />
-                  <el-table-column prop="position" label="传入位置" />
-                  <el-table-column
-                    prop="docs"
-                    label="参数描述"
-                    show-overflow-tooltip
+          <!-- 高级设置 -->
+          <el-tab-pane label="高级设置" name="Advanced">
+            <div class="form">
+              <el-form
+                :model="advancedInfo"
+                label-position="top"
+                label-width="120px"
+              >
+                <!-- 绑定手机号（当前可用） -->
+                <el-form-item label="绑定手机号">
+                  <el-select
+                    v-model="advancedInfo.phoneBinding"
+                    placeholder="请选择是否绑定手机号"
+                    style="width: 100%"
+                  >
+                    <el-option label="是" value="true"></el-option>
+                    <el-option label="否" value="false"></el-option>
+                  </el-select>
+                  <div class="form-help">开启后需要用户绑定手机号才可使用</div>
+                </el-form-item>
+
+                <el-form-item label="SSE">
+                  <el-select
+                    v-model="advancedInfo.sse"
+                    placeholder="请选择是否启用SSE"
+                    style="width: 100%"
+                  >
+                    <el-option label="是" value="true"></el-option>
+                    <el-option label="否" value="false"></el-option>
+                  </el-select>
+                  <div class="form-help">启用后支持流式传输</div>
+                </el-form-item>
+
+                <!-- 实名认证（后期更新） -->
+                <el-form-item label="实名认证（暂未实现）">
+                  <el-select
+                    v-model="advancedInfo.realNameAuth"
+                    placeholder="请选择是否启用实名认证"
+                    style="width: 100%"
+                  >
+                    <el-option label="是" value="true"></el-option>
+                    <el-option label="否" value="false"></el-option>
+                  </el-select>
+                  <div class="form-help">该功能暂未实现，保存不生效</div>
+                </el-form-item>
+
+                <!-- 企业认证（后期更新） -->
+                <el-form-item label="企业认证（暂未实现）">
+                  <el-select
+                    v-model="advancedInfo.enterpriseAuth"
+                    placeholder="请选择是否启用企业认证"
+                    style="width: 100%"
+                  >
+                    <el-option label="是" value="true"></el-option>
+                    <el-option label="否" value="false"></el-option>
+                  </el-select>
+                  <div class="form-help">该功能暂未实现，保存不生效</div>
+                </el-form-item>
+
+                <!-- VIP认证（后期更新） -->
+                <el-form-item label="VIP认证（暂未实现）">
+                  <el-select
+                    v-model="advancedInfo.vipAuth"
+                    placeholder="请选择是否启用VIP认证"
+                    style="width: 100%"
+                  >
+                    <el-option label="是" value="true"></el-option>
+                    <el-option label="否" value="false"></el-option>
+                  </el-select>
+                  <div class="form-help">该功能暂未实现，保存不生效</div>
+                </el-form-item>
+
+                <!-- 2FA二次验证（后期更新） -->
+                <el-form-item label="2FA二次验证（暂未实现）">
+                  <el-select
+                    v-model="advancedInfo.twoFactorAuth"
+                    placeholder="请选择是否启用二次验证"
+                    style="width: 100%"
+                  >
+                    <el-option label="是" value="true"></el-option>
+                    <el-option label="否" value="false"></el-option>
+                  </el-select>
+                  <div class="form-help">该功能暂未实现，保存不生效</div>
+                </el-form-item>
+
+                <!-- HTTP/PHP-FPM 头信息配置（当前可用） -->
+                <el-form-item label="HTTP/PHP-FPM Header">
+                  <el-input
+                    v-model="advancedInfo.headers"
+                    type="textarea"
+                    :rows="4"
+                    placeholder="示例：Authorization=Bearer sk-token&a=1&b=2"
+                    style="width: 100%"
                   />
-                  <el-table-column prop="required" label="是否必传" />
-                  <el-table-column prop="create_time" label="创建时间" />
-                  <el-table-column width="160" label="操作">
+                  <div class="form-help">保存后用于请求头注入，使用&隔开</div>
+                </el-form-item>
+
+                <el-form-item>
+                  <el-button type="primary" @click="updateAdvancedSettings"
+                    >保存设置</el-button
+                  >
+                </el-form-item>
+              </el-form>
+            </div>
+          </el-tab-pane>
+
+          <el-tab-pane label="套餐信息" name="Package">
+            <div class="table-container">
+              <div class="card-header">
+                <div class="header-left">
+                  <el-icon class="icon">
+                    <Tickets />
+                  </el-icon>
+                  <span class="title">套餐管理</span>
+                </div>
+                <div class="header-right">
+                  <el-button type="primary" @click="handleAddPackage">
+                    <span>新增套餐</span>
+                  </el-button>
+                </div>
+              </div>
+              <client-only>
+                <el-table :data="filterPackageList" style="width: 100%">
+                  <el-table-column width="160" fixed="right">
+                    <template #header>
+                      <div class="search-wrapper">
+                        <el-input
+                          v-model="packageSearch"
+                          placeholder="搜索"
+                          clearable
+                        >
+                        </el-input>
+                      </div>
+                    </template>
                     <template #default="scope">
                       <div class="table-actions">
                         <el-button
-                          size="small"
                           type="primary"
-                          @click="handleParamEdit(scope.$index, scope.row)"
+                          link
+                          @click="handlePackageEdit(scope.$index, scope.row)"
                         >
                           编辑
                         </el-button>
                         <el-popconfirm
                           confirm-button-text="确定"
                           cancel-button-text="取消"
-                          title="您确定要删除吗?"
-                          width="160px"
-                          @confirm="handleDelete(scope.$index, scope.row)"
+                          title="确定要删除吗？"
+                          @confirm="
+                            handlePackageDelete(scope.$index, scope.row)
+                          "
                         >
                           <template #reference>
-                            <el-button size="small" type="danger"
-                              >删除</el-button
-                            >
+                            <el-button type="danger" link> 删除 </el-button>
                           </template>
                         </el-popconfirm>
                       </div>
                     </template>
                   </el-table-column>
+                  <el-table-column prop="id" label="ID" width="80" />
+                  <el-table-column
+                    prop="name"
+                    label="套餐名称"
+                    min-width="120"
+                  />
+                  <el-table-column prop="type" label="类型" width="120">
+                    <template #default="scope">
+                      <el-tag :type="getPackageTypeTag(scope.row.type)">
+                        {{ getPackageTypeText(scope.row.type) }}
+                      </el-tag>
+                    </template>
+                  </el-table-column>
+                  <el-table-column prop="price" label="价格" width="100">
+                    <template #default="scope">
+                      <span class="price">¥{{ scope.row.price }}</span>
+                    </template>
+                  </el-table-column>
+                  <el-table-column prop="duration" label="有效期" width="100">
+                    <template #default="scope">
+                      <span class="duration">{{ scope.row.duration }}天</span>
+                    </template>
+                  </el-table-column>
+                  <el-table-column prop="points" label="点数" width="80">
+                    <template #default="scope">
+                      <span class="points">{{ scope.row.points }}</span>
+                    </template>
+                  </el-table-column>
+                  <el-table-column prop="status" label="状态" width="100">
+                    <template #default="scope">
+                      <el-tag
+                        :type="scope.row.status === 1 ? 'success' : 'danger'"
+                        class="status-tag"
+                        @click="handlePackageStatusChange(scope.row)"
+                        style="cursor: pointer"
+                      >
+                        {{ scope.row.status === 1 ? '启用' : '禁用' }}
+                      </el-tag>
+                    </template>
+                  </el-table-column>
+                  <el-table-column
+                    prop="created_time"
+                    label="创建时间"
+                    width="180"
+                  >
+                    <template #default="scope">
+                      {{
+                        new Date(
+                          Number(scope.row.created_time),
+                        ).toLocaleString()
+                      }}
+                    </template>
+                  </el-table-column>
+                  <el-table-column
+                    prop="updated_time"
+                    label="修改时间"
+                    width="180"
+                  >
+                    <template #default="scope">
+                      {{
+                        new Date(
+                          Number(scope.row.updated_time),
+                        ).toLocaleString()
+                      }}
+                    </template>
+                  </el-table-column>
                 </el-table>
 
-                <!-- 添加参数对话框 -->
+                <!-- 新增/编辑套餐对话框 -->
                 <el-dialog
-                  v-model="addParamDialogStatus"
-                  title="添加参数"
+                  v-model="dialogStatus"
+                  :title="updatePackageStatus ? '修改套餐' : '新增套餐'"
                   width="600px"
                   destroy-on-close
-                  class="param-dialog"
+                  class="package-dialog"
                 >
                   <div class="dialog-content">
-                    <el-alert
-                      title="JSON 格式展示说明"
-                      type="info"
-                      show-icon
-                      :closable="false"
-                      style="margin-bottom: 20px"
-                    >
-                      <template #default>
-                        <div>
-                          若需在文档页以 JSON
-                          代码块形式展示参数说明，请添加一个参数：参数名称为
-                          'json'，可传参数为 'json'，传入位置为
-                          'body'，设为'必传'，并将 JSON 内容填入'参数描述'中。
-                        </div>
-                        <div style="margin-top: 10px">
-                          <el-button
-                            type="primary"
-                            size="small"
-                            @click="setJsonParam"
-                          >
-                            一键设置 JSON 参数
-                          </el-button>
-                        </div>
-                      </template>
-                    </el-alert>
-                    <el-form :model="addParamInfo" label-width="100px">
+                    <el-form :model="packageInfo" label-width="100px">
                       <el-row :gutter="20">
                         <el-col :span="12">
-                          <el-form-item label="参数名称" required>
-                            <el-autocomplete
-                              v-model="addParamInfo.name"
-                              :fetch-suggestions="queryParamNameAsync"
-                              placeholder="请输入参数名称，或从常用参数中选择"
-                              style="width: 100%"
+                          <el-form-item label="套餐名称" required>
+                            <el-input
+                              v-model="packageInfo.name"
+                              placeholder="请输入套餐名称"
                             />
                           </el-form-item>
                         </el-col>
                         <el-col :span="12">
-                          <el-form-item label="可传参数" required>
-                            <el-autocomplete
-                              v-model="addParamInfo.param"
-                              :fetch-suggestions="queryParamValueAsync"
-                              placeholder="请输入可传参数，或从常用值中选择"
-                              style="width: 100%"
+                          <el-form-item label="接口名称" required>
+                            <el-input
+                              v-model="packageInfo.api_name"
+                              placeholder="请输入接口名称"
+                              disabled
                             />
                           </el-form-item>
                         </el-col>
@@ -1420,956 +2023,232 @@ useHead({
 
                       <el-row :gutter="20">
                         <el-col :span="12">
-                          <el-form-item label="传入位置" required>
+                          <el-form-item label="套餐类型" required>
                             <el-select
-                              v-model="addParamInfo.position"
-                              placeholder="请选择传入位置"
+                              v-model="packageInfo.type"
+                              placeholder="请选择套餐类型"
                               class="full-width"
                             >
-                              <el-option
-                                v-for="item in position"
-                                :key="item.value"
-                                :label="item.label"
-                                :value="item.value"
-                              />
+                              <el-option label="直接扣费" :value="4" />
+                              <el-option label="包月计费" :value="2" />
+                              <el-option label="点数包" :value="3" />
                             </el-select>
                           </el-form-item>
                         </el-col>
                         <el-col :span="12">
-                          <el-form-item label="是否必传">
-                            <el-switch v-model="addParamInfo.required" />
-                          </el-form-item>
-                        </el-col>
-                      </el-row>
-
-                      <el-form-item label="参数描述" required>
-                        <el-input
-                          v-model="addParamInfo.docs"
-                          type="textarea"
-                          :rows="3"
-                          placeholder="请输入参数描述"
-                        />
-                      </el-form-item>
-                    </el-form>
-                  </div>
-                  <template #footer>
-                    <div class="dialog-footer">
-                      <el-button @click="addParamDialogStatus = false">
-                        取消
-                      </el-button>
-                      <el-button type="primary" @click="addParam">
-                        添加
-                      </el-button>
-                    </div>
-                  </template>
-                </el-dialog>
-
-                <!-- 编辑参数对话框 -->
-                <el-dialog
-                  v-model="paramDialogStatus"
-                  title="编辑参数"
-                  width="600px"
-                  destroy-on-close
-                  class="param-dialog"
-                >
-                  <div class="dialog-content">
-                    <el-form :model="paramEditInfo" label-width="100px">
-                      <el-row :gutter="20">
-                        <el-col :span="12">
-                          <el-form-item label="参数名称" required>
+                          <el-form-item label="套餐价格" required>
                             <el-input
-                              v-model="paramEditInfo.name"
-                              placeholder="请输入参数名称"
-                            />
-                          </el-form-item>
-                        </el-col>
-                        <el-col :span="12">
-                          <el-form-item label="可传参数" required>
-                            <el-input
-                              v-model="paramEditInfo.param"
-                              placeholder="请输入可传参数"
-                            />
-                          </el-form-item>
-                        </el-col>
-                      </el-row>
-
-                      <el-row :gutter="20">
-                        <el-col :span="12">
-                          <el-form-item label="传入位置" required>
-                            <el-select
-                              v-model="paramEditInfo.position"
-                              placeholder="请选择传入位置"
+                              v-model="packageInfo.price"
+                              placeholder="请输入价格"
                               class="full-width"
+                              @input="handleCustomAmount('price')"
                             >
-                              <el-option
-                                v-for="item in position"
-                                :key="item.value"
-                                :label="item.label"
-                                :value="item.value"
-                              />
-                            </el-select>
-                          </el-form-item>
-                        </el-col>
-                        <el-col :span="12">
-                          <el-form-item label="是否必传">
-                            <el-switch v-model="paramEditInfo.required" />
-                          </el-form-item>
-                        </el-col>
-                      </el-row>
-
-                      <el-form-item label="参数描述" required>
-                        <el-input
-                          v-model="paramEditInfo.docs"
-                          type="textarea"
-                          :rows="3"
-                          placeholder="请输入参数描述"
-                        />
-                      </el-form-item>
-                    </el-form>
-                  </div>
-                  <template #footer>
-                    <div class="dialog-footer">
-                      <el-button @click="paramDialogStatus = false">
-                        取消
-                      </el-button>
-                      <el-button type="primary" @click="updateParam">
-                        更新
-                      </el-button>
-                    </div>
-                  </template>
-                </el-dialog>
-              </el-tab-pane>
-
-              <el-tab-pane label="QPS限制" name="RateLimit">
-                <div class="rate-limit-container">
-                  <el-form :model="rateLimitInfo" label-width="120px">
-                    <el-row :gutter="24">
-                      <el-col :xs="24" :sm="12" :md="8">
-                        <el-form-item label="请求限制" required>
-                          <el-input
-                            v-model="rateLimitInfo.requestLimit"
-                            placeholder="请输入每个时间窗口内的最大请求数"
-                            @input="validateRateLimitNumber('requestLimit')"
-                          >
-                            <template #suffix>次</template>
-                          </el-input>
-                          <div class="form-help">
-                            每个时间窗口内允许的最大请求次数
-                          </div>
-                        </el-form-item>
-                      </el-col>
-
-                      <el-col :xs="24" :sm="12" :md="8">
-                        <el-form-item label="时间窗口" required>
-                          <el-input
-                            v-model="rateLimitInfo.timeFrame"
-                            placeholder="请输入时间窗口"
-                            @input="validateRateLimitNumber('timeFrame')"
-                          >
-                            <template #suffix>秒</template>
-                          </el-input>
-                          <div class="form-help">
-                            统计请求次数的时间窗口长度
-                          </div>
-                        </el-form-item>
-                      </el-col>
-
-                      <el-col :xs="24" :sm="12" :md="8">
-                        <el-form-item label="黑名单时长" required>
-                          <el-input
-                            v-model="rateLimitInfo.blacklistDuration"
-                            placeholder="请输入黑名单时长"
-                            @input="
-                              validateRateLimitNumber('blacklistDuration')
-                            "
-                          >
-                            <template #suffix>秒</template>
-                          </el-input>
-                          <div class="form-help">超限后被加入黑名单的时间</div>
-                        </el-form-item>
-                      </el-col>
-                    </el-row>
-
-                    <el-row>
-                      <el-col :span="24">
-                        <div class="rate-limit-example">
-                          <h4>当前设置说明：</h4>
-                          <p v-if="!isRateLimitSet">
-                            <span class="no-setting"
-                              >该接口尚未设置QPS限制</span
-                            >
-                          </p>
-                          <p
-                            v-else-if="
-                              rateLimitInfo.requestLimit &&
-                              rateLimitInfo.timeFrame &&
-                              rateLimitInfo.blacklistDuration
-                            "
-                          >
-                            用户在
-                            <strong>{{ rateLimitInfo.timeFrame }}秒</strong>
-                            内最多可以请求
-                            <strong>{{ rateLimitInfo.requestLimit }}次</strong
-                            >， 超过限制后将被加入黑名单
-                            <strong
-                              >{{ rateLimitInfo.blacklistDuration }}秒</strong
-                            >
-                          </p>
-                          <p v-else>
-                            <span class="incomplete-setting"
-                              >请完善所有设置项以启用QPS限制</span
-                            >
-                          </p>
-                        </div>
-                      </el-col>
-                    </el-row>
-
-                    <el-row>
-                      <el-col :span="24">
-                        <el-form-item>
-                          <el-button
-                            type="primary"
-                            @click="updateRateLimitSettings"
-                            :loading="rateLimitLoading"
-                            size="large"
-                          >
-                            {{ rateLimitLoading ? '保存中...' : '保存QPS设置' }}
-                          </el-button>
-                        </el-form-item>
-                      </el-col>
-                    </el-row>
-                  </el-form>
-                </div>
-              </el-tab-pane>
-
-              <el-tab-pane label="接口缓存" name="Cache">
-                <div class="cache-container">
-                  <el-form :model="cacheInfo" label-width="120px">
-                    <div class="cache-section">
-                      <h3 class="section-title">缓存策略配置</h3>
-                      <p class="section-description">
-                        选择适合的缓存策略可以显著提高接口响应速度，减少服务器负载。
-                      </p>
-
-                      <el-form-item label="缓存类型" required>
-                        <el-radio-group
-                          v-model="cacheInfo.cacheType"
-                          class="cache-radio-group"
-                        >
-                          <!-- 不使用缓存选项 -->
-                          <div class="cache-option">
-                            <el-radio value="no_cache" class="cache-radio">
-                              <div class="option-content">
-                                <div class="option-header">
-                                  <span class="option-label">不使用缓存</span>
-                                  <el-tag type="info" size="small">默认</el-tag>
-                                </div>
-                                <div class="option-description">
-                                  每次请求都会直接访问后端服务，不使用任何缓存
-                                </div>
-                              </div>
-                            </el-radio>
-                          </div>
-
-                          <!-- 基于参数缓存选项 -->
-                          <div class="cache-option">
-                            <el-radio
-                              value="cache_with_params"
-                              class="cache-radio"
-                            >
-                              <div class="option-content">
-                                <div class="option-header">
-                                  <span class="option-label">基于参数缓存</span>
-                                  <el-tag type="success" size="small"
-                                    >推荐</el-tag
-                                  >
-                                </div>
-                                <div class="option-description">
-                                  根据请求参数的不同组合进行缓存，相同参数返回缓存结果
-                                </div>
-                              </div>
-                            </el-radio>
-                          </div>
-
-                          <!-- 忽略参数缓存选项 -->
-                          <div class="cache-option">
-                            <el-radio
-                              value="cache_without_params"
-                              class="cache-radio"
-                            >
-                              <div class="option-content">
-                                <div class="option-header">
-                                  <span class="option-label">忽略参数缓存</span>
-                                  <el-tag type="warning" size="small"
-                                    >高效</el-tag
-                                  >
-                                </div>
-                                <div class="option-description">
-                                  忽略请求参数，所有请求返回相同的缓存结果，性能最佳
-                                </div>
-                              </div>
-                            </el-radio>
-                          </div>
-                        </el-radio-group>
-                      </el-form-item>
-
-                      <!-- 缓存时间设置 -->
-                      <el-form-item
-                        v-if="cacheInfo.cacheType !== CACHE_TYPE.NO_CACHE"
-                        label="缓存时间"
-                        required
-                      >
-                        <div class="cache-duration-container">
-                          <el-input
-                            v-model="cacheInfo.cacheDuration"
-                            placeholder="请输入缓存时间"
-                            class="cache-duration-input"
-                            @input="validateCacheDuration"
-                          >
-                            <template #suffix>秒</template>
-                          </el-input>
-                          <div class="duration-presets">
-                            <span class="preset-label">快速设置：</span>
-                            <div class="preset-buttons">
-                              <el-button
-                                size="small"
-                                type="primary"
-                                plain
-                                @click="cacheInfo.cacheDuration = 60"
-                              >
-                                1分钟
-                              </el-button>
-                              <el-button
-                                size="small"
-                                type="primary"
-                                plain
-                                @click="cacheInfo.cacheDuration = 300"
-                              >
-                                5分钟
-                              </el-button>
-                              <el-button
-                                size="small"
-                                type="primary"
-                                plain
-                                @click="cacheInfo.cacheDuration = 600"
-                              >
-                                10分钟
-                              </el-button>
-                              <el-button
-                                size="small"
-                                type="primary"
-                                plain
-                                @click="cacheInfo.cacheDuration = 1800"
-                              >
-                                30分钟
-                              </el-button>
-                              <el-button
-                                size="small"
-                                type="primary"
-                                plain
-                                @click="cacheInfo.cacheDuration = 3600"
-                              >
-                                1小时
-                              </el-button>
-                            </div>
-                          </div>
-                          <div class="duration-help">
-                            <el-text type="info" size="small">
-                              缓存时间建议：数据更新频率高的接口建议设置较短时间（1-5分钟），
-                              相对稳定的数据可以设置较长时间（10分钟以上）
-                            </el-text>
-                          </div>
-                        </div>
-                      </el-form-item>
-
-                      <!-- 提交按钮 -->
-                      <el-form-item>
-                        <el-button
-                          type="primary"
-                          @click="updateCacheSettings"
-                          :loading="cacheLoading"
-                          size="large"
-                        >
-                          {{ cacheLoading ? '保存中...' : '保存缓存设置' }}
-                        </el-button>
-                      </el-form-item>
-
-                      <!-- 缓存说明 -->
-                      <div class="cache-explanation">
-                        <h4>缓存类型说明：</h4>
-                        <div class="explanation-item">
-                          <el-icon class="explanation-icon"
-                            ><InfoFilled
-                          /></el-icon>
-                          <div class="explanation-content">
-                            <strong>不使用缓存：</strong
-                            >适用于数据实时性要求极高的接口，每次请求都会获取最新数据。
-                          </div>
-                        </div>
-                        <div class="explanation-item">
-                          <el-icon class="explanation-icon"
-                            ><SuccessFilled
-                          /></el-icon>
-                          <div class="explanation-content">
-                            <strong>基于参数缓存：</strong
-                            >适用于大多数查询接口，相同参数的请求会返回缓存结果，不同参数会分别缓存。
-                          </div>
-                        </div>
-                        <div class="explanation-item">
-                          <el-icon class="explanation-icon"
-                            ><WarningFilled
-                          /></el-icon>
-                          <div class="explanation-content">
-                            <strong>忽略参数缓存：</strong
-                            >适用于返回固定内容的接口，所有请求都返回相同的缓存结果，性能最佳。
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  </el-form>
-                </div>
-              </el-tab-pane>
-
-              <!-- 高级设置 -->
-              <el-tab-pane label="高级设置" name="Advanced">
-                <div class="form">
-                  <el-form
-                    :model="advancedInfo"
-                    label-position="top"
-                    label-width="120px"
-                  >
-                    <!-- 绑定手机号（当前可用） -->
-                    <el-form-item label="绑定手机号">
-                      <el-select
-                        v-model="advancedInfo.phoneBinding"
-                        placeholder="请选择是否绑定手机号"
-                        style="width: 100%"
-                      >
-                        <el-option label="是" value="true"></el-option>
-                        <el-option label="否" value="false"></el-option>
-                      </el-select>
-                      <div class="form-help">
-                        开启后需要用户绑定手机号才可使用
-                      </div>
-                    </el-form-item>
-
-                    <el-form-item label="SSE">
-                      <el-select
-                        v-model="advancedInfo.sse"
-                        placeholder="请选择是否启用SSE"
-                        style="width: 100%"
-                      >
-                        <el-option label="是" value="true"></el-option>
-                        <el-option label="否" value="false"></el-option>
-                      </el-select>
-                      <div class="form-help">启用后支持流式传输</div>
-                    </el-form-item>
-
-                    <!-- 实名认证（后期更新） -->
-                    <el-form-item label="实名认证（暂未实现）">
-                      <el-select
-                        v-model="advancedInfo.realNameAuth"
-                        placeholder="请选择是否启用实名认证"
-                        style="width: 100%"
-                      >
-                        <el-option label="是" value="true"></el-option>
-                        <el-option label="否" value="false"></el-option>
-                      </el-select>
-                      <div class="form-help">该功能暂未实现，保存不生效</div>
-                    </el-form-item>
-
-                    <!-- 企业认证（后期更新） -->
-                    <el-form-item label="企业认证（暂未实现）">
-                      <el-select
-                        v-model="advancedInfo.enterpriseAuth"
-                        placeholder="请选择是否启用企业认证"
-                        style="width: 100%"
-                      >
-                        <el-option label="是" value="true"></el-option>
-                        <el-option label="否" value="false"></el-option>
-                      </el-select>
-                      <div class="form-help">该功能暂未实现，保存不生效</div>
-                    </el-form-item>
-
-                    <!-- VIP认证（后期更新） -->
-                    <el-form-item label="VIP认证（暂未实现）">
-                      <el-select
-                        v-model="advancedInfo.vipAuth"
-                        placeholder="请选择是否启用VIP认证"
-                        style="width: 100%"
-                      >
-                        <el-option label="是" value="true"></el-option>
-                        <el-option label="否" value="false"></el-option>
-                      </el-select>
-                      <div class="form-help">该功能暂未实现，保存不生效</div>
-                    </el-form-item>
-
-                    <!-- 2FA二次验证（后期更新） -->
-                    <el-form-item label="2FA二次验证（暂未实现）">
-                      <el-select
-                        v-model="advancedInfo.twoFactorAuth"
-                        placeholder="请选择是否启用二次验证"
-                        style="width: 100%"
-                      >
-                        <el-option label="是" value="true"></el-option>
-                        <el-option label="否" value="false"></el-option>
-                      </el-select>
-                      <div class="form-help">该功能暂未实现，保存不生效</div>
-                    </el-form-item>
-
-                    <!-- HTTP/PHP-FPM 头信息配置（当前可用） -->
-                    <el-form-item label="HTTP/PHP-FPM Header">
-                      <el-input
-                        v-model="advancedInfo.headers"
-                        type="textarea"
-                        :rows="4"
-                        placeholder="示例：Authorization=Bearer sk-token&a=1&b=2"
-                        style="width: 100%"
-                      />
-                      <div class="form-help">
-                        保存后用于请求头注入，使用&隔开
-                      </div>
-                    </el-form-item>
-
-                    <el-form-item>
-                      <el-button type="primary" @click="updateAdvancedSettings"
-                        >保存设置</el-button
-                      >
-                    </el-form-item>
-                  </el-form>
-                </div>
-              </el-tab-pane>
-
-              <el-tab-pane label="套餐信息" name="Package">
-                <div class="table-container">
-                  <div class="card-header">
-                    <div class="header-left">
-                      <el-icon class="icon">
-                        <Tickets />
-                      </el-icon>
-                      <span class="title">套餐管理</span>
-                    </div>
-                    <div class="header-right">
-                      <el-button type="primary" @click="handleAddPackage">
-                        <span>新增套餐</span>
-                      </el-button>
-                    </div>
-                  </div>
-                  <client-only>
-                    <el-table :data="filterPackageList" style="width: 100%">
-                      <el-table-column width="160" fixed="right">
-                        <template #header>
-                          <div class="search-wrapper">
-                            <el-input
-                              v-model="packageSearch"
-                              placeholder="搜索"
-                              clearable
-                            >
+                              <template #suffix>¥</template>
                             </el-input>
-                          </div>
-                        </template>
-                        <template #default="scope">
-                          <div class="table-actions">
-                            <el-button
-                              type="primary"
-                              link
-                              @click="
-                                handlePackageEdit(scope.$index, scope.row)
-                              "
-                            >
-                              编辑
-                            </el-button>
-                            <el-popconfirm
-                              confirm-button-text="确定"
-                              cancel-button-text="取消"
-                              title="确定要删除吗？"
-                              @confirm="
-                                handlePackageDelete(scope.$index, scope.row)
-                              "
-                            >
-                              <template #reference>
-                                <el-button type="danger" link> 删除 </el-button>
-                              </template>
-                            </el-popconfirm>
-                          </div>
-                        </template>
-                      </el-table-column>
-                      <el-table-column prop="id" label="ID" width="80" />
-                      <el-table-column
-                        prop="name"
-                        label="套餐名称"
-                        min-width="120"
-                      />
-                      <el-table-column prop="type" label="类型" width="120">
-                        <template #default="scope">
-                          <el-tag :type="getPackageTypeTag(scope.row.type)">
-                            {{ getPackageTypeText(scope.row.type) }}
-                          </el-tag>
-                        </template>
-                      </el-table-column>
-                      <el-table-column prop="price" label="价格" width="100">
-                        <template #default="scope">
-                          <span class="price">¥{{ scope.row.price }}</span>
-                        </template>
-                      </el-table-column>
-                      <el-table-column
-                        prop="duration"
-                        label="有效期"
-                        width="100"
-                      >
-                        <template #default="scope">
-                          <span class="duration"
-                            >{{ scope.row.duration }}天</span
-                          >
-                        </template>
-                      </el-table-column>
-                      <el-table-column prop="points" label="点数" width="80">
-                        <template #default="scope">
-                          <span class="points">{{ scope.row.points }}</span>
-                        </template>
-                      </el-table-column>
-                      <el-table-column prop="status" label="状态" width="100">
-                        <template #default="scope">
-                          <el-tag
-                            :type="
-                              scope.row.status === 1 ? 'success' : 'danger'
-                            "
-                            class="status-tag"
-                            @click="handlePackageStatusChange(scope.row)"
-                            style="cursor: pointer"
-                          >
-                            {{ scope.row.status === 1 ? '启用' : '禁用' }}
-                          </el-tag>
-                        </template>
-                      </el-table-column>
-                      <el-table-column
-                        prop="created_time"
-                        label="创建时间"
-                        width="180"
-                      >
-                        <template #default="scope">
-                          {{
-                            new Date(
-                              Number(scope.row.created_time)
-                            ).toLocaleString()
-                          }}
-                        </template>
-                      </el-table-column>
-                      <el-table-column
-                        prop="updated_time"
-                        label="修改时间"
-                        width="180"
-                      >
-                        <template #default="scope">
-                          {{
-                            new Date(
-                              Number(scope.row.updated_time)
-                            ).toLocaleString()
-                          }}
-                        </template>
-                      </el-table-column>
-                    </el-table>
-
-                    <!-- 新增/编辑套餐对话框 -->
-                    <el-dialog
-                      v-model="dialogStatus"
-                      :title="updatePackageStatus ? '修改套餐' : '新增套餐'"
-                      width="600px"
-                      destroy-on-close
-                      class="package-dialog"
-                    >
-                      <div class="dialog-content">
-                        <el-form :model="packageInfo" label-width="100px">
-                          <el-row :gutter="20">
-                            <el-col :span="12">
-                              <el-form-item label="套餐名称" required>
-                                <el-input
-                                  v-model="packageInfo.name"
-                                  placeholder="请输入套餐名称"
-                                />
-                              </el-form-item>
-                            </el-col>
-                            <el-col :span="12">
-                              <el-form-item label="接口名称" required>
-                                <el-input
-                                  v-model="packageInfo.api_name"
-                                  placeholder="请输入接口名称"
-                                  disabled
-                                />
-                              </el-form-item>
-                            </el-col>
-                          </el-row>
-
-                          <el-row :gutter="20">
-                            <el-col :span="12">
-                              <el-form-item label="套餐类型" required>
-                                <el-select
-                                  v-model="packageInfo.type"
-                                  placeholder="请选择套餐类型"
-                                  class="full-width"
-                                >
-                                  <el-option label="直接扣费" :value="4" />
-                                  <el-option label="包月计费" :value="2" />
-                                  <el-option label="点数包" :value="3" />
-                                </el-select>
-                              </el-form-item>
-                            </el-col>
-                            <el-col :span="12">
-                              <el-form-item label="套餐价格" required>
-                                <el-input
-                                  v-model="packageInfo.price"
-                                  placeholder="请输入价格"
-                                  class="full-width"
-                                  @input="handleCustomAmount('price')"
-                                >
-                                  <template #suffix>¥</template>
-                                </el-input>
-                              </el-form-item>
-                            </el-col>
-                          </el-row>
-
-                          <el-row :gutter="20">
-                            <el-col :span="12">
-                              <el-form-item
-                                label="包含点数"
-                                v-if="packageInfo.type === 3"
-                                required
-                              >
-                                <el-input
-                                  v-model="packageInfo.points"
-                                  placeholder="请输入点数"
-                                  class="full-width"
-                                  @input="validateNumber('points')"
-                                >
-                                  <template #suffix>点</template>
-                                </el-input>
-                              </el-form-item>
-                              <el-form-item
-                                label="有效期"
-                                required
-                                v-if="packageInfo.type === 2"
-                              >
-                                <el-input
-                                  v-model="packageInfo.duration"
-                                  placeholder="请输入有效期(天)"
-                                  class="full-width"
-                                  @input="validateNumber('duration')"
-                                >
-                                  <template #suffix>天</template>
-                                </el-input>
-                              </el-form-item>
-                            </el-col>
-                            <el-col :span="12"> </el-col>
-                          </el-row>
-
-                          <el-form-item label="状态">
-                            <el-switch
-                              v-model="packageInfo.status"
-                              :active-value="1"
-                              :inactive-value="0"
-                            />
                           </el-form-item>
+                        </el-col>
+                      </el-row>
 
-                          <el-form-item label="描述">
+                      <el-row :gutter="20">
+                        <el-col :span="12">
+                          <el-form-item
+                            label="包含点数"
+                            v-if="packageInfo.type === 3"
+                            required
+                          >
                             <el-input
-                              v-model="packageInfo.description"
-                              type="textarea"
-                              :rows="3"
-                              placeholder="请输入套餐描述"
-                            />
+                              v-model="packageInfo.points"
+                              placeholder="请输入点数"
+                              class="full-width"
+                              @input="validateNumber('points')"
+                            >
+                              <template #suffix>点</template>
+                            </el-input>
                           </el-form-item>
-                        </el-form>
-                      </div>
-                      <template #footer>
-                        <div class="dialog-footer">
-                          <el-button @click="dialogStatus = false"
-                            >取消</el-button
+                          <el-form-item
+                            label="有效期"
+                            required
+                            v-if="packageInfo.type === 2"
                           >
-                          <el-button type="primary" @click="submitPackage">
-                            {{ updatePackageStatus ? '修改' : '创建' }}
-                          </el-button>
-                        </div>
-                      </template>
-                    </el-dialog>
-                  </client-only>
-                </div>
-              </el-tab-pane>
-            </el-tabs>
-            <div class="apiset-footer">
-              <div class="footer-content">
-                <div class="left-info">
-                  <el-icon>
-                    <InfoFilled />
-                  </el-icon>
-                  <span>请仔细检查信息后再提交</span>
-                </div>
-                <div class="right-buttons">
-                  <el-button
-                    size="large"
-                    type="primary"
-                    :loading="buttonStatus"
-                    @click="updateApiInfo"
-                    >提交</el-button
-                  >
+                            <el-input
+                              v-model="packageInfo.duration"
+                              placeholder="请输入有效期(天)"
+                              class="full-width"
+                              @input="validateNumber('duration')"
+                            >
+                              <template #suffix>天</template>
+                            </el-input>
+                          </el-form-item>
+                        </el-col>
+                        <el-col :span="12"> </el-col>
+                      </el-row>
 
-                  <el-button
-                    size="large"
-                    @click="
-                      navigateTo({
-                        path: '/admin/apilist',
-                        query: {
-                          page: Array.isArray(route.query.page)
-                            ? route.query.page[0]
-                            : route.query.page,
-                          limit: Array.isArray(route.query.limit)
-                            ? route.query.limit[0]
-                            : route.query.limit,
-                        },
-                      })
-                    "
-                    >返回</el-button
-                  >
-                </div>
-              </div>
+                      <el-form-item label="状态">
+                        <el-switch
+                          v-model="packageInfo.status"
+                          :active-value="1"
+                          :inactive-value="0"
+                        />
+                      </el-form-item>
+
+                      <el-form-item label="描述">
+                        <el-input
+                          v-model="packageInfo.description"
+                          type="textarea"
+                          :rows="3"
+                          placeholder="请输入套餐描述"
+                        />
+                      </el-form-item>
+                    </el-form>
+                  </div>
+                  <template #footer>
+                    <div class="dialog-footer">
+                      <el-button @click="dialogStatus = false">取消</el-button>
+                      <el-button type="primary" @click="submitPackage">
+                        {{ updatePackageStatus ? '修改' : '创建' }}
+                      </el-button>
+                    </div>
+                  </template>
+                </el-dialog>
+              </client-only>
             </div>
-          </ClientOnly>
+          </el-tab-pane>
+        </el-tabs>
+        <div class="apiset-footer">
+          <div class="footer-content">
+            <div class="left-info">
+              <el-icon>
+                <InfoFilled />
+              </el-icon>
+              <span>请仔细检查信息后再提交</span>
+            </div>
+            <div class="right-buttons">
+              <el-button
+                size="large"
+                type="primary"
+                :loading="buttonStatus"
+                @click="updateApiInfo"
+                >提交</el-button
+              >
+
+              <el-button
+                size="large"
+                @click="
+                  navigateTo({
+                    path: '/admin/apilist',
+                    query: {
+                      page: Array.isArray(route.query.page)
+                        ? route.query.page[0]
+                        : route.query.page,
+                      limit: Array.isArray(route.query.limit)
+                        ? route.query.limit[0]
+                        : route.query.limit,
+                    },
+                  })
+                "
+                >返回</el-button
+              >
+            </div>
+          </div>
         </div>
-      </div>
+      </ClientOnly>
     </div>
   </div>
 </template>
 
 <style lang="less" scoped>
-.container {
-  display: flex;
-  height: 100vh;
+.apiset-container {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  padding: 10px;
 
-  .right {
+  .apiset-cont {
     width: 100%;
-    background-color: #f7f7f7;
-    overflow-x: hidden;
+    padding: 20px 20px;
+    background: #fff;
+    box-shadow: 0 2px 2px rgb(0 0 0 / 10%);
+    margin-top: 20px;
+    padding-bottom: 100px;
 
-    .overlay {
-      position: absolute;
-      top: 0;
-      left: 0;
-      z-index: 998;
-      width: 100%;
-      height: 100%;
-      background-color: rgba(0, 0, 0, 0.5);
-    }
+    // 与 webset.vue 保持一致的表单样式
+    .form {
+      width: 60%;
 
-    .control-sidebar {
-      position: absolute;
-      width: 35px;
-      height: 35px;
-      top: 10px;
-      left: 10px;
-      z-index: 9999;
-      text-align: center;
-      background: #fff;
-      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
-
-      .el-icon {
-        margin-top: 10px;
-        font-size: 16px;
+      :deep(.el-form-item__label) {
+        font-weight: 500;
+        padding-bottom: 8px;
       }
-    }
 
-    .apiset-container {
-      position: relative;
-      width: 100%;
-      height: 100%;
-      padding: 10px;
+      :deep(.el-input__wrapper) {
+        box-shadow: 0 0 0 1px #dcdfe6 inset;
 
-      .apiset-cont {
-        width: 100%;
-        padding: 20px 20px;
-        background: #fff;
-        box-shadow: 0 2px 2px rgb(0 0 0 / 10%);
-        margin-top: 20px;
-        padding-bottom: 100px;
+        &:hover {
+          box-shadow: 0 0 0 1px #c0c4cc inset;
+        }
 
-        // 与 webset.vue 保持一致的表单样式
-        .form {
-          width: 60%;
-
-          :deep(.el-form-item__label) {
-            font-weight: 500;
-            padding-bottom: 8px;
-          }
-
-          :deep(.el-input__wrapper) {
-            box-shadow: 0 0 0 1px #dcdfe6 inset;
-
-            &:hover {
-              box-shadow: 0 0 0 1px #c0c4cc inset;
-            }
-
-            &.is-focus {
-              box-shadow: 0 0 0 1px #409eff inset;
-            }
-          }
-
-          .el-button {
-            padding: 12px 24px;
-            font-weight: 500;
-          }
-
-          :deep(.el-date-editor) {
-            width: 100%;
-
-            .el-input__wrapper {
-              padding: 0 12px;
-            }
-          }
-
-          // 表单帮助文本样式
-          .form-help {
-            margin-top: 8px;
-            font-size: 13px;
-            color: #6b7280;
-            line-height: 1.5;
-          }
+        &.is-focus {
+          box-shadow: 0 0 0 1px #409eff inset;
         }
       }
 
-      .apiset-footer {
-        position: fixed;
-        bottom: 20px;
-        right: 20px;
-        width: calc(100% - 240px);
-        background: #fff;
-        border: 1px solid #eaecf0;
-        border-radius: 8px;
-        padding: 16px 32px;
-        z-index: 10;
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+      .el-button {
+        padding: 12px 24px;
+        font-weight: 500;
+      }
 
-        .footer-content {
-          display: flex;
-          align-items: center;
-          justify-content: space-between;
+      :deep(.el-date-editor) {
+        width: 100%;
 
-          .left-info {
-            display: flex;
-            align-items: center;
-            color: #606266;
-            font-size: 14px;
+        .el-input__wrapper {
+          padding: 0 12px;
+        }
+      }
 
-            :deep(.el-icon) {
-              margin-right: 8px;
-            }
-          }
+      // 表单帮助文本样式
+      .form-help {
+        margin-top: 8px;
+        font-size: 13px;
+        color: #6b7280;
+        line-height: 1.5;
+      }
+    }
+  }
 
-          .right-buttons {
-            display: flex;
-            gap: 12px;
+  .apiset-footer {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    width: calc(100% - 240px);
+    background: #fff;
+    border: 1px solid #eaecf0;
+    border-radius: 8px;
+    padding: 16px 32px;
+    z-index: 10;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 
-            :deep(.el-button) {
-              min-width: 100px;
-            }
-          }
+    .footer-content {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+
+      .left-info {
+        display: flex;
+        align-items: center;
+        color: #606266;
+        font-size: 14px;
+
+        :deep(.el-icon) {
+          margin-right: 8px;
+        }
+      }
+
+      .right-buttons {
+        display: flex;
+        gap: 12px;
+
+        :deep(.el-button) {
+          min-width: 100px;
         }
       }
     }

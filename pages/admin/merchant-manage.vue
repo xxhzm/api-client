@@ -1,43 +1,10 @@
 <script setup>
-import {
-  User,
-  Menu,
-  Search,
-  Shop,
-  Plus,
-  Edit,
-  Delete,
-  Setting,
-} from '@element-plus/icons-vue'
+import { Shop, Plus } from '@element-plus/icons-vue'
 const { $msg, $myFetch } = useNuxtApp()
 
-// 控制左侧边栏显示隐藏
-const screenWidth = ref(0)
-const isSidebarShow = ref(true)
-const iscontrolShow = ref(false)
-const isoverlay = ref(false)
-
-onMounted(() => {
-  screenWidth.value = document.body.clientWidth
-  document.body.style.overflow = ''
-
-  if (screenWidth.value < 768) {
-    iscontrolShow.value = true
-    isSidebarShow.value = false
-  }
+definePageMeta({
+  layout: 'admin',
 })
-
-const handleSidebarShow = () => {
-  isSidebarShow.value = !isSidebarShow.value
-  iscontrolShow.value = !iscontrolShow.value
-  isoverlay.value = !isoverlay.value
-  // 禁止页面滑动
-  if (isSidebarShow.value) {
-    document.body.style.overflow = 'hidden'
-  } else {
-    document.body.style.overflow = ''
-  }
-}
 
 const loading = ref(false)
 const tableData = ref([])
@@ -328,140 +295,118 @@ useHead({
 </script>
 
 <template>
-  <div class="container">
-    <AdminSidebar v-show="isSidebarShow"></AdminSidebar>
-
-    <div class="right">
-      <!-- 遮罩层 -->
-      <div class="overlay" v-show="isoverlay" @click="handleSidebarShow"></div>
-      <!-- 侧边栏控制按钮 -->
-      <div class="control-sidebar" v-show="iscontrolShow">
-        <el-icon @click="handleSidebarShow"><Menu /></el-icon>
-      </div>
-      <AdminHeader></AdminHeader>
-
-      <div class="merchant-container" v-loading="loading">
-        <div class="merchant-card">
-          <!-- 标题区域 -->
-          <div class="card-header">
-            <div class="header-left">
-              <el-icon class="icon"><Shop /></el-icon>
-              <span class="title">商户管理</span>
-            </div>
-            <div class="header-right">
-              <el-button type="primary" @click="handleCreate">
-                <el-icon><Plus /></el-icon>
-                <span>新增商户</span>
-              </el-button>
-            </div>
-          </div>
-
-          <!-- 表格区域 -->
-          <div class="table-container">
-            <client-only>
-              <el-table
-                :data="tableData"
-                style="width: 100%"
-                v-loading="pageLoading"
-              >
-                <el-table-column fixed="right" width="200" label="操作">
-                  <template #header>
-                    <div class="search-wrapper">
-                      <el-input
-                        v-model="search"
-                        placeholder="搜索商户/联系人"
-                        clearable
-                      >
-                      </el-input>
-                    </div>
-                  </template>
-                  <template #default="scope">
-                    <div class="table-actions">
-                      <el-button
-                        type="primary"
-                        link
-                        @click="handleEdit(scope.row)"
-                      >
-                        编辑
-                      </el-button>
-                      <el-popconfirm
-                        confirm-button-text="确定"
-                        cancel-button-text="取消"
-                        title="确定要删除吗？"
-                        @confirm="handleDelete(scope.row)"
-                      >
-                        <template #reference>
-                          <el-button type="danger" link>删除</el-button>
-                        </template>
-                      </el-popconfirm>
-                    </div>
-                  </template>
-                </el-table-column>
-
-                <el-table-column prop="id" label="ID" width="70" />
-                <el-table-column
-                  prop="name"
-                  label="商户名称"
-                  min-width="120"
-                  show-overflow-tooltip
-                />
-                <el-table-column
-                  prop="enterprise_name"
-                  label="企业名称"
-                  min-width="150"
-                  show-overflow-tooltip
-                />
-                <el-table-column
-                  prop="credit_code"
-                  label="信用代码"
-                  width="180"
-                  show-overflow-tooltip
-                />
-                <el-table-column
-                  prop="commission_rate"
-                  label="佣金比例"
-                  width="100"
-                >
-                  <template #default="scope">
-                    {{ scope.row.commission_rate }}%
-                  </template>
-                </el-table-column>
-                <el-table-column prop="contact" label="联系人" width="100" />
-                <el-table-column prop="phone" label="联系电话" width="120" />
-                <el-table-column
-                  prop="email"
-                  label="邮箱"
-                  min-width="150"
-                  show-overflow-tooltip
-                />
-                <el-table-column
-                  prop="create_time"
-                  label="创建时间"
-                  width="160"
-                />
-                <el-table-column prop="status" label="状态" width="100">
-                  <template #default="scope">
-                    <el-tag :type="getStatusType(scope.row.status)">
-                      {{ getStatusText(scope.row.status) }}
-                    </el-tag>
-                  </template>
-                </el-table-column>
-              </el-table>
-
-              <div class="pagination">
-                <el-pagination
-                  v-model:current-page="page"
-                  v-model:page-size="pageSize"
-                  :page-sizes="[10, 25, 50, 100]"
-                  layout="total, sizes, prev, pager, next, jumper"
-                  :total="totalRecords"
-                  :disabled="pageLoading"
-                  background
-                />
-              </div>
-            </client-only>
-          </div>
+  <div class="merchant-container" v-loading="loading">
+    <div class="merchant-card">
+      <!-- 标题区域 -->
+      <div class="card-header">
+        <div class="header-left">
+          <el-icon class="icon"><Shop /></el-icon>
+          <span class="title">商户管理</span>
         </div>
+        <div class="header-right">
+          <el-button type="primary" @click="handleCreate">
+            <el-icon><Plus /></el-icon>
+            <span>新增商户</span>
+          </el-button>
+        </div>
+      </div>
+
+      <!-- 表格区域 -->
+      <div class="table-container">
+        <client-only>
+          <el-table
+            :data="tableData"
+            style="width: 100%"
+            v-loading="pageLoading"
+          >
+            <el-table-column fixed="right" width="200" label="操作">
+              <template #header>
+                <div class="search-wrapper">
+                  <el-input
+                    v-model="search"
+                    placeholder="搜索商户/联系人"
+                    clearable
+                  >
+                  </el-input>
+                </div>
+              </template>
+              <template #default="scope">
+                <div class="table-actions">
+                  <el-button type="primary" link @click="handleEdit(scope.row)">
+                    编辑
+                  </el-button>
+                  <el-popconfirm
+                    confirm-button-text="确定"
+                    cancel-button-text="取消"
+                    title="确定要删除吗？"
+                    @confirm="handleDelete(scope.row)"
+                  >
+                    <template #reference>
+                      <el-button type="danger" link>删除</el-button>
+                    </template>
+                  </el-popconfirm>
+                </div>
+              </template>
+            </el-table-column>
+
+            <el-table-column prop="id" label="ID" width="70" />
+            <el-table-column
+              prop="name"
+              label="商户名称"
+              min-width="120"
+              show-overflow-tooltip
+            />
+            <el-table-column
+              prop="enterprise_name"
+              label="企业名称"
+              min-width="150"
+              show-overflow-tooltip
+            />
+            <el-table-column
+              prop="credit_code"
+              label="信用代码"
+              width="180"
+              show-overflow-tooltip
+            />
+            <el-table-column
+              prop="commission_rate"
+              label="佣金比例"
+              width="100"
+            >
+              <template #default="scope">
+                {{ scope.row.commission_rate }}%
+              </template>
+            </el-table-column>
+            <el-table-column prop="contact" label="联系人" width="100" />
+            <el-table-column prop="phone" label="联系电话" width="120" />
+            <el-table-column
+              prop="email"
+              label="邮箱"
+              min-width="150"
+              show-overflow-tooltip
+            />
+            <el-table-column prop="create_time" label="创建时间" width="160" />
+            <el-table-column prop="status" label="状态" width="100">
+              <template #default="scope">
+                <el-tag :type="getStatusType(scope.row.status)">
+                  {{ getStatusText(scope.row.status) }}
+                </el-tag>
+              </template>
+            </el-table-column>
+          </el-table>
+
+          <div class="pagination">
+            <el-pagination
+              v-model:current-page="page"
+              v-model:page-size="pageSize"
+              :page-sizes="[10, 25, 50, 100]"
+              layout="total, sizes, prev, pager, next, jumper"
+              :total="totalRecords"
+              :disabled="pageLoading"
+              background
+            />
+          </div>
+        </client-only>
       </div>
     </div>
 
@@ -525,201 +470,168 @@ useHead({
 </template>
 
 <style lang="less" scoped>
-.container {
+.merchant-container {
+  position: relative;
+  min-height: 100vh;
+  padding: 24px;
   display: flex;
-  background: #f5f7fa;
+  justify-content: center;
 
-  .right {
+  .merchant-card {
     width: 100%;
-    min-width: 0;
-    .overlay {
-      position: absolute;
-      top: 0;
-      left: 0;
-      z-index: 998;
-      width: 100%;
-      height: 100%;
-      background-color: rgba(0, 0, 0, 0.5);
-    }
-    .control-sidebar {
-      position: absolute;
-      width: 35px;
-      height: 35px;
-      top: 10px;
-      left: 10px;
-      z-index: 9999;
-      text-align: center;
+    border-radius: 12px;
+    margin: 0 auto;
+
+    .card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 20px 24px;
       background: #fff;
-      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
-      .el-icon {
-        margin-top: 10px;
-        font-size: 16px;
+      border: 1px solid #eaecf0;
+      border-radius: 12px;
+      box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.03);
+      margin-bottom: 16px;
+
+      .header-left {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+
+        .icon {
+          font-size: 20px;
+          color: #4b5563;
+        }
+
+        .title {
+          font-size: 16px;
+          font-weight: 600;
+          color: #1a1f36;
+        }
       }
-    }
-    .merchant-container {
-      position: relative;
-      min-height: 100vh;
-      padding: 24px;
-      display: flex;
-      justify-content: center;
 
-      .merchant-card {
-        width: 100%;
-        border-radius: 12px;
-        margin: 0 auto;
-
-        .card-header {
+      .header-right {
+        .el-button {
           display: flex;
-          justify-content: space-between;
           align-items: center;
-          padding: 20px 24px;
-          background: #fff;
-          border: 1px solid #eaecf0;
-          border-radius: 12px;
-          box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.03);
-          margin-bottom: 16px;
-
-          .header-left {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-
-            .icon {
-              font-size: 20px;
-              color: #4b5563;
-            }
-
-            .title {
-              font-size: 16px;
-              font-weight: 600;
-              color: #1a1f36;
-            }
-          }
-
-          .header-right {
-            .el-button {
-              display: flex;
-              align-items: center;
-              gap: 6px;
-            }
-          }
-        }
-
-        .table-container {
-          padding: 24px;
-          background: #fff;
-          border: 1px solid #eaecf0;
-          border-radius: 12px;
-          box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.03);
-
-          :deep(.el-table) {
-            border: none;
-
-            .search-wrapper {
-              padding: 0;
-              margin: 0;
-              line-height: 1;
-            }
-
-            .el-input {
-              width: 140px;
-              margin: 0;
-            }
-
-            .el-table__header-wrapper {
-              th {
-                background: #f8fafc;
-                color: #1f2937;
-                font-weight: 600;
-              }
-            }
-          }
-
-          .table-actions {
-            display: flex;
-            gap: 4px;
-            margin: 0;
-            padding: 0;
-          }
-
-          .pagination {
-            margin-top: 20px;
-            display: flex;
-            justify-content: flex-end;
-          }
+          gap: 6px;
         }
       }
     }
-  }
-}
 
-// 对话框样式
-:deep(.el-dialog) {
-  border-radius: 12px;
+    .table-container {
+      padding: 24px;
+      background: #fff;
+      border: 1px solid #eaecf0;
+      border-radius: 12px;
+      box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.03);
 
-  .el-dialog__header {
-    margin: 0;
-    padding: 20px 24px;
-    border-bottom: 1px solid #eaecf0;
+      :deep(.el-table) {
+        border: none;
 
-    .el-dialog__title {
-      font-size: 16px;
-      font-weight: 600;
-      color: #1a1f36;
-    }
-  }
+        .search-wrapper {
+          padding: 0;
+          margin: 0;
+          line-height: 1;
+        }
 
-  .el-dialog__body {
-    padding: 24px;
+        .el-input {
+          width: 140px;
+          margin: 0;
+        }
 
-    .el-form-item__label {
-      font-weight: 500;
-      color: #374151;
-    }
-
-    .el-input__wrapper,
-    .el-textarea__inner {
-      box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
-      border: 1px solid #d1d5db;
-      border-radius: 6px;
-
-      &:hover {
-        border-color: #9ca3af;
+        .el-table__header-wrapper {
+          th {
+            background: #f8fafc;
+            color: #1f2937;
+            font-weight: 600;
+          }
+        }
       }
 
-      &.is-focus {
-        border-color: #3b82f6;
-        box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+      .table-actions {
+        display: flex;
+        gap: 4px;
+        margin: 0;
+        padding: 0;
+      }
+
+      .pagination {
+        margin-top: 20px;
+        display: flex;
+        justify-content: flex-end;
       }
     }
   }
 
-  .el-dialog__footer {
-    padding: 16px 24px;
-    border-top: 1px solid #eaecf0;
+  // 对话框样式
+  :deep(.el-dialog) {
+    border-radius: 12px;
 
-    .dialog-footer {
-      display: flex;
-      justify-content: flex-end;
-      gap: 12px;
+    .el-dialog__header {
+      margin: 0;
+      padding: 20px 24px;
+      border-bottom: 1px solid #eaecf0;
 
-      .el-button {
-        padding: 8px 16px;
+      .el-dialog__title {
+        font-size: 16px;
+        font-weight: 600;
+        color: #1a1f36;
+      }
+    }
+
+    .el-dialog__body {
+      padding: 24px;
+
+      .el-form-item__label {
         font-weight: 500;
-        min-width: 80px;
+        color: #374151;
+      }
+
+      .el-input__wrapper,
+      .el-textarea__inner {
+        box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+        border: 1px solid #d1d5db;
+        border-radius: 6px;
+
+        &:hover {
+          border-color: #9ca3af;
+        }
+
+        &.is-focus {
+          border-color: #3b82f6;
+          box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        }
+      }
+    }
+
+    .el-dialog__footer {
+      padding: 16px 24px;
+      border-top: 1px solid #eaecf0;
+
+      .dialog-footer {
+        display: flex;
+        justify-content: flex-end;
+        gap: 12px;
+
+        .el-button {
+          padding: 8px 16px;
+          font-weight: 500;
+          min-width: 80px;
+        }
       }
     }
   }
 }
 
 @media screen and (max-width: 1200px) {
-  .container .right .merchant-container {
+  .merchant-container {
     padding: 16px;
   }
 }
 
 @media screen and (max-width: 768px) {
-  .container .right .merchant-container {
+  .merchant-container {
     padding: 12px;
   }
 }

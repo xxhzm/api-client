@@ -1,33 +1,10 @@
 <script setup>
-import { Key, Menu, Search } from '@element-plus/icons-vue'
+import { Key, Search } from '@element-plus/icons-vue'
 const { $msg, $myFetch } = useNuxtApp()
 
-// 控制左侧边栏显示隐藏
-const screenWidth = ref(0)
-const isSidebarShow = ref(true)
-const iscontrolShow = ref(false)
-const isoverlay = ref(false)
-
-onMounted(() => {
-  screenWidth.value = document.body.clientWidth
-  document.body.style.overflow = ''
-
-  if (screenWidth.value < 768) {
-    iscontrolShow.value = true
-    isSidebarShow.value = false
-  }
+definePageMeta({
+  layout: 'admin',
 })
-
-const handleSidebarShow = () => {
-  isSidebarShow.value = !isSidebarShow.value
-  iscontrolShow.value = !iscontrolShow.value
-  isoverlay.value = !isoverlay.value
-  if (isSidebarShow.value) {
-    document.body.style.overflow = 'hidden'
-  } else {
-    document.body.style.overflow = ''
-  }
-}
 
 // 表格数据
 const tableData = ref([])
@@ -111,7 +88,7 @@ watch(
     } else {
       await getData()
     }
-  }
+  },
 )
 
 // 监听搜索框清空
@@ -122,7 +99,7 @@ watch(
       isSearching.value = false
       getData()
     }
-  }
+  },
 )
 
 // 格式化时间戳
@@ -151,194 +128,153 @@ useHead({
 </script>
 
 <template>
-  <div class="container">
-    <AdminSidebar v-show="isSidebarShow"></AdminSidebar>
-
-    <div class="right">
-      <!-- 遮罩层 -->
-      <div class="overlay" v-show="isoverlay" @click="handleSidebarShow"></div>
-      <!-- 侧边栏控制按钮 -->
-      <div class="control-sidebar" v-show="iscontrolShow">
-        <el-icon @click="handleSidebarShow">
-          <Menu />
-        </el-icon>
-      </div>
-      <AdminHeader></AdminHeader>
-      <div class="keylog-container">
-        <div class="cont">
-          <div class="card-header">
-            <div class="header-left">
-              <el-icon class="icon">
-                <Key />
-              </el-icon>
-              <span class="title">秘钥历史记录</span>
-            </div>
-            <div class="header-right">
-              <el-input
-                v-model="searchKey"
-                placeholder="请输入 Access Key"
-                class="search-input"
-                clearable
-                @keyup.enter="handleSearch"
-              >
-                <template #append>
-                  <el-button @click="handleSearch">
-                    <el-icon>
-                      <Search />
-                    </el-icon>
-                  </el-button>
-                </template>
-              </el-input>
-            </div>
-          </div>
-
-          <!-- 表格区域 -->
-          <div class="table-container">
-            <client-only>
-              <el-table
-                :data="tableData"
-                style="width: 100%"
-                v-loading="pageLoading"
-              >
-                <el-table-column prop="id" label="ID" width="80" />
-                <el-table-column prop="username" label="用户名" width="120" />
-                <el-table-column
-                  prop="access_key"
-                  label="Access Key"
-                  min-width="180"
-                  show-overflow-tooltip
-                />
-                <el-table-column
-                  prop="appid"
-                  label="AppID"
-                  min-width="180"
-                  show-overflow-tooltip
-                />
-                <el-table-column
-                  prop="update_time"
-                  label="更新时间"
-                  width="180"
-                >
-                  <template #default="scope">
-                    {{ formatTimestamp(scope.row.update_time) }}
-                  </template>
-                </el-table-column>
-              </el-table>
-
-              <div class="pagination">
-                <el-pagination
-                  :page-size="pageSize"
-                  :pager-count="5"
-                  :total="totalRecords"
-                  v-model:current-page="page"
-                  :disabled="pageLoading"
-                  background
-                  layout="total, prev, pager, next, jumper"
-                />
-              </div>
-            </client-only>
-          </div>
+  <div class="keylog-container">
+    <div class="cont">
+      <div class="card-header">
+        <div class="header-left">
+          <el-icon class="icon">
+            <Key />
+          </el-icon>
+          <span class="title">秘钥历史记录</span>
         </div>
+        <div class="header-right">
+          <el-input
+            v-model="searchKey"
+            placeholder="请输入 Access Key"
+            class="search-input"
+            clearable
+            @keyup.enter="handleSearch"
+          >
+            <template #append>
+              <el-button @click="handleSearch">
+                <el-icon>
+                  <Search />
+                </el-icon>
+              </el-button>
+            </template>
+          </el-input>
+        </div>
+      </div>
+
+      <!-- 表格区域 -->
+      <div class="table-container">
+        <client-only>
+          <el-table
+            :data="tableData"
+            style="width: 100%"
+            v-loading="pageLoading"
+          >
+            <el-table-column prop="id" label="ID" width="80" />
+            <el-table-column prop="username" label="用户名" width="120" />
+            <el-table-column
+              prop="access_key"
+              label="Access Key"
+              min-width="180"
+              show-overflow-tooltip
+            />
+            <el-table-column
+              prop="appid"
+              label="AppID"
+              min-width="180"
+              show-overflow-tooltip
+            />
+            <el-table-column prop="update_time" label="更新时间" width="180">
+              <template #default="scope">
+                {{ formatTimestamp(scope.row.update_time) }}
+              </template>
+            </el-table-column>
+          </el-table>
+
+          <div class="pagination">
+            <el-pagination
+              :page-size="pageSize"
+              :pager-count="5"
+              :total="totalRecords"
+              v-model:current-page="page"
+              :disabled="pageLoading"
+              background
+              layout="total, prev, pager, next, jumper"
+            />
+          </div>
+        </client-only>
       </div>
     </div>
   </div>
 </template>
 
 <style lang="less" scoped>
-.container {
-  display: flex;
+.keylog-container {
+  min-height: 100vh;
+  padding: 20px;
   background: #f5f7fa;
 
-  .right {
-    width: 100%;
-    position: relative;
+  .cont {
+    background: #fff;
+    border-radius: 8px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+    padding: 20px;
 
-    .overlay {
-      position: fixed;
-      top: 0;
-      left: 0;
-      z-index: 998;
-      width: 100%;
-      height: 100%;
-      background-color: rgba(0, 0, 0, 0.5);
-    }
+    .card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+      padding-bottom: 20px;
+      border-bottom: 1px solid #edf1f7;
 
-    .control-sidebar {
-      position: fixed;
-      width: 35px;
-      height: 35px;
-      top: 10px;
-      left: 10px;
-      z-index: 9999;
-      text-align: center;
-      background: #fff;
-      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
-      cursor: pointer;
+      .header-left {
+        display: flex;
+        align-items: center;
+        gap: 12px;
 
-      .el-icon {
-        margin-top: 10px;
-        font-size: 16px;
+        .icon {
+          font-size: 20px;
+          color: #4096ff;
+        }
+
+        .title {
+          font-size: 16px;
+          font-weight: 600;
+          color: #2e3033;
+        }
+      }
+
+      .header-right {
+        .search-input {
+          width: 300px;
+        }
       }
     }
 
-    .keylog-container {
-      min-height: 100vh;
-      padding: 20px;
-
-      .cont {
-        background: #fff;
-        border-radius: 8px;
-        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
-        padding: 20px;
-
-        .card-header {
-          display: flex;
-          justify-content: space-between;
-          align-items: center;
-          margin-bottom: 20px;
-          padding-bottom: 20px;
-          border-bottom: 1px solid #edf1f7;
-
-          .header-left {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-
-            .icon {
-              font-size: 20px;
-              color: #4096ff;
-            }
-
-            .title {
-              font-size: 16px;
-              font-weight: 600;
-              color: #2e3033;
-            }
-          }
-
-          .header-right {
-            .search-input {
-              width: 300px;
-            }
-          }
-        }
-
-        .table-container {
-          .pagination {
-            margin-top: 20px;
-            display: flex;
-            justify-content: flex-end;
-          }
-        }
+    .table-container {
+      .pagination {
+        margin-top: 20px;
+        display: flex;
+        justify-content: flex-end;
       }
     }
   }
 }
 
 @media screen and (max-width: 768px) {
-  .container {
-    .right {
-      margin-left: 0;
+  .keylog-container {
+    padding: 10px;
+
+    .cont {
+      padding: 15px;
+
+      .card-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 15px;
+
+        .header-right {
+          width: 100%;
+          .search-input {
+            width: 100%;
+          }
+        }
+      }
     }
   }
 }

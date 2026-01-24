@@ -1,12 +1,9 @@
 <script setup>
 import * as echarts from 'echarts'
-import { Menu } from '@element-plus/icons-vue'
 
-// --- UI Control State ---
-const screenWidth = ref(0)
-const isSidebarShow = ref(true)
-const iscontrolShow = ref(false)
-const isoverlay = ref(false)
+definePageMeta({
+  layout: 'admin',
+})
 
 const todayRequest = ref({ data: [] })
 const systemInfo = ref({
@@ -21,13 +18,6 @@ const handleProfileLoaded = (data) => {
   systemInfo.value.recent_request = data.recent_request || []
   systemInfo.value.today_request = data.today_request || []
   initCharts()
-}
-
-const handleSidebarShow = () => {
-  isSidebarShow.value = !isSidebarShow.value
-  iscontrolShow.value = !iscontrolShow.value
-  isoverlay.value = !isoverlay.value
-  document.body.style.overflow = isSidebarShow.value ? 'hidden' : ''
 }
 
 // Chart Initialization
@@ -224,15 +214,6 @@ const initCharts = () => {
   }
 }
 
-// Lifecycle
-onMounted(async () => {
-  screenWidth.value = document.body.clientWidth
-  if (screenWidth.value < 768) {
-    iscontrolShow.value = true
-    isSidebarShow.value = false
-  }
-})
-
 useHead({
   title: '管理后台',
   viewport:
@@ -241,103 +222,50 @@ useHead({
 </script>
 
 <template>
-  <div class="container">
-    <AdminSidebar v-show="isSidebarShow"></AdminSidebar>
+  <div class="main-container">
+    <div class="dashboard-content">
+      <!-- Top Section: User Profile & System Info -->
+      <AdminUserProfileCard @loaded="handleProfileLoaded" />
 
-    <div class="right">
-      <div class="overlay" v-show="isoverlay" @click="handleSidebarShow"></div>
-      <div class="control-sidebar" v-show="iscontrolShow">
-        <el-icon @click="handleSidebarShow"><Menu /></el-icon>
-      </div>
+      <!-- Bottom Section: Charts -->
+      <div class="charts-section">
+        <!-- Request Chart (Full Width) -->
+        <div class="card chart-card-lg">
+          <div id="recentRequestChart" class="chart-container"></div>
+        </div>
 
-      <AdminHeader></AdminHeader>
-
-      <div class="main-container">
-        <div class="dashboard-content">
-          <!-- Top Section: User Profile & System Info -->
-          <AdminUserProfileCard @loaded="handleProfileLoaded" />
-
-          <!-- Bottom Section: Charts -->
-          <div class="charts-section">
-            <!-- Request Chart (Full Width) -->
-            <div class="card chart-card-lg">
-              <div id="recentRequestChart" class="chart-container"></div>
-            </div>
-
-            <!-- API Full Ranking (Full Width) -->
-            <div class="card full-ranking-card">
-              <div class="card-title">接口总调用趋势</div>
-              <div id="APIRankingList" class="chart-container-bar"></div>
-            </div>
-          </div>
+        <!-- API Full Ranking (Full Width) -->
+        <div class="card full-ranking-card">
+          <div class="card-title">接口总调用趋势</div>
+          <div id="APIRankingList" class="chart-container-bar"></div>
         </div>
       </div>
     </div>
-
-    <!-- Dialogs -->
   </div>
+
+  <!-- Dialogs -->
 </template>
 
 <style lang="less" scoped>
-.container {
-  display: flex;
-  background: #f5f7fa;
-  min-height: 100vh;
+.main-container {
+  padding: 0 20px 40px;
 
-  .right {
-    width: 100%;
-    min-width: 0; // prevent flex overflow
-    position: relative;
+  .dashboard-content {
+    margin-top: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
 
-    .overlay {
-      position: absolute;
-      top: 0;
-      left: 0;
-      z-index: 998;
-      width: 100%;
-      height: 100%;
-      background-color: rgba(0, 0, 0, 0.5);
+    .top-section {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 20px;
     }
 
-    .control-sidebar {
-      position: absolute;
-      top: 10px;
-      left: 10px;
-      z-index: 9999;
-      width: 35px;
-      height: 35px;
-      text-align: center;
-      background: #fff;
-      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
-      border-radius: 4px;
-      .el-icon {
-        margin-top: 10px;
-        font-size: 16px;
-        cursor: pointer;
-      }
-    }
-
-    .main-container {
-      padding: 0 20px 40px;
-
-      .dashboard-content {
-        margin-top: 20px;
-        display: flex;
-        flex-direction: column;
-        gap: 20px;
-
-        .top-section {
-          display: grid;
-          grid-template-columns: repeat(4, 1fr);
-          gap: 20px;
-        }
-
-        .charts-section {
-          display: flex;
-          flex-direction: column;
-          gap: 20px;
-        }
-      }
+    .charts-section {
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
     }
   }
 }

@@ -1,5 +1,9 @@
 <script setup>
-import { Wallet, Search, Menu } from '@element-plus/icons-vue'
+import { Wallet, Search } from '@element-plus/icons-vue'
+
+definePageMeta({
+  layout: 'admin',
+})
 
 const { $myFetch, $msg } = useNuxtApp()
 
@@ -26,34 +30,6 @@ const recargarInfo = ref({
   recently_order: 0,
   recently_money: 0,
 })
-
-// 控制左侧边栏显示隐藏
-// 获取页面宽度
-const screenWidth = ref(0)
-const isSidebarShow = ref(true)
-const iscontrolShow = ref(false)
-const isoverlay = ref(false)
-onMounted(() => {
-  screenWidth.value = document.body.clientWidth
-  document.body.style.overflow = ''
-
-  if (screenWidth.value < 768) {
-    iscontrolShow.value = true
-    isSidebarShow.value = false
-  }
-})
-
-const handleSidebarShow = () => {
-  isSidebarShow.value = !isSidebarShow.value
-  iscontrolShow.value = !iscontrolShow.value
-  isoverlay.value = !isoverlay.value
-  // 禁止页面滑动
-  if (isSidebarShow.value) {
-    document.body.style.overflow = 'hidden'
-  } else {
-    document.body.style.overflow = ''
-  }
-}
 
 // 获取充值记录数据
 const fetchAllRecords = async () => {
@@ -97,7 +73,7 @@ watch(
   (newValue, oldValue) => {
     pageLoading.value = true
     fetchAllRecords() // 页码变化时重新获取数据
-  }
+  },
 )
 
 // 手动处理页面切换
@@ -146,239 +122,185 @@ useHead({
 </script>
 
 <template>
-  <div class="container">
-    <AdminSidebar v-show="isSidebarShow"></AdminSidebar>
-
-    <div class="right">
-      <!-- 遮罩层 -->
-      <div class="overlay" v-show="isoverlay" @click="handleSidebarShow"></div>
-      <!-- 侧边栏控制按钮 -->
-      <div class="control-sidebar" v-show="iscontrolShow">
-        <el-icon @click="handleSidebarShow"><Menu /></el-icon>
-      </div>
-      <AdminHeader></AdminHeader>
-      <div class="rechargerecord-container" v-loading="loading">
-        <SystemRecargar :info="recargarInfo"></SystemRecargar>
-        <div class="record-card">
-          <!-- 标题区域 -->
-          <div class="card-header">
-            <div class="header-left">
-              <el-icon class="icon">
-                <Wallet />
-              </el-icon>
-              <span class="title">充值记录</span>
-            </div>
-            <div class="header-right">
-              <el-button type="primary" @click="fetchAllRecords">
-                <el-icon>
-                  <Search />
-                </el-icon>
-                <span>刷新</span>
-              </el-button>
-            </div>
-          </div>
-
-          <!-- 表格区域 -->
-          <div class="table-container">
-            <client-only>
-              <el-table
-                :data="filteredData"
-                style="width: 100%"
-                v-loading="pageLoading"
-              >
-                <el-table-column
-                  prop="id"
-                  label="ID"
-                  min-width="180"
-                  show-overflow-tooltip
-                />
-                <el-table-column prop="amount" label="充值金额" width="120">
-                  <template #default="scope">
-                    <span style="color: #f56c6c; font-weight: bold"
-                      >¥{{ scope.row.amount }}</span
-                    >
-                  </template>
-                </el-table-column>
-                <el-table-column prop="method" label="支付方式" width="120">
-                  <template #default="scope">
-                    <el-tag
-                      :type="
-                        scope.row.method === 'alipay'
-                          ? 'primary'
-                          : scope.row.method === 'mpay'
-                          ? 'success'
-                          : 'info'
-                      "
-                      size="small"
-                    >
-                      {{
-                        scope.row.method === 'alipay'
-                          ? '支付宝'
-                          : scope.row.method === 'mpay'
-                          ? '易支付'
-                          : '微信'
-                      }}
-                    </el-tag>
-                  </template>
-                </el-table-column>
-                <el-table-column prop="status" label="状态" width="100">
-                  <template #default="scope">
-                    <el-tag
-                      :type="scope.row.status === '2' ? 'success' : 'warning'"
-                      size="small"
-                    >
-                      {{ scope.row.status === '2' ? '已支付' : '未支付' }}
-                    </el-tag>
-                  </template>
-                </el-table-column>
-                <el-table-column label="创建时间" min-width="180">
-                  <template #default="scope">
-                    {{ formatTimestamp(scope.row.create_time) }}
-                  </template>
-                </el-table-column>
-                <el-table-column label="支付时间" min-width="180">
-                  <template #default="scope">
-                    {{
-                      scope.row.pay_time && scope.row.pay_time !== 0
-                        ? formatTimestamp(scope.row.pay_time)
-                        : '-'
-                    }}
-                  </template>
-                </el-table-column>
-                <el-table-column label="操作" width="120" fixed="right">
-                  <template #default="scope">
-                    <div class="table-actions">
-                      <el-button
-                        type="primary"
-                        link
-                        @click="showDetail(scope.row)"
-                      >
-                        详情
-                      </el-button>
-                    </div>
-                  </template>
-                </el-table-column>
-              </el-table>
-
-              <!-- 分页 -->
-              <div class="pagination">
-                <el-pagination
-                  :page-size="pageSize"
-                  :pager-count="5"
-                  :total="totalRecords"
-                  v-model:current-page="page"
-                  :disabled="pageLoading"
-                  background
-                  :page-sizes="[10, 20, 30, 50, 100]"
-                  layout="total, sizes, prev, pager, next, jumper"
-                  @current-change="handlePageChange"
-                  @size-change="handleSizeChange"
-                />
-              </div>
-            </client-only>
-          </div>
+  <div class="rechargerecord-container" v-loading="loading">
+    <SystemRecargar :info="recargarInfo"></SystemRecargar>
+    <div class="record-card">
+      <!-- 标题区域 -->
+      <div class="card-header">
+        <div class="header-left">
+          <el-icon class="icon">
+            <Wallet />
+          </el-icon>
+          <span class="title">充值记录</span>
+        </div>
+        <div class="header-right">
+          <el-button type="primary" @click="fetchAllRecords">
+            <el-icon>
+              <Search />
+            </el-icon>
+            <span>刷新</span>
+          </el-button>
         </div>
       </div>
 
-      <!-- 详情对话框 -->
-      <el-dialog v-model="dialogVisible" title="充值详情" width="500px">
-        <div class="detail-content" v-if="currentRecord">
-          <div class="detail-item">
-            <span class="label">用户ID：</span>
-            <span class="value">{{ currentRecord.uid }}</span>
+      <!-- 表格区域 -->
+      <div class="table-container">
+        <client-only>
+          <el-table
+            :data="filteredData"
+            style="width: 100%"
+            v-loading="pageLoading"
+          >
+            <el-table-column
+              prop="id"
+              label="ID"
+              min-width="180"
+              show-overflow-tooltip
+            />
+            <el-table-column prop="amount" label="充值金额" width="120">
+              <template #default="scope">
+                <span style="color: #f56c6c; font-weight: bold"
+                  >¥{{ scope.row.amount }}</span
+                >
+              </template>
+            </el-table-column>
+            <el-table-column prop="method" label="支付方式" width="120">
+              <template #default="scope">
+                <el-tag
+                  :type="
+                    scope.row.method === 'alipay'
+                      ? 'primary'
+                      : scope.row.method === 'mpay'
+                        ? 'success'
+                        : 'info'
+                  "
+                  size="small"
+                >
+                  {{
+                    scope.row.method === 'alipay'
+                      ? '支付宝'
+                      : scope.row.method === 'mpay'
+                        ? '易支付'
+                        : '微信'
+                  }}
+                </el-tag>
+              </template>
+            </el-table-column>
+            <el-table-column prop="status" label="状态" width="100">
+              <template #default="scope">
+                <el-tag
+                  :type="scope.row.status === '2' ? 'success' : 'warning'"
+                  size="small"
+                >
+                  {{ scope.row.status === '2' ? '已支付' : '未支付' }}
+                </el-tag>
+              </template>
+            </el-table-column>
+            <el-table-column label="创建时间" min-width="180">
+              <template #default="scope">
+                {{ formatTimestamp(scope.row.create_time) }}
+              </template>
+            </el-table-column>
+            <el-table-column label="支付时间" min-width="180">
+              <template #default="scope">
+                {{
+                  scope.row.pay_time && scope.row.pay_time !== 0
+                    ? formatTimestamp(scope.row.pay_time)
+                    : '-'
+                }}
+              </template>
+            </el-table-column>
+            <el-table-column label="操作" width="120" fixed="right">
+              <template #default="scope">
+                <div class="table-actions">
+                  <el-button type="primary" link @click="showDetail(scope.row)">
+                    详情
+                  </el-button>
+                </div>
+              </template>
+            </el-table-column>
+          </el-table>
+
+          <!-- 分页 -->
+          <div class="pagination">
+            <el-pagination
+              :page-size="pageSize"
+              :pager-count="5"
+              :total="totalRecords"
+              v-model:current-page="page"
+              :disabled="pageLoading"
+              background
+              :page-sizes="[10, 20, 30, 50, 100]"
+              layout="total, sizes, prev, pager, next, jumper"
+              @current-change="handlePageChange"
+              @size-change="handleSizeChange"
+            />
           </div>
-          <div class="detail-item">
-            <span class="label">订单号：</span>
-            <span class="value">{{ currentRecord.id }}</span>
-          </div>
-          <div class="detail-item">
-            <span class="label">充值金额：</span>
-            <span class="value amount">¥{{ currentRecord.amount }}</span>
-          </div>
-          <div class="detail-item">
-            <span class="label">支付方式：</span>
-            <span class="value">{{
-              currentRecord.method === 'alipay'
-                ? '支付宝'
-                : currentRecord.method === 'mpay'
+        </client-only>
+      </div>
+    </div>
+
+    <!-- 详情对话框 -->
+    <el-dialog v-model="dialogVisible" title="充值详情" width="500px">
+      <div class="detail-content" v-if="currentRecord">
+        <div class="detail-item">
+          <span class="label">用户ID：</span>
+          <span class="value">{{ currentRecord.uid }}</span>
+        </div>
+        <div class="detail-item">
+          <span class="label">订单号：</span>
+          <span class="value">{{ currentRecord.id }}</span>
+        </div>
+        <div class="detail-item">
+          <span class="label">充值金额：</span>
+          <span class="value amount">¥{{ currentRecord.amount }}</span>
+        </div>
+        <div class="detail-item">
+          <span class="label">支付方式：</span>
+          <span class="value">{{
+            currentRecord.method === 'alipay'
+              ? '支付宝'
+              : currentRecord.method === 'mpay'
                 ? '易支付'
                 : '微信'
-            }}</span>
-          </div>
-          <div class="detail-item">
-            <span class="label">订单状态：</span>
-            <span
-              class="value"
-              :class="`status-${
-                currentRecord.status === '2' ? 'success' : 'pending'
-              }`"
-            >
-              {{ currentRecord.status === '2' ? '已支付' : '未支付' }}
-            </span>
-          </div>
-          <div class="detail-item">
-            <span class="label">创建时间：</span>
-            <span class="value">{{
-              formatTimestamp(currentRecord.create_time)
-            }}</span>
-          </div>
-          <div class="detail-item">
-            <span class="label">支付时间：</span>
-            <span class="value">{{
-              currentRecord.pay_time && currentRecord.pay_time !== 0
-                ? formatTimestamp(currentRecord.pay_time)
-                : '-'
-            }}</span>
-          </div>
+          }}</span>
         </div>
-        <template #footer>
-          <span class="dialog-footer">
-            <el-button @click="dialogVisible = false">关闭</el-button>
+        <div class="detail-item">
+          <span class="label">订单状态：</span>
+          <span
+            class="value"
+            :class="`status-${
+              currentRecord.status === '2' ? 'success' : 'pending'
+            }`"
+          >
+            {{ currentRecord.status === '2' ? '已支付' : '未支付' }}
           </span>
-        </template>
-      </el-dialog>
-    </div>
+        </div>
+        <div class="detail-item">
+          <span class="label">创建时间：</span>
+          <span class="value">{{
+            formatTimestamp(currentRecord.create_time)
+          }}</span>
+        </div>
+        <div class="detail-item">
+          <span class="label">支付时间：</span>
+          <span class="value">{{
+            currentRecord.pay_time && currentRecord.pay_time !== 0
+              ? formatTimestamp(currentRecord.pay_time)
+              : '-'
+          }}</span>
+        </div>
+      </div>
+      <template #footer>
+        <span class="dialog-footer">
+          <el-button @click="dialogVisible = false">关闭</el-button>
+        </span>
+      </template>
+    </el-dialog>
   </div>
 </template>
 
 <style lang="less" scoped>
-.container {
-  display: flex;
-  width: 100%;
-  overflow: hidden;
-}
-
-.right {
-  flex: 1;
-  overflow: hidden;
-  display: flex;
-  flex-direction: column;
-  .overlay {
-    position: absolute;
-    top: 0;
-    left: 0;
-    z-index: 998;
-    width: 100%;
-    height: 100%;
-    background-color: rgba(0, 0, 0, 0.5);
-  }
-  .control-sidebar {
-    position: absolute;
-    width: 35px;
-    height: 35px;
-    top: 10px;
-    left: 10px;
-    z-index: 9999;
-    text-align: center;
-    background: #fff;
-    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
-    .el-icon {
-      margin-top: 10px;
-      font-size: 16px;
-    }
-  }
-}
-
 .rechargerecord-container {
   min-height: 100vh;
   flex: 1;

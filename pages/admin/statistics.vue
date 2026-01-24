@@ -1,15 +1,13 @@
 <script setup>
-import { Menu, DataLine } from '@element-plus/icons-vue'
+import { DataLine } from '@element-plus/icons-vue'
 import { ref, onMounted, nextTick } from 'vue'
 import * as echarts from 'echarts'
 
 const { $msg, $myFetch } = useNuxtApp()
 
-// 控制左侧边栏显示隐藏
-const screenWidth = ref(0)
-const isSidebarShow = ref(true)
-const iscontrolShow = ref(false)
-const isoverlay = ref(false)
+definePageMeta({
+  layout: 'admin',
+})
 
 // 统计数据
 const statsData = ref([])
@@ -149,14 +147,6 @@ const handleTimeRangeChange = () => {
 }
 
 onMounted(() => {
-  screenWidth.value = document.body.clientWidth
-  document.body.style.overflow = ''
-
-  if (screenWidth.value < 768) {
-    iscontrolShow.value = true
-    isSidebarShow.value = false
-  }
-
   // 使用 nextTick 确保 DOM 已经渲染
   nextTick(() => {
     // 初始化图表
@@ -177,17 +167,6 @@ onMounted(() => {
   })
 })
 
-const handleSidebarShow = () => {
-  isSidebarShow.value = !isSidebarShow.value
-  iscontrolShow.value = !iscontrolShow.value
-  isoverlay.value = !isoverlay.value
-  if (isSidebarShow.value) {
-    document.body.style.overflow = 'hidden'
-  } else {
-    document.body.style.overflow = ''
-  }
-}
-
 useHead({
   title: '统计分析',
   viewport:
@@ -197,113 +176,98 @@ useHead({
 </script>
 
 <template>
-  <div class="container">
-    <AdminSidebar v-show="isSidebarShow"></AdminSidebar>
-
-    <div class="right">
-      <!-- 遮罩层 -->
-      <div class="overlay" v-show="isoverlay" @click="handleSidebarShow"></div>
-      <!-- 侧边栏控制按钮 -->
-      <div class="control-sidebar" v-show="iscontrolShow">
-        <el-icon @click="handleSidebarShow">
-          <Menu />
-        </el-icon>
+  <div class="statistics-container" v-loading="loading">
+    <div class="stats-card">
+      <div class="card-header">
+        <div class="header-left">
+          <el-icon class="icon">
+            <DataLine />
+          </el-icon>
+          <span class="title">统计分析</span>
+        </div>
+        <div class="header-right">
+          <el-radio-group
+            v-model="timeRange"
+            @change="handleTimeRangeChange"
+          >
+            <el-radio-button label="1h">最近1小时</el-radio-button>
+            <el-radio-button label="3h">最近3小时</el-radio-button>
+            <el-radio-button label="12h">最近12小时</el-radio-button>
+            <el-radio-button label="24h">最近24小时</el-radio-button>
+          </el-radio-group>
+        </div>
       </div>
-      <AdminHeader></AdminHeader>
-      <div class="statistics-container" v-loading="loading">
-        <div class="stats-card">
-          <div class="card-header">
-            <div class="header-left">
-              <el-icon class="icon">
-                <DataLine />
-              </el-icon>
-              <span class="title">统计分析</span>
-            </div>
-            <div class="header-right">
-              <el-radio-group
-                v-model="timeRange"
-                @change="handleTimeRangeChange"
-              >
-                <el-radio-button label="1h">最近1小时</el-radio-button>
-                <el-radio-button label="3h">最近3小时</el-radio-button>
-                <el-radio-button label="12h">最近12小时</el-radio-button>
-                <el-radio-button label="24h">最近24小时</el-radio-button>
-              </el-radio-group>
-            </div>
-          </div>
 
-          <div class="stats-content">
-            <div class="chart-container">
-              <div class="stats-tables">
-                <div class="table-container">
-                  <h3>IP访问统计</h3>
-                  <el-table :data="currentIpStats" stripe style="width: 100%">
-                    <el-table-column prop="ip" label="IP地址" />
-                    <el-table-column prop="address" label="地址" />
-                    <el-table-column prop="count" label="请求次数" sortable />
-                  </el-table>
-                </div>
-                <div class="table-container">
-                  <h3>用户统计</h3>
-                  <el-table :data="userStats" stripe style="width: 100%">
-                    <el-table-column prop="user_id" label="ID" />
-                    <el-table-column prop="username" label="用户名" />
-                    <el-table-column prop="count" label="请求次数" sortable />
-                  </el-table>
-                </div>
-                <div class="table-container">
-                  <h3>来源统计</h3>
-                  <el-table
-                    :data="currentRefererStats"
-                    stripe
-                    style="width: 100%"
-                  >
-                    <el-table-column prop="referer" label="来源">
-                      <template #default="scope">
-                        {{ scope.row.referer || '直接访问' }}
-                      </template>
-                    </el-table-column>
-                    <el-table-column prop="count" label="访问次数" sortable />
-                  </el-table>
-                </div>
-                <div class="table-container">
-                  <h3>User Agent统计</h3>
-                  <el-table :data="currentUaStats" stripe style="width: 100%">
-                    <el-table-column
-                      prop="ua"
-                      label="User Agent"
-                      show-overflow-tooltip
-                    />
-                    <el-table-column prop="count" label="访问次数" sortable />
-                  </el-table>
-                </div>
-                <div class="table-container">
-                  <h3>防火墙统计</h3>
-                  <el-table
-                    :data="currentFirewallStats"
-                    stripe
-                    style="width: 100%"
-                  >
-                    <el-table-column prop="ip" label="IP地址" />
-                    <el-table-column prop="address" label="地址" />
-                    <el-table-column prop="count" label="拦截次数" sortable />
-                  </el-table>
-                </div>
-                <div class="table-container">
-                  <h3>状态码统计</h3>
-                  <el-table
-                    :data="currentStatusStats"
-                    stripe
-                    style="width: 100%"
-                  >
-                    <el-table-column prop="status_code" label="状态码" />
-                    <el-table-column prop="count" label="访问次数" sortable />
-                  </el-table>
-                </div>
-              </div>
-              <div id="trendChart" class="chart trend-chart"></div>
+      <div class="stats-content">
+        <div class="chart-container">
+          <div class="stats-tables">
+            <div class="table-container">
+              <h3>IP访问统计</h3>
+              <el-table :data="currentIpStats" stripe style="width: 100%">
+                <el-table-column prop="ip" label="IP地址" />
+                <el-table-column prop="address" label="地址" />
+                <el-table-column prop="count" label="请求次数" sortable />
+              </el-table>
+            </div>
+            <div class="table-container">
+              <h3>用户统计</h3>
+              <el-table :data="userStats" stripe style="width: 100%">
+                <el-table-column prop="user_id" label="ID" />
+                <el-table-column prop="username" label="用户名" />
+                <el-table-column prop="count" label="请求次数" sortable />
+              </el-table>
+            </div>
+            <div class="table-container">
+              <h3>来源统计</h3>
+              <el-table
+                :data="currentRefererStats"
+                stripe
+                style="width: 100%"
+              >
+                <el-table-column prop="referer" label="来源">
+                  <template #default="scope">
+                    {{ scope.row.referer || '直接访问' }}
+                  </template>
+                </el-table-column>
+                <el-table-column prop="count" label="访问次数" sortable />
+              </el-table>
+            </div>
+            <div class="table-container">
+              <h3>User Agent统计</h3>
+              <el-table :data="currentUaStats" stripe style="width: 100%">
+                <el-table-column
+                  prop="ua"
+                  label="User Agent"
+                  show-overflow-tooltip
+                />
+                <el-table-column prop="count" label="访问次数" sortable />
+              </el-table>
+            </div>
+            <div class="table-container">
+              <h3>防火墙统计</h3>
+              <el-table
+                :data="currentFirewallStats"
+                stripe
+                style="width: 100%"
+              >
+                <el-table-column prop="ip" label="IP地址" />
+                <el-table-column prop="address" label="地址" />
+                <el-table-column prop="count" label="拦截次数" sortable />
+              </el-table>
+            </div>
+            <div class="table-container">
+              <h3>状态码统计</h3>
+              <el-table
+                :data="currentStatusStats"
+                stripe
+                style="width: 100%"
+              >
+                <el-table-column prop="status_code" label="状态码" />
+                <el-table-column prop="count" label="访问次数" sortable />
+              </el-table>
             </div>
           </div>
+          <div id="trendChart" class="chart trend-chart"></div>
         </div>
       </div>
     </div>
@@ -311,132 +275,95 @@ useHead({
 </template>
 
 <style lang="less" scoped>
-.container {
+.statistics-container {
+  position: relative;
+  min-height: 100vh;
+  padding: 24px;
   display: flex;
+  justify-content: center;
   background: #f5f7fa;
 
-  .right {
+  .stats-card {
     width: 100%;
-    position: relative;
-    min-width: 0;
+    border-radius: 12px;
+    margin: 0 auto;
 
-    .overlay {
-      position: absolute;
-      top: 0;
-      left: 0;
-      z-index: 998;
-      width: 100%;
-      height: 100%;
-      background-color: rgba(0, 0, 0, 0.5);
-    }
-
-    .control-sidebar {
-      position: absolute;
-      width: 35px;
-      height: 35px;
-      top: 10px;
-      left: 10px;
-      z-index: 9999;
-      text-align: center;
+    .card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 20px 24px;
       background: #fff;
-      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+      border: 1px solid #eaecf0;
+      border-radius: 12px;
+      box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.03);
+      margin-bottom: 16px;
 
-      .el-icon {
-        margin-top: 10px;
-        font-size: 16px;
+      .header-left {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+
+        .icon {
+          font-size: 20px;
+          color: #4b5563;
+        }
+
+        .title {
+          font-size: 16px;
+          font-weight: 600;
+          color: #1a1f36;
+        }
       }
     }
 
-    .statistics-container {
-      position: relative;
-      min-height: 100vh;
-      padding: 24px;
-      display: flex;
-      justify-content: center;
+    .stats-content {
+      .chart-container {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 20px;
 
-      .stats-card {
-        width: 100%;
-        border-radius: 12px;
-        margin: 0 auto;
+        .stats-tables {
+          display: grid;
+          grid-template-columns: 1fr;
+          gap: 20px;
 
-        .card-header {
-          display: flex;
-          justify-content: space-between;
-          align-items: center;
-          padding: 20px 24px;
-          background: #fff;
-          border: 1px solid #eaecf0;
-          border-radius: 12px;
-          box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.03);
-          margin-bottom: 16px;
+          .table-container {
+            background: #fff;
+            border-radius: 12px;
+            padding: 20px;
+            border: 1px solid #eaecf0;
+            box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.03);
 
-          .header-left {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-
-            .icon {
-              font-size: 20px;
-              color: #4b5563;
+            h3 {
+              margin: 0 0 15px 0;
+              font-size: 16px;
+              color: #333;
+              font-weight: 600;
             }
 
-            .title {
-              font-size: 16px;
-              font-weight: 600;
-              color: #1a1f36;
+            :deep(.el-table) {
+              border: none;
+
+              .el-table__header-wrapper {
+                th {
+                  background: #f8fafc;
+                  color: #1f2937;
+                  font-weight: 600;
+                }
+              }
             }
           }
         }
 
-        .stats-content {
-          .chart-container {
-            display: grid;
-            grid-template-columns: 1fr;
-            gap: 20px;
-
-            .stats-tables {
-              display: grid;
-              grid-template-columns: 1fr;
-              gap: 20px;
-
-              .table-container {
-                background: #fff;
-                border-radius: 12px;
-                padding: 20px;
-                border: 1px solid #eaecf0;
-                box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.03);
-
-                h3 {
-                  margin: 0 0 15px 0;
-                  font-size: 16px;
-                  color: #333;
-                  font-weight: 600;
-                }
-
-                :deep(.el-table) {
-                  border: none;
-
-                  .el-table__header-wrapper {
-                    th {
-                      background: #f8fafc;
-                      color: #1f2937;
-                      font-weight: 600;
-                    }
-                  }
-                }
-              }
-            }
-
-            .trend-chart {
-              width: 100%;
-              height: 500px;
-              background: #fff;
-              border-radius: 12px;
-              padding: 20px;
-              border: 1px solid #eaecf0;
-              box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.03);
-            }
-          }
+        .trend-chart {
+          width: 100%;
+          height: 500px;
+          background: #fff;
+          border-radius: 12px;
+          padding: 20px;
+          border: 1px solid #eaecf0;
+          box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.03);
         }
       }
     }
@@ -444,23 +371,19 @@ useHead({
 }
 
 @media screen and (max-width: 900px) {
-  .container {
-    .right {
-      .statistics-container {
-        padding: 10px;
+  .statistics-container {
+    padding: 10px;
 
-        .stats-card {
-          .card-header {
-            flex-direction: column;
-            align-items: flex-start;
-            gap: 15px;
+    .stats-card {
+      .card-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 15px;
 
-            .header-right {
-              width: 100%;
-              overflow-x: auto;
-              padding-bottom: 5px; // For scrollbar if needed
-            }
-          }
+        .header-right {
+          width: 100%;
+          overflow-x: auto;
+          padding-bottom: 5px; // For scrollbar if needed
         }
       }
     }

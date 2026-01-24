@@ -1,39 +1,17 @@
 <script setup>
-import { Refresh, InfoFilled, Wallet, Menu } from '@element-plus/icons-vue'
+import { Refresh, InfoFilled, Wallet } from '@element-plus/icons-vue'
 import { ref, onMounted } from 'vue'
+
+definePageMeta({
+  layout: 'admin',
+})
+
 const { $msg, $myFetch } = useNuxtApp()
 
 // 加载状态
 const loading = ref(false)
 const username = useCookie('username')
 
-// 控制左侧边栏显示隐藏
-// 获取页面宽度
-const screenWidth = ref(0)
-const isSidebarShow = ref(true)
-const iscontrolShow = ref(false)
-const isoverlay = ref(false)
-onMounted(() => {
-  screenWidth.value = document.body.clientWidth
-  document.body.style.overflow = ''
-
-  if (screenWidth.value < 768) {
-    iscontrolShow.value = true
-    isSidebarShow.value = false
-  }
-})
-
-const handleSidebarShow = () => {
-  isSidebarShow.value = !isSidebarShow.value
-  iscontrolShow.value = !iscontrolShow.value
-  isoverlay.value = !isoverlay.value
-  // 禁止页面滑动
-  if (isSidebarShow.value) {
-    document.body.style.overflow = 'hidden'
-  } else {
-    document.body.style.overflow = ''
-  }
-}
 // 账户余额
 const balance = ref(0)
 
@@ -45,7 +23,6 @@ const payChannels = ref({
 })
 
 // 表单数据
-const formRef = ref(null)
 const form = ref({
   amount: 10,
   customAmount: null,
@@ -277,13 +254,16 @@ const startPaymentQuery = (orderId) => {
   }, 2000)
 
   // 5分钟后关闭定时器
-  setTimeout(() => {
-    clearInterval(timer)
-    payStatusDialogVisible.value = false
-    wechatPayDialogVisible.value = false
-    mpayDialogVisible.value = false
-    getBalance(false)
-  }, 5 * 60 * 1000)
+  setTimeout(
+    () => {
+      clearInterval(timer)
+      payStatusDialogVisible.value = false
+      wechatPayDialogVisible.value = false
+      mpayDialogVisible.value = false
+      getBalance(false)
+    },
+    5 * 60 * 1000,
+  )
 }
 
 // 处理支付状态
@@ -292,7 +272,7 @@ const handlmPayStatus = (isSuccess) => {
     clearInterval(timer)
     $msg(
       '支付完成后，请刷新页面查看余额。若未显示入账，请及时联系客服。',
-      'success'
+      'success',
     )
   } else {
     clearInterval(timer)
@@ -360,245 +340,231 @@ useHead({
 </script>
 
 <template>
-  <div class="container">
-    <AdminSidebar v-show="isSidebarShow"></AdminSidebar>
+  <div class="pay_container">
+    <div class="cont">
+      <div class="form">
+        <!-- 提示信息卡片 -->
+        <el-card class="tips-card">
+          <div class="tips-info">
+            <ul>
+              <li>充值最小金额 0.01 元</li>
+              <li>支持支付宝和微信支付，请选择合适的支付方式</li>
+              <li>支付过程中如遇到各种问题，请及时联系客服处理</li>
+            </ul>
+          </div>
+        </el-card>
 
-    <div class="right">
-      <!-- 遮罩层 -->
-      <div class="overlay" v-show="isoverlay" @click="handleSidebarShow"></div>
-      <!-- 侧边栏控制按钮 -->
-      <div class="control-sidebar" v-show="iscontrolShow">
-        <el-icon @click="handleSidebarShow">
-          <Menu />
-        </el-icon>
-      </div>
-      <AdminHeader></AdminHeader>
-      <div class="pay_container">
-        <div class="cont">
-          <div class="form">
-            <!-- 提示信息卡片 -->
-            <el-card class="tips-card">
-              <div class="tips-info">
-                <ul>
-                  <li>充值最小金额 0.01 元</li>
-                  <li>支持支付宝和微信支付，请选择合适的支付方式</li>
-                  <li>支付过程中如遇到各种问题，请及时联系客服处理</li>
-                </ul>
-              </div>
-            </el-card>
+        <!-- 余额卡片 -->
+        <el-card class="balance-card">
+          <div class="section-title">
+            <el-icon>
+              <InfoFilled />
+            </el-icon>
+            可用余额
+          </div>
+          <div class="balance-amount">
+            <span class="amount">{{ balance }}</span>
+            <span class="unit">元</span>
+            <el-button type="primary" link @click="refreshBalance">
+              <el-icon>
+                <Refresh />
+              </el-icon>
+            </el-button>
+          </div>
+        </el-card>
 
-            <!-- 余额卡片 -->
-            <el-card class="balance-card">
-              <div class="section-title">
-                <el-icon>
-                  <InfoFilled />
-                </el-icon>
-                可用余额
-              </div>
-              <div class="balance-amount">
-                <span class="amount">{{ balance }}</span>
-                <span class="unit">元</span>
-                <el-button type="primary" link @click="refreshBalance">
-                  <el-icon>
-                    <Refresh />
-                  </el-icon>
-                </el-button>
-              </div>
-            </el-card>
+        <!-- 充值卡片 -->
+        <el-card class="recharge-card">
+          <div class="section-title">
+            <el-icon>
+              <Wallet />
+            </el-icon>
+            在线充值
+          </div>
 
-            <!-- 充值卡片 -->
-            <el-card class="recharge-card">
-              <div class="section-title">
-                <el-icon>
-                  <Wallet />
-                </el-icon>
-                在线充值
-              </div>
-
-              <div class="recharge-content">
-                <!-- 左侧充值表单 -->
-                <div class="recharge-form">
-                  <!-- 快捷金额选择 -->
-                  <div class="amount-options">
-                    <div class="label">快捷金额</div>
-                    <div class="options">
-                      <el-radio-group
-                        v-model="form.amount"
-                        class="amount-radio-group"
-                      >
-                        <el-radio :value="10" required>
-                          <span class="amount-label">
-                            <span class="amount">10</span>
-                            <span class="unit">元</span>
-                          </span>
-                        </el-radio>
-                        <el-radio :value="50">
-                          <span class="amount-label">
-                            <span class="amount">50</span>
-                            <span class="unit">元</span>
-                          </span>
-                        </el-radio>
-                        <el-radio :value="100">
-                          <span class="amount-label">
-                            <span class="amount">100</span>
-                            <span class="unit">元</span>
-                          </span>
-                        </el-radio>
-                        <el-radio :value="500">
-                          <span class="amount-label">
-                            <span class="amount">500</span>
-                            <span class="unit">元</span>
-                          </span>
-                        </el-radio>
-                      </el-radio-group>
-                    </div>
-                  </div>
-
-                  <!-- 其他金额 -->
-                  <div class="custom-amount-section">
-                    <div class="label">其他金额</div>
-                    <el-input
-                      v-model="form.customAmount"
-                      placeholder="请输入充值金额"
-                      @input="handleCustomAmount"
-                    >
-                      <template #append>元</template>
-                    </el-input>
-                  </div>
-
-                  <!-- 支付方式 -->
-                  <div class="payment-method">
-                    <div class="label">支付方式</div>
-                    <div class="methods">
-                      <el-radio-group v-model="form.payMethod">
-                        <el-radio value="alipay" v-if="payChannels.alipay">
-                          <div class="pay-item">
-                            <svg
-                              class="pay-icon"
-                              viewBox="0 0 1024 1024"
-                              xmlns="http://www.w3.org/2000/svg"
-                              width="24"
-                              height="24"
-                            >
-                              <path
-                                d="M1024.0512 701.0304V196.864A196.9664 196.9664 0 0 0 827.136 0H196.864A196.9664 196.9664 0 0 0 0 196.864v630.272A196.9152 196.9152 0 0 0 196.864 1024h630.272a197.12 197.12 0 0 0 193.8432-162.0992c-52.224-22.6304-278.528-120.32-396.4416-176.64-89.7024 108.6976-183.7056 173.9264-325.3248 173.9264s-236.1856-87.2448-224.8192-194.048c7.4752-70.0416 55.552-184.576 264.2944-164.9664 110.08 10.3424 160.4096 30.8736 250.1632 60.5184 23.1936-42.5984 42.496-89.4464 57.1392-139.264H248.064v-39.424h196.9152V311.1424H204.8V267.776h240.128V165.632s2.1504-15.9744 19.8144-15.9744h98.4576V267.776h256v43.4176h-256V381.952h208.8448a805.9904 805.9904 0 0 1-84.8384 212.6848c60.672 22.016 336.7936 106.3936 336.7936 106.3936zM283.5456 791.6032c-149.6576 0-173.312-94.464-165.376-133.9392 7.8336-39.3216 51.2-90.624 134.4-90.624 95.5904 0 181.248 24.4736 284.0576 74.5472-72.192 94.0032-160.9216 150.016-253.0816 150.016z"
-                                fill="#009FE8"
-                              ></path>
-                            </svg>
-                            <span>支付宝</span>
-                          </div>
-                        </el-radio>
-                        <el-radio value="wechat" v-if="payChannels.weixin">
-                          <div class="pay-item">
-                            <svg
-                              class="pay-icon"
-                              viewBox="0 0 1024 1024"
-                              xmlns="http://www.w3.org/2000/svg"
-                              width="24"
-                              height="24"
-                            >
-                              <path
-                                d="M910.1 317.5l-516 298-3.1 2.1c-4.1 2.1-8.3 3.1-13.5 3.1-11.4 0-20.8-6.2-26-15.6l-2.1-4.1-82-178.7c-1-2.1-1-4.1-1-6.2 0-8.3 6.2-14.6 14.6-14.6 3.1 0 6.2 1 9.3 3.1l96.6 68.6c7.2 4.1 15.6 7.2 24.9 7.2 5.2 0 10.3-1 15.6-3.1l452.8-201.5C799.2 180.4 665.3 118 513.6 118 266.5 118 65 285.3 65 491.9c0 112.1 60.2 213.9 154.7 282.5 7.2 5.2 12.4 14.6 12.4 23.9 0 3.1-1 6.2-2.1 9.3-7.2 28-19.8 73.8-19.8 75.8-1 3.1-2.1 7.2-2.1 11.4 0 8.3 6.2 14.6 14.6 14.6 3.1 0 6.2-1 8.3-3.1l97.6-57.1c7.2-4.1 15.6-7.2 23.9-7.2 4.1 0 9.3 1 13.5 2.1 45.7 13.5 95.6 20.8 146.5 20.8C759.5 864.8 961 697.5 961 491c0-62.4-18.7-121.5-50.9-173.5z"
-                                fill="#09BB07"
-                              ></path>
-                            </svg>
-                            <span>微信支付</span>
-                          </div>
-                        </el-radio>
-                        <el-radio value="mpay" v-if="payChannels.mpay">
-                          <div class="pay-item">
-                            <svg
-                              class="pay-icon"
-                              viewBox="0 0 1126 1024"
-                              xmlns="http://www.w3.org/2000/svg"
-                              width="24"
-                              height="24"
-                            >
-                              <path
-                                d="M1076.736 908.032c0 14.4896-2.4576 28.0064-7.3216 40.6016a100.4544 100.4544 0 0 1-52.7872 55.4496 113.7664 113.7664 0 0 1-42.9056 9.3184H175.6672c-14.3872 0-50.0736-3.9936-62.9248-9.3184a107.2128 107.2128 0 0 1-57.2928-55.4496 97.9968 97.9968 0 0 1-8.4992-40.6016V337.2544c0-29.0304 10.0352-53.6064 30.0032-73.7792 19.968-20.1728 44.1344-22.4768 72.9088-22.4768h823.8592c28.7744 0 52.9408 2.2528 72.9088 22.4768 20.0704 20.224 30.0544 44.7488 30.0544 73.728v161.2288h-257.3312c-28.7744 0-53.0944 4.1984-73.1648 24.064-19.968 19.8144-30.0032 44.1856-30.0032 73.216 0.7168 19.8144 4.9152 37.376 12.4928 52.5824 6.0416 12.9536 16.0768 24.7808 30.0544 35.4304 13.9776 10.7008 34.2528 20.6336 60.672 20.6336h257.536l-0.2048 203.6736zM922.2656 189.5424H407.3472c40.9088-21.3504 79.616-50.8928 115.9168-70.7584 31.7952-16.7936 63.1808-33.536 94.1056-50.3296 30.976-16.8448 55.1936-29.696 72.6016-38.912 26.4192-14.4896 50.0736-21.0944 70.912-19.968 20.7872 1.0752 38.4 4.7616 52.736 10.8032 16.64 8.3968 30.976 19.456 43.1104 33.28l65.536 135.8848z m-154.0096 406.1696c0-14.4896 4.9664-26.7264 14.7456-36.5568a49.0496 49.0496 0 0 1 36.352-14.8992c14.3872 0 26.4192 4.9152 36.352 14.848a50.0736 50.0736 0 0 1 14.6944 36.608c0 14.4896-4.9152 26.9312-14.7456 37.1712a48.3328 48.3328 0 0 1-36.352 15.4624 48.4864 48.4864 0 0 1-36.3008-15.4624 52.0704 52.0704 0 0 1-14.7456-37.1712z"
-                                fill="#FF7712"
-                              ></path>
-                            </svg>
-                            <span
-                              >易支付{{
-                                payChannels.mpay === 'alipay'
-                                  ? '(支付宝)'
-                                  : payChannels.mpay === 'wxpay'
-                                  ? '(微信)'
-                                  : ''
-                              }}</span
-                            >
-                          </div>
-                        </el-radio>
-                      </el-radio-group>
-                      <!-- 无可用支付方式时的提示 -->
-                      <div
-                        v-if="
-                          !payChannels.alipay &&
-                          !payChannels.weixin &&
-                          !payChannels.mpay
-                        "
-                        class="no-payment-tips"
-                      >
-                        <el-alert
-                          title="暂无可用的支付方式"
-                          type="warning"
-                          :closable="false"
-                          show-icon
-                        />
-                      </div>
-                    </div>
-                  </div>
+          <div class="recharge-content">
+            <!-- 左侧充值表单 -->
+            <div class="recharge-form">
+              <!-- 快捷金额选择 -->
+              <div class="amount-options">
+                <div class="label">快捷金额</div>
+                <div class="options">
+                  <el-radio-group
+                    v-model="form.amount"
+                    class="amount-radio-group"
+                  >
+                    <el-radio :value="10" required>
+                      <span class="amount-label">
+                        <span class="amount">10</span>
+                        <span class="unit">元</span>
+                      </span>
+                    </el-radio>
+                    <el-radio :value="50">
+                      <span class="amount-label">
+                        <span class="amount">50</span>
+                        <span class="unit">元</span>
+                      </span>
+                    </el-radio>
+                    <el-radio :value="100">
+                      <span class="amount-label">
+                        <span class="amount">100</span>
+                        <span class="unit">元</span>
+                      </span>
+                    </el-radio>
+                    <el-radio :value="500">
+                      <span class="amount-label">
+                        <span class="amount">500</span>
+                        <span class="unit">元</span>
+                      </span>
+                    </el-radio>
+                  </el-radio-group>
                 </div>
+              </div>
 
-                <!-- 右侧订单确认 -->
-                <div class="order-section">
-                  <div class="order-preview">
-                    <div class="preview-title">订单预览</div>
-                    <div class="preview-amount">
-                      <span class="label">充值金额：</span>
-                      <span class="value">{{ form.amount }}</span>
-                      <span class="unit">元</span>
-                    </div>
-                    <div class="preview-method">
-                      <span class="label">支付方式：</span>
-                      <span class="value">{{
-                        form.payMethod === 'alipay'
-                          ? '支付宝支付'
-                          : form.payMethod === 'wechat'
-                          ? '微信支付'
-                          : form.payMethod === 'mpay'
-                          ? '易支付' +
-                            (payChannels.mpay === 'alipay'
+              <!-- 其他金额 -->
+              <div class="custom-amount-section">
+                <div class="label">其他金额</div>
+                <el-input
+                  v-model="form.customAmount"
+                  placeholder="请输入充值金额"
+                  @input="handleCustomAmount"
+                >
+                  <template #append>元</template>
+                </el-input>
+              </div>
+
+              <!-- 支付方式 -->
+              <div class="payment-method">
+                <div class="label">支付方式</div>
+                <div class="methods">
+                  <el-radio-group v-model="form.payMethod">
+                    <el-radio value="alipay" v-if="payChannels.alipay">
+                      <div class="pay-item">
+                        <svg
+                          class="pay-icon"
+                          viewBox="0 0 1024 1024"
+                          xmlns="http://www.w3.org/2000/svg"
+                          width="24"
+                          height="24"
+                        >
+                          <path
+                            d="M1024.0512 701.0304V196.864A196.9664 196.9664 0 0 0 827.136 0H196.864A196.9664 196.9664 0 0 0 0 196.864v630.272A196.9152 196.9152 0 0 0 196.864 1024h630.272a197.12 197.12 0 0 0 193.8432-162.0992c-52.224-22.6304-278.528-120.32-396.4416-176.64-89.7024 108.6976-183.7056 173.9264-325.3248 173.9264s-236.1856-87.2448-224.8192-194.048c7.4752-70.0416 55.552-184.576 264.2944-164.9664 110.08 10.3424 160.4096 30.8736 250.1632 60.5184 23.1936-42.5984 42.496-89.4464 57.1392-139.264H248.064v-39.424h196.9152V311.1424H204.8V267.776h240.128V165.632s2.1504-15.9744 19.8144-15.9744h98.4576V267.776h256v43.4176h-256V381.952h208.8448a805.9904 805.9904 0 0 1-84.8384 212.6848c60.672 22.016 336.7936 106.3936 336.7936 106.3936zM283.5456 791.6032c-149.6576 0-173.312-94.464-165.376-133.9392 7.8336-39.3216 51.2-90.624 134.4-90.624 95.5904 0 181.248 24.4736 284.0576 74.5472-72.192 94.0032-160.9216 150.016-253.0816 150.016z"
+                            fill="#009FE8"
+                          ></path>
+                        </svg>
+                        <span>支付宝</span>
+                      </div>
+                    </el-radio>
+                    <el-radio value="wechat" v-if="payChannels.weixin">
+                      <div class="pay-item">
+                        <svg
+                          class="pay-icon"
+                          viewBox="0 0 1024 1024"
+                          xmlns="http://www.w3.org/2000/svg"
+                          width="24"
+                          height="24"
+                        >
+                          <path
+                            d="M910.1 317.5l-516 298-3.1 2.1c-4.1 2.1-8.3 3.1-13.5 3.1-11.4 0-20.8-6.2-26-15.6l-2.1-4.1-82-178.7c-1-2.1-1-4.1-1-6.2 0-8.3 6.2-14.6 14.6-14.6 3.1 0 6.2 1 9.3 3.1l96.6 68.6c7.2 4.1 15.6 7.2 24.9 7.2 5.2 0 10.3-1 15.6-3.1l452.8-201.5C799.2 180.4 665.3 118 513.6 118 266.5 118 65 285.3 65 491.9c0 112.1 60.2 213.9 154.7 282.5 7.2 5.2 12.4 14.6 12.4 23.9 0 3.1-1 6.2-2.1 9.3-7.2 28-19.8 73.8-19.8 75.8-1 3.1-2.1 7.2-2.1 11.4 0 8.3 6.2 14.6 14.6 14.6 3.1 0 6.2-1 8.3-3.1l97.6-57.1c7.2-4.1 15.6-7.2 23.9-7.2 4.1 0 9.3 1 13.5 2.1 45.7 13.5 95.6 20.8 146.5 20.8C759.5 864.8 961 697.5 961 491c0-62.4-18.7-121.5-50.9-173.5z"
+                            fill="#09BB07"
+                          ></path>
+                        </svg>
+                        <span>微信支付</span>
+                      </div>
+                    </el-radio>
+                    <el-radio value="mpay" v-if="payChannels.mpay">
+                      <div class="pay-item">
+                        <svg
+                          class="pay-icon"
+                          viewBox="0 0 1126 1024"
+                          xmlns="http://www.w3.org/2000/svg"
+                          width="24"
+                          height="24"
+                        >
+                          <path
+                            d="M1076.736 908.032c0 14.4896-2.4576 28.0064-7.3216 40.6016a100.4544 100.4544 0 0 1-52.7872 55.4496 113.7664 113.7664 0 0 1-42.9056 9.3184H175.6672c-14.3872 0-50.0736-3.9936-62.9248-9.3184a107.2128 107.2128 0 0 1-57.2928-55.4496 97.9968 97.9968 0 0 1-8.4992-40.6016V337.2544c0-29.0304 10.0352-53.6064 30.0032-73.7792 19.968-20.1728 44.1344-22.4768 72.9088-22.4768h823.8592c28.7744 0 52.9408 2.2528 72.9088 22.4768 20.0704 20.224 30.0544 44.7488 30.0544 73.728v161.2288h-257.3312c-28.7744 0-53.0944 4.1984-73.1648 24.064-19.968 19.8144-30.0032 44.1856-30.0032 73.216 0.7168 19.8144 4.9152 37.376 12.4928 52.5824 6.0416 12.9536 16.0768 24.7808 30.0544 35.4304 13.9776 10.7008 34.2528 20.6336 60.672 20.6336h257.536l-0.2048 203.6736zM922.2656 189.5424H407.3472c40.9088-21.3504 79.616-50.8928 115.9168-70.7584 31.7952-16.7936 63.1808-33.536 94.1056-50.3296 30.976-16.8448 55.1936-29.696 72.6016-38.912 26.4192-14.4896 50.0736-21.0944 70.912-19.968 20.7872 1.0752 38.4 4.7616 52.736 10.8032 16.64 8.3968 30.976 19.456 43.1104 33.28l65.536 135.8848z m-154.0096 406.1696c0-14.4896 4.9664-26.7264 14.7456-36.5568a49.0496 49.0496 0 0 1 36.352-14.8992c14.3872 0 26.4192 4.9152 36.352 14.848a50.0736 50.0736 0 0 1 14.6944 36.608c0 14.4896-4.9152 26.9312-14.7456 37.1712a48.3328 48.3328 0 0 1-36.352 15.4624 48.4864 48.4864 0 0 1-36.3008-15.4624 52.0704 52.0704 0 0 1-14.7456-37.1712z"
+                            fill="#FF7712"
+                          ></path>
+                        </svg>
+                        <span
+                          >易支付{{
+                            payChannels.mpay === 'alipay'
                               ? '(支付宝)'
                               : payChannels.mpay === 'wxpay'
-                              ? '(微信)'
-                              : '')
-                          : '未知支付方式'
-                      }}</span>
-                    </div>
-                  </div>
-                  <el-button
-                    type="primary"
-                    @click="submitForm"
-                    :loading="loading"
-                    :disabled="
+                                ? '(微信)'
+                                : ''
+                          }}</span
+                        >
+                      </div>
+                    </el-radio>
+                  </el-radio-group>
+                  <!-- 无可用支付方式时的提示 -->
+                  <div
+                    v-if="
                       !payChannels.alipay &&
                       !payChannels.weixin &&
                       !payChannels.mpay
                     "
-                    class="submit-btn"
+                    class="no-payment-tips"
                   >
-                    确认支付
-                  </el-button>
-                  <div class="order-tips">温馨提示：支付成功后5分钟内到账</div>
+                    <el-alert
+                      title="暂无可用的支付方式"
+                      type="warning"
+                      :closable="false"
+                      show-icon
+                    />
+                  </div>
                 </div>
               </div>
-            </el-card>
+            </div>
+
+            <!-- 右侧订单确认 -->
+            <div class="order-section">
+              <div class="order-preview">
+                <div class="preview-title">订单预览</div>
+                <div class="preview-amount">
+                  <span class="label">充值金额：</span>
+                  <span class="value">{{ form.amount }}</span>
+                  <span class="unit">元</span>
+                </div>
+                <div class="preview-method">
+                  <span class="label">支付方式：</span>
+                  <span class="value">{{
+                    form.payMethod === 'alipay'
+                      ? '支付宝支付'
+                      : form.payMethod === 'wechat'
+                        ? '微信支付'
+                        : form.payMethod === 'mpay'
+                          ? '易支付' +
+                            (payChannels.mpay === 'alipay'
+                              ? '(支付宝)'
+                              : payChannels.mpay === 'wxpay'
+                                ? '(微信)'
+                                : '')
+                          : '未知支付方式'
+                  }}</span>
+                </div>
+              </div>
+              <el-button
+                type="primary"
+                @click="submitForm"
+                :loading="loading"
+                :disabled="
+                  !payChannels.alipay &&
+                  !payChannels.weixin &&
+                  !payChannels.mpay
+                "
+                class="submit-btn"
+              >
+                确认支付
+              </el-button>
+              <div class="order-tips">温馨提示：支付成功后5分钟内到账</div>
+            </div>
           </div>
-        </div>
+        </el-card>
       </div>
     </div>
+
     <!-- 支付状态确认弹窗 -->
     <el-dialog
       v-model="payStatusDialogVisible"
@@ -697,349 +663,320 @@ useHead({
 </template>
 
 <style lang="less" scoped>
-.container {
-  display: flex;
+.pay_container {
+  position: relative;
   width: 100%;
+  min-height: 100vh;
+  padding: 10px;
+  background-color: #f7f7f7;
 
-  .right {
-    flex: 1;
-    background: #f5f5f5;
+  .cont {
+    width: 100%;
 
-    .overlay {
-      position: absolute;
-      top: 0;
-      left: 0;
-      z-index: 998;
-      width: 100%;
-      height: 100%;
-      background-color: rgba(0, 0, 0, 0.5);
-    }
+    .form {
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+      .tips-card {
+        margin-bottom: 20px;
 
-    .control-sidebar {
-      position: absolute;
-      width: 35px;
-      height: 35px;
-      top: 10px;
-      left: 10px;
-      z-index: 9999;
-      text-align: center;
-      background: #fff;
-      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+        .tips-info {
+          ul {
+            margin: 0;
+            padding-left: 20px;
 
-      .el-icon {
-        margin-top: 10px;
-        font-size: 16px;
+            li {
+              color: #666;
+              line-height: 1.8;
+              font-size: 13px;
+            }
+          }
+        }
       }
-    }
 
-    .pay_container {
-      min-height: 100vh;
-      padding: 20px;
+      .balance-card {
+        margin-bottom: 20px;
 
-      .cont {
-        .form {
-          .tips-card {
-            margin-bottom: 20px;
+        .section-title {
+          font-size: 16px;
+          font-weight: 500;
+          margin-bottom: 20px;
+          display: flex;
+          align-items: center;
 
-            .tips-info {
-              ul {
-                margin: 0;
-                padding-left: 20px;
+          .el-icon {
+            margin-right: 8px;
+            font-size: 18px;
+            color: #409eff;
+          }
+        }
 
-                li {
-                  color: #666;
-                  line-height: 1.8;
-                  font-size: 13px;
-                }
-              }
-            }
+        .balance-amount {
+          display: flex;
+          align-items: center;
+          padding: 0 20px;
+
+          .amount {
+            font-size: 32px;
+            font-weight: bold;
+            color: #ff6b00;
           }
 
-          .balance-card {
-            margin-bottom: 20px;
-
-            .section-title {
-              font-size: 16px;
-              font-weight: 500;
-              margin-bottom: 20px;
-              display: flex;
-              align-items: center;
-
-              .el-icon {
-                margin-right: 8px;
-                font-size: 18px;
-                color: #409eff;
-              }
-            }
-
-            .balance-amount {
-              display: flex;
-              align-items: center;
-              padding: 0 20px;
-
-              .amount {
-                font-size: 32px;
-                font-weight: bold;
-                color: #ff6b00;
-              }
-
-              .unit {
-                font-size: 14px;
-                color: #999;
-                margin: 0 10px;
-              }
-            }
+          .unit {
+            font-size: 14px;
+            color: #999;
+            margin: 0 10px;
           }
+        }
+      }
 
-          .recharge-card {
-            .section-title {
-              font-size: 16px;
+      .recharge-card {
+        .section-title {
+          font-size: 16px;
+          font-weight: 500;
+          margin-bottom: 30px;
+          display: flex;
+          align-items: center;
+          border-bottom: 1px solid #ebeef5;
+          padding-bottom: 15px;
+
+          .el-icon {
+            margin-right: 8px;
+            font-size: 18px;
+            color: #409eff;
+          }
+        }
+
+        .recharge-content {
+          display: flex;
+          gap: 40px;
+
+          .recharge-form {
+            flex: 1;
+            padding-right: 40px;
+            border-right: 1px solid #ebeef5;
+
+            .label {
+              font-size: 14px;
+              color: #606266;
+              margin-bottom: 15px;
               font-weight: 500;
+            }
+
+            .amount-options {
               margin-bottom: 30px;
-              display: flex;
-              align-items: center;
-              border-bottom: 1px solid #ebeef5;
-              padding-bottom: 15px;
 
-              .el-icon {
-                margin-right: 8px;
-                font-size: 18px;
-                color: #409eff;
-              }
-            }
+              .amount-radio-group {
+                display: grid;
+                grid-template-columns: repeat(2, 1fr);
+                gap: 15px;
 
-            .recharge-content {
-              display: flex;
-              gap: 40px;
-
-              .recharge-form {
-                flex: 1;
-                padding-right: 40px;
-                border-right: 1px solid #ebeef5;
-
-                .label {
-                  font-size: 14px;
-                  color: #606266;
-                  margin-bottom: 15px;
-                  font-weight: 500;
-                }
-
-                .amount-options {
-                  margin-bottom: 30px;
-
-                  .amount-radio-group {
-                    display: grid;
-                    grid-template-columns: repeat(2, 1fr);
-                    gap: 15px;
-
-                    :deep(.el-radio) {
-                      margin: 0;
-                      height: 60px;
-                      border: 1px solid #dcdfe6;
-                      border-radius: 4px;
-                      padding: 0;
-                      display: flex;
-                      align-items: center;
-                      justify-content: center;
-                      transition: all 0.3s;
-
-                      &.is-checked {
-                        border-color: #409eff;
-                        background: #ecf5ff;
-
-                        .amount-label {
-                          .amount {
-                            color: #409eff;
-                          }
-                        }
-                      }
-
-                      .el-radio__input {
-                        display: none;
-                      }
-
-                      .el-radio__label {
-                        padding: 0;
-                        color: inherit;
-                      }
-
-                      .amount-label {
-                        text-align: center;
-
-                        .amount {
-                          font-size: 20px;
-                          font-weight: 500;
-                          color: #606266;
-                          transition: color 0.3s;
-                        }
-
-                        .unit {
-                          font-size: 14px;
-                          color: #909399;
-                          margin-left: 2px;
-                        }
-                      }
-
-                      &:hover {
-                        border-color: #409eff;
-                      }
-                    }
-                  }
-                }
-
-                .custom-amount-section {
-                  margin-bottom: 30px;
-
-                  :deep(.el-input) {
-                    .el-input__wrapper {
-                      box-shadow: 0 0 0 1px #dcdfe6 inset;
-                      padding: 0 15px;
-                      height: 40px;
-
-                      &.is-focus {
-                        box-shadow: 0 0 0 1px #409eff inset;
-                      }
-                    }
-
-                    .el-input-group__append {
-                      background-color: #f5f7fa;
-                      color: #909399;
-                      padding: 0 15px;
-                    }
-                  }
-                }
-
-                .payment-method {
-                  .methods {
-                    :deep(.el-radio-group) {
-                      display: flex;
-                      gap: 15px;
-
-                      .el-radio {
-                        margin: 0;
-                        width: 150px;
-                        height: 56px;
-                        border: 1px solid #dcdfe6;
-                        border-radius: 4px;
-                        padding: 0 10px;
-                        display: flex;
-                        align-items: center;
-                        justify-content: center;
-                        transition: all 0.3s;
-                        background: #fff;
-
-                        &.is-checked {
-                          border-color: #409eff;
-                          background: #ecf5ff;
-                        }
-
-                        .el-radio__input {
-                          display: none;
-                        }
-
-                        .pay-item {
-                          display: flex;
-                          align-items: center;
-                          justify-content: center;
-                          width: 100%;
-
-                          .pay-icon {
-                            width: 24px;
-                            height: 24px;
-                            margin-right: 10px;
-                            flex-shrink: 0;
-                          }
-                        }
-
-                        .el-radio__label {
-                          color: #606266;
-                          font-size: 15px;
-                          font-weight: 500;
-                          width: 100%;
-                          padding: 0;
-                        }
-
-                        &:hover {
-                          border-color: #409eff;
-                        }
-                      }
-                    }
-
-                    .no-payment-tips {
-                      margin-top: 10px;
-
-                      :deep(.el-alert) {
-                        border-radius: 4px;
-
-                        .el-alert__content {
-                          font-size: 14px;
-                        }
-                      }
-                    }
-                  }
-                }
-              }
-
-              .order-section {
-                width: 300px;
-
-                .order-preview {
-                  background: #f7f7f7;
+                :deep(.el-radio) {
+                  margin: 0;
+                  height: 60px;
+                  border: 1px solid #dcdfe6;
                   border-radius: 4px;
-                  padding: 20px;
-                  margin-bottom: 20px;
+                  padding: 0;
+                  display: flex;
+                  align-items: center;
+                  justify-content: center;
+                  transition: all 0.3s;
 
-                  .preview-title {
-                    font-size: 15px;
-                    font-weight: 500;
-                    color: #606266;
-                    margin-bottom: 15px;
+                  &.is-checked {
+                    border-color: #409eff;
+                    background: #ecf5ff;
+
+                    .amount-label {
+                      .amount {
+                        color: #409eff;
+                      }
+                    }
                   }
 
-                  .preview-amount,
-                  .preview-method {
-                    display: flex;
-                    align-items: center;
-                    margin-bottom: 10px;
-                    font-size: 14px;
+                  .el-radio__input {
+                    display: none;
+                  }
 
-                    .label {
-                      color: #909399;
-                    }
+                  .el-radio__label {
+                    padding: 0;
+                    color: inherit;
+                  }
 
-                    .value {
-                      color: #606266;
+                  .amount-label {
+                    text-align: center;
+
+                    .amount {
+                      font-size: 20px;
                       font-weight: 500;
-                      margin: 0 4px;
+                      color: #606266;
+                      transition: color 0.3s;
                     }
 
                     .unit {
+                      font-size: 14px;
                       color: #909399;
+                      margin-left: 2px;
                     }
                   }
 
-                  .preview-amount {
-                    .value {
-                      font-size: 24px;
-                      color: #ff6b00;
+                  &:hover {
+                    border-color: #409eff;
+                  }
+                }
+              }
+            }
+
+            .custom-amount-section {
+              margin-bottom: 30px;
+
+              :deep(.el-input) {
+                .el-input__wrapper {
+                  box-shadow: 0 0 0 1px #dcdfe6 inset;
+                  padding: 0 15px;
+                  height: 40px;
+
+                  &.is-focus {
+                    box-shadow: 0 0 0 1px #409eff inset;
+                  }
+                }
+
+                .el-input-group__append {
+                  background-color: #f5f7fa;
+                  color: #909399;
+                  padding: 0 15px;
+                }
+              }
+            }
+
+            .payment-method {
+              .methods {
+                :deep(.el-radio-group) {
+                  display: flex;
+                  gap: 15px;
+
+                  .el-radio {
+                    margin: 0;
+                    width: 150px;
+                    height: 56px;
+                    border: 1px solid #dcdfe6;
+                    border-radius: 4px;
+                    padding: 0 10px;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    transition: all 0.3s;
+                    background: #fff;
+
+                    &.is-checked {
+                      border-color: #409eff;
+                      background: #ecf5ff;
+                    }
+
+                    .el-radio__input {
+                      display: none;
+                    }
+
+                    .pay-item {
+                      display: flex;
+                      align-items: center;
+                      justify-content: center;
+                      width: 100%;
+
+                      .pay-icon {
+                        width: 24px;
+                        height: 24px;
+                        margin-right: 10px;
+                        flex-shrink: 0;
+                      }
+                    }
+
+                    .el-radio__label {
+                      color: #606266;
+                      font-size: 15px;
+                      font-weight: 500;
+                      width: 100%;
+                      padding: 0;
+                    }
+
+                    &:hover {
+                      border-color: #409eff;
                     }
                   }
                 }
 
-                .submit-btn {
-                  width: 100%;
-                  height: 44px;
-                  font-size: 16px;
+                .no-payment-tips {
+                  margin-top: 10px;
+
+                  :deep(.el-alert) {
+                    border-radius: 4px;
+
+                    .el-alert__content {
+                      font-size: 14px;
+                    }
+                  }
+                }
+              }
+            }
+          }
+
+          .order-section {
+            width: 300px;
+
+            .order-preview {
+              background: #f7f7f7;
+              border-radius: 4px;
+              padding: 20px;
+              margin-bottom: 20px;
+
+              .preview-title {
+                font-size: 15px;
+                font-weight: 500;
+                color: #606266;
+                margin-bottom: 15px;
+              }
+
+              .preview-amount,
+              .preview-method {
+                display: flex;
+                align-items: center;
+                margin-bottom: 10px;
+                font-size: 14px;
+
+                .label {
+                  color: #909399;
+                }
+
+                .value {
+                  color: #606266;
                   font-weight: 500;
-                  margin-bottom: 15px;
+                  margin: 0 4px;
                 }
 
-                .order-tips {
-                  text-align: center;
-                  font-size: 12px;
+                .unit {
                   color: #909399;
                 }
               }
+
+              .preview-amount {
+                .value {
+                  font-size: 24px;
+                  color: #ff6b00;
+                }
+              }
+            }
+
+            .submit-btn {
+              width: 100%;
+              height: 44px;
+              font-size: 16px;
+              font-weight: 500;
+              margin-bottom: 15px;
+            }
+
+            .order-tips {
+              text-align: center;
+              font-size: 12px;
+              color: #909399;
             }
           }
         }

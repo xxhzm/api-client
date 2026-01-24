@@ -1,35 +1,14 @@
 <script setup>
-import { Lock, Menu } from '@element-plus/icons-vue'
+import { Lock } from '@element-plus/icons-vue'
+definePageMeta({
+  layout: 'admin',
+})
 const { $myFetch } = useNuxtApp()
 const { $msg } = useNuxtApp()
 
-// 控制左侧边栏显示隐藏
-// 获取页面宽度
-const screenWidth = ref(0)
-const isSidebarShow = ref(true)
-const iscontrolShow = ref(false)
-const isoverlay = ref(false)
 onMounted(() => {
-  screenWidth.value = document.body.clientWidth
-  document.body.style.overflow = ''
-
-  if (screenWidth.value < 768) {
-    iscontrolShow.value = true
-    isSidebarShow.value = false
-  }
+  //
 })
-
-const handleSidebarShow = () => {
-  isSidebarShow.value = !isSidebarShow.value
-  iscontrolShow.value = !iscontrolShow.value
-  isoverlay.value = !isoverlay.value
-  // 禁止页面滑动
-  if (isSidebarShow.value) {
-    document.body.style.overflow = 'hidden'
-  } else {
-    document.body.style.overflow = ''
-  }
-}
 
 const loading = ref(false)
 const tableData = ref([])
@@ -200,280 +179,232 @@ useHead({
 </script>
 
 <template>
-  <div class="container">
-    <AdminSidebar v-show="isSidebarShow"></AdminSidebar>
-
-    <div class="right">
-      <!-- 遮罩层 -->
-      <div class="overlay" v-show="isoverlay" @click="handleSidebarShow"></div>
-      <!-- 侧边栏控制按钮 -->
-      <div class="control-sidebar" v-show="iscontrolShow">
-        <el-icon @click="handleSidebarShow"><Menu /></el-icon>
-      </div>
-      <AdminHeader></AdminHeader>
-      <div class="permissionlist-container" v-loading="loading">
-        <div class="permission-card">
-          <!-- 标题区域 -->
-          <div class="card-header">
-            <div class="header-left">
-              <el-icon class="icon">
-                <Lock />
-              </el-icon>
-              <span class="title">权限列表</span>
-            </div>
-            <div class="header-right">
-              <el-button type="primary" @click="dialogStatus = true">
-                <span>新增规则</span>
-              </el-button>
-            </div>
-          </div>
-
-          <!-- 表格区域 -->
-          <div class="table-container">
-            <client-only>
-              <el-table :data="tableData" style="width: 100%">
-                <el-table-column prop="id" label="ID" width="80" />
-                <el-table-column
-                  prop="name"
-                  label="规则名称"
-                  width="200"
-                  show-overflow-tooltip
-                />
-                <el-table-column
-                  prop="path"
-                  label="规则地址"
-                  min-width="200"
-                  show-overflow-tooltip
-                />
-                <el-table-column
-                  prop="description"
-                  label="描述"
-                  min-width="200"
-                  show-overflow-tooltip
-                />
-                <el-table-column width="200" fixed="right">
-                  <template #default="scope">
-                    <div class="table-actions">
-                      <el-button
-                        type="primary"
-                        link
-                        @click="handleEdit(scope.$index, scope.row)"
-                      >
-                        编辑
-                      </el-button>
-                      <el-button
-                        type="info"
-                        link
-                        @click="handleRole(scope.$index, scope.row)"
-                      >
-                        绑定角色
-                      </el-button>
-                      <el-popconfirm
-                        confirm-button-text="确定"
-                        cancel-button-text="取消"
-                        title="确定要删除吗？"
-                        @confirm="handleDelete(scope.$index, scope.row)"
-                      >
-                        <template #reference>
-                          <el-button type="danger" link> 删除 </el-button>
-                        </template>
-                      </el-popconfirm>
-                    </div>
-                  </template>
-                </el-table-column>
-              </el-table>
-            </client-only>
-          </div>
-
-          <!-- 新增/编辑规则对话框 -->
-          <el-dialog
-            v-model="dialogStatus"
-            :title="updatePermissionStatus ? '修改规则' : '新增规则'"
-            width="500px"
-            destroy-on-close
-          >
-            <el-form :model="permissionInfo" label-width="90px">
-              <el-form-item label="规则名称" required>
-                <el-input
-                  v-model="permissionInfo.name"
-                  placeholder="请输入规则名称"
-                />
-              </el-form-item>
-              <el-form-item label="规则地址" required>
-                <el-input
-                  v-model="permissionInfo.path"
-                  placeholder="请输入规则地址"
-                />
-              </el-form-item>
-              <el-form-item label="规则描述" required>
-                <el-input
-                  v-model="permissionInfo.description"
-                  type="textarea"
-                  :rows="3"
-                  placeholder="请输入规则描述"
-                />
-              </el-form-item>
-            </el-form>
-            <template #footer>
-              <div class="dialog-footer">
-                <el-button @click="dialogStatus = false">取消</el-button>
-                <el-button type="primary" @click="submit">{{
-                  updatePermissionStatus ? '修改' : '创建'
-                }}</el-button>
-              </div>
-            </template>
-          </el-dialog>
-
-          <!-- 绑定角色对话框 -->
-          <el-dialog
-            v-model="bindRoleDialogStatus"
-            title="绑定角色"
-            width="500px"
-            destroy-on-close
-          >
-            <el-form label-width="90px">
-              <el-form-item label="选择角色">
-                <el-select
-                  v-model="bindRoleInfo"
-                  multiple
-                  collapse-tags
-                  collapse-tags-tooltip
-                  placeholder="请选择要绑定的角色"
-                  class="full-width"
-                >
-                  <el-option
-                    v-for="item in roleList"
-                    :key="item.role_id"
-                    :label="item.role_name"
-                    :value="item.role_id"
-                  />
-                </el-select>
-              </el-form-item>
-            </el-form>
-            <template #footer>
-              <div class="dialog-footer">
-                <el-button @click="bindRoleDialogStatus = false"
-                  >取消</el-button
-                >
-                <el-button type="primary" @click="handlebindRoleSubmit"
-                  >确定</el-button
-                >
-              </div>
-            </template>
-          </el-dialog>
+  <div class="permissionlist-container" v-loading="loading">
+    <div class="permission-card">
+      <!-- 标题区域 -->
+      <div class="card-header">
+        <div class="header-left">
+          <el-icon class="icon">
+            <Lock />
+          </el-icon>
+          <span class="title">权限列表</span>
+        </div>
+        <div class="header-right">
+          <el-button type="primary" @click="dialogStatus = true">
+            <span>新增规则</span>
+          </el-button>
         </div>
       </div>
+
+      <!-- 表格区域 -->
+      <div class="table-container">
+        <client-only>
+          <el-table :data="tableData" style="width: 100%">
+            <el-table-column prop="id" label="ID" width="80" />
+            <el-table-column
+              prop="name"
+              label="规则名称"
+              width="200"
+              show-overflow-tooltip
+            />
+            <el-table-column
+              prop="path"
+              label="规则地址"
+              min-width="200"
+              show-overflow-tooltip
+            />
+            <el-table-column
+              prop="description"
+              label="描述"
+              min-width="200"
+              show-overflow-tooltip
+            />
+            <el-table-column width="200" fixed="right">
+              <template #default="scope">
+                <div class="table-actions">
+                  <el-button
+                    type="primary"
+                    link
+                    @click="handleEdit(scope.$index, scope.row)"
+                  >
+                    编辑
+                  </el-button>
+                  <el-button
+                    type="info"
+                    link
+                    @click="handleRole(scope.$index, scope.row)"
+                  >
+                    绑定角色
+                  </el-button>
+                  <el-popconfirm
+                    confirm-button-text="确定"
+                    cancel-button-text="取消"
+                    title="确定要删除吗？"
+                    @confirm="handleDelete(scope.$index, scope.row)"
+                  >
+                    <template #reference>
+                      <el-button type="danger" link> 删除 </el-button>
+                    </template>
+                  </el-popconfirm>
+                </div>
+              </template>
+            </el-table-column>
+          </el-table>
+        </client-only>
+      </div>
+
+      <!-- 新增/编辑规则对话框 -->
+      <el-dialog
+        v-model="dialogStatus"
+        :title="updatePermissionStatus ? '修改规则' : '新增规则'"
+        width="500px"
+        destroy-on-close
+      >
+        <el-form :model="permissionInfo" label-width="90px">
+          <el-form-item label="规则名称" required>
+            <el-input
+              v-model="permissionInfo.name"
+              placeholder="请输入规则名称"
+            />
+          </el-form-item>
+          <el-form-item label="规则地址" required>
+            <el-input
+              v-model="permissionInfo.path"
+              placeholder="请输入规则地址"
+            />
+          </el-form-item>
+          <el-form-item label="规则描述" required>
+            <el-input
+              v-model="permissionInfo.description"
+              type="textarea"
+              :rows="3"
+              placeholder="请输入规则描述"
+            />
+          </el-form-item>
+        </el-form>
+        <template #footer>
+          <div class="dialog-footer">
+            <el-button @click="dialogStatus = false">取消</el-button>
+            <el-button type="primary" @click="submit">{{
+              updatePermissionStatus ? '修改' : '创建'
+            }}</el-button>
+          </div>
+        </template>
+      </el-dialog>
+
+      <!-- 绑定角色对话框 -->
+      <el-dialog
+        v-model="bindRoleDialogStatus"
+        title="绑定角色"
+        width="500px"
+        destroy-on-close
+      >
+        <el-form label-width="90px">
+          <el-form-item label="选择角色">
+            <el-select
+              v-model="bindRoleInfo"
+              multiple
+              collapse-tags
+              collapse-tags-tooltip
+              placeholder="请选择要绑定的角色"
+              class="full-width"
+            >
+              <el-option
+                v-for="item in roleList"
+                :key="item.role_id"
+                :label="item.role_name"
+                :value="item.role_id"
+              />
+            </el-select>
+          </el-form-item>
+        </el-form>
+        <template #footer>
+          <div class="dialog-footer">
+            <el-button @click="bindRoleDialogStatus = false">取消</el-button>
+            <el-button type="primary" @click="handlebindRoleSubmit"
+              >确定</el-button
+            >
+          </div>
+        </template>
+      </el-dialog>
     </div>
   </div>
 </template>
 
 <style lang="less" scoped>
-.container {
+.permissionlist-container {
+  position: relative;
+  min-height: 100vh;
+  padding: 24px;
   display: flex;
-  background: #f5f7fa;
+  justify-content: center;
 
-  .right {
+  .permission-card {
     width: 100%;
-    min-width: 0;
-    .overlay {
-      position: absolute;
-      top: 0;
-      left: 0;
-      z-index: 998;
-      width: 100%;
-      height: 100%;
-      background-color: rgba(0, 0, 0, 0.5);
-    }
-    .control-sidebar {
-      position: absolute;
-      width: 35px;
-      height: 35px;
-      top: 10px;
-      left: 10px;
-      z-index: 9999;
-      text-align: center;
+    border-radius: 12px;
+    margin: 0 auto;
+
+    .card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 20px 24px;
       background: #fff;
-      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
-      .el-icon {
-        margin-top: 10px;
-        font-size: 16px;
+      border: 1px solid #eaecf0;
+      border-radius: 12px;
+      box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.03);
+      margin-bottom: 16px;
+
+      .header-left {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+
+        .icon {
+          font-size: 20px;
+          color: #4b5563;
+        }
+
+        .title {
+          font-size: 16px;
+          font-weight: 600;
+          color: #1a1f36;
+        }
+      }
+
+      .header-right {
+        .el-button {
+          display: flex;
+          align-items: center;
+          gap: 6px;
+        }
       }
     }
-    .permissionlist-container {
-      position: relative;
-      min-height: 100vh;
+
+    .table-container {
       padding: 24px;
-      display: flex;
-      justify-content: center;
+      background: #fff;
+      border: 1px solid #eaecf0;
+      border-radius: 12px;
+      box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.03);
 
-      .permission-card {
-        width: 100%;
-        border-radius: 12px;
-        margin: 0 auto;
+      :deep(.el-table) {
+        border: none;
 
-        .card-header {
-          display: flex;
-          justify-content: space-between;
-          align-items: center;
-          padding: 20px 24px;
-          background: #fff;
-          border: 1px solid #eaecf0;
-          border-radius: 12px;
-          box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.03);
-          margin-bottom: 16px;
-
-          .header-left {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-
-            .icon {
-              font-size: 20px;
-              color: #4b5563;
-            }
-
-            .title {
-              font-size: 16px;
-              font-weight: 600;
-              color: #1a1f36;
-            }
-          }
-
-          .header-right {
-            .el-button {
-              display: flex;
-              align-items: center;
-              gap: 6px;
-            }
+        .el-table__header-wrapper {
+          th {
+            background: #f8fafc;
+            color: #1f2937;
+            font-weight: 600;
           }
         }
+      }
 
-        .table-container {
-          padding: 24px;
-          background: #fff;
-          border: 1px solid #eaecf0;
-          border-radius: 12px;
-          box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.03);
-
-          :deep(.el-table) {
-            border: none;
-
-            .el-table__header-wrapper {
-              th {
-                background: #f8fafc;
-                color: #1f2937;
-                font-weight: 600;
-              }
-            }
-          }
-
-          .table-actions {
-            display: flex;
-            gap: 4px;
-            margin: 0;
-            padding: 0;
-          }
-        }
+      .table-actions {
+        display: flex;
+        gap: 4px;
+        margin: 0;
+        padding: 0;
       }
     }
   }

@@ -1,35 +1,11 @@
 <script setup>
-import { Search, Document, Menu } from '@element-plus/icons-vue'
+import { Search, Document } from '@element-plus/icons-vue'
 
 const { $msg, $myFetch } = useNuxtApp()
 
-// 控制左侧边栏显示隐藏
-// 获取页面宽度
-const screenWidth = ref(0)
-const isSidebarShow = ref(true)
-const iscontrolShow = ref(false)
-const isoverlay = ref(false)
-onMounted(() => {
-  screenWidth.value = document.body.clientWidth
-  document.body.style.overflow = ''
-
-  if (screenWidth.value < 768) {
-    iscontrolShow.value = true
-    isSidebarShow.value = false
-  }
+definePageMeta({
+  layout: 'admin',
 })
-
-const handleSidebarShow = () => {
-  isSidebarShow.value = !isSidebarShow.value
-  iscontrolShow.value = !iscontrolShow.value
-  isoverlay.value = !isoverlay.value
-  // 禁止页面滑动
-  if (isSidebarShow.value) {
-    document.body.style.overflow = 'hidden'
-  } else {
-    document.body.style.overflow = ''
-  }
-}
 
 // 当前页数
 const page = ref(1)
@@ -65,7 +41,7 @@ watch(
     setTimeout(() => {
       pageLoading.value = false
     }, 300)
-  }
+  },
 )
 
 const loading = ref(false)
@@ -362,282 +338,259 @@ useHead({
 </script>
 
 <template>
-  <div class="container">
-    <AdminSidebar v-show="isSidebarShow"></AdminSidebar>
-
-    <div class="right">
-      <!-- 遮罩层 -->
-      <div class="overlay" v-show="isoverlay" @click="handleSidebarShow"></div>
-      <!-- 侧边栏控制按钮 -->
-      <div class="control-sidebar" v-show="iscontrolShow">
-        <el-icon @click="handleSidebarShow"><Menu /></el-icon>
+  <div class="apilogs-container" v-loading="loading">
+    <div class="logs-card">
+      <!-- 搜索区域 -->
+      <div class="card-header">
+        <div class="header-left">
+          <el-icon class="icon">
+            <Document />
+          </el-icon>
+          <span class="title">接口日志</span>
+        </div>
+        <div class="header-right">
+          <el-pagination
+            v-model:current-page="page"
+            :page-count="maxPage"
+            :disabled="pageLoading"
+            :pager-count="5"
+            size="small"
+            background
+            layout="prev, pager, next"
+            @current-change="getData"
+          />
+        </div>
       </div>
-      <AdminHeader></AdminHeader>
-      <div class="apilogs-container" v-loading="loading">
-        <div class="logs-card">
-          <!-- 搜索区域 -->
-          <div class="card-header">
-            <div class="header-left">
-              <el-icon class="icon">
-                <Document />
-              </el-icon>
-              <span class="title">接口日志</span>
+
+      <!-- 统计区域 -->
+      <div class="stats-overview">
+        <el-row :gutter="20">
+          <el-col :span="6">
+            <div class="stat-item">
+              <div class="stat-label">近1天调用</div>
+              <div class="stat-value">{{ callStats.day1 }}</div>
             </div>
-            <div class="header-right">
-              <el-pagination
-                v-model:page-size="pageSize"
-                :page-sizes="[100, 200, 300, 400]"
-                :pager-count="11"
-                :page-count="maxPage"
-                v-model:current-page="page"
-                :disabled="pageLoading"
-                size="small"
-                background
-                layout="sizes, prev, pager, next, jumper"
-                @size-change="getData"
+          </el-col>
+          <el-col :span="6">
+            <div class="stat-item">
+              <div class="stat-label">近3天调用</div>
+              <div class="stat-value">{{ callStats.day3 }}</div>
+            </div>
+          </el-col>
+          <el-col :span="6">
+            <div class="stat-item">
+              <div class="stat-label">近7天调用</div>
+              <div class="stat-value">{{ callStats.day7 }}</div>
+            </div>
+          </el-col>
+          <el-col :span="6">
+            <div class="stat-item">
+              <div class="stat-label">近30天调用</div>
+              <div class="stat-value">{{ callStats.month1 }}</div>
+            </div>
+          </el-col>
+        </el-row>
+
+        <!-- 接口调用排行 -->
+        <div class="top-apis-section" v-if="topApis.length > 0">
+          <div class="section-title">常用接口 Top 5</div>
+          <div class="top-api-list">
+            <div
+              v-for="(api, index) in topApis"
+              :key="index"
+              class="top-api-item"
+            >
+              <div class="api-info">
+                <span class="api-name">{{ api.name }}</span>
+                <span class="api-count">{{ api.count }}次</span>
+              </div>
+              <el-progress
+                :percentage="api.percentage"
+                :show-text="false"
+                :stroke-width="8"
+                :color="
+                  index === 0 ? '#f56c6c' : index === 1 ? '#e6a23c' : '#409eff'
+                "
               />
             </div>
           </div>
+        </div>
+      </div>
 
-          <!-- 统计区域 -->
-          <div class="stats-overview">
-            <el-row :gutter="20">
-              <el-col :span="6">
-                <div class="stat-item">
-                  <div class="stat-label">近1天调用</div>
-                  <div class="stat-value">{{ callStats.day1 }}</div>
-                </div>
-              </el-col>
-              <el-col :span="6">
-                <div class="stat-item">
-                  <div class="stat-label">近3天调用</div>
-                  <div class="stat-value">{{ callStats.day3 }}</div>
-                </div>
-              </el-col>
-              <el-col :span="6">
-                <div class="stat-item">
-                  <div class="stat-label">近7天调用</div>
-                  <div class="stat-value">{{ callStats.day7 }}</div>
-                </div>
-              </el-col>
-              <el-col :span="6">
-                <div class="stat-item">
-                  <div class="stat-label">近30天调用</div>
-                  <div class="stat-value">{{ callStats.month1 }}</div>
-                </div>
-              </el-col>
-            </el-row>
-
-            <!-- 接口调用排行 -->
-            <div class="top-apis-section" v-if="topApis.length > 0">
-              <div class="section-title">常用接口 Top 5</div>
-              <div class="top-api-list">
-                <div
-                  v-for="(api, index) in topApis"
-                  :key="index"
-                  class="top-api-item"
-                >
-                  <div class="api-info">
-                    <span class="api-name">{{ api.name }}</span>
-                    <span class="api-count">{{ api.count }}次</span>
-                  </div>
-                  <el-progress
-                    :percentage="api.percentage"
-                    :show-text="false"
-                    :stroke-width="8"
-                    :color="
-                      index === 0
-                        ? '#f56c6c'
-                        : index === 1
-                        ? '#e6a23c'
-                        : '#409eff'
-                    "
-                  />
-                </div>
-              </div>
-            </div>
+      <!-- 搜索工具栏 -->
+      <div class="search-toolbar">
+        <div class="search-row">
+          <div class="search-input id-search">
+            <span class="label">请求ID：</span>
+            <el-input v-model="searchId" placeholder="请输入请求ID" clearable>
+              <template #prefix>
+                <el-icon>
+                  <Search />
+                </el-icon>
+              </template>
+            </el-input>
           </div>
-
-          <!-- 搜索工具栏 -->
-          <div class="search-toolbar">
-            <div class="search-row">
-              <div class="search-input id-search">
-                <span class="label">请求ID：</span>
-                <el-input
-                  v-model="searchId"
-                  placeholder="请输入请求ID"
-                  clearable
-                >
-                  <template #prefix>
-                    <el-icon>
-                      <Search />
-                    </el-icon>
-                  </template>
-                </el-input>
-              </div>
-            </div>
-            <div class="search-items">
-              <div class="date-picker">
-                <span class="label">选择时间：</span>
-                <el-date-picker
-                  v-model="searchTime"
-                  type="datetimerange"
-                  range-separator="至"
-                  start-placeholder="起始时间"
-                  end-placeholder="结束时间"
-                  :disabled-date="disabledDate"
-                  value-format="x"
-                />
-              </div>
-              <div class="search-input">
-                <el-input
-                  v-model="searchIp"
-                  placeholder="请输入IP地址"
-                  clearable
-                >
-                  <template #prefix>
-                    <el-icon>
-                      <Search />
-                    </el-icon>
-                  </template>
-                </el-input>
-              </div>
-              <div class="search-input">
-                <el-autocomplete
-                  v-model="searchAlias"
-                  :fetch-suggestions="querySearchAsync"
-                  placeholder="请输入接口名称"
-                  clearable
-                  class="full-width"
-                  @select="handleSearchSelect"
-                >
-                  <template #prefix>
-                    <el-icon>
-                      <Search />
-                    </el-icon>
-                  </template>
-                </el-autocomplete>
-              </div>
-              <div class="search-input">
-                <el-input
-                  v-model="searchStatusCode"
-                  placeholder="请输入状态码"
-                  clearable
-                >
-                  <template #prefix>
-                    <el-icon>
-                      <Search />
-                    </el-icon>
-                  </template>
-                </el-input>
-              </div>
-              <div class="search-buttons">
-                <el-button type="primary" @click="handleSearch(1)"
-                  >查询</el-button
-                >
-                <el-button @click="handleReset">重置</el-button>
-              </div>
-            </div>
+        </div>
+        <div class="search-items">
+          <div class="date-picker">
+            <span class="label">选择时间：</span>
+            <el-date-picker
+              v-model="searchTime"
+              type="datetimerange"
+              range-separator="至"
+              start-placeholder="起始时间"
+              end-placeholder="结束时间"
+              :disabled-date="disabledDate"
+              value-format="x"
+            />
           </div>
-
-          <!-- 表格区域 -->
-          <div class="table-container">
-            <client-only>
-              <el-table
-                :data="tableData"
-                style="width: 100%"
-                v-loading="pageLoading"
-              >
-                <el-table-column prop="key" label="序号" width="60" />
-                <el-table-column
-                  prop="id"
-                  label="请求ID"
-                  min-width="180"
-                  show-overflow-tooltip
-                />
-                <el-table-column
-                  prop="uid"
-                  label="用户ID"
-                  width="100"
-                  show-overflow-tooltip
-                />
-                <el-table-column
-                  prop="username"
-                  label="用户名"
-                  width="120"
-                  show-overflow-tooltip
-                />
-                <el-table-column
-                  prop="alias"
-                  label="接口名称"
-                  width="120"
-                  show-overflow-tooltip
-                />
-                <el-table-column prop="method" label="请求方法" width="90">
-                  <template #default="scope">
-                    <el-tag
-                      :type="scope.row.method === 'GET' ? 'success' : 'warning'"
-                      size="small"
-                    >
-                      {{ scope.row.method }}
-                    </el-tag>
-                  </template>
-                </el-table-column>
-                <el-table-column
-                  prop="path"
-                  label="请求路径"
-                  min-width="200"
-                  show-overflow-tooltip
-                />
-                <el-table-column
-                  prop="response_time"
-                  label="响应时间"
-                  width="90"
-                />
-                <el-table-column prop="status_code" label="状态码" width="80">
-                  <template #default="scope">
-                    <el-tag
-                      :type="
-                        scope.row.status_code === 200
-                          ? 'success'
-                          : scope.row.status_code === 302 ||
-                            scope.row.status_code === 301
-                          ? 'primary'
-                          : 'danger'
-                      "
-                      size="small"
-                    >
-                      {{ scope.row.status_code }}
-                    </el-tag>
-                  </template>
-                </el-table-column>
-                <el-table-column prop="client_ip" label="IP" width="140" />
-                <el-table-column
-                  prop="address"
-                  label="归属地"
-                  width="130"
-                  show-overflow-tooltip
-                />
-                <el-table-column
-                  prop="timestamp"
-                  label="请求时间"
-                  width="180"
-                />
-                <el-table-column
-                  prop="ua"
-                  label="User Agent"
-                  min-width="200"
-                  show-overflow-tooltip
-                />
-                <el-table-column
-                  prop="referer"
-                  label="来源"
-                  min-width="180"
-                  show-overflow-tooltip
-                />
-              </el-table>
-            </client-only>
+          <div class="search-input">
+            <el-input v-model="searchIp" placeholder="请输入IP地址" clearable>
+              <template #prefix>
+                <el-icon>
+                  <Search />
+                </el-icon>
+              </template>
+            </el-input>
           </div>
+          <div class="search-input">
+            <el-autocomplete
+              v-model="searchAlias"
+              :fetch-suggestions="querySearchAsync"
+              placeholder="请输入接口名称"
+              clearable
+              class="full-width"
+              @select="handleSearchSelect"
+            >
+              <template #prefix>
+                <el-icon>
+                  <Search />
+                </el-icon>
+              </template>
+            </el-autocomplete>
+          </div>
+          <div class="search-input">
+            <el-input
+              v-model="searchStatusCode"
+              placeholder="请输入状态码"
+              clearable
+            >
+              <template #prefix>
+                <el-icon>
+                  <Search />
+                </el-icon>
+              </template>
+            </el-input>
+          </div>
+          <div class="search-buttons">
+            <el-button type="primary" @click="handleSearch(1)">查询</el-button>
+            <el-button @click="handleReset">重置</el-button>
+          </div>
+        </div>
+      </div>
+
+      <!-- 表格区域 -->
+      <div class="table-container">
+        <client-only>
+          <el-table
+            :data="tableData"
+            style="width: 100%"
+            v-loading="pageLoading"
+          >
+            <el-table-column prop="key" label="序号" width="60" />
+            <el-table-column
+              prop="id"
+              label="请求ID"
+              min-width="180"
+              show-overflow-tooltip
+            />
+            <el-table-column
+              prop="uid"
+              label="用户ID"
+              width="100"
+              show-overflow-tooltip
+            />
+            <el-table-column
+              prop="username"
+              label="用户名"
+              width="120"
+              show-overflow-tooltip
+            />
+            <el-table-column
+              prop="alias"
+              label="接口名称"
+              width="120"
+              show-overflow-tooltip
+            />
+            <el-table-column prop="method" label="请求方法" width="90">
+              <template #default="scope">
+                <el-tag
+                  :type="scope.row.method === 'GET' ? 'success' : 'warning'"
+                  size="small"
+                >
+                  {{ scope.row.method }}
+                </el-tag>
+              </template>
+            </el-table-column>
+            <el-table-column
+              prop="path"
+              label="请求路径"
+              min-width="200"
+              show-overflow-tooltip
+            />
+            <el-table-column prop="response_time" label="响应时间" width="90" />
+            <el-table-column prop="status_code" label="状态码" width="80">
+              <template #default="scope">
+                <el-tag
+                  :type="
+                    scope.row.status_code === 200
+                      ? 'success'
+                      : scope.row.status_code === 302 ||
+                          scope.row.status_code === 301
+                        ? 'primary'
+                        : 'danger'
+                  "
+                  size="small"
+                >
+                  {{ scope.row.status_code }}
+                </el-tag>
+              </template>
+            </el-table-column>
+            <el-table-column prop="client_ip" label="IP" width="140" />
+            <el-table-column
+              prop="address"
+              label="归属地"
+              width="130"
+              show-overflow-tooltip
+            />
+            <el-table-column prop="timestamp" label="请求时间" width="180" />
+            <el-table-column
+              prop="ua"
+              label="User Agent"
+              min-width="200"
+              show-overflow-tooltip
+            />
+            <el-table-column
+              prop="referer"
+              label="来源"
+              min-width="180"
+              show-overflow-tooltip
+            />
+          </el-table>
+        </client-only>
+        <div class="pagination-container">
+          <el-pagination
+            v-model:page-size="pageSize"
+            :page-sizes="[100, 200, 300, 400]"
+            :pager-count="5"
+            :page-count="maxPage"
+            v-model:current-page="page"
+            :disabled="pageLoading"
+            size="small"
+            background
+            layout="sizes, prev, pager, next, jumper"
+            @size-change="getData"
+          />
         </div>
       </div>
     </div>
@@ -645,168 +598,144 @@ useHead({
 </template>
 
 <style lang="less" scoped>
-.container {
+.apilogs-container {
+  position: relative;
+  min-height: 100vh;
+  padding: 24px;
   display: flex;
+  justify-content: center;
   background: #f5f7fa;
 
-  .right {
+  .logs-card {
     width: 100%;
-    min-width: 0;
-    .overlay {
-      position: absolute;
-      top: 0;
-      left: 0;
-      z-index: 998;
-      width: 100%;
-      height: 100%;
-      background-color: rgba(0, 0, 0, 0.5);
-    }
-    .control-sidebar {
-      position: absolute;
-      width: 35px;
-      height: 35px;
-      top: 10px;
-      left: 10px;
-      z-index: 9999;
-      text-align: center;
+    border-radius: 12px;
+    margin: 0 auto;
+
+    .card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 20px 24px;
       background: #fff;
-      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
-      .el-icon {
-        margin-top: 10px;
-        font-size: 16px;
+      border: 1px solid #eaecf0;
+      border-radius: 12px;
+      box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.03);
+      margin-bottom: 16px;
+      flex-wrap: wrap;
+      gap: 10px;
+
+      .header-left {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+
+        .icon {
+          font-size: 20px;
+          color: #4b5563;
+        }
+
+        .title {
+          font-size: 16px;
+          font-weight: 600;
+          color: #1a1f36;
+        }
       }
     }
-    .apilogs-container {
-      position: relative;
-      min-height: 100vh;
-      padding: 24px;
-      display: flex;
-      justify-content: center;
 
-      .logs-card {
-        width: 100%;
-        border-radius: 12px;
-        margin: 0 auto;
+    .search-toolbar {
+      background: #fff;
+      border: 1px solid #eaecf0;
+      border-radius: 12px;
+      box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.03);
+      padding: 20px 24px;
+      margin-bottom: 16px;
 
-        .card-header {
+      .search-row {
+        display: flex;
+        align-items: center;
+        gap: 16px;
+        flex-wrap: wrap;
+        margin-bottom: 16px;
+        padding-bottom: 16px;
+        border-bottom: 1px dashed #e2e8f0;
+
+        .id-search {
           display: flex;
-          justify-content: space-between;
           align-items: center;
-          padding: 20px 24px;
-          background: #fff;
-          border: 1px solid #eaecf0;
-          border-radius: 12px;
-          box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.03);
-          margin-bottom: 16px;
+          width: 100%;
 
-          .header-left {
-            display: flex;
-            align-items: center;
-            gap: 12px;
+          .label {
+            color: #374151;
+            font-size: 14px;
+            margin-right: 8px;
+            white-space: nowrap;
+          }
 
-            .icon {
-              font-size: 20px;
-              color: #4b5563;
-            }
+          .el-input {
+            flex: 1;
+          }
+        }
+      }
 
-            .title {
-              font-size: 16px;
-              font-weight: 600;
-              color: #1a1f36;
-            }
+      .search-items {
+        display: flex;
+        align-items: center;
+        gap: 16px;
+        flex-wrap: wrap;
+
+        .date-picker {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+
+          .label {
+            color: #374151;
+            font-size: 14px;
           }
         }
 
-        .search-toolbar {
-          background: #fff;
-          border: 1px solid #eaecf0;
-          border-radius: 12px;
-          box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.03);
-          padding: 20px 24px;
-          margin-bottom: 16px;
+        .search-input {
+          width: 220px;
 
-          .search-row {
-            display: flex;
-            align-items: center;
-            gap: 16px;
-            flex-wrap: wrap;
-            margin-bottom: 16px;
-            padding-bottom: 16px;
-            border-bottom: 1px dashed #e2e8f0;
-
-            .id-search {
-              display: flex;
-              align-items: center;
-              width: 100%;
-
-              .label {
-                color: #374151;
-                font-size: 14px;
-                margin-right: 8px;
-                white-space: nowrap;
-              }
-
-              .el-input {
-                flex: 1;
-              }
-            }
+          :deep(.el-autocomplete) {
+            width: 100%;
           }
 
-          .search-items {
-            display: flex;
-            align-items: center;
-            gap: 16px;
-            flex-wrap: wrap;
-
-            .date-picker {
-              display: flex;
-              align-items: center;
-              gap: 8px;
-
-              .label {
-                color: #374151;
-                font-size: 14px;
-              }
-            }
-
-            .search-input {
-              width: 220px;
-
-              :deep(.el-autocomplete) {
-                width: 100%;
-              }
-
-              .full-width {
-                width: 100%;
-              }
-            }
-
-            .search-buttons {
-              display: flex;
-              gap: 8px;
-            }
+          .full-width {
+            width: 100%;
           }
         }
 
-        .table-container {
-          padding: 24px;
-          background: #fff;
-          border: 1px solid #eaecf0;
-          border-radius: 12px;
-          box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.03);
+        .search-buttons {
+          display: flex;
+          gap: 8px;
+        }
+      }
+    }
 
-          :deep(.el-table) {
-            border: none;
+    .table-container {
+      padding: 24px;
+      background: #fff;
+      border: 1px solid #eaecf0;
+      border-radius: 12px;
+      box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.03);
 
-            .el-table__header-wrapper {
-              th {
-                background: #f8fafc;
-                color: #1f2937;
-                font-weight: 600;
-              }
-            }
+      :deep(.el-table) {
+        border: none;
+
+        .el-table__header-wrapper {
+          th {
+            background: #f8fafc;
+            color: #1f2937;
+            font-weight: 600;
           }
         }
+      }
+
+      .pagination-container {
+        margin-top: 20px;
+        display: flex;
+        justify-content: flex-end;
       }
     }
   }
@@ -814,10 +743,16 @@ useHead({
 
 // 响应式设计
 @media screen and (max-width: 1200px) {
-  .container .right .apilogs-container {
+  .apilogs-container {
     padding: 16px;
 
     .logs-card {
+      .card-header {
+        .header-right {
+          display: none;
+        }
+      }
+
       .search-toolbar {
         .search-items {
           gap: 12px;
@@ -828,7 +763,7 @@ useHead({
 }
 
 @media screen and (max-width: 768px) {
-  .container .right .apilogs-container {
+  .apilogs-container {
     padding: 12px;
 
     .logs-card {
@@ -840,12 +775,34 @@ useHead({
           align-items: stretch;
           gap: 12px;
 
+          .date-picker {
+            flex-direction: column;
+            align-items: flex-start;
+
+            :deep(.el-date-editor) {
+              width: 100%;
+              box-sizing: border-box;
+            }
+          }
+
           .search-input {
             width: 100%;
           }
 
           .search-buttons {
             justify-content: flex-end;
+          }
+        }
+      }
+
+      .table-container {
+        .pagination-container {
+          justify-content: center;
+
+          :deep(.el-pagination) {
+            flex-wrap: wrap;
+            justify-content: center;
+            row-gap: 10px;
           }
         }
       }

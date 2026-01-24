@@ -44,7 +44,9 @@ useHead({
 
 <template>
   <el-config-provider :locale="zhCn">
-    <NuxtPage :options="options"></NuxtPage>
+    <NuxtLayout>
+      <NuxtPage :options="options"></NuxtPage>
+    </NuxtLayout>
   </el-config-provider>
   <el-backtop :right="100" :bottom="100" />
 </template>

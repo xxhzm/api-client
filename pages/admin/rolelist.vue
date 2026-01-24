@@ -1,35 +1,14 @@
 <script setup>
-import { UserFilled, Menu } from '@element-plus/icons-vue'
+import { UserFilled } from '@element-plus/icons-vue'
+definePageMeta({
+  layout: 'admin',
+})
 const { $myFetch } = useNuxtApp()
 const { $msg } = useNuxtApp()
 
-// 控制左侧边栏显示隐藏
-// 获取页面宽度
-const screenWidth = ref(0)
-const isSidebarShow = ref(true)
-const iscontrolShow = ref(false)
-const isoverlay = ref(false)
 onMounted(() => {
-  screenWidth.value = document.body.clientWidth
-  document.body.style.overflow = ''
-
-  if (screenWidth.value < 768) {
-    iscontrolShow.value = true
-    isSidebarShow.value = false
-  }
+  //
 })
-
-const handleSidebarShow = () => {
-  isSidebarShow.value = !isSidebarShow.value
-  iscontrolShow.value = !iscontrolShow.value
-  isoverlay.value = !isoverlay.value
-  // 禁止页面滑动
-  if (isSidebarShow.value) {
-    document.body.style.overflow = 'hidden'
-  } else {
-    document.body.style.overflow = ''
-  }
-}
 
 const loading = ref(false)
 const tableData = ref([])
@@ -196,276 +175,226 @@ useHead({
 </script>
 
 <template>
-  <div class="container">
-    <AdminSidebar v-show="isSidebarShow"></AdminSidebar>
-
-    <div class="right">
-      <!-- 遮罩层 -->
-      <div class="overlay" v-show="isoverlay" @click="handleSidebarShow"></div>
-      <!-- 侧边栏控制按钮 -->
-      <div class="control-sidebar" v-show="iscontrolShow">
-        <el-icon @click="handleSidebarShow"><Menu /></el-icon>
-      </div>
-      <AdminHeader></AdminHeader>
-      <div class="rolelist-container" v-loading="loading">
-        <div class="role-card">
-          <!-- 标题区域 -->
-          <div class="card-header">
-            <div class="header-left">
-              <el-icon class="icon">
-                <UserFilled />
-              </el-icon>
-              <span class="title">角色列表</span>
-            </div>
-            <div class="header-right">
-              <el-button type="primary" @click="dialogStatus = true">
-                <span>新增角色</span>
-              </el-button>
-            </div>
-          </div>
-
-          <!-- 表格区域 -->
-          <div class="table-container">
-            <client-only>
-              <el-table :data="tableData" style="width: 100%">
-                <el-table-column prop="role_id" label="ID" width="80" />
-                <el-table-column
-                  prop="role_name"
-                  label="角色名称"
-                  width="150"
-                />
-                <el-table-column
-                  prop="description"
-                  label="描述"
-                  min-width="200"
-                  show-overflow-tooltip
-                />
-                <el-table-column prop="status" label="状态" width="100">
-                  <template #default="scope">
-                    <el-tag
-                      :type="scope.row.status === '启用' ? 'success' : 'danger'"
-                      size="small"
-                    >
-                      {{ scope.row.status }}
-                    </el-tag>
-                  </template>
-                </el-table-column>
-                <el-table-column width="200" fixed="right">
-                  <template #default="scope">
-                    <div class="table-actions">
-                      <el-button
-                        type="primary"
-                        link
-                        @click="handleEdit(scope.$index, scope.row)"
-                      >
-                        编辑
-                      </el-button>
-                      <el-button
-                        type="info"
-                        link
-                        @click="
-                          handleRoleBindPermissionList(scope.$index, scope.row)
-                        "
-                      >
-                        权限
-                      </el-button>
-                      <el-popconfirm
-                        confirm-button-text="确定"
-                        cancel-button-text="取消"
-                        title="确定要删除吗？"
-                        @confirm="handleDelete(scope.$index, scope.row)"
-                      >
-                        <template #reference>
-                          <el-button type="danger" link> 删除 </el-button>
-                        </template>
-                      </el-popconfirm>
-                    </div>
-                  </template>
-                </el-table-column>
-              </el-table>
-            </client-only>
-          </div>
-
-          <!-- 新增/编辑角色对话框 -->
-          <el-dialog
-            v-model="dialogStatus"
-            :title="updateRoleStatus ? '修改角色' : '新增角色'"
-            width="500px"
-            destroy-on-close
-          >
-            <el-form :model="roleInfo" label-width="90px">
-              <el-form-item label="角色名称" required>
-                <el-input
-                  v-model="roleInfo.role_name"
-                  placeholder="请输入角色名称"
-                />
-              </el-form-item>
-              <el-form-item label="角色描述" required>
-                <el-input
-                  v-model="roleInfo.description"
-                  type="textarea"
-                  :rows="3"
-                  placeholder="请输入角色描述"
-                />
-              </el-form-item>
-              <el-form-item label="角色状态" required>
-                <el-select
-                  v-model="roleInfo.status"
-                  placeholder="请选择角色状态"
-                  class="full-width"
-                >
-                  <el-option label="启用" value="启用" />
-                  <el-option label="停用" value="停用" />
-                </el-select>
-              </el-form-item>
-            </el-form>
-            <template #footer>
-              <div class="dialog-footer">
-                <el-button @click="dialogStatus = false">取消</el-button>
-                <el-button type="primary" @click="submit">{{
-                  updateRoleStatus ? '修改' : '创建'
-                }}</el-button>
-              </div>
-            </template>
-          </el-dialog>
-
-          <!-- 权限列表对话框 -->
-          <el-dialog
-            v-model="userBindRoleListStatus"
-            title="权限列表"
-            width="750px"
-            destroy-on-close
-          >
-            <el-table :data="userBindRoleList">
-              <el-table-column prop="id" label="ID" width="80" />
-              <el-table-column prop="name" label="权限名称" width="200" />
-              <el-table-column
-                prop="path"
-                label="权限路径"
-                width="200"
-                show-overflow-tooltip
-              />
-              <el-table-column
-                prop="description"
-                label="权限描述"
-                min-width="200"
-                show-overflow-tooltip
-              />
-            </el-table>
-          </el-dialog>
+  <div class="rolelist-container" v-loading="loading">
+    <div class="role-card">
+      <!-- 标题区域 -->
+      <div class="card-header">
+        <div class="header-left">
+          <el-icon class="icon">
+            <UserFilled />
+          </el-icon>
+          <span class="title">角色列表</span>
+        </div>
+        <div class="header-right">
+          <el-button type="primary" @click="dialogStatus = true">
+            <span>新增角色</span>
+          </el-button>
         </div>
       </div>
+
+      <!-- 表格区域 -->
+      <div class="table-container">
+        <client-only>
+          <el-table :data="tableData" style="width: 100%">
+            <el-table-column prop="role_id" label="ID" width="80" />
+            <el-table-column prop="role_name" label="角色名称" width="150" />
+            <el-table-column
+              prop="description"
+              label="描述"
+              min-width="200"
+              show-overflow-tooltip
+            />
+            <el-table-column prop="status" label="状态" width="100">
+              <template #default="scope">
+                <el-tag
+                  :type="scope.row.status === '启用' ? 'success' : 'danger'"
+                  size="small"
+                >
+                  {{ scope.row.status }}
+                </el-tag>
+              </template>
+            </el-table-column>
+            <el-table-column width="200" fixed="right">
+              <template #default="scope">
+                <div class="table-actions">
+                  <el-button
+                    type="primary"
+                    link
+                    @click="handleEdit(scope.$index, scope.row)"
+                  >
+                    编辑
+                  </el-button>
+                  <el-button
+                    type="info"
+                    link
+                    @click="
+                      handleRoleBindPermissionList(scope.$index, scope.row)
+                    "
+                  >
+                    权限
+                  </el-button>
+                  <el-popconfirm
+                    confirm-button-text="确定"
+                    cancel-button-text="取消"
+                    title="确定要删除吗？"
+                    @confirm="handleDelete(scope.$index, scope.row)"
+                  >
+                    <template #reference>
+                      <el-button type="danger" link> 删除 </el-button>
+                    </template>
+                  </el-popconfirm>
+                </div>
+              </template>
+            </el-table-column>
+          </el-table>
+        </client-only>
+      </div>
+
+      <!-- 新增/编辑角色对话框 -->
+      <el-dialog
+        v-model="dialogStatus"
+        :title="updateRoleStatus ? '修改角色' : '新增角色'"
+        width="500px"
+        destroy-on-close
+      >
+        <el-form :model="roleInfo" label-width="90px">
+          <el-form-item label="角色名称" required>
+            <el-input
+              v-model="roleInfo.role_name"
+              placeholder="请输入角色名称"
+            />
+          </el-form-item>
+          <el-form-item label="角色描述" required>
+            <el-input
+              v-model="roleInfo.description"
+              type="textarea"
+              :rows="3"
+              placeholder="请输入角色描述"
+            />
+          </el-form-item>
+          <el-form-item label="角色状态" required>
+            <el-select
+              v-model="roleInfo.status"
+              placeholder="请选择角色状态"
+              class="full-width"
+            >
+              <el-option label="启用" value="启用" />
+              <el-option label="停用" value="停用" />
+            </el-select>
+          </el-form-item>
+        </el-form>
+        <template #footer>
+          <div class="dialog-footer">
+            <el-button @click="dialogStatus = false">取消</el-button>
+            <el-button type="primary" @click="submit">{{
+              updateRoleStatus ? '修改' : '创建'
+            }}</el-button>
+          </div>
+        </template>
+      </el-dialog>
+
+      <!-- 权限列表对话框 -->
+      <el-dialog
+        v-model="userBindRoleListStatus"
+        title="权限列表"
+        width="750px"
+        destroy-on-close
+      >
+        <el-table :data="userBindRoleList">
+          <el-table-column prop="id" label="ID" width="80" />
+          <el-table-column prop="name" label="权限名称" width="200" />
+          <el-table-column
+            prop="path"
+            label="权限路径"
+            width="200"
+            show-overflow-tooltip
+          />
+          <el-table-column
+            prop="description"
+            label="权限描述"
+            min-width="200"
+            show-overflow-tooltip
+          />
+        </el-table>
+      </el-dialog>
     </div>
   </div>
 </template>
 
 <style lang="less" scoped>
-.container {
+.rolelist-container {
+  position: relative;
+  min-height: 100vh;
+  padding: 24px;
   display: flex;
-  background: #f5f7fa;
+  justify-content: center;
 
-  .right {
+  .role-card {
     width: 100%;
-    min-width: 0;
-    .overlay {
-      position: absolute;
-      top: 0;
-      left: 0;
-      z-index: 998;
-      width: 100%;
-      height: 100%;
-      background-color: rgba(0, 0, 0, 0.5);
-    }
-    .control-sidebar {
-      position: absolute;
-      width: 35px;
-      height: 35px;
-      top: 10px;
-      left: 10px;
-      z-index: 9999;
-      text-align: center;
+    border-radius: 12px;
+    margin: 0 auto;
+
+    .card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 20px 24px;
       background: #fff;
-      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
-      .el-icon {
-        margin-top: 10px;
-        font-size: 16px;
+      border: 1px solid #eaecf0;
+      border-radius: 12px;
+      box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.03);
+      margin-bottom: 16px;
+
+      .header-left {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+
+        .icon {
+          font-size: 20px;
+          color: #4b5563;
+        }
+
+        .title {
+          font-size: 16px;
+          font-weight: 600;
+          color: #1a1f36;
+        }
+      }
+
+      .header-right {
+        .el-button {
+          display: flex;
+          align-items: center;
+          gap: 6px;
+        }
       }
     }
-    .rolelist-container {
-      position: relative;
-      min-height: 100vh;
+
+    .table-container {
       padding: 24px;
-      display: flex;
-      justify-content: center;
+      background: #fff;
+      border: 1px solid #eaecf0;
+      border-radius: 12px;
+      box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.03);
 
-      .role-card {
-        width: 100%;
-        border-radius: 12px;
-        margin: 0 auto;
+      :deep(.el-table) {
+        border: none;
 
-        .card-header {
-          display: flex;
-          justify-content: space-between;
-          align-items: center;
-          padding: 20px 24px;
-          background: #fff;
-          border: 1px solid #eaecf0;
-          border-radius: 12px;
-          box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.03);
-          margin-bottom: 16px;
-
-          .header-left {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-
-            .icon {
-              font-size: 20px;
-              color: #4b5563;
-            }
-
-            .title {
-              font-size: 16px;
-              font-weight: 600;
-              color: #1a1f36;
-            }
-          }
-
-          .header-right {
-            .el-button {
-              display: flex;
-              align-items: center;
-              gap: 6px;
-            }
+        .el-table__header-wrapper {
+          th {
+            background: #f8fafc;
+            color: #1f2937;
+            font-weight: 600;
           }
         }
+      }
 
-        .table-container {
-          padding: 24px;
-          background: #fff;
-          border: 1px solid #eaecf0;
-          border-radius: 12px;
-          box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.03);
-
-          :deep(.el-table) {
-            border: none;
-
-            .el-table__header-wrapper {
-              th {
-                background: #f8fafc;
-                color: #1f2937;
-                font-weight: 600;
-              }
-            }
-          }
-
-          .table-actions {
-            display: flex;
-            gap: 4px;
-            margin: 0;
-            padding: 0;
-          }
-        }
+      .table-actions {
+        display: flex;
+        gap: 4px;
+        margin: 0;
+        padding: 0;
       }
     }
   }

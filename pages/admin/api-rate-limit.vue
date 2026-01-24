@@ -1,33 +1,10 @@
 <script setup>
-import { Menu, Warning, Clock, Remove, Timer } from '@element-plus/icons-vue'
+import { Warning, Clock, Remove, Timer } from '@element-plus/icons-vue'
 const { $msg, $myFetch } = useNuxtApp()
 
-// 控制左侧边栏显示隐藏
-const screenWidth = ref(0)
-const isSidebarShow = ref(true)
-const iscontrolShow = ref(false)
-const isoverlay = ref(false)
-onMounted(() => {
-  screenWidth.value = document.body.clientWidth
-  document.body.style.overflow = ''
-
-  if (screenWidth.value < 768) {
-    iscontrolShow.value = true
-    isSidebarShow.value = false
-  }
+definePageMeta({
+  layout: 'admin',
 })
-
-const handleSidebarShow = () => {
-  isSidebarShow.value = !isSidebarShow.value
-  iscontrolShow.value = !iscontrolShow.value
-  isoverlay.value = !isoverlay.value
-
-  if (isSidebarShow.value) {
-    document.body.style.overflow = 'hidden'
-  } else {
-    document.body.style.overflow = ''
-  }
-}
 
 // 限频规则信息
 const loading = ref(false)
@@ -132,235 +109,185 @@ useHead({
 </script>
 
 <template>
-  <div class="container">
-    <AdminSidebar v-show="isSidebarShow"></AdminSidebar>
-
-    <div class="right">
-      <!-- 遮罩层 -->
-      <div class="overlay" v-show="isoverlay" @click="handleSidebarShow"></div>
-      <!-- 侧边栏控制按钮 -->
-      <div class="control-sidebar" v-show="iscontrolShow">
-        <el-icon @click="handleSidebarShow"><Menu /></el-icon>
-      </div>
-      <AdminHeader></AdminHeader>
-      <div class="ratelimit_container">
-        <div class="cont">
-          <div class="card-header">
-            <div class="header-left">
-              <el-icon class="icon"><Timer /></el-icon>
-              <span class="title">接口限频设置</span>
-            </div>
-          </div>
-
-          <div class="tip-description">
-            设置全站API接口的访问频率限制，当用户请求频率超出限制时，系统将自动拉黑IP一段时间。
-          </div>
-
-          <el-form :model="limitInfo" label-position="top" v-loading="loading">
-            <!-- 限制次数 -->
-            <el-form-item label="限制次数">
-              <el-input
-                v-model="limitInfo.RequestLimit"
-                placeholder="请输入单位时间内最大请求次数"
-                class="custom-input"
-                @input="validateNumber('RequestLimit')"
-              >
-                <template #prefix>
-                  <el-icon><Warning /></el-icon>
-                </template>
-              </el-input>
-              <div class="preset-buttons">
-                <span
-                  v-for="count in [20, 50, 100, 200]"
-                  :key="count"
-                  class="preset-button"
-                  :class="{ active: Number(limitInfo.RequestLimit) === count }"
-                  @click="limitInfo.RequestLimit = count"
-                >
-                  {{ count }}
-                </span>
-              </div>
-              <div class="item-tip">在指定时间窗口内允许的最大请求次数</div>
-            </el-form-item>
-
-            <!-- 时间窗口 -->
-            <el-form-item label="时间窗口">
-              <el-input
-                v-model="limitInfo.TimeFrame"
-                placeholder="请输入时间窗口(秒)"
-                class="custom-input"
-                @input="validateNumber('TimeFrame')"
-              >
-                <template #prefix>
-                  <el-icon><Clock /></el-icon>
-                </template>
-                <template #suffix>
-                  <span class="input-suffix">秒</span>
-                </template>
-              </el-input>
-              <div class="preset-buttons">
-                <span
-                  v-for="(time, label) in {
-                    '1分钟': 60,
-                    '5分钟': 300,
-                    '1小时': 3600,
-                    '1天': 86400,
-                  }"
-                  :key="time"
-                  class="preset-button"
-                  :class="{ active: Number(limitInfo.TimeFrame) === time }"
-                  @click="limitInfo.TimeFrame = time"
-                >
-                  {{ label }}
-                </span>
-              </div>
-              <div class="item-tip">计算请求频率的时间窗口长度</div>
-            </el-form-item>
-
-            <!-- 拉黑时长 -->
-            <el-form-item label="拉黑时长">
-              <el-input
-                v-model="limitInfo.BlacklistDuration"
-                placeholder="请输入拉黑时长(秒)"
-                class="custom-input"
-                @input="validateNumber('BlacklistDuration')"
-              >
-                <template #prefix>
-                  <el-icon><Remove /></el-icon>
-                </template>
-                <template #suffix>
-                  <span class="input-suffix">秒</span>
-                </template>
-              </el-input>
-              <div class="preset-buttons">
-                <span
-                  v-for="(time, label) in {
-                    '5分钟': 300,
-                    '1小时': 3600,
-                    '1天': 86400,
-                    '7天': 604800,
-                  }"
-                  :key="time"
-                  class="preset-button"
-                  :class="{
-                    active: Number(limitInfo.BlacklistDuration) === time,
-                  }"
-                  @click="limitInfo.BlacklistDuration = time"
-                >
-                  {{ label }}
-                </span>
-              </div>
-              <div class="item-tip">超出限制后的拉黑时长</div>
-            </el-form-item>
-
-            <!-- 提交按钮 -->
-            <el-form-item>
-              <el-button
-                type="primary"
-                @click="handleSaveLimit"
-                :loading="loading"
-              >
-                保存设置
-              </el-button>
-            </el-form-item>
-          </el-form>
+  <div class="ratelimit_container">
+    <div class="cont">
+      <div class="card-header">
+        <div class="header-left">
+          <el-icon class="icon"><Timer /></el-icon>
+          <span class="title">接口限频设置</span>
         </div>
       </div>
+
+      <div class="tip-description">
+        设置全站API接口的访问频率限制，当用户请求频率超出限制时，系统将自动拉黑IP一段时间。
+      </div>
+
+      <el-form :model="limitInfo" label-position="top" v-loading="loading">
+        <!-- 限制次数 -->
+        <el-form-item label="限制次数">
+          <el-input
+            v-model="limitInfo.RequestLimit"
+            placeholder="请输入单位时间内最大请求次数"
+            class="custom-input"
+            @input="validateNumber('RequestLimit')"
+          >
+            <template #prefix>
+              <el-icon><Warning /></el-icon>
+            </template>
+          </el-input>
+          <div class="preset-buttons">
+            <span
+              v-for="count in [20, 50, 100, 200]"
+              :key="count"
+              class="preset-button"
+              :class="{ active: Number(limitInfo.RequestLimit) === count }"
+              @click="limitInfo.RequestLimit = count"
+            >
+              {{ count }}
+            </span>
+          </div>
+          <div class="item-tip">在指定时间窗口内允许的最大请求次数</div>
+        </el-form-item>
+
+        <!-- 时间窗口 -->
+        <el-form-item label="时间窗口">
+          <el-input
+            v-model="limitInfo.TimeFrame"
+            placeholder="请输入时间窗口(秒)"
+            class="custom-input"
+            @input="validateNumber('TimeFrame')"
+          >
+            <template #prefix>
+              <el-icon><Clock /></el-icon>
+            </template>
+            <template #suffix>
+              <span class="input-suffix">秒</span>
+            </template>
+          </el-input>
+          <div class="preset-buttons">
+            <span
+              v-for="(time, label) in {
+                '1分钟': 60,
+                '5分钟': 300,
+                '1小时': 3600,
+                '1天': 86400,
+              }"
+              :key="time"
+              class="preset-button"
+              :class="{ active: Number(limitInfo.TimeFrame) === time }"
+              @click="limitInfo.TimeFrame = time"
+            >
+              {{ label }}
+            </span>
+          </div>
+          <div class="item-tip">计算请求频率的时间窗口长度</div>
+        </el-form-item>
+
+        <!-- 拉黑时长 -->
+        <el-form-item label="拉黑时长">
+          <el-input
+            v-model="limitInfo.BlacklistDuration"
+            placeholder="请输入拉黑时长(秒)"
+            class="custom-input"
+            @input="validateNumber('BlacklistDuration')"
+          >
+            <template #prefix>
+              <el-icon><Remove /></el-icon>
+            </template>
+            <template #suffix>
+              <span class="input-suffix">秒</span>
+            </template>
+          </el-input>
+          <div class="preset-buttons">
+            <span
+              v-for="(time, label) in {
+                '5分钟': 300,
+                '1小时': 3600,
+                '1天': 86400,
+                '7天': 604800,
+              }"
+              :key="time"
+              class="preset-button"
+              :class="{
+                active: Number(limitInfo.BlacklistDuration) === time,
+              }"
+              @click="limitInfo.BlacklistDuration = time"
+            >
+              {{ label }}
+            </span>
+          </div>
+          <div class="item-tip">超出限制后的拉黑时长</div>
+        </el-form-item>
+
+        <!-- 提交按钮 -->
+        <el-form-item>
+          <el-button type="primary" @click="handleSaveLimit" :loading="loading">
+            保存设置
+          </el-button>
+        </el-form-item>
+      </el-form>
     </div>
   </div>
 </template>
 
 <style lang="less" scoped>
-.container {
-  display: flex;
-  background: #f5f7fa;
+.ratelimit_container {
+  min-height: 100vh;
+  padding: 10px;
+  background-color: #f7f7f7;
 
-  .right {
+  .cont {
     width: 100%;
-    min-width: 0;
-    .overlay {
-      position: absolute;
-      top: 0;
-      left: 0;
-      z-index: 998;
-      width: 100%;
-      height: 100%;
-      background-color: rgba(0, 0, 0, 0.5);
-    }
-    .control-sidebar {
-      position: absolute;
-      width: 35px;
-      height: 35px;
-      top: 10px;
-      left: 10px;
-      z-index: 9999;
-      text-align: center;
-      background: #fff;
-      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
-      .el-icon {
-        margin-top: 10px;
-        font-size: 16px;
+    height: 100%;
+    padding: 20px;
+    background: #fff;
+    box-shadow: 0 2px 2px rgb(0 0 0 / 10%);
+    border-radius: 8px;
+
+    .card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+      padding-bottom: 20px;
+      border-bottom: 1px solid #edf1f7;
+
+      .header-left {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+
+        .icon {
+          font-size: 20px;
+          color: #4096ff;
+        }
+
+        .title {
+          font-size: 16px;
+          font-weight: 600;
+          color: #2e3033;
+        }
       }
     }
-    .ratelimit_container {
-      min-height: 100vh;
-      padding: 10px;
-      background-color: #f7f7f7;
 
-      .cont {
-        width: 100%;
-        height: 100%;
-        padding: 20px;
-        background: #fff;
-        box-shadow: 0 2px 2px rgb(0 0 0 / 10%);
-        border-radius: 8px;
+    .tip-description {
+      color: #6b7280;
+      margin-bottom: 24px;
+      line-height: 1.5;
+    }
 
-        .card-header {
-          display: flex;
-          justify-content: space-between;
-          align-items: center;
-          margin-bottom: 20px;
-          padding-bottom: 20px;
-          border-bottom: 1px solid #edf1f7;
+    :deep(.el-form) {
+      width: 60%;
 
-          .header-left {
-            display: flex;
-            align-items: center;
-            gap: 12px;
+      .el-form-item {
+        margin-bottom: 18px;
 
-            .icon {
-              font-size: 20px;
-              color: #4096ff;
-            }
-
-            .title {
-              font-size: 16px;
-              font-weight: 600;
-              color: #2e3033;
-            }
-          }
-        }
-
-        .tip-description {
-          color: #6b7280;
-          margin-bottom: 24px;
-          line-height: 1.5;
-        }
-
-        :deep(.el-form) {
-          width: 60%;
-
-          .el-form-item {
-            margin-bottom: 18px;
-
-            .el-form-item__label {
-              font-weight: 500;
-              padding-bottom: 8px;
-              color: #303133;
-              font-size: 14px;
-              line-height: 1;
-            }
-          }
+        .el-form-item__label {
+          font-weight: 500;
+          padding-bottom: 8px;
+          color: #303133;
+          font-size: 14px;
+          line-height: 1;
         }
       }
     }
@@ -433,14 +360,10 @@ useHead({
 }
 
 @media screen and (max-width: 1200px) {
-  .container {
-    .right {
-      .ratelimit_container {
-        .cont {
-          :deep(.el-form) {
-            width: 100%;
-          }
-        }
+  .ratelimit_container {
+    .cont {
+      :deep(.el-form) {
+        width: 100%;
       }
     }
   }

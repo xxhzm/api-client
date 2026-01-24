@@ -1,39 +1,14 @@
 <script setup>
-import { User, Menu, Wallet } from '@element-plus/icons-vue'
+import { Wallet } from '@element-plus/icons-vue'
 const { $msg, $myFetch } = useNuxtApp()
 
-// 控制左侧边栏显示隐藏
-// 获取页面宽度
-const screenWidth = ref(0)
-const isSidebarShow = ref(true)
-const iscontrolShow = ref(false)
-const isoverlay = ref(false)
-onMounted(() => {
-  screenWidth.value = document.body.clientWidth
-  document.body.style.overflow = ''
-
-  if (screenWidth.value < 768) {
-    iscontrolShow.value = true
-    isSidebarShow.value = false
-  }
+definePageMeta({
+  layout: 'admin',
 })
-
-const handleSidebarShow = () => {
-  isSidebarShow.value = !isSidebarShow.value
-  iscontrolShow.value = !iscontrolShow.value
-  isoverlay.value = !isoverlay.value
-  // 禁止页面滑动
-  if (isSidebarShow.value) {
-    document.body.style.overflow = 'hidden'
-  } else {
-    document.body.style.overflow = ''
-  }
-}
 
 const loading = ref(false)
 const tableData = ref([])
 const search = ref('')
-const isSearching = ref(false)
 const statusFilter = ref('') // 状态筛选
 
 // 当前页数
@@ -242,7 +217,7 @@ watch(
     setTimeout(() => {
       pageLoading.value = false
     }, 300)
-  }
+  },
 )
 
 // 清除筛选
@@ -305,184 +280,168 @@ useHead({
 </script>
 
 <template>
-  <div class="container">
-    <AdminSidebar v-show="isSidebarShow"></AdminSidebar>
-
-    <div class="right">
-      <!-- 遮罩层 -->
-      <div class="overlay" v-show="isoverlay" @click="handleSidebarShow"></div>
-      <!-- 侧边栏控制按钮 -->
-      <div class="control-sidebar" v-show="iscontrolShow">
-        <el-icon @click="handleSidebarShow"><Menu /></el-icon>
-      </div>
-      <AdminHeader></AdminHeader>
-      <div class="rechargecard-container" v-loading="loading">
-        <div class="card">
-          <!-- 标题区域 -->
-          <div class="card-header">
-            <div class="header-left">
-              <el-icon class="icon">
-                <Wallet />
-              </el-icon>
-              <span class="title">充值卡管理</span>
-            </div>
-            <div class="header-right">
-              <el-button-group>
-                <el-button
-                  type="primary"
-                  @click="createCardDialogVisible = true"
-                  style="margin-right: 10px"
-                >
-                  生成单个充值卡
-                </el-button>
-                <el-button
-                  type="primary"
-                  @click="batchCreateDialogVisible = true"
-                  style="margin-right: 10px"
-                >
-                  批量生成充值卡
-                </el-button>
-                <el-button type="success" @click="exportSelectedCards">
-                  导出选中
-                </el-button>
-              </el-button-group>
-            </div>
-          </div>
-
-          <!-- 表格区域 -->
-          <div class="table-container">
-            <client-only>
-              <!-- 筛选区域 -->
-              <div class="filter-container">
-                <el-row :gutter="20">
-                  <el-col :span="8">
-                    <el-input
-                      v-model="search"
-                      placeholder="搜索卡号"
-                      clearable
-                      style="width: 100%"
-                    >
-                    </el-input>
-                  </el-col>
-                  <el-col :span="6">
-                    <el-select
-                      v-model="statusFilter"
-                      placeholder="状态筛选"
-                      clearable
-                      style="width: 100%"
-                    >
-                      <el-option label="未使用" value="2" />
-                      <el-option label="已使用" value="3" />
-                    </el-select>
-                  </el-col>
-                  <el-col :span="4">
-                    <el-button type="primary" @click="getData">筛选</el-button>
-                    <el-button @click="clearFilters">重置</el-button>
-                  </el-col>
-                </el-row>
-              </div>
-
-              <el-table
-                :data="tableData"
-                style="width: 100%; margin-top: 15px"
-                v-loading="pageLoading"
-                @selection-change="handleSelectionChange"
-              >
-                <el-table-column type="selection" width="55" />
-                <el-table-column fixed="right" width="150">
-                  <template #default="scope">
-                    <div class="table-actions">
-                      <el-button
-                        type="primary"
-                        link
-                        @click="copyCardCode(scope.row.card_code)"
-                      >
-                        复制
-                      </el-button>
-                      <el-popconfirm
-                        confirm-button-text="确定"
-                        cancel-button-text="取消"
-                        title="确定要删除吗？"
-                        @confirm="handleDelete(scope.row)"
-                      >
-                        <template #reference>
-                          <el-button type="danger" link> 删除 </el-button>
-                        </template>
-                      </el-popconfirm>
-                    </div>
-                  </template>
-                </el-table-column>
-                <el-table-column prop="id" label="ID" width="70" />
-                <el-table-column
-                  prop="card_code"
-                  label="充值卡号"
-                  min-width="200"
-                  show-overflow-tooltip
-                />
-                <el-table-column prop="amount" label="金额" width="100">
-                  <template #default="scope">
-                    <span class="amount">¥{{ scope.row.amount }}</span>
-                  </template>
-                </el-table-column>
-                <el-table-column prop="is_used" label="状态" width="100">
-                  <template #default="scope">
-                    <el-tag
-                      :type="scope.row.is_used === 2 ? 'success' : 'info'"
-                      size="small"
-                    >
-                      {{ scope.row.is_used === 2 ? '未使用' : '已使用' }}
-                    </el-tag>
-                  </template>
-                </el-table-column>
-                <el-table-column prop="uid" label="使用用户" width="100">
-                  <template #default="scope">
-                    {{
-                      scope.row.uid && scope.row.uid !== 0 ? scope.row.uid : '-'
-                    }}
-                  </template>
-                </el-table-column>
-                <el-table-column label="创建时间" min-width="180">
-                  <template #default="scope">
-                    {{ formatTimestamp(scope.row.created_at) }}
-                  </template>
-                </el-table-column>
-                <el-table-column label="使用时间" min-width="180">
-                  <template #default="scope">
-                    {{
-                      scope.row.used_at && scope.row.used_at !== 0
-                        ? formatTimestamp(scope.row.used_at)
-                        : '-'
-                    }}
-                  </template>
-                </el-table-column>
-                <el-table-column label="过期时间" min-width="180">
-                  <template #default="scope">
-                    {{
-                      scope.row.expired_at
-                        ? formatTimestamp(scope.row.expired_at)
-                        : '永不过期'
-                    }}
-                  </template>
-                </el-table-column>
-              </el-table>
-
-              <div class="pagination">
-                <el-pagination
-                  :page-size="25"
-                  :pager-count="5"
-                  :total="totalRecords"
-                  v-model:current-page="page"
-                  :disabled="pageLoading"
-                  background
-                  layout="total, prev, pager, next, jumper"
-                />
-              </div>
-            </client-only>
-          </div>
+  <div class="rechargecard-container" v-loading="loading">
+    <div class="card">
+      <!-- 标题区域 -->
+      <div class="card-header">
+        <div class="header-left">
+          <el-icon class="icon">
+            <Wallet />
+          </el-icon>
+          <span class="title">充值卡管理</span>
+        </div>
+        <div class="header-right">
+          <el-button-group>
+            <el-button
+              type="primary"
+              @click="createCardDialogVisible = true"
+              style="margin-right: 10px"
+            >
+              生成单个充值卡
+            </el-button>
+            <el-button
+              type="primary"
+              @click="batchCreateDialogVisible = true"
+              style="margin-right: 10px"
+            >
+              批量生成充值卡
+            </el-button>
+            <el-button type="success" @click="exportSelectedCards">
+              导出选中
+            </el-button>
+          </el-button-group>
         </div>
       </div>
-    </div>
 
+      <!-- 表格区域 -->
+      <div class="table-container">
+        <client-only>
+          <!-- 筛选区域 -->
+          <div class="filter-container">
+            <el-row :gutter="20">
+              <el-col :span="8">
+                <el-input
+                  v-model="search"
+                  placeholder="搜索卡号"
+                  clearable
+                  style="width: 100%"
+                >
+                </el-input>
+              </el-col>
+              <el-col :span="6">
+                <el-select
+                  v-model="statusFilter"
+                  placeholder="状态筛选"
+                  clearable
+                  style="width: 100%"
+                >
+                  <el-option label="未使用" value="2" />
+                  <el-option label="已使用" value="3" />
+                </el-select>
+              </el-col>
+              <el-col :span="4">
+                <el-button type="primary" @click="getData">筛选</el-button>
+                <el-button @click="clearFilters">重置</el-button>
+              </el-col>
+            </el-row>
+          </div>
+
+          <el-table
+            :data="tableData"
+            style="width: 100%; margin-top: 15px"
+            v-loading="pageLoading"
+            @selection-change="handleSelectionChange"
+          >
+            <el-table-column type="selection" width="55" />
+            <el-table-column fixed="right" width="150">
+              <template #default="scope">
+                <div class="table-actions">
+                  <el-button
+                    type="primary"
+                    link
+                    @click="copyCardCode(scope.row.card_code)"
+                  >
+                    复制
+                  </el-button>
+                  <el-popconfirm
+                    confirm-button-text="确定"
+                    cancel-button-text="取消"
+                    title="确定要删除吗？"
+                    @confirm="handleDelete(scope.row)"
+                  >
+                    <template #reference>
+                      <el-button type="danger" link> 删除 </el-button>
+                    </template>
+                  </el-popconfirm>
+                </div>
+              </template>
+            </el-table-column>
+            <el-table-column prop="id" label="ID" width="70" />
+            <el-table-column
+              prop="card_code"
+              label="充值卡号"
+              min-width="200"
+              show-overflow-tooltip
+            />
+            <el-table-column prop="amount" label="金额" width="100">
+              <template #default="scope">
+                <span class="amount">¥{{ scope.row.amount }}</span>
+              </template>
+            </el-table-column>
+            <el-table-column prop="is_used" label="状态" width="100">
+              <template #default="scope">
+                <el-tag
+                  :type="scope.row.is_used === 2 ? 'success' : 'info'"
+                  size="small"
+                >
+                  {{ scope.row.is_used === 2 ? '未使用' : '已使用' }}
+                </el-tag>
+              </template>
+            </el-table-column>
+            <el-table-column prop="uid" label="使用用户" width="100">
+              <template #default="scope">
+                {{ scope.row.uid && scope.row.uid !== 0 ? scope.row.uid : '-' }}
+              </template>
+            </el-table-column>
+            <el-table-column label="创建时间" min-width="180">
+              <template #default="scope">
+                {{ formatTimestamp(scope.row.created_at) }}
+              </template>
+            </el-table-column>
+            <el-table-column label="使用时间" min-width="180">
+              <template #default="scope">
+                {{
+                  scope.row.used_at && scope.row.used_at !== 0
+                    ? formatTimestamp(scope.row.used_at)
+                    : '-'
+                }}
+              </template>
+            </el-table-column>
+            <el-table-column label="过期时间" min-width="180">
+              <template #default="scope">
+                {{
+                  scope.row.expired_at
+                    ? formatTimestamp(scope.row.expired_at)
+                    : '永不过期'
+                }}
+              </template>
+            </el-table-column>
+          </el-table>
+
+          <div class="pagination">
+            <el-pagination
+              :page-size="25"
+              :pager-count="5"
+              :total="totalRecords"
+              v-model:current-page="page"
+              :disabled="pageLoading"
+              background
+              layout="total, prev, pager, next, jumper"
+            />
+          </div>
+        </client-only>
+      </div>
+    </div>
     <!-- 生成单个充值卡对话框 -->
     <el-dialog
       v-model="createCardDialogVisible"
@@ -520,7 +479,6 @@ useHead({
         </div>
       </template>
     </el-dialog>
-
     <!-- 批量生成充值卡对话框 -->
     <el-dialog
       v-model="batchCreateDialogVisible"
@@ -575,150 +533,118 @@ useHead({
 </template>
 
 <style lang="less" scoped>
-.container {
+.rechargecard-container {
+  position: relative;
+  min-height: 100vh;
+  padding: 24px;
   display: flex;
+  justify-content: center;
   background: #f5f7fa;
 
-  .right {
+  .card {
     width: 100%;
-    min-width: 0;
-    .overlay {
-      position: absolute;
-      top: 0;
-      left: 0;
-      z-index: 998;
-      width: 100%;
-      height: 100%;
-      background-color: rgba(0, 0, 0, 0.5);
-    }
-    .control-sidebar {
-      position: absolute;
-      width: 35px;
-      height: 35px;
-      top: 10px;
-      left: 10px;
-      z-index: 9999;
-      text-align: center;
+    border-radius: 12px;
+    margin: 0 auto;
+
+    .card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 20px 24px;
       background: #fff;
-      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
-      .el-icon {
-        margin-top: 10px;
-        font-size: 16px;
+      border: 1px solid #eaecf0;
+      border-radius: 12px;
+      box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.03);
+      margin-bottom: 16px;
+
+      .header-left {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+
+        .icon {
+          font-size: 20px;
+          color: #4b5563;
+        }
+
+        .title {
+          font-size: 16px;
+          font-weight: 600;
+          color: #1a1f36;
+        }
+      }
+
+      .header-right {
+        .el-button {
+          display: flex;
+          align-items: center;
+          gap: 6px;
+        }
       }
     }
-    .rechargecard-container {
-      position: relative;
-      min-height: 100vh;
+
+    .table-container {
       padding: 24px;
-      display: flex;
-      justify-content: center;
+      background: #fff;
+      border: 1px solid #eaecf0;
+      border-radius: 12px;
+      box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.03);
 
-      .card {
-        width: 100%;
-        border-radius: 12px;
-        margin: 0 auto;
+      :deep(.el-table) {
+        border: none;
 
-        .card-header {
+        .search-wrapper {
+          padding: 0;
+          margin: 0;
+          line-height: 1;
+        }
+
+        .el-input {
+          margin: 0;
+        }
+
+        .el-table__header-wrapper {
+          th {
+            background: #f8fafc;
+            color: #1f2937;
+            font-weight: 600;
+          }
+        }
+
+        .amount {
+          color: #f56c6c;
+          font-weight: 500;
+        }
+      }
+
+      .table-actions {
+        display: flex;
+        gap: 4px;
+        margin: 0;
+        padding: 0;
+      }
+
+      .pagination {
+        margin-top: 24px;
+        display: flex;
+        justify-content: flex-end;
+
+        .search-info {
           display: flex;
-          justify-content: space-between;
           align-items: center;
-          padding: 20px 24px;
-          background: #fff;
-          border: 1px solid #eaecf0;
-          border-radius: 12px;
-          box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.03);
-          margin-bottom: 16px;
+          color: #606266;
+          font-size: 14px;
 
-          .header-left {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-
-            .icon {
-              font-size: 20px;
-              color: #4b5563;
-            }
-
-            .title {
-              font-size: 16px;
-              font-weight: 600;
-              color: #1a1f36;
-            }
-          }
-
-          .header-right {
-            .el-button {
-              display: flex;
-              align-items: center;
-              gap: 6px;
-            }
+          .search-count {
+            color: #409eff;
+            font-weight: bold;
+            margin: 0 5px;
           }
         }
+      }
 
-        .table-container {
-          padding: 24px;
-          background: #fff;
-          border: 1px solid #eaecf0;
-          border-radius: 12px;
-          box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.03);
-
-          :deep(.el-table) {
-            border: none;
-
-            .search-wrapper {
-              padding: 0;
-              margin: 0;
-              line-height: 1;
-            }
-
-            .el-input {
-              margin: 0;
-            }
-
-            .el-table__header-wrapper {
-              th {
-                background: #f8fafc;
-                color: #1f2937;
-                font-weight: 600;
-              }
-            }
-
-            .amount {
-              color: #f56c6c;
-              font-weight: 500;
-            }
-          }
-
-          .table-actions {
-            display: flex;
-            gap: 4px;
-            margin: 0;
-            padding: 0;
-          }
-
-          .pagination {
-            margin-top: 24px;
-            display: flex;
-            justify-content: flex-end;
-
-            .search-info {
-              display: flex;
-              align-items: center;
-              color: #606266;
-              font-size: 14px;
-
-              .search-count {
-                color: #409eff;
-                font-weight: bold;
-                margin: 0 5px;
-              }
-            }
-          }
-
-          .filter-container {
-            margin-bottom: 15px;
-          }
-        }
+      .filter-container {
+        margin-bottom: 15px;
       }
     }
   }
@@ -788,13 +714,13 @@ useHead({
 }
 
 @media screen and (max-width: 1200px) {
-  .container .right .rechargecard-container {
+  .rechargecard-container {
     padding: 16px;
   }
 }
 
 @media screen and (max-width: 768px) {
-  .container .right .rechargecard-container {
+  .rechargecard-container {
     padding: 12px;
   }
 }
