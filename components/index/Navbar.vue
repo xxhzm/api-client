@@ -1,16 +1,5 @@
 <script setup>
-import {
-  Menu,
-  Close,
-  User,
-  Monitor,
-  Link,
-  Document,
-  House,
-  ChatDotSquare,
-  Connection,
-  Shop,
-} from '@element-plus/icons-vue'
+import { Menu, Close } from '@element-plus/icons-vue'
 const options = useState('options')
 
 // 移动端菜单控制
@@ -33,37 +22,36 @@ const navItems = computed(() => [
   {
     name: '首页',
     path: '/',
-    icon: House,
   },
   {
     name: 'API市场',
     path: '/api-market',
-    icon: Connection,
   },
   {
     name: '新闻',
     path: '/articles',
-    icon: Document,
   },
   {
     name: '商户入驻',
     path: '/merchant',
-    icon: Shop,
   },
   {
     name: '关于我们',
     path: '/about',
-    icon: ChatDotSquare,
   },
   {
     name: '实时监控',
     path: '/map',
-    icon: Monitor,
   },
   {
-    name: isLoggedIn.value ? '后台' : '登录',
-    path: isLoggedIn.value ? '/admin' : '/login',
-    icon: User,
+    name: '后台',
+    path: '/admin',
+    hidden: !isLoggedIn.value,
+  },
+  {
+    name: '登录',
+    path: '/login',
+    hidden: isLoggedIn.value,
   },
 ])
 
@@ -105,23 +93,21 @@ const navigateToPath = (path) => {
       <!-- 桌面端导航菜单 -->
       <div class="navbar-menu desktop-menu">
         <ul class="navbar-nav">
-          <li
-            v-for="item in navItems"
-            :key="item.path"
-            class="nav-item"
-            :class="{ active: isActive(item.path) }"
-          >
-            <nuxt-link
-              :to="item.path"
-              class="nav-link"
-              @click="closeMobileMenu"
+          <template v-for="item in navItems" :key="item.path">
+            <li
+              v-if="!item.hidden"
+              class="nav-item"
+              :class="{ active: isActive(item.path) }"
             >
-              <el-icon class="nav-icon">
-                <component :is="item.icon" />
-              </el-icon>
-              <span>{{ item.name }}</span>
-            </nuxt-link>
-          </li>
+              <nuxt-link
+                :to="item.path"
+                class="nav-link"
+                @click="closeMobileMenu"
+              >
+                <span>{{ item.name }}</span>
+              </nuxt-link>
+            </li>
+          </template>
         </ul>
       </div>
 
@@ -224,7 +210,6 @@ const navigateToPath = (path) => {
         .nav-link {
           display: flex;
           align-items: center;
-          gap: 6px;
           padding: 10px 16px;
           color: #606266;
           text-decoration: none;
@@ -233,10 +218,6 @@ const navigateToPath = (path) => {
           font-size: 14px;
           font-weight: 500;
           position: relative;
-
-          .nav-icon {
-            font-size: 16px;
-          }
 
           &:hover {
             color: #409eff;
@@ -311,7 +292,6 @@ const navigateToPath = (path) => {
         .mobile-nav-link {
           display: flex;
           align-items: center;
-          gap: 10px;
           padding: 14px 16px;
           color: #606266;
           text-decoration: none;
@@ -320,10 +300,6 @@ const navigateToPath = (path) => {
           border-radius: 8px;
           transition: all 0.3s ease;
           margin: 0 4px;
-
-          .mobile-nav-icon {
-            font-size: 16px;
-          }
 
           &:hover {
             color: #409eff;
