@@ -38,82 +38,63 @@ watch([page, pageSize], () => {
 
 const getData = async () => {
   loading.value = true
-  let apiName = ''
-  switch (activeTab.value) {
-    case 'sms':
-      apiName = 'SmsLogList'
-      break
-    case 'email':
-      apiName = 'EmailLogList'
-      break
-    case 'action':
-      apiName = 'ActionLogList'
-      break
+
+  let startTime = undefined
+  let endTime = undefined
+
+  if (searchForm.value.dateRange && searchForm.value.dateRange.length === 2) {
+    startTime = new Date(searchForm.value.dateRange[0] + ' 00:00:00').getTime()
+    endTime = new Date(searchForm.value.dateRange[1] + ' 23:59:59').getTime()
   }
 
-  // 模拟数据生成函数
-  const generateMockData = (type) => {
-    const list = []
-    const count = pageSize.value
-    for (let i = 0; i < count; i++) {
-      if (type === 'sms') {
-        list.push({
-          id: i + 1,
-          phone: `138001380${i < 10 ? '0' + i : i}`,
-          code: Math.floor(1000 + Math.random() * 9000),
-          type: '登录验证',
-          status: Math.random() > 0.2 ? '成功' : '失败',
-          ip: '192.168.1.' + i,
-          createTime: new Date().toLocaleString(),
-        })
-      } else if (type === 'email') {
-        list.push({
-          id: i + 1,
-          email: `user${i}@example.com`,
-          code: Math.floor(1000 + Math.random() * 9000),
-          type: '注册验证',
-          status: '成功',
-          ip: '192.168.1.' + i,
-          createTime: new Date().toLocaleString(),
-        })
-      } else {
-        list.push({
-          id: i + 1,
-          username: `admin${i}`,
-          action: '修改配置',
-          description: '修改了系统设置参数',
-          ip: '192.168.1.' + i,
-          browser: 'Chrome/120.0.0.0',
-          createTime: new Date().toLocaleString(),
-        })
-      }
-    }
-    return list
+  const commonParams = {
+    page: page.value,
+    size: pageSize.value,
+    keyword: searchForm.value.keyword,
+    startTime,
+    endTime,
   }
 
   try {
-    // TODO: 后端接口就绪后，取消注释以下代码并移除 mock 逻辑
-    /*
-    const res = await $myFetch(apiName, {
-      params: {
-        page: page.value,
-        size: pageSize.value,
-        keyword: searchForm.value.keyword,
-        startTime: searchForm.value.dateRange?.[0],
-        endTime: searchForm.value.dateRange?.[1]
-      }
-    })
-    
-    if (res.code === 200) {
-      tableData.value = res.data.list
-      total.value = res.data.total
-    }
-    */
+    if (activeTab.value === 'sms') {
+      const res = await $myFetch('SmsLogs', {
+        params: commonParams,
+      })
 
-    // MOCK DATA
-    await new Promise((resolve) => setTimeout(resolve, 500)) // 模拟延迟
-    tableData.value = generateMockData(activeTab.value)
-    total.value = 100 // 假总数
+      if (res.code === 200) {
+        tableData.value = res.data.sms_logs.map((item) => ({
+          ...item,
+          status: item.status ? '成功' : '失败',
+          createTime: new Date(item.time).toLocaleString(),
+        }))
+        total.value = res.data.total_count
+      }
+    } else if (activeTab.value === 'email') {
+      const res = await $myFetch('EmailLogs', {
+        params: commonParams,
+      })
+
+      if (res.code === 200) {
+        tableData.value = res.data.email_logs.map((item) => ({
+          ...item,
+          status: item.status ? '成功' : '失败',
+          createTime: new Date(item.time).toLocaleString(),
+        }))
+        total.value = res.data.total_count
+      }
+    } else if (activeTab.value === 'action') {
+      const res = await $myFetch('ActionLogs', {
+        params: commonParams,
+      })
+
+      if (res.code === 200) {
+        tableData.value = res.data.action_logs.map((item) => ({
+          ...item,
+          createTime: new Date(item.time).toLocaleString(),
+        }))
+        total.value = res.data.total_count
+      }
+    }
   } catch (e) {
     console.error(e)
     $msg('获取数据失败', 'error')
@@ -214,7 +195,6 @@ useHead({
             <el-table :data="tableData" border style="width: 100%">
               <el-table-column prop="id" label="ID" width="80" />
               <el-table-column prop="email" label="邮箱地址" width="200" />
-              <el-table-column prop="code" label="验证码" width="100" />
               <el-table-column prop="type" label="类型" width="120" />
               <el-table-column prop="status" label="发送状态">
                 <template #default="scope">
