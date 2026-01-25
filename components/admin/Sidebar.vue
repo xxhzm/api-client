@@ -75,46 +75,58 @@ const path = useRoute().path
 const pathArr = path.split('/')
 
 const pathMap = {
+  // 1: Dashboard (no sub-menu)
+
+  // 2: System & Security (Moved from 6)
   webset: '2',
-  ad: '2',
   sitemap: '2',
   'online-update': '2',
   import: '2',
+  'ip-ban': '2',
+  'api-rate-limit': '2',
+  logs: '2',
+
+  // 3: API Management (Moved from 2)
   apilist: '3',
   createapi: '3',
   addparam: '3',
   categories: '3',
   prefix: '3',
   apilogs: '3',
-  apiset: '3',
   statistics: '3',
-  userlist: '4',
-  rolelist: '4',
-  permissionlist: '4',
-  keylog: '4',
-  articlelist: '5',
-  createarticle: '5',
-  'ai-article': '5',
-  articleset: '5',
-  pay: '6',
-  createRechargeCard: '6',
-  useRechargeCard: '6',
-  rechargeCardHistory: '6',
-  rechargerecord: '6',
-  buypackagerecord: '6',
-  package: '6',
-  buy: '6',
-  mypackage: '6',
-  userPackageManagement: '6',
-  'ip-ban': '7',
-  'api-rate-limit': '7',
-  key: '8',
-  password: '8',
-  phone: '8',
-  profile: '8',
-  merchant: '11',
-  'merchant-manage': '11',
-  logs: '12',
+
+  // 4: Finance Management (Moved from 3)
+  package: '4',
+  userPackageManagement: '4',
+  rechargerecord: '4',
+  buypackagerecord: '4',
+  createRechargeCard: '4',
+  rechargeCardHistory: '4',
+  pay: '4',
+  buy: '4',
+  mypackage: '4',
+  useRechargeCard: '4',
+
+  // 5: User & Merchant (Moved from 4)
+  userlist: '5',
+  rolelist: '5',
+  permissionlist: '5',
+  merchant: '5',
+  'merchant-manage': '5',
+  keylog: '5',
+
+  // 6: Content & Operation (Moved from 5)
+  articlelist: '6',
+  createarticle: '6',
+  'ai-article': '6',
+  ad: '6',
+  links: '6',
+
+  // 7: Personal Center (Unchanged)
+  profile: '7',
+  key: '7',
+  password: '7',
+  phone: '7',
 }
 
 const thirdPath = pathArr[2] // 注意 pathArr[2] 是第3段
@@ -126,11 +138,17 @@ if (thirdPath && pathMap[thirdPath]) {
 // 路由与菜单索引映射，用于高亮当前项
 const pathIndexMap = {
   '/admin': '1',
+
+  // System & Security (2)
   '/admin/webset': '2-1',
-  '/admin/ad': '2-2',
-  '/admin/sitemap': '2-3',
-  '/admin/online-update': '2-4',
-  '/admin/import': '2-5',
+  '/admin/sitemap': '2-2',
+  '/admin/online-update': '2-3',
+  '/admin/import': '2-4',
+  '/admin/ip-ban': '2-5',
+  '/admin/api-rate-limit': '2-6',
+  '/admin/logs': '2-7',
+
+  // API Management (3)
   '/admin/apilist': '3-1',
   '/admin/createapi': '3-2',
   '/admin/addparam': '3-3',
@@ -138,32 +156,39 @@ const pathIndexMap = {
   '/admin/prefix': '3-5',
   '/admin/apilogs': '3-6',
   '/admin/statistics': '3-7',
-  '/admin/userlist': '4-1',
-  '/admin/rolelist': '4-2',
-  '/admin/permissionlist': '4-3',
-  '/admin/keylog': '4-4',
-  '/admin/articlelist': '5-1',
-  '/admin/createarticle': '5-2',
-  '/admin/ai-article': '5-3',
-  '/admin/pay': '6-1',
-  '/admin/createRechargeCard': '6-2',
-  '/admin/useRechargeCard': '6-3',
-  '/admin/rechargeCardHistory': '6-4',
-  '/admin/rechargerecord': '6-5',
-  '/admin/buypackagerecord': '6-6',
-  '/admin/package': '6-7',
-  '/admin/buy': '6-8',
-  '/admin/mypackage': '6-9',
-  '/admin/userPackageManagement': '6-10',
-  '/admin/ip-ban': '7-1',
-  '/admin/api-rate-limit': '7-2',
-  '/admin/key': '8-2',
-  '/admin/password': '8-3',
-  '/admin/phone': '8-4',
-  '/admin/links': '9',
-  '/admin/merchant': '11-1',
-  '/admin/merchant-manage': '11-2',
-  '/admin/logs': '12-1',
+
+  // Finance Management (4)
+  '/admin/package': '4-1',
+  '/admin/userPackageManagement': '4-2',
+  '/admin/rechargerecord': '4-3',
+  '/admin/buypackagerecord': '4-4',
+  '/admin/createRechargeCard': '4-5',
+  '/admin/rechargeCardHistory': '4-6',
+  '/admin/pay': '4-7',
+  '/admin/buy': '4-8',
+  '/admin/mypackage': '4-9',
+  '/admin/useRechargeCard': '4-10',
+
+  // User & Merchant (5)
+  '/admin/userlist': '5-1',
+  '/admin/rolelist': '5-2',
+  '/admin/permissionlist': '5-3',
+  '/admin/merchant': '5-4',
+  '/admin/merchant-manage': '5-5',
+  '/admin/keylog': '5-6',
+
+  // Content & Operation (6)
+  '/admin/articlelist': '6-1',
+  '/admin/createarticle': '6-2',
+  '/admin/ai-article': '6-3',
+  '/admin/ad': '6-4',
+  '/admin/links': '6-5',
+
+  // Personal Center (7)
+  '/admin/profile': '7-1',
+  '/admin/key': '7-2',
+  '/admin/password': '7-3',
+  '/admin/phone': '7-4',
 }
 
 const route = useRoute()
@@ -192,6 +217,7 @@ watch(
         <img :src="options.logo" alt="logo" class="logo" style="width: 120px" />
       </el-menu-item>
       <div>
+        <!-- 1. 控制台 -->
         <el-menu-item
           index="1"
           @click="navigateTo('/admin')"
@@ -204,15 +230,18 @@ watch(
           <template #title>控制台</template>
         </el-menu-item>
 
+        <!-- 2. 系统与安全 (Moved here) -->
         <el-sub-menu
           index="2"
           v-if="
             routeShowArr([
               '/admin/webset',
-              '/admin/ad',
               '/admin/sitemap',
               '/admin/online-update',
               '/admin/import',
+              '/admin/ip-ban',
+              '/admin/api-rate-limit',
+              '/admin/logs',
             ])
           "
         >
@@ -220,9 +249,9 @@ watch(
             <el-icon>
               <Setting />
             </el-icon>
-            <span>系统设置</span>
+            <span>系统与安全</span>
           </template>
-          <el-menu-item-group title="系统设置">
+          <el-menu-item-group title="系统与安全">
             <el-menu-item
               index="2-1"
               @click="navigateTo('/admin/webset')"
@@ -231,33 +260,46 @@ watch(
             >
             <el-menu-item
               index="2-2"
-              @click="navigateTo('/admin/ad')"
-              v-if="routeShow('/admin/ad')"
-              >广告位管理</el-menu-item
-            >
-            <el-menu-item
-              index="2-3"
               @click="sitemap()"
               v-if="routeShow('/admin/sitemap')"
               >生成网站地图
             </el-menu-item>
             <el-menu-item
-              index="2-4"
+              index="2-3"
               @click="navigateTo('/admin/online-update')"
               v-if="routeShow('/admin/online-update')"
             >
               在线更新
             </el-menu-item>
             <el-menu-item
-              index="2-5"
+              index="2-4"
               @click="navigateTo('/admin/import')"
               v-if="routeShow('/admin/import')"
             >
               一键对接
             </el-menu-item>
+            <el-menu-item
+              index="2-5"
+              @click="navigateTo('/admin/ip-ban')"
+              v-if="routeShow('/admin/ip-ban')"
+              >IP封禁</el-menu-item
+            >
+            <el-menu-item
+              index="2-6"
+              @click="navigateTo('/admin/api-rate-limit')"
+              v-if="routeShow('/admin/api-rate-limit')"
+              >接口限频</el-menu-item
+            >
+            <el-menu-item
+              index="2-7"
+              @click="navigateTo('/admin/logs')"
+              v-if="routeShow('/admin/logs')"
+              >综合日志</el-menu-item
+            >
           </el-menu-item-group>
         </el-sub-menu>
 
+        <!-- 3. 接口管理 -->
         <el-sub-menu
           index="3"
           v-if="
@@ -324,13 +366,104 @@ watch(
           </el-menu-item-group>
         </el-sub-menu>
 
+        <!-- 4. 财务管理 -->
         <el-sub-menu
           index="4"
+          v-if="
+            routeShowArr([
+              '/admin/package',
+              '/admin/userPackageManagement',
+              '/admin/rechargerecord',
+              '/admin/buypackagerecord',
+              '/admin/createRechargeCard',
+              '/admin/rechargeCardHistory',
+              '/admin/pay',
+              '/admin/buy',
+              '/admin/mypackage',
+              '/admin/useRechargeCard',
+            ])
+          "
+        >
+          <template #title>
+            <el-icon>
+              <Wallet />
+            </el-icon>
+            <span>财务管理</span>
+          </template>
+          <el-menu-item-group title="财务管理">
+            <el-menu-item
+              index="4-1"
+              @click="navigateTo('/admin/package')"
+              v-if="routeShow('/admin/package')"
+              >套餐管理</el-menu-item
+            >
+            <el-menu-item
+              index="4-2"
+              @click="navigateTo('/admin/userPackageManagement')"
+              v-if="routeShow('/admin/userPackageManagement')"
+              >用户套餐</el-menu-item
+            >
+            <el-menu-item
+              index="4-3"
+              @click="navigateTo('/admin/rechargerecord')"
+              v-if="routeShow('/admin/rechargerecord')"
+              >充值记录</el-menu-item
+            >
+            <el-menu-item
+              index="4-4"
+              @click="navigateTo('/admin/buypackagerecord')"
+              v-if="routeShow('/admin/buypackagerecord')"
+              >购买记录</el-menu-item
+            >
+            <el-menu-item
+              index="4-5"
+              @click="navigateTo('/admin/createRechargeCard')"
+              v-if="routeShow('/admin/createRechargeCard')"
+              >生成充值卡</el-menu-item
+            >
+            <el-menu-item
+              index="4-6"
+              @click="navigateTo('/admin/rechargeCardHistory')"
+              v-if="routeShow('/admin/rechargeCardHistory')"
+              >充值卡记录</el-menu-item
+            >
+            <el-menu-item
+              index="4-7"
+              @click="navigateTo('/admin/pay')"
+              v-if="routeShow('/admin/pay')"
+              >账户充值</el-menu-item
+            >
+            <el-menu-item
+              index="4-8"
+              @click="navigateTo('/admin/buy')"
+              v-if="routeShow('/admin/buy')"
+              >购买套餐</el-menu-item
+            >
+            <el-menu-item
+              index="4-9"
+              @click="navigateTo('/admin/mypackage')"
+              v-if="routeShow('/admin/mypackage')"
+              >我的套餐</el-menu-item
+            >
+            <el-menu-item
+              index="4-10"
+              @click="navigateTo('/admin/useRechargeCard')"
+              v-if="routeShow('/admin/useRechargeCard')"
+              >使用充值卡</el-menu-item
+            >
+          </el-menu-item-group>
+        </el-sub-menu>
+
+        <!-- 5. 用户与商户 -->
+        <el-sub-menu
+          index="5"
           v-if="
             routeShowArr([
               '/admin/userlist',
               '/admin/rolelist',
               '/admin/permissionlist',
+              '/admin/merchant',
+              '/admin/merchant-manage',
               '/admin/keylog',
             ])
           "
@@ -339,183 +472,105 @@ watch(
             <el-icon>
               <Avatar />
             </el-icon>
-            <span>用户管理</span>
+            <span>用户与商户</span>
           </template>
-          <el-menu-item-group title="用户管理">
+          <el-menu-item-group title="用户与商户">
             <el-menu-item
-              index="4-1"
+              index="5-1"
               @click="navigateTo('/admin/userlist')"
               v-if="routeShow('/admin/userlist')"
               >用户列表</el-menu-item
             >
             <el-menu-item
-              index="4-2"
+              index="5-2"
               @click="navigateTo('/admin/rolelist')"
               v-if="routeShow('/admin/rolelist')"
               >角色列表</el-menu-item
             >
             <el-menu-item
-              index="4-3"
+              index="5-3"
               @click="navigateTo('/admin/permissionlist')"
               v-if="routeShow('/admin/permissionlist')"
               >权限列表</el-menu-item
             >
             <el-menu-item
-              index="4-4"
+              index="5-4"
+              @click="navigateTo('/admin/merchant')"
+              v-if="routeShow('/admin/merchant')"
+              >商户审核</el-menu-item
+            >
+            <el-menu-item
+              index="5-5"
+              @click="navigateTo('/admin/merchant-manage')"
+              v-if="routeShow('/admin/merchant-manage')"
+              >商户列表</el-menu-item
+            >
+            <el-menu-item
+              index="5-6"
               @click="navigateTo('/admin/keylog')"
               v-if="routeShow('/admin/keylog')"
-              >秘钥历史记录</el-menu-item
+              >秘钥历史</el-menu-item
             >
           </el-menu-item-group>
         </el-sub-menu>
 
-        <el-sub-menu
-          index="5"
-          v-if="routeShowArr(['/admin/articlelist', '/admin/createarticle'])"
-        >
-          <template #title>
-            <el-icon>
-              <Tickets />
-            </el-icon>
-            <span>文章管理</span>
-          </template>
-          <el-menu-item-group title="文章管理">
-            <el-menu-item
-              index="5-1"
-              @click="navigateTo('/admin/articlelist')"
-              v-if="routeShow('/admin/articlelist')"
-              >文章列表</el-menu-item
-            >
-            <el-menu-item
-              index="5-2"
-              @click="navigateTo('/admin/createarticle')"
-              v-if="routeShow('/admin/createarticle')"
-              >新增文章</el-menu-item
-            >
-            <el-menu-item
-              index="5-3"
-              @click="navigateTo('/admin/ai-article')"
-              v-if="routeShow('/admin/createarticle')"
-              >AI生成文章</el-menu-item
-            >
-          </el-menu-item-group>
-        </el-sub-menu>
-
+        <!-- 6. 内容与运营 -->
         <el-sub-menu
           index="6"
           v-if="
             routeShowArr([
-              '/admin/pay',
-              '/admin/createRechargeCard',
-              '/admin/useRechargeCard',
-              '/admin/rechargeCardHistory',
-              '/admin/rechargerecord',
-              '/admin/buypackagerecord',
-              '/admin/package',
-              '/admin/buy',
-              '/admin/mypackage',
-              'userPackageManagement',
+              '/admin/articlelist',
+              '/admin/createarticle',
+              '/admin/ai-article',
+              '/admin/ad',
+              '/admin/links',
             ])
           "
         >
           <template #title>
             <el-icon>
-              <Wallet />
+              <Tickets />
             </el-icon>
-            <span>财务功能</span>
+            <span>内容与运营</span>
           </template>
-          <el-menu-item-group title="财务功能">
+          <el-menu-item-group title="内容与运营">
             <el-menu-item
               index="6-1"
-              @click="navigateTo('/admin/pay')"
-              v-if="routeShow('/admin/pay')"
-              >账户充值</el-menu-item
+              @click="navigateTo('/admin/articlelist')"
+              v-if="routeShow('/admin/articlelist')"
+              >文章列表</el-menu-item
             >
             <el-menu-item
               index="6-2"
-              @click="navigateTo('/admin/createRechargeCard')"
-              v-if="routeShow('/admin/createRechargeCard')"
-              >生成充值卡</el-menu-item
+              @click="navigateTo('/admin/createarticle')"
+              v-if="routeShow('/admin/createarticle')"
+              >新增文章</el-menu-item
             >
             <el-menu-item
               index="6-3"
-              @click="navigateTo('/admin/useRechargeCard')"
-              v-if="routeShow('/admin/useRechargeCard')"
-              >使用充值卡</el-menu-item
+              @click="navigateTo('/admin/ai-article')"
+              v-if="routeShow('/admin/createarticle')"
+              >AI生成文章</el-menu-item
             >
             <el-menu-item
               index="6-4"
-              @click="navigateTo('/admin/rechargeCardHistory')"
-              v-if="routeShow('/admin/rechargeCardHistory')"
-              >充值卡记录</el-menu-item
+              @click="navigateTo('/admin/ad')"
+              v-if="routeShow('/admin/ad')"
+              >广告位管理</el-menu-item
             >
             <el-menu-item
               index="6-5"
-              @click="navigateTo('/admin/rechargerecord')"
-              v-if="routeShow('/admin/rechargerecord')"
-              >充值记录</el-menu-item
+              @click="navigateTo('/admin/links')"
+              v-if="routeShow('/admin/links')"
             >
-            <el-menu-item
-              index="6-6"
-              @click="navigateTo('/admin/buypackagerecord')"
-              v-if="routeShow('/admin/buypackagerecord')"
-              >购买记录</el-menu-item
-            >
-            <el-menu-item
-              index="6-7"
-              @click="navigateTo('/admin/package')"
-              v-if="routeShow('/admin/package')"
-              >套餐管理</el-menu-item
-            >
-            <el-menu-item
-              index="6-8"
-              @click="navigateTo('/admin/buy')"
-              v-if="routeShow('/admin/buy')"
-              >购买套餐</el-menu-item
-            >
-            <el-menu-item
-              index="6-9"
-              @click="navigateTo('/admin/mypackage')"
-              v-if="routeShow('/admin/mypackage')"
-              >我的套餐</el-menu-item
-            >
-            <el-menu-item
-              index="6-10"
-              @click="navigateTo('/admin/userPackageManagement')"
-              v-if="routeShow('/admin/userPackageManagement')"
-              >用户套餐管理</el-menu-item
-            >
+              友情链接
+            </el-menu-item>
           </el-menu-item-group>
         </el-sub-menu>
 
+        <!-- 7. 个人中心 -->
         <el-sub-menu
           index="7"
-          v-if="routeShowArr(['/admin/ip-ban', '/admin/api-rate-limit'])"
-        >
-          <template #title>
-            <el-icon>
-              <Lock />
-            </el-icon>
-            <span>安全管理</span>
-          </template>
-          <el-menu-item-group title="安全管理">
-            <el-menu-item
-              index="7-1"
-              @click="navigateTo('/admin/ip-ban')"
-              v-if="routeShow('/admin/ip-ban')"
-              >IP封禁</el-menu-item
-            >
-            <el-menu-item
-              index="7-2"
-              @click="navigateTo('/admin/api-rate-limit')"
-              v-if="routeShow('/admin/api-rate-limit')"
-              >接口限频</el-menu-item
-            >
-          </el-menu-item-group>
-        </el-sub-menu>
-
-        <el-sub-menu
-          index="8"
           v-if="
             routeShowArr([
               '/admin/profile',
@@ -527,31 +582,31 @@ watch(
         >
           <template #title>
             <el-icon>
-              <Avatar />
+              <Lock />
             </el-icon>
             <span>个人中心</span>
           </template>
           <el-menu-item-group title="个人中心">
             <el-menu-item
-              index="8-1"
+              index="7-1"
               @click="navigateTo('/admin/profile')"
               v-if="routeShow('/admin/profile')"
               >个人信息</el-menu-item
             >
             <el-menu-item
-              index="8-2"
+              index="7-2"
               @click="navigateTo('/admin/key')"
               v-if="routeShow('/admin/key')"
               >API密钥管理</el-menu-item
             >
             <el-menu-item
-              index="8-3"
+              index="7-3"
               @click="navigateTo('/admin/password')"
               v-if="routeShow('/admin/password')"
               >修改密码</el-menu-item
             >
             <el-menu-item
-              index="8-4"
+              index="7-4"
               @click="navigateTo('/admin/phone')"
               v-if="routeShow('/admin/phone')"
               >手机号管理</el-menu-item
@@ -559,54 +614,8 @@ watch(
           </el-menu-item-group>
         </el-sub-menu>
 
-        <el-menu-item
-          index="9"
-          @click="navigateTo('/admin/links')"
-          v-if="routeShow('/admin/links')"
-        >
-          <el-icon>
-            <Connection />
-          </el-icon>
-          <template #title>友情链接</template>
-        </el-menu-item>
-
-        <el-sub-menu index="11">
-          <template #title>
-            <el-icon>
-              <Shop />
-            </el-icon>
-            <span>商户管理</span>
-          </template>
-          <el-menu-item-group title="商户管理">
-            <el-menu-item
-              index="11-1"
-              @click="navigateTo('/admin/merchant')"
-              v-if="routeShow('/admin/merchant')"
-              >商户审核</el-menu-item
-            >
-            <el-menu-item
-              index="11-2"
-              @click="navigateTo('/admin/merchant-manage')"
-              >商户列表</el-menu-item
-            >
-          </el-menu-item-group>
-        </el-sub-menu>
-
-        <el-sub-menu index="12">
-          <template #title>
-            <el-icon>
-              <Document />
-            </el-icon>
-            <span>日志管理</span>
-          </template>
-          <el-menu-item-group title="日志管理">
-            <el-menu-item index="12-1" @click="navigateTo('/admin/logs')"
-              >综合日志</el-menu-item
-            >
-          </el-menu-item-group>
-        </el-sub-menu>
-
-        <el-menu-item index="10" @click="navigateTo('/')">
+        <!-- 8. 访问前台 -->
+        <el-menu-item index="8" @click="navigateTo('/')">
           <el-icon>
             <Promotion />
           </el-icon>
@@ -670,6 +679,7 @@ watch(
 :deep(.el-menu-item.is-active) {
   background: #1677ff !important;
   color: #ffffff !important;
+  font-weight: 500;
 }
 
 :deep(.el-menu-item.is-active .el-icon) {
@@ -680,5 +690,7 @@ watch(
 :deep(.el-menu-item-group__title) {
   padding-left: 16px;
   color: #909399;
+  font-size: 12px;
+  margin-top: 5px;
 }
 </style>

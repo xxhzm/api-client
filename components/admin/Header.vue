@@ -27,6 +27,7 @@ const routeNameMap = {
   '/admin/keylog': '秘钥历史记录',
   '/admin/articlelist': '文章列表',
   '/admin/createarticle': '新增文章',
+  '/admin/ai-article': 'AI生成文章',
   '/admin/articleset': '文章设置',
   '/admin/pay': '账户充值',
   '/admin/createRechargeCard': '生成充值卡',
@@ -58,11 +59,16 @@ const dynamicRouteMap = {
 
 // 路由路径与父级菜单名称映射
 const parentNameMap = {
-  '/admin/webset': '系统设置',
-  '/admin/ad': '系统设置',
-  '/admin/sitemap': '系统设置',
-  '/admin/online-update': '系统设置',
-  '/admin/import': '系统设置',
+  // 系统与安全
+  '/admin/webset': '系统与安全',
+  '/admin/sitemap': '系统与安全',
+  '/admin/online-update': '系统与安全',
+  '/admin/import': '系统与安全',
+  '/admin/ip-ban': '系统与安全',
+  '/admin/api-rate-limit': '系统与安全',
+  '/admin/logs': '系统与安全',
+
+  // 接口管理
   '/admin/apilist': '接口管理',
   '/admin/createapi': '接口管理',
   '/admin/addparam': '接口管理',
@@ -71,31 +77,40 @@ const parentNameMap = {
   '/admin/apilogs': '接口管理',
   '/admin/statistics': '接口管理',
   '/admin/apiset': '接口管理',
-  '/admin/userlist': '用户管理',
-  '/admin/rolelist': '用户管理',
-  '/admin/permissionlist': '用户管理',
-  '/admin/keylog': '用户管理',
-  '/admin/articlelist': '文章管理',
-  '/admin/createarticle': '文章管理',
-  '/admin/articleset': '文章管理',
-  '/admin/pay': '财务功能',
-  '/admin/createRechargeCard': '财务功能',
-  '/admin/useRechargeCard': '财务功能',
-  '/admin/rechargeCardHistory': '财务功能',
-  '/admin/rechargerecord': '财务功能',
-  '/admin/buypackagerecord': '财务功能',
-  '/admin/package': '财务功能',
-  '/admin/buy': '财务功能',
-  '/admin/mypackage': '财务功能',
-  '/admin/userPackageManagement': '财务功能',
-  '/admin/ip-ban': '安全管理',
-  '/admin/api-rate-limit': '安全管理',
+
+  // 财务管理
+  '/admin/pay': '财务管理',
+  '/admin/createRechargeCard': '财务管理',
+  '/admin/useRechargeCard': '财务管理',
+  '/admin/rechargeCardHistory': '财务管理',
+  '/admin/rechargerecord': '财务管理',
+  '/admin/buypackagerecord': '财务管理',
+  '/admin/package': '财务管理',
+  '/admin/buy': '财务管理',
+  '/admin/mypackage': '财务管理',
+  '/admin/userPackageManagement': '财务管理',
+
+  // 用户与商户
+  '/admin/userlist': '用户与商户',
+  '/admin/rolelist': '用户与商户',
+  '/admin/permissionlist': '用户与商户',
+  '/admin/keylog': '用户与商户',
+  '/admin/merchant': '用户与商户',
+  '/admin/merchant-manage': '用户与商户',
+
+  // 内容与运营
+  '/admin/articlelist': '内容与运营',
+  '/admin/createarticle': '内容与运营',
+  '/admin/ai-article': '内容与运营',
+  '/admin/articleset': '内容与运营',
+  '/admin/ad': '内容与运营',
+  '/admin/links': '内容与运营',
+
+  // 个人中心
   '/admin/key': '个人中心',
   '/admin/password': '个人中心',
   '/admin/phone': '个人中心',
-  '/admin/links': '友情链接',
-  '/admin/merchant': '商户管理',
-  '/admin/merchant-manage': '商户管理',
+  '/admin/profile': '个人中心',
 }
 
 const breadcrumbs = computed(() => {
