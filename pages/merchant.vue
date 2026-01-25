@@ -9,6 +9,8 @@ import {
   DataLine,
   UserFilled,
   Timer,
+  Link,
+  OfficeBuilding,
 } from '@element-plus/icons-vue'
 
 const { $myFetch } = useNuxtApp()
@@ -96,6 +98,37 @@ const processSteps = [
   },
 ]
 
+// 已入驻商户列表（固定数据）
+const merchantList = [
+  {
+    id: 1,
+    merchantName: '中科云数',
+    companyName: '中科云数信息技术股份有限公司',
+    description:
+      '国家高新技术企业，深耕大数据与人工智能领域，为金融、政务、医疗等行业提供智能化数据解决方案。',
+    apiCount: 26,
+    joinDate: '2023-12',
+  },
+  {
+    id: 2,
+    merchantName: '征信通',
+    companyName: '深圳前海征信数据服务有限公司',
+    description:
+      '持牌征信机构，专业提供企业工商信息、司法诉讼、经营风险等多维度企业征信数据服务。',
+    apiCount: 18,
+    joinDate: '2024-03',
+  },
+  {
+    id: 3,
+    merchantName: '华云气象',
+    companyName: '华云气象科技（北京）有限公司',
+    description:
+      '中国气象局战略合作伙伴，提供高精度气象预报、灾害预警、农业气象等专业气象数据服务。',
+    apiCount: 14,
+    joinDate: '2024-06',
+  },
+]
+
 const form = reactive({
   name: '',
   enterprise_name: '',
@@ -104,14 +137,89 @@ const form = reactive({
   phone: '',
   email: '',
   description: '',
+  captcha: '',
 })
 
 const formRef = ref(null)
 
+// 统一社会信用代码校验（18位）
+const validateCreditCode = (rule, value, callback) => {
+  if (!value) {
+    callback() // 非必填，为空时通过
+    return
+  }
+  // 18位，由数字和大写字母组成（不含I、O、Z、S、V）
+  const creditCodeReg = /^[0-9A-HJ-NPQRTUWXY]{2}\d{6}[0-9A-HJ-NPQRTUWXY]{10}$/
+  if (!creditCodeReg.test(value)) {
+    callback(new Error('请输入正确的18位统一社会信用代码'))
+  } else {
+    callback()
+  }
+}
+
+// 手机号码校验
+const validatePhone = (rule, value, callback) => {
+  if (!value) {
+    callback(new Error('请输入联系电话'))
+    return
+  }
+  const phoneReg = /^1[3-9]\d{9}$/
+  if (!phoneReg.test(value)) {
+    callback(new Error('请输入正确的11位手机号码'))
+  } else {
+    callback()
+  }
+}
+
+// 商户名称校验
+const validateName = (rule, value, callback) => {
+  if (!value) {
+    callback(new Error('请输入商户名称'))
+    return
+  }
+  if (value.length < 2 || value.length > 50) {
+    callback(new Error('商户名称长度为2-50个字符'))
+  } else if (/[<>'"&\\\/]/.test(value)) {
+    callback(new Error('商户名称不能包含特殊字符'))
+  } else {
+    callback()
+  }
+}
+
+// 联系人校验
+const validateContact = (rule, value, callback) => {
+  if (!value) {
+    callback(new Error('请输入联系人'))
+    return
+  }
+  if (value.length < 2 || value.length > 20) {
+    callback(new Error('联系人姓名长度为2-20个字符'))
+  } else {
+    callback()
+  }
+}
+
+// 企业名称校验
+const validateEnterpriseName = (rule, value, callback) => {
+  if (!value) {
+    callback() // 非必填，为空时通过
+    return
+  }
+  if (value.length < 4 || value.length > 100) {
+    callback(new Error('企业名称长度为4-100个字符'))
+  } else if (!/^[\u4e00-\u9fa5a-zA-Z0-9（）()]+$/.test(value)) {
+    callback(new Error('企业名称只能包含中文、字母、数字和括号'))
+  } else {
+    callback()
+  }
+}
+
 const rules = reactive({
-  name: [{ required: true, message: '请输入商户名称', trigger: 'blur' }],
-  contact: [{ required: true, message: '请输入联系人', trigger: 'blur' }],
-  phone: [{ required: true, message: '请输入联系电话', trigger: 'blur' }],
+  name: [{ required: true, validator: validateName, trigger: 'blur' }],
+  enterprise_name: [{ validator: validateEnterpriseName, trigger: 'blur' }],
+  credit_code: [{ validator: validateCreditCode, trigger: 'blur' }],
+  contact: [{ required: true, validator: validateContact, trigger: 'blur' }],
+  phone: [{ required: true, validator: validatePhone, trigger: 'blur' }],
   email: [
     { required: true, message: '请输入电子邮箱', trigger: 'blur' },
     {
@@ -120,6 +228,28 @@ const rules = reactive({
       trigger: ['blur', 'change'],
     },
   ],
+  captcha: [{ required: true, message: '请输入验证码', trigger: 'blur' }],
+})
+
+// 图片验证码
+const captchaInfo = ref({
+  id: '',
+  url: '',
+})
+
+// 获取图片验证码
+const getCaptchaInfo = async () => {
+  const res = await $myFetch('Captcha', {
+    method: 'GET',
+  })
+  if (res.data) {
+    captchaInfo.value = res.data
+  }
+}
+
+// 页面加载时获取验证码
+onMounted(() => {
+  getCaptchaInfo()
 })
 
 const loading = ref(false)
@@ -138,22 +268,20 @@ const submitForm = async () => {
     const apiBodyValue = new URLSearchParams()
     apiBodyValue.append('merchantName', form.name)
     apiBodyValue.append('companyName', form.enterprise_name)
-    apiBodyValue.append('ceditCode', form.credit_code)
+    apiBodyValue.append('creditCode', form.credit_code)
     apiBodyValue.append('contactName', form.contact)
     apiBodyValue.append('contactPhone', form.phone)
     apiBodyValue.append('contactEmail', form.email)
-    apiBodyValue.append('cooperationIntent', form.description)
+    apiBodyValue.append('description', form.description)
+    apiBodyValue.append('captchaId', captchaInfo.value.id)
+    apiBodyValue.append('captchaKey', form.captcha)
 
-    const res = await $myFetch('MerchantCreate', {
+    const res = await $myFetch('CreateMerchant', {
       method: 'POST',
       body: apiBodyValue,
     })
 
     if (res.code === 200) {
-      ElMessage.success({
-        message: res.msg || '申请提交成功！我们的商务经理将尽快联系您。',
-        duration: 3000,
-      })
       // 重置表单
       form.name = ''
       form.enterprise_name = ''
@@ -162,11 +290,37 @@ const submitForm = async () => {
       form.phone = ''
       form.email = ''
       form.description = ''
+      form.captcha = ''
+      getCaptchaInfo()
+
+      // 显示成功提示弹窗
+      ElMessageBox.alert(
+        `<div style="text-align: center; padding: 10px 0;">
+          <div style="font-size: 18px; font-weight: 600; color: #0f172a; margin-bottom: 12px;">申请提交成功！</div>
+          <div style="font-size: 14px; color: #64748b; line-height: 1.8;">
+            感谢您的信任与支持！<br/>
+            我们的商务经理将在 <strong style="color: #2563eb;">1-3 个工作日</strong> 内与您取得联系，<br/>
+            请保持电话畅通。
+          </div>
+        </div>`,
+        '提交成功',
+        {
+          dangerouslyUseHTMLString: true,
+          confirmButtonText: '我知道了',
+          center: true,
+          customClass: 'merchant-success-dialog',
+        }
+      )
     } else {
       ElMessage.error(res.msg || '提交失败，请稍后重试')
+      // 验证码错误时刷新验证码
+      form.captcha = ''
+      getCaptchaInfo()
     }
   } catch (error) {
     ElMessage.error('网络错误，请稍后重试')
+    form.captcha = ''
+    getCaptchaInfo()
   } finally {
     loading.value = false
   }
@@ -288,6 +442,67 @@ const scrollToForm = () => {
       </div>
     </section>
 
+    <!-- Merchants Section -->
+    <section class="section merchants-section">
+      <div class="container">
+        <div class="section-header text-center">
+          <h2 class="section-title">战略合作伙伴</h2>
+          <p class="section-desc">携手行业领先企业，共建可信赖的数据服务生态</p>
+        </div>
+        <div class="merchants-container">
+          <div class="merchants-grid">
+            <div
+              v-for="(merchant, index) in merchantList"
+              :key="merchant.id || index"
+              class="merchant-card"
+            >
+              <div class="card-header">
+                <div class="merchant-logo">
+                  <img
+                    v-if="merchant.logo"
+                    :src="merchant.logo"
+                    :alt="merchant.merchantName"
+                  />
+                  <div v-else class="logo-placeholder">
+                    {{ merchant.merchantName.substring(0, 2) }}
+                  </div>
+                </div>
+                <div class="header-info">
+                  <div class="name-row">
+                    <h4 class="merchant-name">{{ merchant.merchantName }}</h4>
+                    <span class="verified-badge">
+                      <el-icon><Check /></el-icon>
+                      企业认证
+                    </span>
+                  </div>
+                  <p class="merchant-company">{{ merchant.companyName }}</p>
+                </div>
+              </div>
+              <div class="card-body">
+                <p class="merchant-desc">{{ merchant.description }}</p>
+              </div>
+              <div class="card-footer">
+                <div class="stat-item">
+                  <span class="stat-value">{{ merchant.apiCount }}</span>
+                  <span class="stat-label">API 服务</span>
+                </div>
+                <div class="divider"></div>
+                <div class="stat-item">
+                  <span class="stat-value">99.9%</span>
+                  <span class="stat-label">服务可用</span>
+                </div>
+                <div class="divider"></div>
+                <div class="stat-item">
+                  <span class="stat-value">{{ merchant.joinDate }}</span>
+                  <span class="stat-label">入驻时间</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
     <!-- Process Section -->
     <section class="section process-section">
       <div class="container">
@@ -385,6 +600,22 @@ const scrollToForm = () => {
                   placeholder="简单描述您的 API 资源或合作想法..."
                 />
               </el-form-item>
+              <el-form-item label="验证码" prop="captcha">
+                <div class="captcha-wrapper">
+                  <el-input
+                    v-model="form.captcha"
+                    placeholder="请输入验证码"
+                    @keyup.enter="submitForm"
+                  />
+                  <img
+                    :src="captchaInfo.url"
+                    alt="验证码"
+                    class="captcha-img"
+                    title="点击刷新验证码"
+                    @click="getCaptchaInfo()"
+                  />
+                </div>
+              </el-form-item>
               <el-button
                 type="primary"
                 class="submit-btn"
@@ -409,12 +640,7 @@ const scrollToForm = () => {
 <style scoped lang="less">
 /* Global Reset & Fonts */
 .merchant-page {
-  font-family:
-    'Inter',
-    -apple-system,
-    BlinkMacSystemFont,
-    'Segoe UI',
-    Roboto,
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto,
     sans-serif;
   color: #1e293b;
   background-color: #ffffff;
@@ -760,6 +986,165 @@ const scrollToForm = () => {
   }
 }
 
+/* Merchants Section */
+.merchants-section {
+  background: linear-gradient(180deg, #f8fafc 0%, #ffffff 100%);
+
+  .merchants-container {
+    min-height: 200px;
+  }
+
+  .merchants-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 28px;
+  }
+
+  .merchant-card {
+    background: #ffffff;
+    border-radius: 12px;
+    border: 1px solid #e2e8f0;
+    overflow: hidden;
+    transition: all 0.3s ease;
+
+    &:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 12px 32px -8px rgba(15, 23, 42, 0.12);
+      border-color: #cbd5e1;
+    }
+
+    .card-header {
+      display: flex;
+      align-items: flex-start;
+      gap: 16px;
+      padding: 24px 24px 16px;
+      border-bottom: 1px solid #f1f5f9;
+    }
+
+    .merchant-logo {
+      width: 56px;
+      height: 56px;
+      border-radius: 10px;
+      overflow: hidden;
+      flex-shrink: 0;
+      background: #f1f5f9;
+
+      img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+      }
+
+      .logo-placeholder {
+        width: 100%;
+        height: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: linear-gradient(135deg, #0f172a 0%, #334155 100%);
+        color: white;
+        font-size: 18px;
+        font-weight: 700;
+        letter-spacing: 1px;
+      }
+    }
+
+    .header-info {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .name-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 6px;
+    }
+
+    .merchant-name {
+      font-size: 17px;
+      font-weight: 700;
+      color: #0f172a;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .verified-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 3px;
+      padding: 2px 8px;
+      background: linear-gradient(135deg, #059669 0%, #10b981 100%);
+      color: white;
+      font-size: 11px;
+      font-weight: 600;
+      border-radius: 4px;
+      flex-shrink: 0;
+
+      .el-icon {
+        font-size: 10px;
+      }
+    }
+
+    .merchant-company {
+      font-size: 13px;
+      color: #64748b;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .card-body {
+      padding: 16px 24px 20px;
+    }
+
+    .merchant-desc {
+      font-size: 14px;
+      color: #475569;
+      line-height: 1.7;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+      margin: 0;
+    }
+
+    .card-footer {
+      display: flex;
+      align-items: center;
+      justify-content: space-around;
+      padding: 16px 24px;
+      background: #f8fafc;
+      border-top: 1px solid #f1f5f9;
+
+      .stat-item {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 2px;
+      }
+
+      .stat-value {
+        font-size: 16px;
+        font-weight: 700;
+        color: #0f172a;
+      }
+
+      .stat-label {
+        font-size: 12px;
+        color: #94a3b8;
+      }
+
+      .divider {
+        width: 1px;
+        height: 32px;
+        background: #e2e8f0;
+      }
+    }
+  }
+}
+
 /* Process Timeline */
 .process-section {
   background-color: #f8fafc;
@@ -930,6 +1315,27 @@ const scrollToForm = () => {
         padding: 12px;
       }
 
+      .captcha-wrapper {
+        display: flex;
+        gap: 12px;
+        width: 100%;
+
+        .el-input {
+          flex: 1;
+        }
+
+        .captcha-img {
+          height: 40px;
+          border-radius: 8px;
+          cursor: pointer;
+          transition: opacity 0.2s;
+
+          &:hover {
+            opacity: 0.8;
+          }
+        }
+      }
+
       .submit-btn {
         width: 100%;
         height: 50px;
@@ -982,6 +1388,11 @@ const scrollToForm = () => {
     grid-template-columns: repeat(2, 1fr);
   }
 
+  .merchants-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 20px !important;
+  }
+
   .timeline-line {
     display: none;
   }
@@ -1007,6 +1418,51 @@ const scrollToForm = () => {
     gap: 30px;
   }
 
+  .merchants-grid {
+    grid-template-columns: 1fr !important;
+    gap: 16px !important;
+  }
+
+  .merchant-card {
+    .card-header {
+      padding: 20px 20px 14px !important;
+    }
+
+    .card-body {
+      padding: 14px 20px 16px !important;
+    }
+
+    .card-footer {
+      padding: 14px 16px !important;
+
+      .stat-value {
+        font-size: 14px !important;
+      }
+
+      .stat-label {
+        font-size: 11px !important;
+      }
+    }
+
+    .merchant-logo {
+      width: 48px !important;
+      height: 48px !important;
+
+      .logo-placeholder {
+        font-size: 16px !important;
+      }
+    }
+
+    .merchant-name {
+      font-size: 15px !important;
+    }
+
+    .verified-badge {
+      font-size: 10px !important;
+      padding: 2px 6px !important;
+    }
+  }
+
   .form-row {
     flex-direction: column;
     gap: 0;
@@ -1017,6 +1473,46 @@ const scrollToForm = () => {
     width: 100%;
     .cta-btn {
       width: 100%;
+    }
+  }
+}
+</style>
+
+<style lang="less">
+/* 商户申请成功弹窗样式 */
+.merchant-success-dialog {
+  border-radius: 16px !important;
+  overflow: hidden;
+
+  .el-message-box__header {
+    padding: 20px 20px 0;
+
+    .el-message-box__title {
+      font-size: 16px;
+      font-weight: 600;
+      color: #0f172a;
+    }
+  }
+
+  .el-message-box__content {
+    padding: 20px 30px 10px;
+  }
+
+  .el-message-box__btns {
+    padding: 10px 30px 24px;
+
+    .el-button--primary {
+      width: 120px;
+      height: 40px;
+      background: #0f172a;
+      border-color: #0f172a;
+      border-radius: 8px;
+      font-weight: 600;
+
+      &:hover {
+        background: #1e293b;
+        border-color: #1e293b;
+      }
     }
   }
 }

@@ -1,5 +1,5 @@
 <script setup>
-import { Shop, Plus } from '@element-plus/icons-vue'
+import { Shop, Search, Filter } from '@element-plus/icons-vue'
 const { $msg, $myFetch } = useNuxtApp()
 
 definePageMeta({
@@ -9,6 +9,14 @@ definePageMeta({
 const loading = ref(false)
 const tableData = ref([])
 const search = ref('')
+const statusFilter = ref('') // 状态筛选：空字符串表示全部
+
+// 状态选项（审核页面只显示待审核和已拒绝）
+const statusOptions = [
+  { label: '全部状态', value: '' },
+  { label: '待审核', value: 0 },
+  { label: '已拒绝', value: 2 },
+]
 
 // 分页相关
 const page = ref(1)
@@ -17,127 +25,88 @@ const totalRecords = ref(0)
 const pageLoading = ref(false)
 const pageSize = ref(25)
 
-// 创建商户相关
-const createUserStatus = ref(false)
-const userInfo = ref({
-  username: '',
-  password: '',
-  mail: '',
-})
-
-// 创建商户
-const createUser = async () => {
-  if (
-    !userInfo.value.username ||
-    !userInfo.value.password ||
-    !userInfo.value.mail
-  ) {
-    $msg('请填写所有必填项', 'error')
-    return false
-  }
-
-  const apiBodyValue = new URLSearchParams()
-  apiBodyValue.append('username', userInfo.value.username)
-  apiBodyValue.append('password', userInfo.value.password)
-  apiBodyValue.append('mail', userInfo.value.mail)
-
-  const res = await $myFetch('CreateUser', {
-    method: 'POST',
-    body: apiBodyValue,
-  })
-
-  if (res.code === 200) {
-    $msg(res.msg || '用户创建成功', 'success')
-    createUserStatus.value = false
-  } else {
-    $msg(res.msg || '创建失败', 'error')
-  }
-}
-
-// 随机生成密码
-const generateRandomPassword = () => {
-  const chars =
-    'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#%'
-  let password = ''
-  for (let i = 0; i < 10; i++) {
-    password += chars.charAt(Math.floor(Math.random() * chars.length))
-  }
-  userInfo.value.password = password
-}
-
-// 监听创建商户弹窗关闭
-watch(createUserStatus, (newValue) => {
-  if (newValue === false) {
-    userInfo.value = {
-      username: '',
-      password: '',
-      mail: '',
-    }
-  }
-})
-
-// 商户设置相关
-const settingsDialogVisible = ref(false)
-const currentSettings = ref({
+// 审核弹窗相关
+const reviewDialogVisible = ref(false)
+const reviewForm = ref({
   id: 0,
   name: '',
-  commission_rate: 0,
+  action: '', // approve 或 reject
+  remark: '',
 })
 
-// 打开设置弹窗
-const handleSettings = (row) => {
-  currentSettings.value = {
+// 打开审核弹窗
+const handleReview = (row, action) => {
+  reviewForm.value = {
     id: row.id,
     name: row.name,
-    commission_rate: row.commission_rate || 0,
+    action: action,
+    remark: '',
   }
-  settingsDialogVisible.value = true
+  reviewDialogVisible.value = true
 }
 
-// 保存设置
-const saveSettings = async () => {
+// 提交审核
+const submitReview = async () => {
   loading.value = true
-  // 模拟API请求
-  setTimeout(() => {
-    // 同时更新 tableData
-    const tableIndex = tableData.value.findIndex(
-      (item) => item.id === currentSettings.value.id,
-    )
-    if (tableIndex !== -1) {
-      tableData.value[tableIndex].commission_rate =
-        currentSettings.value.commission_rate
+  try {
+    const apiBodyValue = new URLSearchParams()
+    apiBodyValue.append('id', reviewForm.value.id)
+    apiBodyValue.append('status', reviewForm.value.action === 'approve' ? 1 : 2)
+    apiBodyValue.append('remark', reviewForm.value.remark)
+
+    const res = await $myFetch('ReviewMerchant', {
+      method: 'POST',
+      body: apiBodyValue,
+    })
+
+    if (res.code === 200) {
+      $msg(res.msg || '审核操作成功', 'success')
+      reviewDialogVisible.value = false
+      getData()
+    } else {
+      $msg(res.msg || '审核操作失败', 'error')
     }
-    $msg('设置保存成功', 'success')
-    settingsDialogVisible.value = false
+  } catch (error) {
+    $msg('审核操作失败', 'error')
+  } finally {
     loading.value = false
-  }, 500)
+  }
 }
 
 const getData = async () => {
   pageLoading.value = true
   try {
-    const res = await $myFetch('MerchantList', {
-      params: {
-        page: page.value,
-        pageSize: pageSize.value,
-        keyword: search.value,
-        type: 'review',
-      },
-    })
+    const params = {
+      page: page.value,
+      page_size: pageSize.value,
+    }
+    // 只在有值时添加参数
+    if (search.value) {
+      params.keyword = search.value
+    }
+    if (statusFilter.value !== '') {
+      params.status = statusFilter.value
+    }
+
+    const res = await $myFetch('MerchantList', { params })
 
     if (res.code === 200) {
       const list = res.data?.list || []
-      tableData.value = list.map((item) => ({
+      // 审核页面只显示待审核(0)和已拒绝(2)状态
+      const filteredList = list.filter(
+        (item) => item.status === 0 || item.status === 2
+      )
+      tableData.value = filteredList.map((item) => ({
         id: item.id,
         name: item.merchant_name,
         enterprise_name: item.company_name,
         credit_code: item.credit_code,
-        commission_rate: 0, // 接口暂无此字段
         contact: item.contact_name,
         phone: item.contact_phone,
         email: item.contact_email,
-        description: item.cooperation_intent,
+        description: item.description,
         status: item.status,
+        ip: item.ip,
         create_time: new Date(item.created_at).toLocaleString(),
       }))
       totalRecords.value = res.data?.total || 0
@@ -173,13 +142,11 @@ watch(search, () => {
   }, 500)
 })
 
-// 快捷创建商户
-const handleQuickCreate = (row) => {
-  userInfo.value.username = row.contact || row.name
-  userInfo.value.mail = row.email
-  userInfo.value.password = '123456' // 默认密码
-  createUserStatus.value = true
-}
+// 监听状态筛选变化
+watch(statusFilter, () => {
+  page.value = 1
+  getData()
+})
 
 // 删除商户
 const handleDelete = async (row) => {
@@ -258,10 +225,28 @@ useHead({
           <span class="title">商户审核</span>
         </div>
         <div class="header-right">
-          <el-button type="primary" @click="createUserStatus = true">
-            <el-icon><Plus /></el-icon>
-            <span>创建商户</span>
-          </el-button>
+          <el-input
+            v-model="search"
+            placeholder="搜索商户/企业/联系人/电话/邮箱"
+            clearable
+            style="width: 280px"
+          >
+            <template #prefix>
+              <el-icon><Search /></el-icon>
+            </template>
+          </el-input>
+          <el-select
+            v-model="statusFilter"
+            placeholder="状态筛选"
+            style="width: 120px"
+          >
+            <el-option
+              v-for="item in statusOptions"
+              :key="item.value"
+              :label="item.label"
+              :value="item.value"
+            />
+          </el-select>
         </div>
       </div>
 
@@ -273,47 +258,6 @@ useHead({
             style="width: 100%"
             v-loading="pageLoading"
           >
-            <el-table-column fixed="right" width="150" label="操作">
-              <template #header>
-                <div class="search-wrapper">
-                  <el-input
-                    v-model="search"
-                    placeholder="搜索商户/联系人"
-                    clearable
-                  >
-                  </el-input>
-                </div>
-              </template>
-              <template #default="scope">
-                <div class="table-actions">
-                  <el-button
-                    type="primary"
-                    link
-                    @click="handleSettings(scope.row)"
-                  >
-                    设置
-                  </el-button>
-                  <el-button
-                    type="primary"
-                    link
-                    @click="handleQuickCreate(scope.row)"
-                  >
-                    创建用户
-                  </el-button>
-                  <el-popconfirm
-                    confirm-button-text="确定"
-                    cancel-button-text="取消"
-                    title="确定要删除吗？"
-                    @confirm="handleDelete(scope.row)"
-                  >
-                    <template #reference>
-                      <el-button type="danger" link>删除</el-button>
-                    </template>
-                  </el-popconfirm>
-                </div>
-              </template>
-            </el-table-column>
-
             <el-table-column prop="id" label="ID" width="70" />
             <el-table-column
               prop="name"
@@ -330,24 +274,15 @@ useHead({
             <el-table-column
               prop="credit_code"
               label="信用代码"
-              width="180"
+              min-width="180"
               show-overflow-tooltip
             />
-            <el-table-column
-              prop="commission_rate"
-              label="佣金比例"
-              width="100"
-            >
-              <template #default="scope">
-                {{ scope.row.commission_rate }}%
-              </template>
-            </el-table-column>
             <el-table-column prop="contact" label="联系人" width="100" />
-            <el-table-column prop="phone" label="联系电话" width="120" />
+            <el-table-column prop="phone" label="联系电话" width="130" />
             <el-table-column
               prop="email"
               label="邮箱"
-              min-width="150"
+              min-width="180"
               show-overflow-tooltip
             />
             <el-table-column
@@ -356,12 +291,50 @@ useHead({
               min-width="200"
               show-overflow-tooltip
             />
-            <el-table-column prop="create_time" label="申请时间" width="160" />
-            <el-table-column prop="status" label="状态" width="100">
+            <el-table-column prop="ip" label="申请IP" width="130" />
+            <el-table-column prop="create_time" label="申请时间" width="170" />
+            <el-table-column
+              prop="status"
+              label="状态"
+              width="90"
+              fixed="right"
+            >
               <template #default="scope">
-                <el-tag :type="getStatusType(scope.row.status)">
+                <el-tag :type="getStatusType(scope.row.status)" size="small">
                   {{ getStatusText(scope.row.status) }}
                 </el-tag>
+              </template>
+            </el-table-column>
+            <el-table-column fixed="right" width="180" label="操作">
+              <template #default="scope">
+                <div class="table-actions">
+                  <template v-if="scope.row.status === 0">
+                    <el-button
+                      type="success"
+                      link
+                      @click="handleReview(scope.row, 'approve')"
+                    >
+                      通过
+                    </el-button>
+                    <el-button
+                      type="warning"
+                      link
+                      @click="handleReview(scope.row, 'reject')"
+                    >
+                      拒绝
+                    </el-button>
+                  </template>
+                  <el-popconfirm
+                    confirm-button-text="确定"
+                    cancel-button-text="取消"
+                    title="确定要删除此申请吗？"
+                    @confirm="handleDelete(scope.row)"
+                  >
+                    <template #reference>
+                      <el-button type="danger" link>删除</el-button>
+                    </template>
+                  </el-popconfirm>
+                </div>
               </template>
             </el-table-column>
           </el-table>
@@ -380,69 +353,45 @@ useHead({
         </client-only>
       </div>
     </div>
-    <!-- 创建商户对话框 -->
-    <el-dialog
-      v-model="createUserStatus"
-      title="新增用户"
-      width="500px"
-      append-to-body
-      destroy-on-close
-    >
-      <el-form :model="userInfo" label-width="90px">
-        <el-form-item label="用户名称" required>
-          <el-input v-model="userInfo.username" placeholder="请输入用户名称" />
-        </el-form-item>
-        <el-form-item label="密码" required>
-          <div style="display: flex; gap: 10px; width: 100%">
-            <el-input
-              type="password"
-              v-model="userInfo.password"
-              show-password
-              placeholder="请输入密码"
-            />
-            <el-button @click="generateRandomPassword">随机生成</el-button>
-          </div>
-        </el-form-item>
-        <el-form-item label="邮箱地址" required>
-          <el-input v-model="userInfo.mail" placeholder="请输入邮箱地址" />
-        </el-form-item>
-      </el-form>
-      <template #footer>
-        <div class="dialog-footer">
-          <el-button @click="createUserStatus = false">取消</el-button>
-          <el-button type="primary" @click="createUser">创建</el-button>
-        </div>
-      </template>
-    </el-dialog>
 
-    <!-- 商户设置对话框 -->
+    <!-- 审核对话框 -->
     <el-dialog
-      v-model="settingsDialogVisible"
-      title="商户设置"
+      v-model="reviewDialogVisible"
+      :title="reviewForm.action === 'approve' ? '审核通过' : '审核拒绝'"
       width="500px"
       append-to-body
       destroy-on-close
     >
-      <el-form :model="currentSettings" label-width="100px">
+      <el-form :model="reviewForm" label-width="90px">
         <el-form-item label="商户名称">
-          <span>{{ currentSettings.name }}</span>
+          <span>{{ reviewForm.name }}</span>
         </el-form-item>
-        <el-form-item label="佣金比例">
-          <el-input-number
-            v-model="currentSettings.commission_rate"
-            :precision="2"
-            :step="0.1"
-            :min="0"
-            :max="100"
+        <el-form-item label="审核操作">
+          <el-tag
+            :type="reviewForm.action === 'approve' ? 'success' : 'danger'"
+            size="large"
+          >
+            {{ reviewForm.action === 'approve' ? '通过审核' : '拒绝申请' }}
+          </el-tag>
+        </el-form-item>
+        <el-form-item label="审核备注" v-if="reviewForm.action === 'reject'">
+          <el-input
+            v-model="reviewForm.remark"
+            type="textarea"
+            :rows="3"
+            placeholder="请填写拒绝原因..."
           />
-          <span style="margin-left: 10px">%</span>
         </el-form-item>
       </el-form>
       <template #footer>
         <div class="dialog-footer">
-          <el-button @click="settingsDialogVisible = false">取消</el-button>
-          <el-button type="primary" @click="saveSettings" :loading="loading">
-            保存
+          <el-button @click="reviewDialogVisible = false">取消</el-button>
+          <el-button
+            :type="reviewForm.action === 'approve' ? 'success' : 'danger'"
+            @click="submitReview"
+            :loading="loading"
+          >
+            确认{{ reviewForm.action === 'approve' ? '通过' : '拒绝' }}
           </el-button>
         </div>
       </template>
@@ -493,11 +442,9 @@ useHead({
       }
 
       .header-right {
-        .el-button {
-          display: flex;
-          align-items: center;
-          gap: 6px;
-        }
+        display: flex;
+        align-items: center;
+        gap: 12px;
       }
     }
 
@@ -510,17 +457,6 @@ useHead({
 
       :deep(.el-table) {
         border: none;
-
-        .search-wrapper {
-          padding: 0;
-          margin: 0;
-          line-height: 1;
-        }
-
-        .el-input {
-          width: 140px;
-          margin: 0;
-        }
 
         .el-table__header-wrapper {
           th {
