@@ -17,7 +17,7 @@ const createapiInfo = reactive({
   method: '',
   categoryId: '',
   example: '',
-  state: true,
+  state: 1,
   exampleUrl: '',
   prefix: '',
   prefixValue: '',
@@ -196,11 +196,7 @@ const create = async () => {
   apiBodyValue.append('exampleUrl', createapiInfo.exampleUrl)
   apiBodyValue.append('prefix', createapiInfo.prefix)
 
-  if (createapiInfo.state === true) {
-    apiBodyValue.append('state', '启用')
-  } else {
-    apiBodyValue.append('state', '禁用')
-  }
+  apiBodyValue.append('state', createapiInfo.state)
 
   const res = await $myFetch('ApiCreate', {
     method: 'POST',
@@ -518,8 +514,16 @@ useHead({
           ></el-col>
         </el-row>
 
-        <el-form-item label="是否启用">
-          <el-switch v-model="createapiInfo.state" />
+        <el-form-item label="接口状态">
+          <el-select
+            v-model="createapiInfo.state"
+            placeholder="请选择状态"
+            style="width: 100%"
+          >
+            <el-option label="启用" :value="1" />
+            <el-option label="关闭" :value="0" />
+            <el-option label="隐藏" :value="2" />
+          </el-select>
         </el-form-item>
       </el-form>
     </div>

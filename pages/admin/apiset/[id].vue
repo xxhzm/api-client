@@ -30,7 +30,7 @@ const apiSetInfo = ref({
   example: '',
   category: '',
   categoryId: '',
-  state: true,
+  state: 1,
   example_url: '',
   prefix: '',
   prefixValue: '',
@@ -98,17 +98,10 @@ const getData = async () => {
   apiSetInfo.value.prefixValue = res.data.prefixName
   apiSetInfo.value.prefix = res.data.prefix
 
-  if (res.data.state === '启用') {
-    apiSetInfo.value.state = true
-  } else {
-    apiSetInfo.value.state = false
-  }
+  // 直接赋值状态数字
+  apiSetInfo.value.state = res.data.state
 
-  if (res.data.keyState === '开启') {
-    apiSetInfo.value.keyState = true
-  } else {
-    apiSetInfo.value.keyState = false
-  }
+  apiSetInfo.value.keyState = res.data.keyState
 
   // 初始化多分类选中状态
   await initSelectedCategoriesFromApi()
@@ -158,16 +151,12 @@ const updateApiInfo = async () => {
   bodyValue.append('exampleUrl', apiSetInfo.value.example_url)
   bodyValue.append('prefix', apiSetInfo.value.prefix)
 
-  if (apiSetInfo.value.state) {
-    bodyValue.append('state', '启用')
-  } else {
-    bodyValue.append('state', '关闭')
-  }
+  bodyValue.append('state', apiSetInfo.value.state)
 
   if (apiSetInfo.value.keyState) {
-    bodyValue.append('keyState', '开启')
+    bodyValue.append('keyState', 1)
   } else {
-    bodyValue.append('keyState', '关闭')
+    bodyValue.append('keyState', 0)
   }
 
   const res = await $myFetch('ApiUpdate', {
@@ -1207,9 +1196,11 @@ useHead({
                     <el-select
                       v-model="apiSetInfo.state"
                       placeholder="请选择状态"
+                      style="width: 100%"
                     >
-                      <el-option label="启用" :value="true"></el-option>
-                      <el-option label="停用" :value="false"></el-option>
+                      <el-option label="启用" :value="1" />
+                      <el-option label="关闭" :value="0" />
+                      <el-option label="隐藏" :value="2" />
                     </el-select>
                   </el-form-item>
                 </el-col>
@@ -1218,10 +1209,10 @@ useHead({
                   <el-form-item label="秘钥验证" :label-width="90" required>
                     <el-select
                       v-model="apiSetInfo.keyState"
-                      placeholder="请选择状态"
+                      placeholder="请选择秘钥验证状态"
                     >
-                      <el-option label="开启" :value="true"></el-option>
-                      <el-option label="关闭" :value="false"></el-option>
+                      <el-option label="开启" :value="1" />
+                      <el-option label="关闭" :value="0" />
                     </el-select>
                   </el-form-item>
                 </el-col>

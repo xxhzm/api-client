@@ -211,14 +211,9 @@ const handleDelete = async (index, row) => {
 const handleToggle = async (row, field) => {
   loading.value = true
 
-  const nextState =
-    field === 'state' ? (row.state === '启用' ? '关闭' : '启用') : row.state
+  const nextState = field === 'state' ? (row.state === 1 ? 0 : 1) : row.state
   const nextKeyState =
-    field === 'keyState'
-      ? row.keyState === '开启'
-        ? '关闭'
-        : '开启'
-      : row.keyState
+    field === 'keyState' ? (row.keyState === 1 ? 0 : 1) : row.keyState
 
   const bodyValue = new URLSearchParams()
   bodyValue.append('id', row.id)
@@ -340,12 +335,24 @@ useHead({
             <el-table-column prop="state" label="状态" width="80">
               <template #default="scope">
                 <el-tag
-                  :type="scope.row.state === '启用' ? 'success' : 'danger'"
+                  :type="
+                    scope.row.state === 1
+                      ? 'success'
+                      : scope.row.state === 2
+                      ? 'info'
+                      : 'danger'
+                  "
                   size="small"
                   style="cursor: pointer"
                   @click="handleToggle(scope.row, 'state')"
                 >
-                  {{ scope.row.state }}
+                  {{
+                    scope.row.state === 1
+                      ? '启用'
+                      : scope.row.state === 2
+                      ? '隐藏'
+                      : '关闭'
+                  }}
                 </el-tag>
               </template>
             </el-table-column>
@@ -389,12 +396,12 @@ useHead({
             <el-table-column prop="keyState" label="Key验证" width="90">
               <template #default="scope">
                 <el-tag
-                  :type="scope.row.keyState === '开启' ? 'warning' : 'info'"
+                  :type="scope.row.keyState === 1 ? 'warning' : 'info'"
                   size="small"
                   style="cursor: pointer"
                   @click="handleToggle(scope.row, 'keyState')"
                 >
-                  {{ scope.row.keyState }}
+                  {{ scope.row.keyState === 1 ? '开启' : '关闭' }}
                 </el-tag>
               </template>
             </el-table-column>
