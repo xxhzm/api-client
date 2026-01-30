@@ -98,36 +98,50 @@ const processSteps = [
   },
 ]
 
-// 已入驻商户列表（固定数据）
-const merchantList = [
-  {
-    id: 1,
-    merchantName: '中科云数',
-    companyName: '中科云数信息技术股份有限公司',
-    description:
-      '国家高新技术企业，深耕大数据与人工智能领域，为金融、政务、医疗等行业提供智能化数据解决方案。',
-    apiCount: 26,
-    joinDate: '2023-12',
-  },
-  {
-    id: 2,
-    merchantName: '征信通',
-    companyName: '深圳前海征信数据服务有限公司',
-    description:
-      '持牌征信机构，专业提供企业工商信息、司法诉讼、经营风险等多维度企业征信数据服务。',
-    apiCount: 18,
-    joinDate: '2024-03',
-  },
-  {
-    id: 3,
-    merchantName: '华云气象',
-    companyName: '华云气象科技（北京）有限公司',
-    description:
-      '中国气象局战略合作伙伴，提供高精度气象预报、灾害预警、农业气象等专业气象数据服务。',
-    apiCount: 14,
-    joinDate: '2024-06',
-  },
-]
+// 战略合作伙伴列表
+const merchantList = ref([])
+const merchantLoading = ref(false)
+const merchantPagination = reactive({
+  page: 1,
+  total: 0,
+  page_size: 6,
+})
+
+// 获取战略合作伙伴列表
+const getMerchantList = async () => {
+  merchantLoading.value = true
+  try {
+    const res = await $myFetch('MerchantDisplayList', {
+      method: 'GET',
+      params: {
+        page: merchantPagination.page,
+      },
+    })
+    if (res.code === 200 && res.data) {
+      merchantList.value = res.data.list || []
+      merchantPagination.total = res.data.total || 0
+    }
+  } catch (error) {
+    console.error('获取合作伙伴列表失败:', error)
+  } finally {
+    merchantLoading.value = false
+  }
+}
+
+// 分页切换
+const handleMerchantPageChange = (page) => {
+  merchantPagination.page = page
+  getMerchantList()
+}
+
+// 格式化日期（时间戳转 YYYY-MM 格式）
+const formatDate = (timestamp) => {
+  if (!timestamp) return '-'
+  const date = new Date(timestamp)
+  const year = date.getFullYear()
+  const month = String(date.getMonth() + 1).padStart(2, '0')
+  return `${year}-${month}`
+}
 
 const form = reactive({
   name: '',
@@ -247,9 +261,10 @@ const getCaptchaInfo = async () => {
   }
 }
 
-// 页面加载时获取验证码
+// 页面加载时获取验证码和合作伙伴列表
 onMounted(() => {
   getCaptchaInfo()
+  getMerchantList()
 })
 
 const loading = ref(false)
@@ -449,8 +464,8 @@ const scrollToForm = () => {
           <h2 class="section-title">战略合作伙伴</h2>
           <p class="section-desc">携手行业领先企业，共建可信赖的数据服务生态</p>
         </div>
-        <div class="merchants-container">
-          <div class="merchants-grid">
+        <div class="merchants-container" v-loading="merchantLoading">
+          <div class="merchants-grid" v-if="merchantList.length > 0">
             <div
               v-for="(merchant, index) in merchantList"
               :key="merchant.id || index"
@@ -461,21 +476,21 @@ const scrollToForm = () => {
                   <img
                     v-if="merchant.logo"
                     :src="merchant.logo"
-                    :alt="merchant.merchantName"
+                    :alt="merchant.merchant_name"
                   />
                   <div v-else class="logo-placeholder">
-                    {{ merchant.merchantName.substring(0, 2) }}
+                    {{ merchant.merchant_name?.substring(0, 2) }}
                   </div>
                 </div>
                 <div class="header-info">
                   <div class="name-row">
-                    <h4 class="merchant-name">{{ merchant.merchantName }}</h4>
-                    <span class="verified-badge">
+                    <h4 class="merchant-name">{{ merchant.merchant_name }}</h4>
+                    <span v-if="merchant.is_verified" class="verified-badge">
                       <el-icon><Check /></el-icon>
                       企业认证
                     </span>
                   </div>
-                  <p class="merchant-company">{{ merchant.companyName }}</p>
+                  <p class="merchant-company">{{ merchant.company_name }}</p>
                 </div>
               </div>
               <div class="card-body">
@@ -483,21 +498,33 @@ const scrollToForm = () => {
               </div>
               <div class="card-footer">
                 <div class="stat-item">
-                  <span class="stat-value">{{ merchant.apiCount }}</span>
+                  <span class="stat-value">{{ merchant.api_count }}</span>
                   <span class="stat-label">API 服务</span>
                 </div>
                 <div class="divider"></div>
                 <div class="stat-item">
-                  <span class="stat-value">99.9%</span>
+                  <span class="stat-value">{{ merchant.availability }}%</span>
                   <span class="stat-label">服务可用</span>
                 </div>
                 <div class="divider"></div>
                 <div class="stat-item">
-                  <span class="stat-value">{{ merchant.joinDate }}</span>
+                  <span class="stat-value">{{ formatDate(merchant.created_at) }}</span>
                   <span class="stat-label">入驻时间</span>
                 </div>
               </div>
             </div>
+          </div>
+          <el-empty v-else-if="!merchantLoading" description="暂无合作伙伴" />
+          <!-- 分页 -->
+          <div class="merchants-pagination" v-if="merchantPagination.total > merchantPagination.page_size">
+            <el-pagination
+              background
+              layout="prev, pager, next"
+              :total="merchantPagination.total"
+              :page-size="merchantPagination.page_size"
+              :current-page="merchantPagination.page"
+              @current-change="handleMerchantPageChange"
+            />
           </div>
         </div>
       </div>
@@ -998,6 +1025,12 @@ const scrollToForm = () => {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
     gap: 28px;
+  }
+
+  .merchants-pagination {
+    display: flex;
+    justify-content: center;
+    margin-top: 40px;
   }
 
   .merchant-card {

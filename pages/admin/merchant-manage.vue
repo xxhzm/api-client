@@ -1,5 +1,6 @@
 <script setup>
-import { Shop, Search, User, Phone, Message, Picture, OfficeBuilding, Monitor, Clock } from '@element-plus/icons-vue'
+import { Shop, Search, User, Phone, Message, Picture, OfficeBuilding, Monitor, Clock, View, Edit, ArrowDown, Delete, Remove, Close } from '@element-plus/icons-vue'
+import { ElMessageBox } from 'element-plus'
 const { $msg, $myFetch } = useNuxtApp()
 
 definePageMeta({
@@ -45,6 +46,18 @@ const editForm = ref({
   is_verified: 0,
 })
 
+// 绑定用户弹窗
+const bindUserDialogVisible = ref(false)
+const bindUserForm = ref({
+  merchantId: 0,
+  userId: '',
+})
+// 用户搜索
+const userSearchKeyword = ref('')
+const userSearchLoading = ref(false)
+const userSearchResults = ref([])
+const selectedUser = ref(null)
+
 // 查看详情
 const handleViewDetail = (row) => {
   currentMerchant.value = row
@@ -84,24 +97,28 @@ const submitEdit = async () => {
     $msg('请填写联系电话', 'error')
     return
   }
+  if (!editForm.value.contact_email) {
+    $msg('请填写联系邮箱', 'error')
+    return
+  }
 
   loading.value = true
   try {
     const apiBodyValue = new URLSearchParams()
     apiBodyValue.append('id', editForm.value.id)
-    apiBodyValue.append('merchant_name', editForm.value.merchant_name)
-    apiBodyValue.append('company_name', editForm.value.company_name)
-    apiBodyValue.append('credit_code', editForm.value.credit_code)
-    apiBodyValue.append('contact_name', editForm.value.contact_name)
-    apiBodyValue.append('contact_phone', editForm.value.contact_phone)
-    apiBodyValue.append('contact_email', editForm.value.contact_email)
+    apiBodyValue.append('merchantName', editForm.value.merchant_name)
+    apiBodyValue.append('companyName', editForm.value.company_name)
+    apiBodyValue.append('creditCode', editForm.value.credit_code)
+    apiBodyValue.append('contactName', editForm.value.contact_name)
+    apiBodyValue.append('contactPhone', editForm.value.contact_phone)
+    apiBodyValue.append('contactEmail', editForm.value.contact_email)
     apiBodyValue.append('description', editForm.value.description)
-    apiBodyValue.append('commission_rate', editForm.value.commission_rate)
+    apiBodyValue.append('commissionRate', editForm.value.commission_rate)
     apiBodyValue.append('logo', editForm.value.logo)
-    apiBodyValue.append('is_display', editForm.value.is_display)
-    apiBodyValue.append('is_verified', editForm.value.is_verified)
+    apiBodyValue.append('isDisplay', editForm.value.is_display)
+    apiBodyValue.append('isVerified', editForm.value.is_verified)
 
-    const res = await $myFetch('MerchantUpdate', {
+    const res = await $myFetch('UpdateMerchant', {
       method: 'POST',
       body: apiBodyValue,
     })
@@ -153,6 +170,164 @@ const submitCommission = async () => {
     $msg('修改失败', 'error')
   } finally {
     loading.value = false
+  }
+}
+
+// 搜索用户
+const searchUsers = async () => {
+  if (!userSearchKeyword.value.trim()) {
+    userSearchResults.value = []
+    return
+  }
+
+  userSearchLoading.value = true
+  try {
+    const res = await $myFetch('UserList', {
+      params: {
+        page: 1,
+        limit: 10,
+        keyword: userSearchKeyword.value.trim(),
+      },
+    })
+
+    if (res.code === 200) {
+      userSearchResults.value = res.data.userList || []
+    } else {
+      userSearchResults.value = []
+      $msg(res.msg || '搜索失败', 'error')
+    }
+  } catch (error) {
+    userSearchResults.value = []
+    $msg('搜索失败', 'error')
+  } finally {
+    userSearchLoading.value = false
+  }
+}
+
+// 防抖搜索
+const debouncedUserSearch = ref(null)
+watch(userSearchKeyword, () => {
+  if (debouncedUserSearch.value) clearTimeout(debouncedUserSearch.value)
+  debouncedUserSearch.value = setTimeout(() => {
+    searchUsers()
+  }, 500)
+})
+
+// 选择用户
+const handleSelectUser = (user) => {
+  selectedUser.value = user
+  bindUserForm.value.userId = user.id
+}
+
+// 打开绑定用户弹窗
+const handleBindUser = (row) => {
+  bindUserForm.value = {
+    merchantId: row.id,
+    userId: '',
+  }
+  userSearchKeyword.value = ''
+  userSearchResults.value = []
+  selectedUser.value = null
+  bindUserDialogVisible.value = true
+}
+
+// 提交绑定用户
+const submitBindUser = async () => {
+  if (!bindUserForm.value.userId) {
+    $msg('请输入用户ID', 'error')
+    return
+  }
+
+  loading.value = true
+  try {
+    const apiBodyValue = new URLSearchParams()
+    apiBodyValue.append('merchantId', bindUserForm.value.merchantId)
+    apiBodyValue.append('userId', bindUserForm.value.userId)
+
+    const res = await $myFetch('MerchantBindUser', {
+      method: 'POST',
+      body: apiBodyValue,
+    })
+
+    if (res.code === 200) {
+      $msg(res.msg || '绑定成功', 'success')
+      bindUserDialogVisible.value = false
+      getData()
+    } else {
+      $msg(res.msg || '绑定失败', 'error')
+    }
+  } catch (error) {
+    $msg('绑定失败', 'error')
+  } finally {
+    loading.value = false
+  }
+}
+
+// 解除绑定用户
+const handleUnbindUser = async (row) => {
+  loading.value = true
+  try {
+    const apiBodyValue = new URLSearchParams()
+    apiBodyValue.append('merchantId', row.id)
+
+    const res = await $myFetch('MerchantUnbindUser', {
+      method: 'POST',
+      body: apiBodyValue,
+    })
+
+    if (res.code === 200) {
+      $msg(res.msg || '解除绑定成功', 'success')
+      getData()
+    } else {
+      $msg(res.msg || '解除绑定失败', 'error')
+    }
+  } catch (error) {
+    $msg('解除绑定失败', 'error')
+  } finally {
+    loading.value = false
+  }
+}
+
+// 处理下拉菜单命令
+const handleCommand = async (command, row) => {
+  switch (command) {
+    case 'bindUser':
+      handleBindUser(row)
+      break
+    case 'unbindUser':
+      ElMessageBox.confirm(
+        '确定要解除该商户的用户绑定吗？',
+        '提示',
+        {
+          confirmButtonText: '确定',
+          cancelButtonText: '取消',
+          type: 'warning',
+        }
+      )
+        .then(() => {
+          handleUnbindUser(row)
+        })
+        .catch(() => {
+          // 取消操作
+        })
+      break
+    case 'delete':
+      ElMessageBox.confirm(
+        '确定要删除此商户吗？删除后将无法恢复！',
+        '警告',
+        {
+          confirmButtonText: '确定删除',
+          cancelButtonText: '取消',
+          type: 'error',
+        }
+      )
+        .then(() => {
+          handleDelete(row)
+        })
+        .catch(() => {
+          // 取消操作
+        })
+      break
   }
 }
 
@@ -238,8 +413,12 @@ watch(search, () => {
 const handleDelete = async (row) => {
   loading.value = true
   try {
-    const res = await $myFetch('MerchantDelete', {
-      params: { id: row.id },
+    const apiBodyValue = new URLSearchParams()
+    apiBodyValue.append('id', row.id)
+
+    const res = await $myFetch('DeleteMerchant', {
+      method: 'POST',
+      body: apiBodyValue,
     })
 
     if (res.code === 200) {
@@ -404,7 +583,6 @@ useHead({
                 <el-image
                   v-if="scope.row.logo"
                   :src="scope.row.logo"
-                  :preview-src-list="[scope.row.logo]"
                   fit="cover"
                   style="width: 40px; height: 40px; border-radius: 4px"
                 />
@@ -454,29 +632,49 @@ useHead({
             <el-table-column prop="review_time" label="审核时间" width="170" />
             <el-table-column prop="created_at" label="创建时间" width="170" />
             <el-table-column prop="updated_at" label="更新时间" width="170" />
-            <el-table-column fixed="right" width="180" label="操作">
+            <el-table-column fixed="right" width="220" label="操作">
               <template #default="scope">
                 <div class="table-actions">
                   <el-button
                     type="primary"
+                    size="small"
                     link
                     @click="handleViewDetail(scope.row)"
                   >
+                    <el-icon><View /></el-icon>
                     详情
                   </el-button>
-                  <el-button type="warning" link @click="handleEdit(scope.row)">
+                  <el-button 
+                    type="warning" 
+                    size="small"
+                    link 
+                    @click="handleEdit(scope.row)"
+                  >
+                    <el-icon><Edit /></el-icon>
                     编辑
                   </el-button>
-                  <el-popconfirm
-                    confirm-button-text="确定"
-                    cancel-button-text="取消"
-                    title="确定要删除此商户吗？"
-                    @confirm="handleDelete(scope.row)"
-                  >
-                    <template #reference>
-                      <el-button type="danger" link>删除</el-button>
+                  
+                  <el-dropdown trigger="click" @command="handleCommand($event, scope.row)">
+                    <el-button type="primary" size="small" link>
+                      更多<el-icon class="el-icon--right"><ArrowDown /></el-icon>
+                    </el-button>
+                    <template #dropdown>
+                      <el-dropdown-menu>
+                        <el-dropdown-item command="bindUser">
+                          <el-icon><User /></el-icon>
+                          绑定用户
+                        </el-dropdown-item>
+                        <el-dropdown-item command="unbindUser" divided>
+                          <el-icon><Close /></el-icon>
+                          解除绑定
+                        </el-dropdown-item>
+                        <el-dropdown-item command="delete" divided>
+                          <el-icon><Delete /></el-icon>
+                          <span style="color: #f56c6c">删除商户</span>
+                        </el-dropdown-item>
+                      </el-dropdown-menu>
                     </template>
-                  </el-popconfirm>
+                  </el-dropdown>
                 </div>
               </template>
             </el-table-column>
@@ -765,7 +963,7 @@ useHead({
           </el-row>
           <el-row :gutter="24">
             <el-col :span="24">
-              <el-form-item label="联系邮箱">
+              <el-form-item label="联系邮箱" required>
                 <el-input
                   v-model="editForm.contact_email"
                   placeholder="请输入联系邮箱"
@@ -815,6 +1013,82 @@ useHead({
           <el-button @click="editDialogVisible = false">取消</el-button>
           <el-button type="primary" @click="submitEdit" :loading="loading">
             保存修改
+          </el-button>
+        </div>
+      </template>
+    </el-dialog>
+
+    <!-- 绑定用户对话框 -->
+    <el-dialog
+      v-model="bindUserDialogVisible"
+      title="绑定用户"
+      width="650px"
+      append-to-body
+      destroy-on-close
+      class="bind-user-dialog"
+    >
+      <div class="bind-user-content">
+        <el-form :model="bindUserForm" label-width="90px">
+          <el-form-item label="商户ID">
+            <el-input v-model="bindUserForm.merchantId" disabled />
+          </el-form-item>
+          <el-form-item label="搜索用户" required>
+            <el-input
+              v-model="userSearchKeyword"
+              placeholder="输入用户名或邮箱搜索用户"
+              clearable
+            >
+              <template #prefix>
+                <el-icon><Search /></el-icon>
+              </template>
+            </el-input>
+          </el-form-item>
+        </el-form>
+
+        <!-- 用户搜索结果 -->
+        <div class="user-search-results" v-loading="userSearchLoading">
+          <div v-if="!userSearchKeyword.trim()" class="search-tip">
+            <el-icon><Search /></el-icon>
+            <p>请输入用户名或邮箱搜索用户</p>
+          </div>
+          <div v-else-if="userSearchResults.length === 0 && !userSearchLoading" class="no-results">
+            <el-icon><User /></el-icon>
+            <p>未找到匹配的用户</p>
+          </div>
+          <div v-else class="results-list">
+            <div
+              v-for="user in userSearchResults"
+              :key="user.id"
+              class="user-item"
+              :class="{ selected: selectedUser?.id === user.id }"
+              @click="handleSelectUser(user)"
+            >
+              <div class="user-info">
+                <div class="user-main">
+                  <el-icon class="user-icon"><User /></el-icon>
+                  <div class="user-details">
+                    <div class="user-name">{{ user.username }}</div>
+                    <div class="user-meta">
+                      <span class="user-id">ID: {{ user.id }}</span>
+                      <span class="user-email" v-if="user.mail">{{ user.mail }}</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <template #footer>
+        <div class="dialog-footer">
+          <el-button @click="bindUserDialogVisible = false">取消</el-button>
+          <el-button
+            type="primary"
+            @click="submitBindUser"
+            :loading="loading"
+            :disabled="!selectedUser"
+          >
+            确定绑定
           </el-button>
         </div>
       </template>
@@ -892,10 +1166,26 @@ useHead({
 
       .table-actions {
         display: flex;
-        gap: 4px;
+        align-items: center;
+        gap: 8px;
         margin: 0;
         padding: 0;
-        flex-wrap: wrap;
+        flex-wrap: nowrap;
+
+        .el-button {
+          margin: 0;
+          padding: 4px 8px;
+
+          .el-icon {
+            margin-right: 2px;
+          }
+        }
+
+        .el-dropdown {
+          .el-button {
+            padding: 4px 8px;
+          }
+        }
       }
 
       .pagination {
@@ -903,6 +1193,25 @@ useHead({
         display: flex;
         justify-content: flex-end;
       }
+    }
+  }
+}
+
+// 下拉菜单样式优化
+:deep(.el-dropdown-menu) {
+  .el-dropdown-menu__item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 16px;
+    font-size: 14px;
+
+    .el-icon {
+      font-size: 16px;
+    }
+
+    &:hover {
+      background-color: #f5f7fa;
     }
   }
 }
@@ -1197,6 +1506,122 @@ useHead({
     .el-switch__core {
       background-color: #3b82f6;
       border-color: #3b82f6;
+    }
+  }
+}
+
+// 绑定用户对话框样式
+.bind-user-dialog {
+  .bind-user-content {
+    .user-search-results {
+      min-height: 300px;
+      max-height: 400px;
+      overflow-y: auto;
+      border: 1px solid #e5e7eb;
+      border-radius: 8px;
+      background: #f9fafb;
+      padding: 12px;
+
+      .search-tip,
+      .no-results {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        height: 280px;
+        color: #9ca3af;
+
+        .el-icon {
+          font-size: 48px;
+          margin-bottom: 12px;
+        }
+
+        p {
+          font-size: 14px;
+          margin: 0;
+        }
+      }
+
+      .results-list {
+        .user-item {
+          background: #fff;
+          border: 2px solid #e5e7eb;
+          border-radius: 8px;
+          padding: 12px;
+          margin-bottom: 8px;
+          cursor: pointer;
+          transition: all 0.2s;
+
+          &:last-child {
+            margin-bottom: 0;
+          }
+
+          &:hover {
+            border-color: #3b82f6;
+            box-shadow: 0 2px 8px rgba(59, 130, 246, 0.15);
+          }
+
+          &.selected {
+            border-color: #67c23a;
+            background: #f0f9ff;
+            box-shadow: 0 2px 8px rgba(103, 194, 58, 0.15);
+          }
+
+          .user-info {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+
+            .user-main {
+              display: flex;
+              align-items: center;
+              gap: 12px;
+              flex: 1;
+
+              .user-icon {
+                width: 40px;
+                height: 40px;
+                border-radius: 50%;
+                background: #eff6ff;
+                color: #3b82f6;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                font-size: 20px;
+                flex-shrink: 0;
+              }
+
+              .user-details {
+                flex: 1;
+                min-width: 0;
+
+                .user-name {
+                  font-size: 15px;
+                  font-weight: 600;
+                  color: #1f2937;
+                  margin-bottom: 4px;
+                }
+
+                .user-meta {
+                  display: flex;
+                  gap: 12px;
+                  flex-wrap: wrap;
+                  font-size: 12px;
+                  color: #6b7280;
+
+                  .user-id {
+                    font-family: 'SF Mono', Monaco, Consolas, monospace;
+                  }
+
+                  .user-email {
+                    color: #3b82f6;
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
     }
   }
 }
