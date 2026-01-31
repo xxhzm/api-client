@@ -4,6 +4,7 @@ import {
   InfoFilled,
   ShoppingCart,
   Check,
+  Menu
 } from '@element-plus/icons-vue'
 
 const { $msg, $myFetch } = useNuxtApp()
