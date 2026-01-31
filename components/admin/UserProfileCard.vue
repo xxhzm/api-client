@@ -10,7 +10,7 @@ import {
   ArrowRight,
   Refresh,
   CreditCard,
-  DataAnalysis,
+  User,
 } from '@element-plus/icons-vue'
 
 const props = defineProps({})
@@ -124,640 +124,787 @@ const handleRefreshBalance = () => {
 }
 
 const copyKey = async () => {
+  const key = userInfo.key || userAccessKey.value
+  if (!key) {
+    $msg('暂无可复制的秘钥', 'warning')
+    return
+  }
+
   try {
-    if (!userAccessKey.value) {
-      $msg('暂无可复制的秘钥', 'warning')
+    // 优先使用 Clipboard API
+    if (navigator.clipboard && window.isSecureContext) {
+      await navigator.clipboard.writeText(key)
+      $msg('秘钥已复制', 'success')
       return
     }
-    await navigator.clipboard.writeText(userAccessKey.value)
-    $msg('秘钥已复制', 'success')
+
+    // Fallback: 使用传统方式
+    const textArea = document.createElement('textarea')
+    textArea.value = key
+    textArea.style.position = 'fixed'
+    textArea.style.left = '-9999px'
+    textArea.style.top = '-9999px'
+    document.body.appendChild(textArea)
+    textArea.focus()
+    textArea.select()
+
+    const successful = document.execCommand('copy')
+    document.body.removeChild(textArea)
+
+    if (successful) {
+      $msg('秘钥已复制', 'success')
+    } else {
+      $msg('复制失败，请手动复制', 'error')
+    }
   } catch (error) {
-    $msg('复制失败', 'error')
+    $msg('复制失败，请手动复制', 'error')
   }
 }
 </script>
 
 <template>
-  <div class="profile-section-full">
-    <div class="basic-info-card">
-      <!-- Left: Profile Summary -->
-      <div class="profile-summary">
-        <div class="summary-bg-decoration"></div>
-        <div class="summary-content">
-          <div class="summary-avatar">
-            <span>{{
-              userInfo.username?.charAt(0)?.toUpperCase() || 'U'
-            }}</span>
+  <div class="enterprise-profile-card">
+    <!-- Left Panel: User Overview -->
+    <div class="profile-panel">
+      <div class="panel-header">
+        <div class="header-pattern"></div>
+        <div class="header-content">
+          <div class="avatar-wrapper">
+            <div class="avatar">
+              <span>{{ userInfo.username?.charAt(0)?.toUpperCase() || 'U' }}</span>
+            </div>
+            <div class="status-indicator"></div>
           </div>
-          <h3 class="summary-name">
-            {{ userInfo.username || '用户' }}
-          </h3>
-          <p class="summary-id">UID: {{ userInfo.id || '-' }}</p>
-
-          <div class="balance-card">
-            <div class="card-pattern"></div>
-            <div class="balance-header">
-              <div class="label-wrap">
-                <el-icon><Wallet /></el-icon>
-                <span>账户余额</span>
-              </div>
-              <el-icon class="refresh-icon" @click="handleRefreshBalance"
-                ><Refresh
-              /></el-icon>
-            </div>
-            <div class="balance-value">
-              {{ formatCNY(balance) }}
-            </div>
-            <div class="balance-footer">
-              <el-button
-                type="primary"
-                size="small"
-                round
-                class="recharge-btn"
-                @click="navigateTo('/admin/pay')"
-              >
-                充值
-              </el-button>
+          <div class="user-meta">
+            <h2 class="username">{{ userInfo.username || '用户' }}</h2>
+            <div class="user-id">
+              <el-icon><User /></el-icon>
+              <span>UID: {{ userInfo.id || '-' }}</span>
             </div>
           </div>
         </div>
       </div>
 
-      <!-- Right: Details & Key -->
-      <div class="profile-details">
-        <el-tabs v-model="activeTab" class="profile-tabs">
-          <el-tab-pane label="详细信息" name="details">
-            <div class="info-grid">
-              <!-- User Info -->
-              <div class="info-item">
-                <div class="icon-box green">
+      <!-- Balance Widget -->
+      <div class="balance-widget">
+        <div class="widget-header">
+          <div class="widget-title">
+            <el-icon class="wallet-icon"><Wallet /></el-icon>
+            <span>账户资产</span>
+          </div>
+          <button class="refresh-btn" @click="handleRefreshBalance">
+            <el-icon><Refresh /></el-icon>
+          </button>
+        </div>
+        <div class="balance-amount">
+          <span class="currency">¥</span>
+          <span class="amount">{{ balance.toLocaleString('zh-CN', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) }}</span>
+        </div>
+        <div class="balance-stats">
+          <div class="stat-item">
+            <span class="stat-label">本月充值</span>
+            <span class="stat-value">{{ formatCNY(currentMonthTopUp) }}</span>
+          </div>
+          <div class="stat-divider"></div>
+          <div class="stat-item">
+            <span class="stat-label">累计充值</span>
+            <span class="stat-value">{{ formatCNY(totalTopUp) }}</span>
+          </div>
+        </div>
+        <el-button type="primary" class="recharge-action" @click="navigateTo('/admin/pay')">
+          立即充值
+        </el-button>
+      </div>
+
+    </div>
+
+    <!-- Right Panel: Details -->
+    <div class="details-panel">
+      <el-tabs v-model="activeTab" class="enterprise-tabs">
+        <el-tab-pane label="账户信息" name="details">
+          <div class="info-section">
+            <h3 class="section-title">
+              <el-icon><User /></el-icon>
+              基本信息
+            </h3>
+            <div class="info-table">
+              <div class="info-row">
+                <div class="info-cell">
+                  <span class="cell-label">手机号码</span>
+                  <span class="cell-value">{{ userInfo.phone || '未绑定' }}</span>
+                </div>
+                <div class="info-cell">
+                  <span class="cell-label">邮箱地址</span>
+                  <span class="cell-value">{{ userInfo.mail || '未绑定' }}</span>
+                </div>
+              </div>
+              <div class="info-row">
+                <div class="info-cell">
+                  <span class="cell-label">登录 IP</span>
+                  <span class="cell-value mono">{{ userInfo.ip || '-' }}</span>
+                </div>
+                <div class="info-cell">
+                  <span class="cell-label">最近登录</span>
+                  <span class="cell-value">{{ userInfo.login_time || '-' }}</span>
+                </div>
+              </div>
+              <div class="info-row">
+                <div class="info-cell">
+                  <span class="cell-label">注册时间</span>
+                  <span class="cell-value">{{ userInfo.create_time || '-' }}</span>
+                </div>
+                <div class="info-cell">
+                  <span class="cell-label">今日调用</span>
+                  <span class="cell-value highlight">{{ total24h }} 次</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="info-section">
+            <h3 class="section-title">
+              <el-icon><Key /></el-icon>
+              API 密钥
+            </h3>
+            <div class="key-display">
+              <div class="key-content">
+                <code class="key-text">{{ userInfo.key || '-' }}</code>
+              </div>
+              <el-button type="primary" plain size="small" @click="copyKey">
+                复制密钥
+              </el-button>
+            </div>
+            <p class="key-hint">请妥善保管您的 API 密钥，不要泄露给他人</p>
+          </div>
+
+        </el-tab-pane>
+
+        <el-tab-pane label="安全中心" name="security">
+          <div class="security-section">
+            <div class="security-header">
+              <el-icon><Lock /></el-icon>
+              <div class="security-meta">
+                <h3>账号安全</h3>
+                <p>管理您的账号安全设置，保护账户资产</p>
+              </div>
+            </div>
+
+            <div class="security-options">
+              <div class="security-option" @click="navigateTo('/admin/password')">
+                <div class="option-icon blue">
+                  <el-icon><Lock /></el-icon>
+                </div>
+                <div class="option-content">
+                  <h4>登录密码</h4>
+                  <p>定期修改密码以保护账号安全</p>
+                </div>
+                <div class="option-action">
+                  <span class="action-text">修改</span>
+                  <el-icon><ArrowRight /></el-icon>
+                </div>
+              </div>
+
+              <div class="security-option" @click="navigateTo('/admin/phone')">
+                <div class="option-icon green">
                   <el-icon><Phone /></el-icon>
                 </div>
-                <div class="info-content">
-                  <div class="label">手机号码</div>
-                  <div class="value">
-                    {{ userInfo.phone || '未绑定' }}
-                  </div>
+                <div class="option-content">
+                  <h4>手机绑定</h4>
+                  <p>{{ userInfo.phone ? '已绑定：' + userInfo.phone : '未绑定手机号码' }}</p>
+                </div>
+                <div class="option-action">
+                  <span class="action-text">{{ userInfo.phone ? '更换' : '绑定' }}</span>
+                  <el-icon><ArrowRight /></el-icon>
                 </div>
               </div>
-              <div class="info-item">
-                <div class="icon-box purple">
+
+              <div class="security-option" @click="navigateTo('/admin/email')">
+                <div class="option-icon purple">
                   <el-icon><Message /></el-icon>
                 </div>
-                <div class="info-content">
-                  <div class="label">邮箱地址</div>
-                  <div class="value">
-                    {{ userInfo.mail || '未绑定' }}
-                  </div>
+                <div class="option-content">
+                  <h4>邮箱绑定</h4>
+                  <p>{{ userInfo.mail ? '已绑定：' + userInfo.mail : '未绑定邮箱地址' }}</p>
                 </div>
-              </div>
-              <div class="info-item">
-                <div class="icon-box orange">
-                  <el-icon><Key /></el-icon>
-                </div>
-                <div class="info-content">
-                  <div class="label">Secret Key</div>
-                  <div
-                    class="value key-value"
-                    @click="copyKey"
-                    title="点击复制"
-                  >
-                    {{ userInfo.key || '-' }}
-                  </div>
-                </div>
-              </div>
-              <div class="info-item">
-                <div class="icon-box blue">
-                  <el-icon><Location /></el-icon>
-                </div>
-                <div class="info-content">
-                  <div class="label">登录IP</div>
-                  <div class="value">{{ userInfo.ip || '-' }}</div>
-                </div>
-              </div>
-              <div class="info-item">
-                <div class="icon-box purple">
-                  <el-icon><Timer /></el-icon>
-                </div>
-                <div class="info-content">
-                  <div class="label">登录时间</div>
-                  <div class="value">
-                    {{ userInfo.login_time || '-' }}
-                  </div>
-                </div>
-              </div>
-              <div class="info-item">
-                <div class="icon-box green">
-                  <el-icon><Timer /></el-icon>
-                </div>
-                <div class="info-content">
-                  <div class="label">注册时间</div>
-                  <div class="value">
-                    {{ userInfo.create_time || '-' }}
-                  </div>
-                </div>
-              </div>
-
-              <!-- System Stats -->
-              <div class="info-item">
-                <div class="icon-box purple">
-                  <el-icon><Wallet /></el-icon>
-                </div>
-                <div class="info-content">
-                  <div class="label">账户余额</div>
-                  <div class="value">
-                    {{ formatCNY(balance) }}
-                  </div>
-                </div>
-              </div>
-              <div class="info-item">
-                <div class="icon-box blue">
-                  <el-icon><DataAnalysis /></el-icon>
-                </div>
-                <div class="info-content">
-                  <div class="label">今日使用量</div>
-                  <div class="value">{{ total24h }} 次</div>
-                </div>
-              </div>
-              <div class="info-item">
-                <div class="icon-box green">
-                  <el-icon><Wallet /></el-icon>
-                </div>
-                <div class="info-content">
-                  <div class="label">本月充值</div>
-                  <div class="value">
-                    {{ formatCNY(currentMonthTopUp) }}
-                  </div>
-                </div>
-              </div>
-              <div class="info-item">
-                <div class="icon-box purple">
-                  <el-icon><CreditCard /></el-icon>
-                </div>
-                <div class="info-content">
-                  <div class="label">累计充值</div>
-                  <div class="value">
-                    {{ formatCNY(totalTopUp) }}
-                  </div>
+                <div class="option-action">
+                  <span class="action-text">{{ userInfo.mail ? '更换' : '绑定' }}</span>
+                  <el-icon><ArrowRight /></el-icon>
                 </div>
               </div>
             </div>
-          </el-tab-pane>
-          <el-tab-pane label="安全设置" name="security">
-            <div class="security-list">
-              <div class="security-item" @click="navigateTo('/admin/password')">
-                <div class="left-info">
-                  <div class="icon-box blue">
-                    <el-icon><Lock /></el-icon>
-                  </div>
-                  <div class="text-info">
-                    <div class="label">登录密码</div>
-                    <div class="desc">定期修改密码以保护账号安全</div>
-                  </div>
-                </div>
-                <el-icon class="arrow-icon"><ArrowRight /></el-icon>
-              </div>
-
-              <div class="security-item" @click="navigateTo('/admin/phone')">
-                <div class="left-info">
-                  <div class="icon-box green">
-                    <el-icon><Phone /></el-icon>
-                  </div>
-                  <div class="text-info">
-                    <div class="label">手机绑定</div>
-                    <div class="desc">
-                      {{
-                        userInfo.phone
-                          ? '已绑定手机：' + userInfo.phone
-                          : '未绑定手机号码'
-                      }}
-                    </div>
-                  </div>
-                </div>
-                <el-icon class="arrow-icon"><ArrowRight /></el-icon>
-              </div>
-
-              <div class="security-item" @click="navigateTo('/admin/email')">
-                <div class="left-info">
-                  <div class="icon-box purple">
-                    <el-icon><Message /></el-icon>
-                  </div>
-                  <div class="text-info">
-                    <div class="label">邮箱绑定</div>
-                    <div class="desc">
-                      {{
-                        userInfo.mail
-                          ? '已绑定邮箱：' + userInfo.mail
-                          : '未绑定邮箱地址'
-                      }}
-                    </div>
-                  </div>
-                </div>
-                <el-icon class="arrow-icon"><ArrowRight /></el-icon>
-              </div>
-            </div>
-          </el-tab-pane>
-        </el-tabs>
-      </div>
+          </div>
+        </el-tab-pane>
+      </el-tabs>
     </div>
   </div>
 </template>
 
 <style lang="less" scoped>
-// Profile Section (New Layout)
-.profile-section-full {
-  height: 620px;
-  margin-bottom: 24px;
+.enterprise-profile-card {
+  display: flex;
+  gap: 24px;
+  min-height: 580px;
+  align-items: stretch;
 }
 
-.basic-info-card {
-  height: 100%;
-  background: #fff;
-  border-radius: 16px;
-  border: 1px solid #eaecf0;
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05),
-    0 2px 4px -1px rgba(0, 0, 0, 0.03);
+// Left Panel Styles
+.profile-panel {
+  width: 320px;
+  flex-shrink: 0;
   display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.panel-header {
+  background: #fff;
+  border-radius: 12px;
+  border: 1px solid #e5e7eb;
   overflow: hidden;
+  position: relative;
 
-  .profile-summary {
-    width: 340px;
-    background: #fff;
-    border-right: 1px solid #f0f0f0;
+  .header-pattern {
+    height: 80px;
+    background: linear-gradient(135deg, #1e3a5f 0%, #2563eb 100%);
     position: relative;
-    flex-shrink: 0;
 
-    .summary-bg-decoration {
+    &::before {
+      content: '';
       position: absolute;
       top: 0;
       left: 0;
-      width: 100%;
-      height: 160px;
-      background: linear-gradient(180deg, #f0f7ff 0%, #ffffff 100%);
-      z-index: 1;
-    }
-
-    .summary-content {
-      position: relative;
-      z-index: 2;
-      padding: 60px 32px 40px;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      text-align: center;
-      height: 100%;
-    }
-
-    .summary-avatar {
-      width: 110px;
-      height: 110px;
-      border-radius: 50%;
-      background: #fff;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      margin-bottom: 20px;
-      border: 4px solid #fff;
-      box-shadow: 0 8px 24px rgba(59, 130, 246, 0.15);
-      transition: transform 0.3s ease;
-
-      &:hover {
-        transform: translateY(-5px);
-      }
-
-      span {
-        font-size: 44px;
-        color: #3b82f6;
-        font-weight: 600;
-      }
-    }
-
-    .summary-name {
-      margin: 0 0 8px 0;
-      font-size: 22px;
-      font-weight: 700;
-      color: #1a1f36;
-      letter-spacing: -0.5px;
-    }
-
-    .summary-id {
-      margin: 0 0 16px 0;
-      font-size: 13px;
-      color: #9ca3af;
-      font-family: monospace;
-      background: #f3f4f6;
-      padding: 2px 8px;
-      border-radius: 4px;
-    }
-
-    .summary-status {
-      margin-bottom: 32px;
-      .custom-tag {
-        padding: 0 16px;
-        height: 28px;
-        line-height: 26px;
-      }
-    }
-
-    .balance-card {
-      margin-top: auto;
-      width: 100%;
-      background: linear-gradient(135deg, #1e40af 0%, #3b82f6 100%);
-      padding: 24px;
-      border-radius: 16px;
-      color: #fff;
-      position: relative;
-      overflow: hidden;
-      box-shadow: 0 10px 25px -5px rgba(59, 130, 246, 0.4);
-      text-align: left;
-      transition: transform 0.3s ease;
-
-      &:hover {
-        transform: translateY(-2px);
-      }
-
-      .card-pattern {
-        position: absolute;
-        top: -50px;
-        right: -50px;
-        width: 150px;
-        height: 150px;
-        border-radius: 50%;
-        background: rgba(255, 255, 255, 0.1);
-      }
-
-      .balance-header {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        gap: 8px;
-        margin-bottom: 16px;
-        opacity: 0.9;
-        font-size: 14px;
-
-        .label-wrap {
-          display: flex;
-          align-items: center;
-          gap: 8px;
-        }
-
-        .refresh-icon {
-          cursor: pointer;
-          font-size: 16px;
-          transition: transform 0.5s ease;
-
-          &:hover {
-            transform: rotate(180deg);
-          }
-        }
-      }
-
-      .balance-value {
-        font-size: 32px;
-        font-weight: 700;
-        margin-bottom: 24px;
-        letter-spacing: -0.5px;
-        text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-      }
-
-      .balance-footer {
-        display: flex;
-        justify-content: flex-end;
-        font-size: 12px;
-        opacity: 0.9;
-
-        .recharge-btn {
-          background: rgba(255, 255, 255, 0.2);
-          border: 1px solid rgba(255, 255, 255, 0.3);
-          color: #fff !important;
-          padding: 8px 16px;
-          height: auto;
-          font-weight: 500 !important;
-          backdrop-filter: blur(4px);
-          transition: all 0.2s;
-
-          &:hover {
-            background: #fff;
-            color: #2563eb !important;
-            border-color: #fff;
-          }
-        }
-      }
+      right: 0;
+      bottom: 0;
+      background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.05'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
     }
   }
 
-  .profile-details {
-    flex: 1;
-    padding: 32px 48px;
-    overflow-y: auto;
+  .header-content {
+    padding: 0 24px 24px;
+    margin-top: -40px;
+    position: relative;
+    z-index: 1;
+  }
 
-    .profile-tabs {
-      height: 100%;
-      :deep(.el-tabs__header) {
-        margin-bottom: 24px;
-      }
-      :deep(.el-tabs__nav-wrap::after) {
-        height: 1px;
-        background-color: #f3f4f6;
-      }
-      :deep(.el-tabs__item) {
-        font-size: 16px;
-        color: #64748b;
-        &.is-active {
-          color: #3b82f6;
-          font-weight: 600;
-        }
-      }
-      :deep(.el-tabs__active-bar) {
-        background-color: #3b82f6;
-        height: 3px;
-        border-radius: 3px;
-      }
+  .avatar-wrapper {
+    position: relative;
+    display: inline-block;
+    margin-bottom: 16px;
+  }
+
+  .avatar {
+    width: 80px;
+    height: 80px;
+    border-radius: 12px;
+    background: linear-gradient(135deg, #2563eb 0%, #1e40af 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 4px solid #fff;
+    box-shadow: 0 4px 12px rgba(37, 99, 235, 0.25);
+
+    span {
+      font-size: 32px;
+      font-weight: 700;
+      color: #fff;
+    }
+  }
+
+  .status-indicator {
+    position: absolute;
+    bottom: 4px;
+    right: 4px;
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    background: #10b981;
+    border: 3px solid #fff;
+  }
+
+  .user-meta {
+    .username {
+      margin: 0 0 8px;
+      font-size: 20px;
+      font-weight: 700;
+      color: #111827;
+      letter-spacing: -0.025em;
     }
 
-    .info-grid {
-      display: grid;
-      grid-template-columns: repeat(2, 1fr);
-      gap: 20px;
+    .user-id {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 12px;
+      background: #f3f4f6;
+      border-radius: 6px;
+      font-size: 13px;
+      color: #6b7280;
 
-      .info-item {
-        display: flex;
-        align-items: center;
-        gap: 16px;
-        padding: 16px;
-        background: #f9fafb;
-        border-radius: 12px;
-        border: 1px solid #f3f4f6;
-        transition: all 0.2s;
-
-        &:hover {
-          background: #fff;
-          border-color: #eaecf0;
-          box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);
-        }
-
-        .icon-box {
-          width: 44px;
-          height: 44px;
-          border-radius: 10px;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          font-size: 20px;
-          flex-shrink: 0;
-
-          &.blue {
-            background: #eff6ff;
-            color: #3b82f6;
-          }
-          &.purple {
-            background: #f5f3ff;
-            color: #8b5cf6;
-          }
-          &.green {
-            background: #ecfdf5;
-            color: #10b981;
-          }
-          &.orange {
-            background: #fff7ed;
-            color: #f97316;
-          }
-        }
-
-        .info-content {
-          min-width: 0;
-          flex: 1;
-
-          .label {
-            font-size: 13px;
-            color: #6b7280;
-            margin-bottom: 4px;
-          }
-          .value {
-            font-size: 15px;
-            color: #1a1f36;
-            font-weight: 600;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-
-            &.key-value {
-              cursor: pointer;
-              font-family: monospace;
-              color: #3b82f6;
-              &:hover {
-                text-decoration: underline;
-              }
-            }
-          }
-        }
-      }
-    }
-
-    .security-list {
-      display: flex;
-      flex-direction: column;
-      gap: 16px;
-
-      .security-item {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        padding: 16px 20px;
-        background: #f9fafb;
-        border-radius: 12px;
-        border: 1px solid #f3f4f6;
-        cursor: pointer;
-        transition: all 0.2s;
-
-        &:hover {
-          background: #fff;
-          border-color: #eaecf0;
-          box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);
-          transform: translateX(4px);
-        }
-
-        .left-info {
-          display: flex;
-          align-items: center;
-          gap: 16px;
-
-          .icon-box {
-            width: 40px;
-            height: 40px;
-            border-radius: 10px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 18px;
-            flex-shrink: 0;
-
-            &.blue {
-              background: #eff6ff;
-              color: #3b82f6;
-            }
-            &.green {
-              background: #ecfdf5;
-              color: #10b981;
-            }
-            &.purple {
-              background: #f5f3ff;
-              color: #8b5cf6;
-            }
-          }
-
-          .text-info {
-            .label {
-              font-size: 15px;
-              font-weight: 600;
-              color: #1a1f36;
-              margin-bottom: 2px;
-            }
-            .desc {
-              font-size: 13px;
-              color: #6b7280;
-            }
-          }
-        }
-
-        .arrow-icon {
-          color: #9ca3af;
-          font-size: 16px;
-        }
+      .el-icon {
+        font-size: 14px;
       }
     }
   }
 }
 
-// Responsive
-@media screen and (max-width: 1200px) {
-  .profile-section-full {
-    height: auto !important;
+.balance-widget {
+  flex: 1;
+  background: #fff;
+  border-radius: 12px;
+  border: 1px solid #e5e7eb;
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+
+  .widget-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 16px;
   }
 
-  .basic-info-card {
-    flex-direction: column;
-    height: auto !important;
+  .widget-title {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 14px;
+    font-weight: 600;
+    color: #374151;
 
-    .profile-summary {
-      width: 100%;
-      border-right: none;
-      border-bottom: 1px solid #f0f0f0;
+    .wallet-icon {
+      font-size: 18px;
+      color: #2563eb;
+    }
+  }
 
-      .summary-content {
-        padding: 40px 20px;
+  .refresh-btn {
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    border: 1px solid #e5e7eb;
+    background: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    color: #6b7280;
+    transition: all 0.2s;
+
+    &:hover {
+      border-color: #2563eb;
+      color: #2563eb;
+      background: #eff6ff;
+    }
+
+    .el-icon {
+      font-size: 16px;
+    }
+  }
+
+  .balance-amount {
+    margin-bottom: 20px;
+
+    .currency {
+      font-size: 18px;
+      font-weight: 600;
+      color: #6b7280;
+      margin-right: 4px;
+    }
+
+    .amount {
+      font-size: 32px;
+      font-weight: 700;
+      color: #111827;
+      letter-spacing: -0.025em;
+    }
+  }
+
+  .balance-stats {
+    display: flex;
+    align-items: center;
+    padding: 16px;
+    background: #f9fafb;
+    border-radius: 8px;
+    margin-bottom: 20px;
+
+    .stat-item {
+      flex: 1;
+      text-align: center;
+
+      .stat-label {
+        display: block;
+        font-size: 12px;
+        color: #6b7280;
+        margin-bottom: 4px;
+      }
+
+      .stat-value {
+        display: block;
+        font-size: 14px;
+        font-weight: 600;
+        color: #374151;
       }
     }
 
-    .profile-details {
-      padding: 24px;
+    .stat-divider {
+      width: 1px;
+      height: 32px;
+      background: #e5e7eb;
+    }
+  }
+
+  .recharge-action {
+    width: 100%;
+    height: 44px;
+    font-size: 15px;
+    font-weight: 600;
+    border-radius: 8px;
+    margin-top: auto;
+  }
+}
+
+// Right Panel Styles
+.details-panel {
+  flex: 1;
+  background: #fff;
+  border-radius: 12px;
+  border: 1px solid #e5e7eb;
+  padding: 24px 32px;
+  overflow: hidden;
+
+  .enterprise-tabs {
+    height: 100%;
+
+    :deep(.el-tabs__header) {
+      margin-bottom: 28px;
+      border-bottom: 1px solid #e5e7eb;
+    }
+
+    :deep(.el-tabs__nav-wrap::after) {
+      display: none;
+    }
+
+    :deep(.el-tabs__item) {
+      font-size: 15px;
+      font-weight: 500;
+      color: #6b7280;
+      padding: 0 4px;
+      height: 48px;
+
+      &.is-active {
+        color: #2563eb;
+        font-weight: 600;
+      }
+
+      &:hover {
+        color: #2563eb;
+      }
+    }
+
+    :deep(.el-tabs__active-bar) {
+      background: #2563eb;
+      height: 2px;
+      border-radius: 1px;
+    }
+  }
+}
+
+.info-section {
+  margin-bottom: 32px;
+
+  &:last-child {
+    margin-bottom: 0;
+  }
+
+  .section-title {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 15px;
+    font-weight: 600;
+    color: #374151;
+    margin: 0 0 16px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid #f3f4f6;
+
+    .el-icon {
+      font-size: 18px;
+      color: #2563eb;
+    }
+  }
+}
+
+.info-table {
+  .info-row {
+    display: flex;
+    gap: 24px;
+    margin-bottom: 16px;
+
+    &:last-child {
+      margin-bottom: 0;
+    }
+  }
+
+  .info-cell {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    padding: 12px 16px;
+    background: #f9fafb;
+    border-radius: 8px;
+    border: 1px solid #f3f4f6;
+
+    &.full {
+      flex: 100%;
+    }
+
+    .cell-label {
+      font-size: 12px;
+      color: #6b7280;
+      font-weight: 500;
+      text-transform: uppercase;
+      letter-spacing: 0.025em;
+    }
+
+    .cell-value {
+      font-size: 14px;
+      color: #111827;
+      font-weight: 500;
+
+      &.mono {
+        font-family: 'SF Mono', SFMono-Regular, ui-monospace, monospace;
+      }
+
+      &.highlight {
+        color: #2563eb;
+        font-weight: 600;
+      }
+    }
+  }
+}
+
+.key-display {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+
+  .key-content {
+    flex: 1;
+    overflow: hidden;
+  }
+
+  .key-text {
+    display: block;
+    font-family: 'SF Mono', SFMono-Regular, ui-monospace, monospace;
+    font-size: 13px;
+    color: #334155;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    background: none;
+  }
+}
+
+.key-hint {
+  margin: 12px 0 0;
+  font-size: 12px;
+  color: #94a3b8;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+
+  &::before {
+    content: '•';
+    color: #cbd5e1;
+  }
+}
+
+// Security Section
+.security-section {
+  .security-header {
+    display: flex;
+    gap: 16px;
+    padding: 20px;
+    background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);
+    border-radius: 12px;
+    margin-bottom: 24px;
+
+    > .el-icon {
+      width: 48px;
+      height: 48px;
+      background: #fff;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 24px;
+      color: #059669;
+      flex-shrink: 0;
+      box-shadow: 0 2px 8px rgba(5, 150, 105, 0.15);
+    }
+
+    .security-meta {
+      h3 {
+        margin: 0 0 4px;
+        font-size: 16px;
+        font-weight: 600;
+        color: #065f46;
+      }
+
+      p {
+        margin: 0;
+        font-size: 13px;
+        color: #047857;
+      }
+    }
+  }
+}
+
+.security-options {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+
+  .security-option {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 18px 20px;
+    background: #fff;
+    border: 1px solid #e5e7eb;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: all 0.2s;
+
+    &:hover {
+      border-color: #d1d5db;
+      background: #fafafa;
+
+      .option-action {
+        color: #2563eb;
+      }
+    }
+
+    .option-icon {
+      width: 44px;
+      height: 44px;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
+      flex-shrink: 0;
+
+      &.blue {
+        background: #eff6ff;
+        color: #2563eb;
+      }
+
+      &.green {
+        background: #ecfdf5;
+        color: #059669;
+      }
+
+      &.purple {
+        background: #f5f3ff;
+        color: #7c3aed;
+      }
+    }
+
+    .option-content {
+      flex: 1;
+      min-width: 0;
+
+      h4 {
+        margin: 0 0 4px;
+        font-size: 15px;
+        font-weight: 600;
+        color: #111827;
+      }
+
+      p {
+        margin: 0;
+        font-size: 13px;
+        color: #6b7280;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+    }
+
+    .option-action {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      color: #9ca3af;
+      transition: color 0.2s;
+
+      .action-text {
+        font-size: 13px;
+        font-weight: 500;
+      }
+
+      .el-icon {
+        font-size: 16px;
+      }
+    }
+  }
+}
+
+// Responsive Styles
+@media screen and (max-width: 1200px) {
+  .enterprise-profile-card {
+    flex-direction: column;
+  }
+
+  .profile-panel {
+    width: 100%;
+    flex-direction: row;
+    flex-wrap: wrap;
+
+    .panel-header {
+      flex: 1;
+      min-width: 280px;
+    }
+
+    .balance-widget {
+      flex: 1;
+      min-width: 280px;
+    }
+
+    .quick-stats {
+      width: 100%;
     }
   }
 }
 
 @media screen and (max-width: 768px) {
-  .info-grid {
-    grid-template-columns: 1fr !important;
+  .enterprise-profile-card {
+    gap: 16px;
+    min-height: auto;
+  }
+
+  .profile-panel {
+    flex-direction: column;
+
+    .panel-header,
+    .balance-widget {
+      min-width: 100%;
+    }
+  }
+
+  .details-panel {
+    padding: 20px;
+  }
+
+  .info-table .info-row {
+    flex-direction: column;
+    gap: 12px;
   }
 }
 </style>
