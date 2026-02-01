@@ -16,7 +16,7 @@ export default defineNuxtRouteMiddleware(async (to, from) => {
 
     if (res.code !== 200) {
       const username = useCookie('username')
-      const token = useCookie('token')
+      const token = useTokenCookie()
 
       username.value = undefined
       token.value = undefined

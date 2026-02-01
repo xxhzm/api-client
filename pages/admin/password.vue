@@ -8,7 +8,7 @@ definePageMeta({
 })
 
 const username = useCookie('username')
-const token = useCookie('token')
+const token = useTokenCookie()
 
 const passwordInfo = reactive({
   oldPassword: '',

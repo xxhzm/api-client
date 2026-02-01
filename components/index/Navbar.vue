@@ -9,7 +9,7 @@ const isMobileMenuOpen = ref(false)
 const route = useRoute()
 
 // 用户登录状态
-const token = useCookie('token')
+const token = useTokenCookie()
 const username = useCookie('username')
 const routeInfo = useCookie('routeInfo')
 

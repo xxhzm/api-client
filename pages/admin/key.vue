@@ -27,7 +27,7 @@ definePageMeta({
 
 const activeTab = ref('referer')
 const username = useCookie('username')
-const token = useCookie('token')
+const token = useTokenCookie()
 const { userAccessKey, fetchUserKey } = useUserKey()
 
 // Key信息

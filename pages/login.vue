@@ -5,7 +5,7 @@ const { $enCode, $msg, $myFetch } = useNuxtApp()
 const router = useRouter()
 
 const username = useCookie('username')
-const token = useCookie('token')
+const token = useTokenCookie()
 const policyConsent = useCookie('policyConsent', {
   default: () => 'false',
   maxAge: 60 * 60 * 24 * 365,

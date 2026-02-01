@@ -3,7 +3,7 @@ const { $myFetch } = useNuxtApp()
 
 import zhCn from 'element-plus/dist/locale/zh-cn.mjs'
 
-const token = useCookie('token')
+const token = useTokenCookie()
 
 const authorization = useState('Authorization')
 if (token.value !== '') {
