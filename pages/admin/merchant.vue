@@ -152,9 +152,14 @@ watch(statusFilter, () => {
 const handleDelete = async (row) => {
   loading.value = true
   try {
-    const res = await $myFetch('MerchantDelete', {
-      params: { id: row.id },
+    const apiBodyValue = new URLSearchParams()
+    apiBodyValue.append('id', row.id)
+
+    const res = await $myFetch('DeleteMerchant', {
+      method: 'POST',
+      body: apiBodyValue,
     })
+
 
     if (res.code === 200) {
       $msg(res.msg || '删除成功', 'success')

@@ -44,7 +44,15 @@ const editForm = ref({
   logo: '',
   is_display: 0,
   is_verified: 0,
+  status: 0,
 })
+
+// 商户状态选项
+const statusOptions = [
+  { label: '待审核', value: 0 },
+  { label: '已通过', value: 1 },
+  { label: '已拒绝', value: 2 },
+]
 
 // 绑定用户弹窗
 const bindUserDialogVisible = ref(false)
@@ -79,6 +87,7 @@ const handleEdit = (row) => {
     logo: row.logo || '',
     is_display: row.is_display || 0,
     is_verified: row.is_verified || 0,
+    status: row.status ?? 0,
   }
   editDialogVisible.value = true
 }
@@ -117,6 +126,7 @@ const submitEdit = async () => {
     apiBodyValue.append('logo', editForm.value.logo)
     apiBodyValue.append('isDisplay', editForm.value.is_display)
     apiBodyValue.append('isVerified', editForm.value.is_verified)
+    apiBodyValue.append('status', editForm.value.status)
 
     const res = await $myFetch('UpdateMerchant', {
       method: 'POST',
@@ -982,15 +992,15 @@ useHead({
           <div class="form-section-title">状态设置</div>
           <el-row :gutter="24">
             <el-col :span="12">
-              <el-form-item label="前台显示">
-                <div class="switch-wrapper">
-                  <el-switch
-                    v-model="editForm.is_display"
-                    :active-value="1"
-                    :inactive-value="0"
+              <el-form-item label="审核状态">
+                <el-select v-model="editForm.status" placeholder="请选择审核状态" style="width: 100%">
+                  <el-option
+                    v-for="item in statusOptions"
+                    :key="item.value"
+                    :label="item.label"
+                    :value="item.value"
                   />
-                  <span class="switch-text">{{ editForm.is_display === 1 ? '前台显示' : '前台隐藏' }}</span>
-                </div>
+                </el-select>
               </el-form-item>
             </el-col>
             <el-col :span="12">
@@ -1002,6 +1012,20 @@ useHead({
                     :inactive-value="0"
                   />
                   <span class="switch-text">{{ editForm.is_verified === 1 ? '已认证' : '未认证' }}</span>
+                </div>
+              </el-form-item>
+            </el-col>
+          </el-row>
+          <el-row :gutter="24">
+            <el-col :span="12">
+              <el-form-item label="前台显示">
+                <div class="switch-wrapper">
+                  <el-switch
+                    v-model="editForm.is_display"
+                    :active-value="1"
+                    :inactive-value="0"
+                  />
+                  <span class="switch-text">{{ editForm.is_display === 1 ? '前台显示' : '前台隐藏' }}</span>
                 </div>
               </el-form-item>
             </el-col>

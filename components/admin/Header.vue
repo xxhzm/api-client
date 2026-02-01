@@ -48,6 +48,8 @@ const routeNameMap = {
   '/admin/links': '友情链接',
   '/admin/merchant': '商户审核',
   '/admin/merchant-manage': '商户管理',
+  '/admin/merchant-profile': '商户资料',
+  '/admin/merchant-commission-log': '分成记录',
   '/admin/logs': '综合日志',
 }
 
@@ -97,6 +99,8 @@ const parentNameMap = {
   '/admin/keylog': '用户与商户',
   '/admin/merchant': '用户与商户',
   '/admin/merchant-manage': '用户与商户',
+  '/admin/merchant-profile': '用户与商户',
+  '/admin/merchant-commission-log': '用户与商户',
 
   // 内容与运营
   '/admin/articlelist': '内容与运营',

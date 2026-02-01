@@ -113,6 +113,8 @@ const pathMap = {
   permissionlist: '5',
   merchant: '5',
   'merchant-manage': '5',
+  'merchant-profile': '5',
+  'merchant-commission-log': '5',
   keylog: '5',
 
   // 6: Content & Operation (Moved from 5)
@@ -175,7 +177,9 @@ const pathIndexMap = {
   '/admin/permissionlist': '5-3',
   '/admin/merchant': '5-4',
   '/admin/merchant-manage': '5-5',
-  '/admin/keylog': '5-6',
+  '/admin/merchant-profile': '5-6',
+  '/admin/merchant-commission-log': '5-7',
+  '/admin/keylog': '5-8',
 
   // Content & Operation (6)
   '/admin/articlelist': '6-1',
@@ -464,6 +468,8 @@ watch(
               '/admin/permissionlist',
               '/admin/merchant',
               '/admin/merchant-manage',
+              '/admin/merchant-profile',
+              '/admin/merchant-commission-log',
               '/admin/keylog',
             ])
           "
@@ -507,6 +513,18 @@ watch(
             >
             <el-menu-item
               index="5-6"
+              @click="navigateTo('/admin/merchant-profile')"
+              v-if="routeShow('/admin/merchant-profile')"
+              >商户资料</el-menu-item
+            >
+            <el-menu-item
+              index="5-7"
+              @click="navigateTo('/admin/merchant-commission-log')"
+              v-if="routeShow('/admin/merchant-commission-log')"
+              >分成记录</el-menu-item
+            >
+            <el-menu-item
+              index="5-8"
               @click="navigateTo('/admin/keylog')"
               v-if="routeShow('/admin/keylog')"
               >秘钥历史</el-menu-item

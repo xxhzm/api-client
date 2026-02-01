@@ -35,10 +35,10 @@ const username = useCookie('username')
 const routeInfo = useCookie('routeInfo')
 const { userAccessKey } = useUserKey()
 
-// 判断是否是管理员（通过 /admin/system-overview 路由权限判断）
+// 判断是否是管理员（通过 /admin/system 路由权限判断）
 const isAdmin = computed(() => {
   if (!routeInfo.value) return false
-  return routeInfo.value.some((r) => r.path === '/admin/system-overview')
+  return routeInfo.value.some((r) => r.path === '/admin/system')
 })
 
 // 判断是否有某个路由权限
