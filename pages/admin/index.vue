@@ -455,14 +455,14 @@ useHead({
           </div>
         </div>
 
-        <!-- Help Documents -->
+        <!-- Solutions -->
         <div class="card help-docs">
           <div class="card-header">
-            <span class="card-title">帮助文档</span>
-            <span class="card-link" @click="navigateTo('/doc')">
-              文档中心
+            <span class="card-title">解决方案</span>
+            <a class="card-link" href="/articles?type=4" target="_blank">
+              查看更多
               <el-icon><ArrowRight /></el-icon>
-            </span>
+            </a>
           </div>
         </div>
       </div>
@@ -691,9 +691,11 @@ useHead({
     font-size: 13px;
     color: #409eff;
     cursor: pointer;
+    text-decoration: none;
 
     &:hover {
       color: #66b1ff;
+      text-decoration: none;
     }
 
     .el-icon {
