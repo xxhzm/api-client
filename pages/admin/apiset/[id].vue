@@ -1895,8 +1895,8 @@ useHead({
                     style="margin-top: 8px"
                   >
                     <template #title>
-                      扣费规则：响应头返回负数（如 -0.01）则扣除余额，返回正数（如
-                      0.01）则增加余额
+                      扣费规则：响应头返回正数（如 999）则扣除 999 余额，返回负数（如
+                      -0.01）则增加 0.01 余额
                     </template>
                   </el-alert>
                 </el-form-item>
@@ -1939,7 +1939,7 @@ useHead({
                           3. 示例：扣费 0.01 元，时间戳 1234567890
                         </p>
                         <p style="margin-left: 12px">
-                          - 签名内容：<code>-0.01|1234567890</code>
+                          - 签名内容：<code>0.01|1234567890</code>（正数扣费）
                         </p>
                         <p style="margin-left: 12px">
                           - 使用 secretKey 对签名内容进行 HMAC-SHA256 运算得到签名
