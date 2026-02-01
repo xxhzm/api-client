@@ -458,7 +458,7 @@ const scrollToForm = () => {
     </section>
 
     <!-- Merchants Section -->
-    <section class="section merchants-section">
+    <section class="section merchants-section" v-if="merchantList.length > 0 || merchantLoading">
       <div class="container">
         <div class="section-header text-center">
           <h2 class="section-title">战略合作伙伴</h2>
@@ -514,7 +514,6 @@ const scrollToForm = () => {
               </div>
             </div>
           </div>
-          <el-empty v-else-if="!merchantLoading" description="暂无合作伙伴" />
           <!-- 分页 -->
           <div class="merchants-pagination" v-if="merchantPagination.total > merchantPagination.page_size">
             <el-pagination
@@ -1400,20 +1399,22 @@ const scrollToForm = () => {
 
 /* Responsive */
 @media (max-width: 1024px) {
-  .hero-container {
-    flex-direction: column;
-    text-align: center;
-  }
+  .hero-section {
+    .hero-container {
+      flex-direction: column;
+      text-align: center;
+    }
 
-  .hero-content {
-    max-width: 100%;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-  }
+    .hero-content {
+      max-width: 100%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
 
-  .hero-stats {
-    justify-content: center;
+    .hero-stats {
+      justify-content: center;
+    }
   }
 
   .benefits-grid,
@@ -1441,14 +1442,175 @@ const scrollToForm = () => {
 }
 
 @media (max-width: 768px) {
-  .hero-title {
-    font-size: 40px;
+  .container {
+    padding: 0 16px;
   }
 
-  .benefits-grid,
+  .section {
+    padding: 60px 0;
+
+    .section-header {
+      margin-bottom: 40px;
+
+      .section-title {
+        font-size: 28px;
+      }
+
+      .section-desc {
+        font-size: 15px;
+      }
+    }
+  }
+
+  .hero-section {
+    padding: 80px 0 60px;
+
+    .hero-title {
+      font-size: 32px;
+      br {
+        display: none;
+      }
+    }
+
+    .hero-subtitle {
+      font-size: 16px;
+      margin-bottom: 32px;
+    }
+
+    .hero-stats {
+      gap: 24px;
+      flex-wrap: wrap;
+      justify-content: center;
+
+      .stat-item {
+        min-width: 80px;
+
+        .stat-value {
+          font-size: 20px;
+        }
+
+        .stat-label {
+          font-size: 12px;
+        }
+      }
+    }
+
+    .hero-actions {
+      flex-direction: column;
+      width: 100%;
+      margin-bottom: 40px;
+
+      .cta-btn {
+        width: 100%;
+        height: 48px;
+        font-size: 15px;
+      }
+    }
+
+    .badge {
+      font-size: 13px;
+      margin-bottom: 16px;
+    }
+  }
+
+  .hero-image {
+    width: 100%;
+    margin-top: 20px;
+
+    .abstract-dashboard {
+      max-width: 100%;
+      height: 280px;
+      padding: 16px;
+      gap: 12px;
+
+      .chart-area {
+        height: 120px;
+        padding: 12px 12px 0;
+        gap: 6px;
+      }
+
+      .dash-row {
+        height: 60px;
+        gap: 10px;
+      }
+
+      .floating-card {
+        font-size: 12px;
+        padding: 8px 12px;
+
+        &.card-1 {
+          top: 20px;
+          right: -10px;
+        }
+
+        &.card-2 {
+          bottom: 30px;
+          left: -10px;
+
+          .income-text {
+            font-size: 10px;
+          }
+
+          .income-num {
+            font-size: 14px;
+          }
+        }
+      }
+    }
+  }
+
+  .benefits-grid {
+    grid-template-columns: 1fr;
+    gap: 20px;
+
+    .benefit-card {
+      padding: 24px;
+
+      .icon-box {
+        width: 48px;
+        height: 48px;
+        font-size: 24px;
+        margin-bottom: 16px;
+      }
+
+      .benefit-title {
+        font-size: 18px;
+        margin-bottom: 8px;
+      }
+
+      .benefit-desc {
+        font-size: 14px;
+      }
+    }
+  }
+
   .process-timeline {
     grid-template-columns: 1fr;
-    gap: 30px;
+    gap: 24px;
+    padding-top: 0;
+
+    .process-step {
+      display: flex;
+      align-items: flex-start;
+      gap: 16px;
+
+      .step-marker {
+        margin-bottom: 0;
+        flex-shrink: 0;
+        border-width: 3px;
+      }
+
+      .step-content {
+        h3 {
+          font-size: 16px;
+          margin-bottom: 6px;
+        }
+
+        p {
+          font-size: 13px;
+        }
+      }
+    }
   }
 
   .merchants-grid {
@@ -1496,16 +1658,388 @@ const scrollToForm = () => {
     }
   }
 
-  .form-row {
-    flex-direction: column;
-    gap: 0;
+  .form-section {
+    padding: 40px 0;
+
+    .form-container-box {
+      border-radius: 16px;
+    }
+
+    .form-left {
+      padding: 32px 24px;
+
+      h3 {
+        font-size: 24px;
+        margin-bottom: 12px;
+      }
+
+      p {
+        font-size: 14px;
+        margin-bottom: 24px;
+      }
+
+      .check-list {
+        margin-bottom: 32px;
+
+        li {
+          font-size: 14px;
+          margin-bottom: 12px;
+        }
+      }
+
+      .support-contact {
+        padding-top: 20px;
+
+        p {
+          font-size: 13px;
+          margin-bottom: 6px;
+        }
+
+        .email-link {
+          font-size: 15px;
+        }
+      }
+    }
+
+    .form-right {
+      padding: 24px 20px 32px;
+
+      .business-form {
+        .form-row {
+          flex-direction: column;
+          gap: 0;
+
+          &.two-cols {
+            .el-form-item {
+              width: 100%;
+            }
+          }
+        }
+
+        .captcha-wrapper {
+          flex-direction: row;
+
+          .captcha-img {
+            height: 38px;
+            flex-shrink: 0;
+          }
+        }
+
+        .submit-btn {
+          height: 46px;
+          font-size: 15px;
+          margin-top: 16px;
+        }
+
+        .privacy-tip {
+          font-size: 12px;
+          margin-top: 12px;
+        }
+      }
+    }
   }
 
-  .hero-actions {
-    flex-direction: column;
-    width: 100%;
-    .cta-btn {
-      width: 100%;
+  .merchants-pagination {
+    margin-top: 24px;
+
+    :deep(.el-pagination) {
+      .el-pager li,
+      .btn-prev,
+      .btn-next {
+        min-width: 32px;
+        height: 32px;
+        font-size: 13px;
+      }
+    }
+  }
+}
+
+/* 超小屏幕 (手机竖屏) */
+@media (max-width: 480px) {
+  .container {
+    padding: 0 12px;
+  }
+
+  .section {
+    padding: 48px 0;
+  }
+
+  .hero-section {
+    padding: 70px 0 48px;
+
+    .hero-title {
+      font-size: 26px;
+      margin-bottom: 16px;
+    }
+
+    .hero-subtitle {
+      font-size: 14px;
+      margin-bottom: 24px;
+    }
+
+    .hero-stats {
+      gap: 16px;
+      padding-top: 24px;
+
+      .stat-item {
+        min-width: 70px;
+
+        .stat-value {
+          font-size: 18px;
+        }
+
+        .stat-label {
+          font-size: 11px;
+        }
+      }
+    }
+
+    .hero-actions {
+      gap: 12px;
+      margin-bottom: 32px;
+
+      .cta-btn {
+        height: 44px;
+        font-size: 14px;
+        padding: 0 20px;
+      }
+    }
+
+    .badge {
+      font-size: 12px;
+      padding: 5px 10px;
+    }
+  }
+
+  .hero-image {
+    .abstract-dashboard {
+      height: 220px;
+      padding: 12px;
+
+      .chart-area {
+        height: 90px;
+        padding: 10px 10px 0;
+
+        .chart-bar {
+          width: 14%;
+        }
+      }
+
+      .dash-row {
+        height: 50px;
+        gap: 8px;
+      }
+
+      .floating-card {
+        font-size: 11px;
+        padding: 6px 10px;
+        border-radius: 8px;
+
+        &.card-1 {
+          top: 15px;
+          right: 5px;
+        }
+
+        &.card-2 {
+          bottom: 20px;
+          left: 5px;
+
+          .income-num {
+            font-size: 13px;
+          }
+        }
+      }
+    }
+  }
+
+  .section {
+    .section-header {
+      margin-bottom: 32px;
+
+      .section-title {
+        font-size: 24px;
+      }
+
+      .section-desc {
+        font-size: 14px;
+      }
+    }
+  }
+
+  .benefits-grid {
+    gap: 16px;
+
+    .benefit-card {
+      padding: 20px;
+
+      .icon-box {
+        width: 44px;
+        height: 44px;
+        font-size: 22px;
+        border-radius: 10px;
+      }
+
+      .benefit-title {
+        font-size: 16px;
+      }
+
+      .benefit-desc {
+        font-size: 13px;
+      }
+    }
+  }
+
+  .process-timeline {
+    gap: 20px;
+
+    .process-step {
+      gap: 12px;
+
+      .step-marker {
+        width: 28px;
+        height: 28px;
+        font-size: 12px;
+      }
+
+      .step-content {
+        h3 {
+          font-size: 15px;
+        }
+
+        p {
+          font-size: 12px;
+        }
+      }
+    }
+  }
+
+  .merchant-card {
+    .card-header {
+      padding: 16px 16px 12px !important;
+      gap: 12px !important;
+    }
+
+    .card-body {
+      padding: 12px 16px 14px !important;
+    }
+
+    .card-footer {
+      padding: 12px !important;
+
+      .stat-value {
+        font-size: 13px !important;
+      }
+
+      .stat-label {
+        font-size: 10px !important;
+      }
+
+      .divider {
+        height: 24px;
+      }
+    }
+
+    .merchant-logo {
+      width: 44px !important;
+      height: 44px !important;
+
+      .logo-placeholder {
+        font-size: 14px !important;
+      }
+    }
+
+    .merchant-name {
+      font-size: 14px !important;
+    }
+
+    .merchant-company {
+      font-size: 12px !important;
+    }
+
+    .merchant-desc {
+      font-size: 13px !important;
+    }
+  }
+
+  .form-section {
+    padding: 32px 0;
+
+    .form-container-box {
+      border-radius: 12px;
+      margin: 0 -4px;
+    }
+
+    .form-left {
+      padding: 24px 20px;
+
+      h3 {
+        font-size: 20px;
+      }
+
+      p {
+        font-size: 13px;
+        margin-bottom: 20px;
+      }
+
+      .check-list {
+        margin-bottom: 24px;
+
+        li {
+          font-size: 13px;
+          margin-bottom: 10px;
+          gap: 8px;
+        }
+      }
+
+      .support-contact {
+        .email-link {
+          font-size: 14px;
+        }
+      }
+    }
+
+    .form-right {
+      padding: 20px 16px 28px;
+
+      .business-form {
+        :deep(.el-form-item__label) {
+          font-size: 13px;
+        }
+
+        :deep(.el-input__wrapper),
+        :deep(.el-textarea__inner) {
+          font-size: 14px;
+        }
+
+        .captcha-wrapper {
+          gap: 8px;
+
+          .captcha-img {
+            height: 36px;
+          }
+        }
+
+        .submit-btn {
+          height: 44px;
+          font-size: 14px;
+        }
+
+        .privacy-tip {
+          font-size: 11px;
+        }
+      }
+    }
+  }
+
+  .merchants-pagination {
+    :deep(.el-pagination) {
+      .el-pager li,
+      .btn-prev,
+      .btn-next {
+        min-width: 28px;
+        height: 28px;
+        font-size: 12px;
+      }
     }
   }
 }
