@@ -807,6 +807,12 @@ const advancedInfo = ref({
   twoFactorAuth: 'false',
   // HTTP/PHP-FPM 头信息参数（当前可用）
   headers: '',
+  // 响应头扣费字段
+  billingHeader: '',
+  // 最低余额限制
+  minBalance: '',
+  // 响应头扣费签名密钥（只读）
+  secretKey: '',
 })
 
 const advancedLoading = ref(false)
@@ -838,10 +844,27 @@ const getAdvancedSettings = async () => {
         twoFactorAuth:
           res.data.twoFa === true || res.data.twoFa === 1 ? 'true' : 'false',
         headers: res.data.header ?? '',
+        billingHeader: res.data.billing_header ?? '',
+        minBalance: res.data.min_balance ?? '',
+        secretKey: res.data.secret_key ?? '',
       }
     }
   } catch (error) {
     // 获取失败时保留默认值
+  }
+}
+
+// 复制签名密钥到剪贴板
+const copySecretKey = async () => {
+  if (!advancedInfo.value.secretKey) {
+    msg('暂无密钥', 'warning')
+    return
+  }
+  try {
+    await navigator.clipboard.writeText(advancedInfo.value.secretKey)
+    msg('密钥已复制到剪贴板', 'success')
+  } catch (error) {
+    msg('复制失败，请手动复制', 'error')
   }
 }
 
@@ -865,6 +888,8 @@ const updateAdvancedSettings = async () => {
   bodyValue.append('vip', advancedInfo.value.vipAuth === 'true' ? 1 : 0)
   bodyValue.append('twoFA', advancedInfo.value.twoFactorAuth === 'true' ? 1 : 0)
   bodyValue.append('header', advancedInfo.value.headers || '')
+  bodyValue.append('billingHeader', advancedInfo.value.billingHeader || '')
+  bodyValue.append('minBalance', advancedInfo.value.minBalance || '')
 
   try {
     const res = await $myFetch('UpdateApiAdvancedSettings', {
@@ -1853,6 +1878,91 @@ useHead({
                   <div class="form-help">保存后用于请求头注入，使用&隔开</div>
                 </el-form-item>
 
+                <!-- 响应头扣费字段 -->
+                <el-form-item label="响应头扣费字段">
+                  <el-input
+                    v-model="advancedInfo.billingHeader"
+                    placeholder="示例：X-Usage-Count"
+                    style="width: 100%"
+                  />
+                  <div class="form-help">
+                    设置后系统将从响应头中读取该字段的值作为扣费数量
+                  </div>
+                  <el-alert
+                    type="info"
+                    :closable="false"
+                    show-icon
+                    style="margin-top: 8px"
+                  >
+                    <template #title>
+                      扣费规则：响应头返回负数（如 -0.01）则扣除余额，返回正数（如
+                      0.01）则增加余额
+                    </template>
+                  </el-alert>
+                </el-form-item>
+
+                <!-- 响应头扣费签名密钥 -->
+                <el-form-item label="签名密钥 (Secret Key)">
+                  <el-input
+                    v-model="advancedInfo.secretKey"
+                    readonly
+                    placeholder="保存高级设置后自动生成"
+                    style="width: 100%"
+                  >
+                    <template #append>
+                      <el-button @click="copySecretKey">复制</el-button>
+                    </template>
+                  </el-input>
+                  <div class="form-help">
+                    用于响应头扣费时的签名验证，请妥善保管
+                  </div>
+                  <el-alert
+                    type="info"
+                    :closable="false"
+                    show-icon
+                    style="margin-top: 8px"
+                  >
+                    <template #default>
+                      <div class="signature-info">
+                        <p><strong>签名计算方式（必须使用 HMAC-SHA256）：</strong></p>
+                        <p>
+                          1. 响应头需包含：<code>X-Billing-Timestamp</code>（时间戳，秒）和
+                          <code>X-Billing-Signature</code>（HMAC-SHA256 签名）
+                        </p>
+                        <p>
+                          2. 签名算法：<code
+                            >HMAC-SHA256(secretKey, amount + "|" +
+                            timestamp)</code
+                          >
+                        </p>
+                        <p>
+                          3. 示例：扣费 0.01 元，时间戳 1234567890
+                        </p>
+                        <p style="margin-left: 12px">
+                          - 签名内容：<code>-0.01|1234567890</code>
+                        </p>
+                        <p style="margin-left: 12px">
+                          - 使用 secretKey 对签名内容进行 HMAC-SHA256 运算得到签名
+                        </p>
+                      </div>
+                    </template>
+                  </el-alert>
+                </el-form-item>
+
+                <!-- 最低余额限制 -->
+                <el-form-item label="最低余额限制">
+                  <el-input
+                    v-model="advancedInfo.minBalance"
+                    placeholder="示例：10"
+                    style="width: 100%"
+                  >
+                    <template #suffix>元</template>
+                  </el-input>
+                  <div class="form-help">
+                    用户余额低于该值时将无法调用此接口，留空表示不限制
+                  </div>
+                </el-form-item>
+
                 <el-form-item>
                   <el-button type="primary" @click="updateAdvancedSettings"
                     >保存设置</el-button
@@ -2202,6 +2312,29 @@ useHead({
         font-size: 13px;
         color: #6b7280;
         line-height: 1.5;
+      }
+
+      // 签名信息样式
+      .signature-info {
+        p {
+          margin: 4px 0;
+          font-size: 13px;
+          line-height: 1.6;
+          color: #4b5563;
+
+          &:first-child {
+            margin-top: 0;
+          }
+
+          code {
+            background: #e5e7eb;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-family: 'Monaco', 'Menlo', monospace;
+            font-size: 12px;
+            color: #1f2937;
+          }
+        }
       }
     }
   }

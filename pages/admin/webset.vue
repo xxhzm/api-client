@@ -114,6 +114,14 @@ const loginInfo = ref({
   templateCode: '',
 })
 
+// 验证码配置相关
+const captchaInfo = ref({
+  difficulty: 'medium',
+  expire_time: 60,
+  length: 4,
+  type: 'math',
+})
+
 // 新增：关于我们页面信息相关
 const aboutInfo = ref({
   companyInfo: {
@@ -279,6 +287,14 @@ const getLoginInfo = async () => {
   } else {
     // 如果接口返回失败或数据为空，重置为初始状态
     loginInfo.value.method = []
+  }
+}
+
+// 获取验证码配置
+const getCaptchaInfo = async () => {
+  const res = await $myFetch('GetCaptchaConfig')
+  if (res.code === 200 && res.data) {
+    captchaInfo.value = res.data
   }
 }
 
@@ -508,6 +524,7 @@ onMounted(() => {
   getAboutInfo()
   getAdvancedInfo()
   getLoginInfo()
+  getCaptchaInfo()
   getPartners()
 })
 
@@ -754,6 +771,27 @@ const loginInfoSubmit = async () => {
   if (res.code === 200) {
     $msg(res.msg, 'success')
     getLoginInfo()
+  } else {
+    $msg(res.msg, 'error')
+  }
+}
+
+// 提交验证码配置
+const captchaInfoSubmit = async () => {
+  const bodyValue = new URLSearchParams()
+  bodyValue.append('difficulty', captchaInfo.value.difficulty || 'medium')
+  bodyValue.append('expireTime', captchaInfo.value.expire_time || 60)
+  bodyValue.append('length', captchaInfo.value.length || 4)
+  bodyValue.append('type', captchaInfo.value.type || 'math')
+
+  const res = await $myFetch('UpdateCaptchaConfig', {
+    method: 'POST',
+    body: bodyValue,
+  })
+
+  if (res.code === 200) {
+    $msg(res.msg, 'success')
+    getCaptchaInfo()
   } else {
     $msg(res.msg, 'error')
   }
@@ -2061,6 +2099,204 @@ useHead({
                 </el-form>
               </div>
             </el-tab-pane>
+
+            <el-tab-pane label="验证码配置" name="captcha">
+              <div class="form">
+                <el-form
+                  :model="captchaInfo"
+                  label-position="top"
+                  label-width="120px"
+                >
+                  <el-form-item label="验证码类型">
+                    <el-radio-group
+                      v-model="captchaInfo.type"
+                      class="captcha-type-group"
+                    >
+                      <el-radio value="math" border>
+                        <div class="radio-content">
+                          <span class="radio-title">数学运算</span>
+                          <span class="radio-desc">如：3 + 5 = ?</span>
+                        </div>
+                      </el-radio>
+                      <el-radio value="number" border>
+                        <div class="radio-content">
+                          <span class="radio-title">字符验证码</span>
+                          <span class="radio-desc">如：A3K7</span>
+                        </div>
+                      </el-radio>
+                      <el-radio value="mixed" border>
+                        <div class="radio-content">
+                          <span class="radio-title">混合模式</span>
+                          <span class="radio-desc">随机切换类型</span>
+                        </div>
+                      </el-radio>
+                    </el-radio-group>
+                  </el-form-item>
+
+                  <el-form-item label="难度等级">
+                    <el-radio-group
+                      v-model="captchaInfo.difficulty"
+                      class="captcha-difficulty-group"
+                    >
+                      <el-radio value="easy" border>
+                        <div class="radio-content">
+                          <span class="radio-title">简单</span>
+                          <span class="radio-desc">噪点少，易识别</span>
+                        </div>
+                      </el-radio>
+                      <el-radio value="medium" border>
+                        <div class="radio-content">
+                          <span class="radio-title">中等</span>
+                          <span class="radio-desc">推荐，平衡体验</span>
+                        </div>
+                      </el-radio>
+                      <el-radio value="hard" border>
+                        <div class="radio-content">
+                          <span class="radio-title">困难</span>
+                          <span class="radio-desc">高安全，防机器</span>
+                        </div>
+                      </el-radio>
+                    </el-radio-group>
+                  </el-form-item>
+
+                  <!-- 规则说明卡片 -->
+                  <div class="captcha-rules-card">
+                    <div class="rules-header">
+                      <span class="rules-icon">ℹ</span>
+                      <span>当前配置规则说明</span>
+                    </div>
+                    <div class="rules-content">
+                      <!-- 图像参数 -->
+                      <div class="rule-row">
+                        <span class="rule-label">图像干扰</span>
+                        <span class="rule-value">
+                          <template v-if="captchaInfo.difficulty === 'easy'">
+                            <el-tag size="small" type="success"
+                              >噪点 30</el-tag
+                            >
+                            <el-tag size="small" type="success"
+                              >干扰线 2条</el-tag
+                            >
+                          </template>
+                          <template
+                            v-else-if="captchaInfo.difficulty === 'medium'"
+                          >
+                            <el-tag size="small" type="warning"
+                              >噪点 50</el-tag
+                            >
+                            <el-tag size="small" type="warning"
+                              >干扰线 4条</el-tag
+                            >
+                          </template>
+                          <template v-else>
+                            <el-tag size="small" type="danger">噪点 80</el-tag>
+                            <el-tag size="small" type="danger"
+                              >干扰线 6条</el-tag
+                            >
+                          </template>
+                        </span>
+                      </div>
+
+                      <!-- 数学运算规则 -->
+                      <div
+                        class="rule-row"
+                        v-if="
+                          captchaInfo.type === 'math' ||
+                          captchaInfo.type === 'mixed'
+                        "
+                      >
+                        <span class="rule-label">数学运算</span>
+                        <span class="rule-value">
+                          <template v-if="captchaInfo.difficulty === 'easy'">
+                            <el-tag size="small">数字 1~10</el-tag>
+                            <el-tag size="small">仅加法</el-tag>
+                            <span class="rule-example">例：3 + 5 = 8</span>
+                          </template>
+                          <template
+                            v-else-if="captchaInfo.difficulty === 'medium'"
+                          >
+                            <el-tag size="small">数字 1~50</el-tag>
+                            <el-tag size="small">加、减、乘</el-tag>
+                            <span class="rule-example">例：23 - 15 = 8</span>
+                          </template>
+                          <template v-else>
+                            <el-tag size="small">数字 10~99</el-tag>
+                            <el-tag size="small">加、减、乘</el-tag>
+                            <span class="rule-example">例：67 - 38 = 29</span>
+                          </template>
+                        </span>
+                      </div>
+
+                      <!-- 字符验证码规则 -->
+                      <div
+                        class="rule-row"
+                        v-if="
+                          captchaInfo.type === 'number' ||
+                          captchaInfo.type === 'mixed'
+                        "
+                      >
+                        <span class="rule-label">字符组成</span>
+                        <span class="rule-value">
+                          <template v-if="captchaInfo.difficulty === 'easy'">
+                            <el-tag size="small">纯数字 0-9</el-tag>
+                            <span class="rule-example">例：4829</span>
+                          </template>
+                          <template
+                            v-else-if="captchaInfo.difficulty === 'medium'"
+                          >
+                            <el-tag size="small">数字 + 大写字母</el-tag>
+                            <span class="rule-example">例：A3K7</span>
+                          </template>
+                          <template v-else>
+                            <el-tag size="small">数字 + 大小写字母</el-tag>
+                            <span class="rule-example">例：aB3kM7</span>
+                          </template>
+                        </span>
+                      </div>
+
+                      <div
+                        class="rule-note"
+                        v-if="
+                          captchaInfo.type === 'number' ||
+                          captchaInfo.type === 'mixed'
+                        "
+                      >
+                        * 已自动排除易混淆字符（I/l/1、O/0）
+                      </div>
+                    </div>
+                  </div>
+
+                  <el-form-item label="验证码长度">
+                    <el-input-number
+                      v-model="captchaInfo.length"
+                      :min="4"
+                      :max="8"
+                      style="width: 200px"
+                    />
+                    <span class="form-help-inline"
+                      >仅对字符验证码有效，建议 4~6 位</span
+                    >
+                  </el-form-item>
+
+                  <el-form-item label="过期时间">
+                    <el-input-number
+                      v-model="captchaInfo.expire_time"
+                      :min="30"
+                      :max="300"
+                      :step="10"
+                      style="width: 200px"
+                    />
+                    <span class="form-help-inline">秒，建议 60~120 秒</span>
+                  </el-form-item>
+
+                  <el-form-item>
+                    <el-button type="primary" @click="captchaInfoSubmit">
+                      提交
+                    </el-button>
+                  </el-form-item>
+                </el-form>
+              </div>
+            </el-tab-pane>
           </el-tabs>
         </el-tab-pane>
 
@@ -2352,6 +2588,137 @@ useHead({
         font-size: 13px;
         color: #6b7280;
         line-height: 1.5;
+      }
+
+      .form-help-inline {
+        margin-left: 12px;
+        font-size: 13px;
+        color: #909399;
+      }
+
+      // 验证码配置样式
+      .captcha-type-group,
+      .captcha-difficulty-group {
+        display: flex;
+        gap: 12px;
+        flex-wrap: wrap;
+
+        :deep(.el-radio) {
+          margin-right: 0;
+          padding: 12px 20px;
+          height: auto;
+
+          .el-radio__label {
+            padding-left: 8px;
+          }
+
+          .radio-content {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+
+            .radio-title {
+              font-weight: 500;
+              color: #303133;
+            }
+
+            .radio-desc {
+              font-size: 12px;
+              color: #909399;
+            }
+          }
+
+          &.is-checked {
+            .radio-title {
+              color: #409eff;
+            }
+          }
+        }
+      }
+
+      .captcha-rules-card {
+        background: linear-gradient(135deg, #f5f7fa 0%, #e4e7ed 100%);
+        border-radius: 8px;
+        padding: 16px;
+        margin-bottom: 20px;
+        border: 1px solid #e4e7ed;
+
+        .rules-header {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          margin-bottom: 12px;
+          font-weight: 500;
+          color: #303133;
+
+          .rules-icon {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 20px;
+            height: 20px;
+            background: #409eff;
+            color: #fff;
+            border-radius: 50%;
+            font-size: 12px;
+            font-style: normal;
+          }
+        }
+
+        .rules-content {
+          background: #fff;
+          border-radius: 6px;
+          padding: 12px;
+
+          .rule-row {
+            display: flex;
+            align-items: center;
+            padding: 8px 0;
+            border-bottom: 1px dashed #ebeef5;
+
+            &:last-child {
+              border-bottom: none;
+            }
+
+            .rule-label {
+              width: 80px;
+              font-size: 13px;
+              color: #606266;
+              flex-shrink: 0;
+            }
+
+            .rule-value {
+              display: flex;
+              align-items: center;
+              gap: 8px;
+              flex-wrap: wrap;
+
+              .el-tag {
+                border-radius: 4px;
+              }
+
+              .rule-example {
+                font-size: 12px;
+                color: #909399;
+                margin-left: 4px;
+
+                &::before {
+                  content: '|';
+                  margin-right: 8px;
+                  color: #dcdfe6;
+                }
+              }
+            }
+          }
+
+          .rule-note {
+            margin-top: 8px;
+            padding-top: 8px;
+            font-size: 12px;
+            color: #909399;
+            border-top: 1px solid #ebeef5;
+          }
+        }
       }
     }
   }
