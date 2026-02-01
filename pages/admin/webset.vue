@@ -36,6 +36,7 @@ const websetInfo = ref({
   notice: '',
   feedback: '',
   css: '',
+  js: '',
   valueAddedTelecomLicense: '',
   company_name: '',
   slogan: '',
@@ -536,6 +537,7 @@ const websetInfoSubmit = async () => {
   bodyValue.append('notice', websetInfo.value.notice)
   bodyValue.append('feedback', websetInfo.value.feedback)
   bodyValue.append('css', websetInfo.value.css)
+  bodyValue.append('js', websetInfo.value.js)
   bodyValue.append('companyName', websetInfo.value.company_name)
   bodyValue.append('slogan', websetInfo.value.slogan)
   bodyValue.append('contactEmail', websetInfo.value.contact_email)
@@ -1100,6 +1102,18 @@ useHead({
                       :rows="5"
                       placeholder="请输入自定义CSS"
                     />
+                  </el-form-item>
+                  <el-form-item label="自定义JS">
+                    <el-input
+                      v-model="websetInfo.js"
+                      type="textarea"
+                      :rows="5"
+                      placeholder="请输入自定义JS，如统计代码等"
+                    />
+                    <div class="form-help">
+                      直接输入 JS 代码即可，无需添加 &lt;script&gt;
+                      标签。支持统计代码、第三方脚本等
+                    </div>
                   </el-form-item>
                   <el-form-item label="联系邮箱">
                     <el-input v-model="websetInfo.contact_email" />

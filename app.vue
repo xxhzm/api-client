@@ -27,19 +27,19 @@ useHead({
       href: options.value.ico,
     },
   ],
-  // script: [
-  //   {
-  //     src: 'https://hm.baidu.com/hm.js?277dc1783564930b9da342049f6ddea9',
-  //   },
-  // ],
+  script: options.value.js
+    ? [
+        {
+          innerHTML: options.value.js,
+        },
+      ]
+    : [],
   style: [
     {
       children: options.value.css,
     },
   ],
 })
-
-// 自定义css、js
 </script>
 
 <template>
