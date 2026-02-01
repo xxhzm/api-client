@@ -94,6 +94,9 @@ const login = async () => {
 // 登录注册切换
 const LoginIsRegisterChange = () => {
   LoginIsRegister.value = !LoginIsRegister.value
+  // 切换时重置其他登录状态
+  isEmailLogin.value = false
+  isForgotPassword.value = false
   // 切换到注册时获取登录方式配置
   if (!LoginIsRegister.value) {
     getLoginMethodConfig()
@@ -751,6 +754,17 @@ useHead({
           />
         </div>
         <el-form v-else :model="info" size="large">
+          <div class="register-notice">
+            <el-alert
+              :title="
+                currentLoginMethod === 'sms'
+                  ? '手机号需与注册账号绑定，新用户请先注册'
+                  : '邮箱需与注册账号绑定，新用户请先注册'
+              "
+              type="info"
+              :closable="false"
+            />
+          </div>
           <el-form-item>
             <el-input
               v-model="info.mail"
@@ -1006,7 +1020,7 @@ useHead({
     }
 
     &.is-email {
-      height: 550px;
+      height: 600px;
     }
 
     .card-header {
@@ -1064,6 +1078,18 @@ useHead({
     .form-container {
       padding: 0 32px 32px;
       flex: 1;
+
+      .register-notice {
+        margin-bottom: 16px;
+
+        :deep(.el-alert) {
+          padding: 8px 12px;
+
+          .el-alert__title {
+            font-size: 13px;
+          }
+        }
+      }
 
       .el-form-item {
         margin-bottom: 20px;
@@ -1166,7 +1192,7 @@ useHead({
       }
 
       &.is-email {
-        height: 480px;
+        height: 530px;
       }
 
       .card-header {
