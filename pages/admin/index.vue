@@ -473,7 +473,7 @@ useHead({
         <div class="card user-mini-card">
           <div class="user-header">
             <div class="user-avatar" :class="{ admin: isAdmin }">
-              <span>{{ userInfo.username?.charAt(0)?.toUpperCase() || 'U' }}</span>
+              <span>{{ String(userInfo.username ?? '').charAt(0)?.toUpperCase() || 'U' }}</span>
             </div>
             <div class="user-meta">
               <div class="user-name">
