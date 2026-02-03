@@ -320,10 +320,6 @@ const handleEnterSearch = (event) => {
       border-radius: 4px;
     }
   }
-
-  .system-info {
-    margin-top: 4px;
-  }
 }
 
 .search-section {

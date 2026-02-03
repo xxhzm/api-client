@@ -96,7 +96,6 @@ const aiInfo = ref({
 const advancedInfo = ref({
   request_id: 'true',
   clickhouse: 'true',
-  system_info: 'true',
   server_ip: '',
   clickhouse_retention_days: '',
   api_logs_map_virtual: 'false',
@@ -726,7 +725,6 @@ const advancedInfoSubmit = async () => {
   const bodyValue = new URLSearchParams()
   bodyValue.append('requestId', advancedInfo.value.request_id)
   bodyValue.append('clickhouse', advancedInfo.value.clickhouse)
-  bodyValue.append('systemInfo', advancedInfo.value.system_info)
   bodyValue.append('serverIp', advancedInfo.value.server_ip || '')
   bodyValue.append(
     'clickhouseRetentionDays',
@@ -1872,21 +1870,6 @@ useHead({
                     </el-select>
                     <div class="form-help">
                       开启后，所有API响应将包含唯一的请求ID，便于问题追踪和调试
-                    </div>
-                  </el-form-item>
-
-                  <el-form-item label="是否显示系统信息">
-                    <el-select
-                      v-model="advancedInfo.system_info"
-                      placeholder="是否显示系统信息模块"
-                      style="width: 100%"
-                    >
-                      <el-option label="是" value="true"></el-option>
-                      <el-option label="否" value="false"></el-option>
-                    </el-select>
-                    <div class="form-help">
-                      关闭后，系统信息模块将被隐藏，请耐心等待 Redis
-                      缓存更新以生效。
                     </div>
                   </el-form-item>
 

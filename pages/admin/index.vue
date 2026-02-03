@@ -24,6 +24,9 @@ import {
   DataLine,
   Coin,
   Shop,
+  Iphone,
+  Reading,
+  ShoppingCart,
 } from '@element-plus/icons-vue'
 
 definePageMeta({
@@ -73,6 +76,10 @@ const adminStats = reactive({
   totalApis: 0,
   totalRequests: 0,
   todayIncome: 0,
+  phoneVerifiedUsers: 0,
+  recentRegisters: 0,
+  totalArticles: 0,
+  totalPackageSales: 0,
 })
 
 // Chart data
@@ -123,9 +130,13 @@ const userResourceStats = ref([
 // Resource stats - 管理员 (data from Profile API, 使用 markRaw 避免组件被转为响应式)
 const adminResourceStats = ref([
   { icon: markRaw(Avatar), title: '用户总数', count: 0, unit: '人', color: '#3b82f6', bgColor: '#eff6ff', path: '/admin/userlist' },
+  { icon: markRaw(Iphone), title: '已绑定手机', count: 0, unit: '人', color: '#06b6d4', bgColor: '#ecfeff', path: '/admin/userlist' },
+  { icon: markRaw(User), title: '24h新注册', count: 0, unit: '人', color: '#ef4444', bgColor: '#fef2f2', path: '/admin/userlist' },
   { icon: markRaw(List), title: '接口总数', count: 0, unit: '个', color: '#8b5cf6', bgColor: '#f5f3ff', path: '/admin/apilist' },
   { icon: markRaw(TrendCharts), title: '总请求数', count: 0, unit: '次', color: '#10b981', bgColor: '#ecfdf5', path: '/admin/statistics' },
   { icon: markRaw(Coin), title: '今日收入', count: 0, unit: '元', color: '#f59e0b', bgColor: '#fffbeb', path: '/admin/rechargerecord' },
+  { icon: markRaw(Reading), title: '文章总数', count: 0, unit: '篇', color: '#ec4899', bgColor: '#fdf2f8', path: '/admin/articlelist' },
+  { icon: markRaw(ShoppingCart), title: '套餐销量', count: 0, unit: '单', color: '#22c55e', bgColor: '#f0fdf4', path: '/admin/buypackagerecord' },
 ])
 
 // Fetch Profile
@@ -174,11 +185,19 @@ const fetchProfile = async () => {
         adminStats.totalApis = data.total_apis || 0
         adminStats.todayIncome = Number(data.today_income || 0)
         adminStats.totalRequests = data.total_requests || 0
+        adminStats.phoneVerifiedUsers = data.phone_bind_users || 0
+        adminStats.recentRegisters = data.recent_registers || 0
+        adminStats.totalArticles = data.total_articles || 0
+        adminStats.totalPackageSales = data.total_package_sold || 0
 
-        adminResourceStats.value[0].count = data.total_users || 0      // 用户总数
-        adminResourceStats.value[1].count = data.total_apis || 0       // 接口总数
-        adminResourceStats.value[2].count = data.total_requests || 0   // 总请求数
-        adminResourceStats.value[3].count = Number(data.today_income || 0)  // 今日收入
+        adminResourceStats.value[0].count = data.total_users || 0              // 用户总数
+        adminResourceStats.value[1].count = data.phone_bind_users || 0        // 已绑定手机
+        adminResourceStats.value[2].count = data.new_users_in_24h || 0        // 24h新注册
+        adminResourceStats.value[3].count = data.total_apis || 0              // 接口总数
+        adminResourceStats.value[4].count = data.total_requests || 0          // 总请求数
+        adminResourceStats.value[5].count = Number(data.today_income || 0)    // 今日收入
+        adminResourceStats.value[6].count = data.total_articles || 0          // 文章总数
+        adminResourceStats.value[7].count = data.total_package_sold || 0      // 套餐销量
       }
 
       nextTick(() => {
