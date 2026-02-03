@@ -107,8 +107,8 @@ const performSearch = () => {
       paidFilter.value === '全部' ||
       (paidFilter.value === '免费' ? !isPaid : isPaid)
 
-    // 登录状态过滤（后端 key_state：开启=需登录，其余视为无需登录）
-    const needLogin = data.key_state === '开启'
+    // 登录状态过滤（后端 key_state：1=需登录，0=无需登录）
+    const needLogin = data.key_state === 1
     const matchesLogin =
       loginFilter.value === '全部' ||
       (loginFilter.value === '需登录' ? needLogin : !needLogin)

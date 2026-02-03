@@ -326,9 +326,9 @@ const getIconIndex = (item) => {
               <div class="api-card__meta">
                 <span
                   class="meta-item"
-                  :class="item.key_state === '开启' ? 'need-login' : 'no-login'"
+                  :class="item.key_state === 1 ? 'need-login' : 'no-login'"
                 >
-                  {{ item.key_state === '开启' ? '需登录' : '无需登录' }}
+                  {{ item.key_state === 1 ? '需登录' : '无需登录' }}
                 </span>
               </div>
             </div>
