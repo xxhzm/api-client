@@ -81,7 +81,7 @@ const visitPartner = (website) => {
               @error="handleImageError"
             />
             <div class="logo-placeholder">
-              <span>{{ partner.name.charAt(0) }}</span>
+              <span>{{ String(partner.name)?.charAt(0) }}</span>
             </div>
           </div>
 

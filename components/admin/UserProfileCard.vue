@@ -171,7 +171,7 @@ const copyKey = async () => {
         <div class="header-content">
           <div class="avatar-wrapper">
             <div class="avatar">
-              <span>{{ userInfo.username?.charAt(0)?.toUpperCase() || 'U' }}</span>
+              <span>{{ String(userInfo.username)?.charAt(0)?.toUpperCase() || 'U' }}</span>
             </div>
             <div class="status-indicator"></div>
           </div>
