@@ -51,12 +51,16 @@ const routeNameMap = {
   '/admin/merchant-profile': '商户资料',
   '/admin/merchant-commission-log': '分成记录',
   '/admin/logs': '综合日志',
+  '/admin/workorder': '工单管理',
+  '/admin/myworkorder': '我的工单',
+  '/admin/createworkorder': '新建工单',
 }
 
 // 动态路由名称处理
 const dynamicRouteMap = {
   apiset: '接口设置',
   articleset: '文章设置',
+  workorderdetail: '工单详情',
 }
 
 // 路由路径与父级菜单名称映射
@@ -110,6 +114,12 @@ const parentNameMap = {
   '/admin/ad': '内容与运营',
   '/admin/links': '内容与运营',
 
+  // 工单系统
+  '/admin/workorder': '工单系统',
+  '/admin/myworkorder': '工单系统',
+  '/admin/createworkorder': '工单系统',
+  '/admin/workorderdetail': '工单系统',  // 动态路由会匹配到此
+
   // 个人中心
   '/admin/key': '个人中心',
   '/admin/password': '个人中心',
@@ -118,7 +128,7 @@ const parentNameMap = {
 }
 
 const breadcrumbs = computed(() => {
-  const path = route.path
+  const path = route.path.replace(/\/$/, '') || '/admin'
   const items = []
 
   // 始终添加首页/控制台
@@ -133,7 +143,7 @@ const breadcrumbs = computed(() => {
   // 如果是动态路由（包含ID），则获取基础路径
   if (
     pathParts.length > 3 &&
-    (pathParts[2] === 'apiset' || pathParts[2] === 'articleset')
+    (pathParts[2] === 'apiset' || pathParts[2] === 'articleset' || pathParts[2] === 'workorderdetail')
   ) {
     basePath = `/${pathParts[1]}/${pathParts[2]}`
   }
@@ -162,7 +172,7 @@ const breadcrumbs = computed(() => {
 const visitedViews = useState('visitedViews', () => [])
 
 const addVisitedView = () => {
-  const { path } = route
+  const path = route.path.replace(/\/$/, '') || '/admin'
 
   // Logic to determine title
   let title = '未知页面'
@@ -171,7 +181,7 @@ const addVisitedView = () => {
 
   if (
     pathParts.length > 3 &&
-    (pathParts[2] === 'apiset' || pathParts[2] === 'articleset')
+    (pathParts[2] === 'apiset' || pathParts[2] === 'articleset' || pathParts[2] === 'workorderdetail')
   ) {
     basePath = `/${pathParts[1]}/${pathParts[2]}`
   }
@@ -198,7 +208,8 @@ const addVisitedView = () => {
 }
 
 const isActive = (view) => {
-  return view.path === route.path
+  const currentPath = route.path.replace(/\/$/, '') || '/admin'
+  return view.path === currentPath
 }
 
 const closeTag = (view) => {

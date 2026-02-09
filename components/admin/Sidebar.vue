@@ -12,6 +12,7 @@ import {
   Lock,
   Shop,
   Document,
+  Service,
 } from '@element-plus/icons-vue'
 
 const options = useState('options')
@@ -129,6 +130,11 @@ const pathMap = {
   key: '7',
   password: '7',
   phone: '7',
+
+  // 8: Work Order (New)
+  workorder: '8',
+  createworkorder: '8',
+  myworkorder: '8',
 }
 
 const thirdPath = pathArr[2] // 注意 pathArr[2] 是第3段
@@ -193,6 +199,11 @@ const pathIndexMap = {
   '/admin/key': '7-2',
   '/admin/password': '7-3',
   '/admin/phone': '7-4',
+
+  // Work Order (8)
+  '/admin/workorder': '8-1',
+  '/admin/createworkorder': '8-2',
+  '/admin/myworkorder': '8-3',
 }
 
 const route = useRoute()
@@ -632,8 +643,41 @@ watch(
           </el-menu-item-group>
         </el-sub-menu>
 
-        <!-- 8. 访问前台 -->
-        <el-menu-item index="8" @click="navigateTo('/')">
+        <!-- 8. 工单管理 -->
+        <el-sub-menu
+          index="8"
+          v-if="routeShowArr(['/admin/workorder', '/admin/myworkorder'])"
+        >
+          <template #title>
+            <el-icon>
+              <Service />
+            </el-icon>
+            <span>工单管理</span>
+          </template>
+          <el-menu-item-group title="工单管理">
+            <el-menu-item
+              index="8-1"
+              @click="navigateTo('/admin/workorder')"
+              v-if="routeShow('/admin/workorder')"
+              >工单列表</el-menu-item
+            >
+            <el-menu-item
+              index="8-3"
+              @click="navigateTo('/admin/myworkorder')"
+              v-if="routeShow('/admin/myworkorder')"
+              >我的工单</el-menu-item
+            >
+            <el-menu-item
+              index="8-2"
+              @click="navigateTo('/admin/createworkorder')"
+              v-if="routeShow('/admin/createworkorder')"
+              >新建工单</el-menu-item
+            >
+          </el-menu-item-group>
+        </el-sub-menu>
+
+        <!-- 9. 访问前台 -->
+        <el-menu-item index="9" @click="navigateTo('/')">
           <el-icon>
             <Promotion />
           </el-icon>
