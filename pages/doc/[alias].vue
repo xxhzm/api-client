@@ -10,12 +10,32 @@ import {
   Connection,
 } from '@element-plus/icons-vue'
 
-import 'highlight.js/styles/github.css'
-import hljs from 'highlight.js/lib/core'
-import json from 'highlight.js/lib/languages/json'
-import javascript from 'highlight.js/lib/languages/javascript'
-import php from 'highlight.js/lib/languages/php'
-import python from 'highlight.js/lib/languages/python'
+// highlight.js 动态导入，避免静态打包
+let hljs = null
+const loadHighlightJs = async () => {
+  if (hljs) return hljs
+  const [
+    { default: core },
+    { default: json },
+    { default: javascript },
+    { default: php },
+    { default: python },
+  ] = await Promise.all([
+    import('highlight.js/lib/core'),
+    import('highlight.js/lib/languages/json'),
+    import('highlight.js/lib/languages/javascript'),
+    import('highlight.js/lib/languages/php'),
+    import('highlight.js/lib/languages/python'),
+  ])
+  await import('highlight.js/styles/github.css')
+
+  core.registerLanguage('json', json)
+  core.registerLanguage('javascript.js', javascript)
+  core.registerLanguage('php', php)
+  core.registerLanguage('python', python)
+  hljs = core
+  return hljs
+}
 
 const activeName = ref('axios')
 const route = useRoute()
@@ -87,11 +107,8 @@ useHead({
   ],
 })
 
-onMounted(() => {
-  hljs.registerLanguage('json', json)
-  hljs.registerLanguage('javascript.js', javascript)
-  hljs.registerLanguage('php', php)
-  hljs.registerLanguage('python', python)
+onMounted(async () => {
+  await loadHighlightJs()
   hljs.highlightAll()
 })
 
@@ -342,8 +359,7 @@ const sendRequest = async () => {
           if (typeof data === 'object') {
             newCode.className = 'json'
             newCode.textContent = JSON.stringify(data, null, 2)
-            hljs.registerLanguage('json', json)
-            hljs.highlightElement(newCode)
+            if (hljs) hljs.highlightElement(newCode)
           } else {
             newCode.className = 'text'
             newCode.textContent = data
@@ -433,7 +449,8 @@ const highlightedExample = computed(() => {
 
     const formatted = JSON.stringify(parsed, null, 2)
     // 使用highlight.js进行代码高亮
-    return hljs.highlight(formatted, { language: 'json' }).value
+    if (hljs) return hljs.highlight(formatted, { language: 'json' }).value
+    return formatted
   } catch (e) {
     // 如果解析失败,直接返回原始内容
     return apiInfo.value.example
@@ -576,7 +593,7 @@ const buyPackage = (pkg) => {
 
         </div>
 
-        <!-- 服务指标 -->
+        <!-- 服务指标 
         <div class="box" id="stats" v-if="hasStats">
           <h2>服务指标</h2>
           <div class="stats-desc-panel">
@@ -597,7 +614,7 @@ const buyPackage = (pkg) => {
               <span class="stats-desc-value">{{ formatNumber(apiInfo.total_calls) }} <em>次</em></span>
             </div>
           </div>
-        </div>
+        </div>-->
 
         <!-- 接口描述 -->
         <div class="box" id="description">

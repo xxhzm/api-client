@@ -396,17 +396,19 @@ const initChart = async () => {
       CanvasRenderer,
     ])
 
-    // 导入本地地图数据
-    const chinaJSON = await import('@/assets/map.json')
-    const worldJSON = await import('@/assets/world.json')
-    const countryNameMap = await import('@/assets/countryNameMap.json')
+    // 从 public 目录通过 fetch 加载地图数据（不打包进 JS，减小 bundle 体积）
+    const [chinaJSON, worldJSON, countryNameMap] = await Promise.all([
+      $fetch('/data/map.json'),
+      $fetch('/data/world.json'),
+      $fetch('/data/countryNameMap.json'),
+    ])
 
     // 注册地图数据
-    echarts.registerMap('china', chinaJSON.default)
-    echarts.registerMap('world', worldJSON.default)
+    echarts.registerMap('china', chinaJSON)
+    echarts.registerMap('world', worldJSON)
 
     chart = echarts.init(chartRef.value)
-    chart.setOption(getOption(countryNameMap.default))
+    chart.setOption(getOption(countryNameMap))
 
     // 首次获取数据
     await fetchAttackData()

@@ -355,11 +355,11 @@ const initChart = async () => {
     CanvasRenderer,
   ])
 
-  // 仅使用本地 assets/world.json，不再使用任何其他链接或包内地图
+  // 从 public 目录通过 fetch 加载地图数据（不打包进 JS，减小 bundle 体积）
   const worldRegistered = await (async () => {
     try {
-      const worldLocal = await import('@/assets/world.json')
-      echarts.registerMap('world', worldLocal.default || worldLocal)
+      const worldData = await $fetch('/data/world.json')
+      echarts.registerMap('world', worldData)
       return true
     } catch (e) {
       return false

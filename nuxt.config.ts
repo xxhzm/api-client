@@ -35,6 +35,17 @@ export default defineNuxtConfig({
         }
       : undefined,
 
+  // ========== 路由级缓存策略 ==========
+  routeRules: {
+    // 静态页面使用 ISR 缓存，减少重复渲染
+    '/about': { isr: 3600 },
+    '/privacy': { isr: 3600 },
+    '/terms': { isr: 3600 },
+    '/links': { isr: 3600 },
+    // 地图 JSON 数据设置长缓存
+    '/data/**': { headers: { 'cache-control': 'public, max-age=86400, immutable' } },
+  },
+
   // ========== 构建性能优化 ==========
   vite: {
     build: {

@@ -7,17 +7,32 @@ import {
   Connection,
   CopyDocument,
 } from '@element-plus/icons-vue'
-import hljs from 'highlight.js/lib/core'
-import javascript from 'highlight.js/lib/languages/javascript'
-import python from 'highlight.js/lib/languages/python'
-import php from 'highlight.js/lib/languages/php'
-import java from 'highlight.js/lib/languages/java'
-import 'highlight.js/styles/atom-one-light.css'
+// highlight.js 动态导入，避免静态打包
+let hljs = null
+const loadHighlightJs = async () => {
+  if (hljs) return hljs
+  const [
+    { default: core },
+    { default: javascript },
+    { default: python },
+    { default: php },
+    { default: java },
+  ] = await Promise.all([
+    import('highlight.js/lib/core'),
+    import('highlight.js/lib/languages/javascript'),
+    import('highlight.js/lib/languages/python'),
+    import('highlight.js/lib/languages/php'),
+    import('highlight.js/lib/languages/java'),
+  ])
+  await import('highlight.js/styles/atom-one-light.css')
 
-hljs.registerLanguage('javascript', javascript)
-hljs.registerLanguage('python', python)
-hljs.registerLanguage('php', php)
-hljs.registerLanguage('java', java)
+  core.registerLanguage('javascript', javascript)
+  core.registerLanguage('python', python)
+  core.registerLanguage('php', php)
+  core.registerLanguage('java', java)
+  hljs = core
+  return hljs
+}
 
 const { $msg, $myFetch } = useNuxtApp()
 
@@ -293,12 +308,15 @@ const getHighlightedCode = (lang) => {
     java: 'java',
   }
   if (!code) return ''
+  if (!hljs) return code
   return hljs.highlight(code, { language: languageMap[lang] }).value
 }
 
-onMounted(() => {
+onMounted(async () => {
   getKeyInfo()
   getSecurityInfo()
+  // 页面挂载后异步加载 highlight.js
+  await loadHighlightJs()
 })
 
 useHead({
