@@ -1,6 +1,8 @@
 <script setup>
-import * as echarts from 'echarts'
 import { markRaw } from 'vue'
+
+// ECharts 按需动态导入，避免全量打包
+let echarts = null
 import {
   TrendCharts,
   Wallet,
@@ -229,11 +231,30 @@ const fetchBalance = async (showTip = false) => {
 
 
 // Init Chart
-const initChart = () => {
+const initChart = async () => {
   if (!process.client) return
 
   const chartDom = document.getElementById('dataOverviewChart')
   if (!chartDom) return
+
+  // 动态导入 ECharts 核心模块（按需加载，减小首屏体积）
+  if (!echarts) {
+    const echartsCore = await import('echarts/core')
+    const { LineChart } = await import('echarts/charts')
+    const { TooltipComponent, GridComponent, GraphicComponent } = await import(
+      'echarts/components'
+    )
+    const { CanvasRenderer } = await import('echarts/renderers')
+
+    echartsCore.use([
+      LineChart,
+      TooltipComponent,
+      GridComponent,
+      GraphicComponent,
+      CanvasRenderer,
+    ])
+    echarts = echartsCore
+  }
 
   const chart = echarts.init(chartDom)
 

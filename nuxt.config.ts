@@ -34,4 +34,31 @@ export default defineNuxtConfig({
           globalError: false,
         }
       : undefined,
+
+  // ========== 构建性能优化 ==========
+  vite: {
+    build: {
+      // 提高 chunk 大小警告阈值
+      chunkSizeWarningLimit: 600,
+      rollupOptions: {
+        output: {
+          // 手动分包：将大型依赖拆分为独立 chunk，按需加载
+          manualChunks(id) {
+            // ECharts 单独分包（~1MB），仅在使用 echarts 的页面加载
+            if (id.includes('node_modules/echarts') || id.includes('node_modules/zrender')) {
+              return 'vendor-echarts'
+            }
+            // highlight.js 单独分包，仅在需要代码高亮的页面加载
+            if (id.includes('node_modules/highlight.js')) {
+              return 'vendor-hljs'
+            }
+            // Element Plus 单独分包
+            if (id.includes('node_modules/element-plus')) {
+              return 'vendor-element-plus'
+            }
+          },
+        },
+      },
+    },
+  },
 })

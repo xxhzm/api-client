@@ -10,58 +10,89 @@ import {
   InfoFilled,
 } from '@element-plus/icons-vue'
 import { ElMessage } from 'element-plus'
-import hljs from 'highlight.js/lib/core'
-import javascript from 'highlight.js/lib/languages/javascript'
-import go from 'highlight.js/lib/languages/go'
-import python from 'highlight.js/lib/languages/python'
-import java from 'highlight.js/lib/languages/java'
-import cpp from 'highlight.js/lib/languages/cpp'
-import php from 'highlight.js/lib/languages/php'
-import ruby from 'highlight.js/lib/languages/ruby'
-import swift from 'highlight.js/lib/languages/swift'
-import typescript from 'highlight.js/lib/languages/typescript'
-import xml from 'highlight.js/lib/languages/xml'
-import css from 'highlight.js/lib/languages/css'
-import json from 'highlight.js/lib/languages/json'
-import bash from 'highlight.js/lib/languages/bash'
-import sql from 'highlight.js/lib/languages/sql'
-import markdown from 'highlight.js/lib/languages/markdown'
-import yaml from 'highlight.js/lib/languages/yaml'
-import rust from 'highlight.js/lib/languages/rust'
-import kotlin from 'highlight.js/lib/languages/kotlin'
-import 'highlight.js/styles/github.css'
 
-// 注册多种编程语言
-hljs.registerLanguage('javascript', javascript)
-hljs.registerLanguage('js', javascript) // 别名
-hljs.registerLanguage('go', go)
-hljs.registerLanguage('golang', go) // 别名
-hljs.registerLanguage('python', python)
-hljs.registerLanguage('py', python) // 别名
-hljs.registerLanguage('java', java)
-hljs.registerLanguage('cpp', cpp)
-hljs.registerLanguage('c++', cpp) // 别名
-hljs.registerLanguage('php', php)
-hljs.registerLanguage('ruby', ruby)
-hljs.registerLanguage('rb', ruby) // 别名
-hljs.registerLanguage('swift', swift)
-hljs.registerLanguage('typescript', typescript)
-hljs.registerLanguage('ts', typescript) // 别名
-hljs.registerLanguage('html', xml)
-hljs.registerLanguage('xml', xml)
-hljs.registerLanguage('css', css)
-hljs.registerLanguage('json', json)
-hljs.registerLanguage('bash', bash)
-hljs.registerLanguage('shell', bash) // 别名
-hljs.registerLanguage('sql', sql)
-hljs.registerLanguage('markdown', markdown)
-hljs.registerLanguage('md', markdown) // 别名
-hljs.registerLanguage('yaml', yaml)
-hljs.registerLanguage('yml', yaml) // 别名
-hljs.registerLanguage('rust', rust)
-hljs.registerLanguage('rs', rust) // 别名
-hljs.registerLanguage('kotlin', kotlin)
-hljs.registerLanguage('kt', kotlin) // 别名
+// highlight.js 改为动态导入，避免在首屏加载 ~200KB+ 的代码高亮库
+let hljs = null
+const loadHighlightJs = async () => {
+  if (hljs) return hljs
+  const [
+    { default: core },
+    { default: javascript },
+    { default: go },
+    { default: python },
+    { default: java },
+    { default: cpp },
+    { default: php },
+    { default: ruby },
+    { default: swift },
+    { default: typescript },
+    { default: xml },
+    { default: css },
+    { default: json },
+    { default: bash },
+    { default: sql },
+    { default: markdown },
+    { default: yaml },
+    { default: rust },
+    { default: kotlin },
+  ] = await Promise.all([
+    import('highlight.js/lib/core'),
+    import('highlight.js/lib/languages/javascript'),
+    import('highlight.js/lib/languages/go'),
+    import('highlight.js/lib/languages/python'),
+    import('highlight.js/lib/languages/java'),
+    import('highlight.js/lib/languages/cpp'),
+    import('highlight.js/lib/languages/php'),
+    import('highlight.js/lib/languages/ruby'),
+    import('highlight.js/lib/languages/swift'),
+    import('highlight.js/lib/languages/typescript'),
+    import('highlight.js/lib/languages/xml'),
+    import('highlight.js/lib/languages/css'),
+    import('highlight.js/lib/languages/json'),
+    import('highlight.js/lib/languages/bash'),
+    import('highlight.js/lib/languages/sql'),
+    import('highlight.js/lib/languages/markdown'),
+    import('highlight.js/lib/languages/yaml'),
+    import('highlight.js/lib/languages/rust'),
+    import('highlight.js/lib/languages/kotlin'),
+  ])
+  await import('highlight.js/styles/github.css')
+
+  // 注册多种编程语言
+  core.registerLanguage('javascript', javascript)
+  core.registerLanguage('js', javascript)
+  core.registerLanguage('go', go)
+  core.registerLanguage('golang', go)
+  core.registerLanguage('python', python)
+  core.registerLanguage('py', python)
+  core.registerLanguage('java', java)
+  core.registerLanguage('cpp', cpp)
+  core.registerLanguage('c++', cpp)
+  core.registerLanguage('php', php)
+  core.registerLanguage('ruby', ruby)
+  core.registerLanguage('rb', ruby)
+  core.registerLanguage('swift', swift)
+  core.registerLanguage('typescript', typescript)
+  core.registerLanguage('ts', typescript)
+  core.registerLanguage('html', xml)
+  core.registerLanguage('xml', xml)
+  core.registerLanguage('css', css)
+  core.registerLanguage('json', json)
+  core.registerLanguage('bash', bash)
+  core.registerLanguage('shell', bash)
+  core.registerLanguage('sql', sql)
+  core.registerLanguage('markdown', markdown)
+  core.registerLanguage('md', markdown)
+  core.registerLanguage('yaml', yaml)
+  core.registerLanguage('yml', yaml)
+  core.registerLanguage('rust', rust)
+  core.registerLanguage('rs', rust)
+  core.registerLanguage('kotlin', kotlin)
+  core.registerLanguage('kt', kotlin)
+
+  hljs = core
+  return hljs
+}
 
 const { $myFetch } = useNuxtApp()
 
@@ -94,6 +125,8 @@ const toggleChat = () => {
   localStorage.setItem('chatVisible', chatVisible.value ? 'true' : 'false')
 
   if (chatVisible.value) {
+    // 打开聊天窗口时预加载 highlight.js
+    loadHighlightJs()
     unreadCount.value = 0
 
     // 如果消息为空，添加欢迎消息
@@ -224,6 +257,8 @@ onMounted(() => {
   const savedChatVisible = localStorage.getItem('chatVisible')
   if (savedChatVisible === 'true') {
     chatVisible.value = true
+    // 恢复时也预加载 highlight.js
+    loadHighlightJs()
 
     // 滚动到最新消息
     nextTick(() => {
@@ -296,7 +331,7 @@ const formatMessageContent = (content) => {
       let highlightedCode = code.trim()
 
       try {
-        if (validLang !== 'plaintext') {
+        if (validLang !== 'plaintext' && hljs) {
           highlightedCode = hljs.highlight(code.trim(), {
             language: validLang,
           }).value

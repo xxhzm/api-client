@@ -187,8 +187,8 @@ const handleEnterSearch = (event) => {
       </div>
     </div>
 
-    <IndexWhyChooseUs />
-    <IndexGlobalNetwork />
+    <LazyIndexWhyChooseUs />
+    <LazyIndexGlobalNetwork />
 
     <div class="container" v-if="articleList && articleList.length > 0">
       <!-- 新闻动态 -->
@@ -266,9 +266,9 @@ const handleEnterSearch = (event) => {
       </div>
     </div>
 
-    <IndexPartners />
+    <LazyIndexPartners />
     <IndexFooter :options="options" />
-    <IndexAi />
+    <LazyIndexAi />
   </div>
 </template>
 

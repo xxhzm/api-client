@@ -1,7 +1,9 @@
 <script setup>
 import { DataLine } from '@element-plus/icons-vue'
 import { ref, onMounted, nextTick } from 'vue'
-import * as echarts from 'echarts'
+
+// ECharts 按需动态导入，避免全量打包
+let echarts = null
 
 const { $msg, $myFetch } = useNuxtApp()
 
@@ -148,7 +150,29 @@ const handleTimeRangeChange = () => {
 
 onMounted(() => {
   // 使用 nextTick 确保 DOM 已经渲染
-  nextTick(() => {
+  nextTick(async () => {
+    // 动态导入 ECharts 核心模块（按需加载，减小首屏体积）
+    const echartsCore = await import('echarts/core')
+    const { BarChart, LineChart } = await import('echarts/charts')
+    const {
+      TitleComponent,
+      TooltipComponent,
+      GridComponent,
+      LegendComponent,
+    } = await import('echarts/components')
+    const { CanvasRenderer } = await import('echarts/renderers')
+
+    echartsCore.use([
+      BarChart,
+      LineChart,
+      TitleComponent,
+      TooltipComponent,
+      GridComponent,
+      LegendComponent,
+      CanvasRenderer,
+    ])
+    echarts = echartsCore
+
     // 初始化图表
     trendChart = echarts.init(document.getElementById('trendChart'))
 
