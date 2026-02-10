@@ -5,6 +5,7 @@ import {
   SuccessFilled,
   Warning,
   Monitor,
+  Document,
 } from '@element-plus/icons-vue'
 
 definePageMeta({
@@ -16,6 +17,7 @@ const { $msg, $myFetch } = useNuxtApp()
 onMounted(() => {
   // 页面加载时获取系统信息
   getSystemInfo()
+  getChangelogList()
 })
 
 // 系统信息
@@ -31,6 +33,75 @@ const systemInfo = ref({
 const loading = ref(false)
 const checkingUpdate = ref(false)
 const updating = ref(false)
+const changelogLoading = ref(false)
+
+const changelogList = ref([])
+const changelogPage = ref(1)
+const changelogPageSize = ref(10)
+const changelogTotal = ref(0)
+
+const formatChangelogTime = (timestamp) => {
+  const numeric = Number(timestamp)
+  if (Number.isNaN(numeric)) {
+    return '--'
+  }
+  return new Date(numeric).toLocaleString()
+}
+
+const normalizeChangelog = (item = {}) => {
+  const contentLines = String(item.content || '')
+    .split(/\r?\n/)
+    .map((line) => line.trim())
+    .filter(Boolean)
+
+  return {
+    ...item,
+    contentLines: contentLines.length > 0 ? contentLines : ['暂无更新说明'],
+    createdAtText: formatChangelogTime(item.created_time),
+  }
+}
+
+const getChangelogList = async (page = changelogPage.value) => {
+  changelogLoading.value = true
+  try {
+    const res = await $fetch('/api/yunque/changelog', {
+      method: 'GET',
+      params: {
+        page,
+        pageSize: changelogPageSize.value,
+      },
+    })
+
+    if (res.code === 200) {
+      changelogList.value = Array.isArray(res.data)
+        ? res.data.map((item) => normalizeChangelog(item))
+        : []
+      changelogTotal.value = Number(res.total) || 0
+      changelogPage.value = page
+      return
+    }
+
+    changelogList.value = []
+    changelogTotal.value = 0
+    $msg(res.message || '获取更新日志失败', 'error')
+  } catch (error) {
+    console.error('获取更新日志失败:', error)
+    changelogList.value = []
+    changelogTotal.value = 0
+    $msg('获取更新日志失败', 'error')
+  } finally {
+    changelogLoading.value = false
+  }
+}
+
+const handleChangelogCurrentChange = (page) => {
+  getChangelogList(page)
+}
+
+const handleChangelogSizeChange = (size) => {
+  changelogPageSize.value = size
+  getChangelogList(1)
+}
 
 // 获取系统信息
 const getSystemInfo = async () => {
@@ -255,6 +326,52 @@ useHead({
         </div>
       </div>
 
+      <div class="changelog-section">
+        <div class="changelog-list" v-loading="changelogLoading">
+          <el-empty
+            v-if="!changelogList.length"
+            description="暂无更新日志"
+            class="changelog-empty"
+          />
+
+          <div v-else class="timeline">
+            <div
+              v-for="(item, index) in changelogList"
+              :key="item.id"
+              class="timeline-item"
+            >
+              <div class="timeline-point"></div>
+              <div class="timeline-content">
+                <h4>
+                  <span class="version">{{ item.version }}</span>
+                  <span class="date">{{ item.createdAtText }}</span>
+                </h4>
+                <p class="title">{{ item.title }}</p>
+                <p
+                  v-for="(line, lIndex) in item.contentLines"
+                  :key="lIndex"
+                  class="detail"
+                >
+                  {{ line }}
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="changelog-pagination" v-if="changelogTotal > 0">
+          <el-pagination
+            v-model:current-page="changelogPage"
+            v-model:page-size="changelogPageSize"
+            :page-sizes="[10, 20, 50]"
+            layout="total, sizes, prev, pager, next, jumper"
+            :total="changelogTotal"
+            @current-change="handleChangelogCurrentChange"
+            @size-change="handleChangelogSizeChange"
+          />
+        </div>
+      </div>
+
       <!-- 最后检查时间 -->
       <div class="check-info" v-if="systemInfo.lastCheckTime">
         <el-text type="info" size="small">
@@ -377,6 +494,107 @@ useHead({
     }
   }
 
+  .changelog-section {
+    margin: 0 24px 24px;
+    background: #fff;
+    border-radius: 12px;
+    box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.03);
+    overflow: hidden;
+
+    .changelog-list {
+      min-height: 140px;
+      padding: 32px 32px 24px;
+      background-color: #fff;
+
+      .timeline {
+        position: relative;
+        padding: 0;
+
+        &::before {
+          content: '';
+          position: absolute;
+          left: 20px;
+          top: 6px;
+          bottom: 0;
+          width: 2px;
+          background: #ebeef5;
+        }
+
+        .timeline-item {
+          position: relative;
+          padding-left: 45px;
+          margin-bottom: 32px;
+
+          &:last-child {
+            margin-bottom: 0;
+          }
+        }
+
+        .timeline-point {
+          position: absolute;
+          left: 13px;
+          top: 6px;
+          width: 16px;
+          height: 16px;
+          border-radius: 50%;
+          background: #fff;
+          border: 2px solid #409eff;
+        }
+
+        .timeline-content {
+          h4 {
+            font-size: 16px;
+            color: #303133;
+            margin: 0 0 12px 0;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+
+            .version {
+              color: #409eff;
+              font-weight: 600;
+            }
+
+            .date {
+              font-size: 13px;
+              color: #909399;
+              font-weight: normal;
+            }
+          }
+
+          p {
+            font-size: 14px;
+            color: #606266;
+            line-height: 1.6;
+            margin: 0 0 8px 0;
+
+            &.title {
+              color: #303133;
+              font-weight: 500;
+              margin-bottom: 8px;
+            }
+
+            &:last-child {
+              margin-bottom: 0;
+            }
+          }
+        }
+      }
+    }
+
+    .changelog-empty {
+      padding: 40px 0;
+    }
+
+    .changelog-pagination {
+      display: flex;
+      justify-content: flex-end;
+      padding: 16px 24px;
+      background-color: #fff;
+    }
+  }
+
   .check-info {
     padding: 0 24px 24px;
     text-align: center;
@@ -390,6 +608,44 @@ useHead({
     .version-info {
       .el-col {
         margin-bottom: 16px;
+      }
+    }
+
+    .changelog-section {
+      margin: 0 0 16px;
+
+      .changelog-list {
+        padding: 20px 16px 8px;
+
+        .timeline {
+          .timeline-item {
+            padding-left: 35px;
+            margin-bottom: 24px;
+          }
+
+          .timeline-point {
+            width: 12px;
+            height: 12px;
+            left: 11px;
+            top: 5px;
+          }
+
+          .timeline-content {
+            h4 {
+              font-size: 15px;
+              margin-bottom: 8px;
+            }
+
+            p {
+              font-size: 13px;
+            }
+          }
+        }
+      }
+
+      .changelog-pagination {
+        justify-content: center;
+        padding: 12px 14px;
       }
     }
   }
