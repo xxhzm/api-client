@@ -84,6 +84,14 @@ const mpayInfo = ref({
   url: '',
 })
 
+// 新增：虎皮椒支付配置相关
+const hupiInfo = ref({
+  app_id: '',
+  app_secret: '',
+  host: '',
+  method: '',
+})
+
 // AI配置相关
 const aiInfo = ref({
   key: '',
@@ -247,6 +255,14 @@ const getMPayInfo = async () => {
   const res = await $myFetch('MPayInfo')
   if (res.code === 200) {
     mpayInfo.value = res.data
+  }
+}
+
+// 新增：获取虎皮椒支付配置
+const getHupiInfo = async () => {
+  const res = await $myFetch('HuPiInfo')
+  if (res.code === 200) {
+    hupiInfo.value = res.data
   }
 }
 
@@ -519,6 +535,7 @@ onMounted(() => {
   getAlipayInfo()
   getWechatPayInfo()
   getMPayInfo()
+  getHupiInfo()
   getAIInfo()
   getAboutInfo()
   getAdvancedInfo()
@@ -677,6 +694,27 @@ const mpayInfoSubmit = async () => {
   if (res.code === 200) {
     $msg(res.msg, 'success')
     getMPayInfo()
+  } else {
+    $msg(res.msg, 'error')
+  }
+}
+
+// 新增：提交虎皮椒支付配置
+const hupiInfoSubmit = async () => {
+  const bodyValue = new URLSearchParams()
+  bodyValue.append('appId', hupiInfo.value.app_id || '')
+  bodyValue.append('appSecret', hupiInfo.value.app_secret || '')
+  bodyValue.append('host', hupiInfo.value.host || '')
+  bodyValue.append('method', hupiInfo.value.method || '')
+
+  const res = await $myFetch('HuPiOptionUpdate', {
+    method: 'POST',
+    body: bodyValue,
+  })
+
+  if (res.code === 200) {
+    $msg(res.msg, 'success')
+    getHupiInfo()
   } else {
     $msg(res.msg, 'error')
   }
@@ -2154,9 +2192,7 @@ useHead({
                         <span class="rule-label">图像干扰</span>
                         <span class="rule-value">
                           <template v-if="captchaInfo.difficulty === 'easy'">
-                            <el-tag size="small" type="success"
-                              >噪点 30</el-tag
-                            >
+                            <el-tag size="small" type="success">噪点 30</el-tag>
                             <el-tag size="small" type="success"
                               >干扰线 2条</el-tag
                             >
@@ -2164,9 +2200,7 @@ useHead({
                           <template
                             v-else-if="captchaInfo.difficulty === 'medium'"
                           >
-                            <el-tag size="small" type="warning"
-                              >噪点 50</el-tag
-                            >
+                            <el-tag size="small" type="warning">噪点 50</el-tag>
                             <el-tag size="small" type="warning"
                               >干扰线 4条</el-tag
                             >
@@ -2435,6 +2469,52 @@ useHead({
                   </el-form-item>
                   <el-form-item>
                     <el-button type="primary" @click="mpayInfoSubmit"
+                      >提交</el-button
+                    >
+                  </el-form-item>
+                </el-form>
+              </div>
+            </el-tab-pane>
+
+            <el-tab-pane label="虎皮椒支付配置" name="hupi">
+              <div class="form">
+                <el-form
+                  :model="hupiInfo"
+                  label-position="top"
+                  label-width="120px"
+                >
+                  <el-form-item label="支付方式(Method)">
+                    <el-select
+                      v-model="hupiInfo.method"
+                      placeholder="请选择支付方式"
+                      style="width: 100%"
+                    >
+                      <el-option label="微信支付(wechat)" value="wechat" />
+                      <el-option label="支付宝(alipay)" value="alipay" />
+                    </el-select>
+                  </el-form-item>
+                  <el-form-item label="应用ID(AppId)">
+                    <el-input
+                      v-model="hupiInfo.app_id"
+                      placeholder="请输入虎皮椒应用ID"
+                    />
+                  </el-form-item>
+                  <el-form-item label="应用密钥(AppSecret)">
+                    <el-input
+                      v-model="hupiInfo.app_secret"
+                      type="password"
+                      show-password
+                      placeholder="请输入虎皮椒应用密钥"
+                    />
+                  </el-form-item>
+                  <el-form-item label="支付网关(Host)">
+                    <el-input
+                      v-model="hupiInfo.host"
+                      placeholder="请输入虎皮椒支付网关地址"
+                    />
+                  </el-form-item>
+                  <el-form-item>
+                    <el-button type="primary" @click="hupiInfoSubmit"
                       >提交</el-button
                     >
                   </el-form-item>

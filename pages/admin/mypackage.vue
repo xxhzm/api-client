@@ -357,70 +357,71 @@ useHead({
         </div>
       </div>
     </div>
+    <!-- 续费确认对话框 -->
+    <el-dialog
+      v-model="dialogVisible"
+      title="续费套餐"
+      width="500px"
+      destroy-on-close
+      :modal-append-to-body="false"
+      append-to-body
+      :close-on-click-modal="false"
+      class="renew-dialog"
+    >
+      <div class="renew-content">
+        <div class="info-section">
+          <div class="info-row">
+            <span class="label">套餐名称：</span>
+            <span class="value">{{ selectedPackage.name }}</span>
+          </div>
+          <div class="info-row">
+            <span class="label">API名称：</span>
+            <span class="value">{{ selectedPackage.api_name }}</span>
+          </div>
+          <div class="info-row">
+            <span class="label">套餐类型：</span>
+            <el-tag :type="getTypeTag(selectedPackage.type)" size="small">
+              {{ getTypeText(selectedPackage.type) }}
+            </el-tag>
+          </div>
+          <div class="info-row" v-if="selectedPackage.type === 2">
+            <span class="label">当前到期时间：</span>
+            <span class="value">{{
+              formatTime(selectedPackage.expire_time)
+            }}</span>
+          </div>
+          <div class="info-row" v-if="selectedPackage.type === 3">
+            <span class="label">可使用点数：</span>
+            <span class="value"
+              >{{
+                selectedPackage.points - selectedPackage.points_used
+              }}点</span
+            >
+          </div>
+          <div class="info-row">
+            <span class="label">续费金额：</span>
+            <span class="value price">¥{{ renewalAmount.toFixed(2) }}</span>
+          </div>
+        </div>
+        <div class="tip-section">
+          <el-alert title="续费说明" type="info" :closable="false" show-icon>
+            <p v-if="selectedPackage.type === 2">
+              续费后有效期将在原到期时间基础上延长
+            </p>
+            <p v-if="selectedPackage.type === 3">
+              续费后点数将在原有点数基础上累加
+            </p>
+          </el-alert>
+        </div>
+      </div>
+      <template #footer>
+        <div class="dialog-footer">
+          <el-button @click="dialogVisible = false">取消</el-button>
+          <el-button type="primary" @click="confirmRenew">确认续费</el-button>
+        </div>
+      </template>
+    </el-dialog>
   </div>
-
-  <!-- 续费确认对话框 -->
-  <el-dialog
-    v-model="dialogVisible"
-    title="续费套餐"
-    width="500px"
-    destroy-on-close
-    :modal-append-to-body="false"
-    append-to-body
-    :close-on-click-modal="false"
-    class="renew-dialog"
-  >
-    <div class="renew-content">
-      <div class="info-section">
-        <div class="info-row">
-          <span class="label">套餐名称：</span>
-          <span class="value">{{ selectedPackage.name }}</span>
-        </div>
-        <div class="info-row">
-          <span class="label">API名称：</span>
-          <span class="value">{{ selectedPackage.api_name }}</span>
-        </div>
-        <div class="info-row">
-          <span class="label">套餐类型：</span>
-          <el-tag :type="getTypeTag(selectedPackage.type)" size="small">
-            {{ getTypeText(selectedPackage.type) }}
-          </el-tag>
-        </div>
-        <div class="info-row" v-if="selectedPackage.type === 2">
-          <span class="label">当前到期时间：</span>
-          <span class="value">{{
-            formatTime(selectedPackage.expire_time)
-          }}</span>
-        </div>
-        <div class="info-row" v-if="selectedPackage.type === 3">
-          <span class="label">可使用点数：</span>
-          <span class="value"
-            >{{ selectedPackage.points - selectedPackage.points_used }}点</span
-          >
-        </div>
-        <div class="info-row">
-          <span class="label">续费金额：</span>
-          <span class="value price">¥{{ renewalAmount.toFixed(2) }}</span>
-        </div>
-      </div>
-      <div class="tip-section">
-        <el-alert title="续费说明" type="info" :closable="false" show-icon>
-          <p v-if="selectedPackage.type === 2">
-            续费后有效期将在原到期时间基础上延长
-          </p>
-          <p v-if="selectedPackage.type === 3">
-            续费后点数将在原有点数基础上累加
-          </p>
-        </el-alert>
-      </div>
-    </div>
-    <template #footer>
-      <div class="dialog-footer">
-        <el-button @click="dialogVisible = false">取消</el-button>
-        <el-button type="primary" @click="confirmRenew">确认续费</el-button>
-      </div>
-    </template>
-  </el-dialog>
 </template>
 
 <style lang="less" scoped>

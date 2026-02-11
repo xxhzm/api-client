@@ -478,159 +478,158 @@ useHead({
         </client-only>
       </div>
     </div>
-  </div>
-
-  <!-- 详情对话框 -->
-  <el-dialog v-model="dialogVisible" title="套餐详情" width="500px">
-    <div class="detail-content" v-if="currentRecord">
-      <div class="detail-item">
-        <span class="label">订单ID：</span>
-        <span class="value">{{ currentRecord.id }}</span>
-      </div>
-      <div class="detail-item">
-        <span class="label">用户ID：</span>
-        <span class="value">{{ currentRecord.uid }}</span>
-      </div>
-      <div class="detail-item">
-        <span class="label">接口ID：</span>
-        <span class="value">{{ currentRecord.aid }}</span>
-      </div>
-      <div class="detail-item">
-        <span class="label">套餐名称：</span>
-        <span class="value">{{ currentRecord.name }}</span>
-      </div>
-      <div class="detail-item">
-        <span class="label">套餐ID：</span>
-        <span class="value">{{ currentRecord.package_id }}</span>
-      </div>
-      <div class="detail-item">
-        <span class="label">支付金额：</span>
-        <span class="value amount">¥{{ currentRecord.amount }}</span>
-      </div>
-      <div class="detail-item">
-        <span class="label">套餐时长：</span>
-        <span class="value">{{ currentRecord.duration }}天</span>
-      </div>
-      <div class="detail-item">
-        <span class="label">订单状态：</span>
-        <span
-          class="value"
-          :class="`status-${
-            currentRecord.status === 1 ? 'success' : 'pending'
-          }`"
-        >
-          {{ currentRecord.status === 1 ? '有效' : '无效' }}
-        </span>
-      </div>
-      <div class="detail-item">
-        <span class="label">套餐类型：</span>
-        <span class="value">{{
-          currentRecord.type === 2 ? '按时间' : '按次数'
-        }}</span>
-      </div>
-      <div class="detail-item" v-if="currentRecord.package_points > 0">
-        <span class="label">套餐点数：</span>
-        <span class="value">{{ currentRecord.package_points }}</span>
-      </div>
-      <div
-        class="detail-item"
-        v-if="currentRecord.points > 0 || currentRecord.points_used > 0"
-      >
-        <span class="label">剩余/已用：</span>
-        <span class="value"
-          >{{ currentRecord.points }} / {{ currentRecord.points_used }}</span
-        >
-      </div>
-      <div class="detail-item">
-        <span class="label">创建时间：</span>
-        <span class="value">{{
-          formatTimestamp(currentRecord.create_time)
-        }}</span>
-      </div>
-      <div class="detail-item">
-        <span class="label">过期时间：</span>
-        <span class="value">{{
-          formatTimestamp(currentRecord.expire_time)
-        }}</span>
-      </div>
-    </div>
-    <template #footer>
-      <span class="dialog-footer">
-        <el-button @click="dialogVisible = false">关闭</el-button>
-      </span>
-    </template>
-  </el-dialog>
-
-  <!-- 编辑对话框 -->
-  <el-dialog
-    v-model="editDialogVisible"
-    title="编辑套餐记录"
-    width="500px"
-    :append-to-body="true"
-  >
-    <el-form
-      ref="editFormRef"
-      :model="editForm"
-      :rules="editRules"
-      label-width="100px"
-      v-loading="editLoading"
-    >
-      <el-form-item label="订单ID：">
-        <el-input v-model="editForm.id" disabled />
-      </el-form-item>
-      <el-form-item label="用户ID：">
-        <el-input v-model="editForm.uid" disabled />
-      </el-form-item>
-      <el-form-item label="套餐名称：">
-        <el-input v-model="editForm.name" disabled />
-      </el-form-item>
-      <el-form-item label="套餐类型：">
-        <el-tag
-          :type="editForm.type === 2 ? 'primary' : 'success'"
-          size="large"
-        >
-          {{ editForm.type === 2 ? '包月计费' : '点数包' }}
-        </el-tag>
-      </el-form-item>
-      <el-form-item label="支付金额：" prop="amount">
-        <el-input-number
-          v-model="editForm.amount"
-          :min="0"
-          :precision="2"
-          :step="0.01"
-          style="width: 100%"
-          placeholder="请输入金额"
-        />
-      </el-form-item>
-      <el-form-item label="过期时间：" prop="expire_time">
-        <el-date-picker
-          v-model="editForm.expire_time"
-          type="datetime"
-          :placeholder="
-            editForm.type === 2 ? '选择过期时间' : '点数包无需设置过期时间'
-          "
-          format="YYYY-MM-DD HH:mm:ss"
-          value-format="x"
-          style="width: 100%"
-          :disabled="editForm.type !== 2"
-        />
-        <div
-          v-if="editForm.type !== 2"
-          style="margin-top: 5px; color: #909399; font-size: 12px"
-        >
-          点数包类型无需设置过期时间
+    <!-- 详情对话框 -->
+    <el-dialog v-model="dialogVisible" title="套餐详情" width="500px">
+      <div class="detail-content" v-if="currentRecord">
+        <div class="detail-item">
+          <span class="label">订单ID：</span>
+          <span class="value">{{ currentRecord.id }}</span>
         </div>
-      </el-form-item>
-    </el-form>
-    <template #footer>
-      <span class="dialog-footer">
-        <el-button @click="cancelEdit">取消</el-button>
-        <el-button type="primary" @click="saveEdit" :loading="editLoading"
-          >保存</el-button
+        <div class="detail-item">
+          <span class="label">用户ID：</span>
+          <span class="value">{{ currentRecord.uid }}</span>
+        </div>
+        <div class="detail-item">
+          <span class="label">接口ID：</span>
+          <span class="value">{{ currentRecord.aid }}</span>
+        </div>
+        <div class="detail-item">
+          <span class="label">套餐名称：</span>
+          <span class="value">{{ currentRecord.name }}</span>
+        </div>
+        <div class="detail-item">
+          <span class="label">套餐ID：</span>
+          <span class="value">{{ currentRecord.package_id }}</span>
+        </div>
+        <div class="detail-item">
+          <span class="label">支付金额：</span>
+          <span class="value amount">¥{{ currentRecord.amount }}</span>
+        </div>
+        <div class="detail-item">
+          <span class="label">套餐时长：</span>
+          <span class="value">{{ currentRecord.duration }}天</span>
+        </div>
+        <div class="detail-item">
+          <span class="label">订单状态：</span>
+          <span
+            class="value"
+            :class="`status-${
+              currentRecord.status === 1 ? 'success' : 'pending'
+            }`"
+          >
+            {{ currentRecord.status === 1 ? '有效' : '无效' }}
+          </span>
+        </div>
+        <div class="detail-item">
+          <span class="label">套餐类型：</span>
+          <span class="value">{{
+            currentRecord.type === 2 ? '按时间' : '按次数'
+          }}</span>
+        </div>
+        <div class="detail-item" v-if="currentRecord.package_points > 0">
+          <span class="label">套餐点数：</span>
+          <span class="value">{{ currentRecord.package_points }}</span>
+        </div>
+        <div
+          class="detail-item"
+          v-if="currentRecord.points > 0 || currentRecord.points_used > 0"
         >
-      </span>
-    </template>
-  </el-dialog>
+          <span class="label">剩余/已用：</span>
+          <span class="value"
+            >{{ currentRecord.points }} / {{ currentRecord.points_used }}</span
+          >
+        </div>
+        <div class="detail-item">
+          <span class="label">创建时间：</span>
+          <span class="value">{{
+            formatTimestamp(currentRecord.create_time)
+          }}</span>
+        </div>
+        <div class="detail-item">
+          <span class="label">过期时间：</span>
+          <span class="value">{{
+            formatTimestamp(currentRecord.expire_time)
+          }}</span>
+        </div>
+      </div>
+      <template #footer>
+        <span class="dialog-footer">
+          <el-button @click="dialogVisible = false">关闭</el-button>
+        </span>
+      </template>
+    </el-dialog>
+
+    <!-- 编辑对话框 -->
+    <el-dialog
+      v-model="editDialogVisible"
+      title="编辑套餐记录"
+      width="500px"
+      :append-to-body="true"
+    >
+      <el-form
+        ref="editFormRef"
+        :model="editForm"
+        :rules="editRules"
+        label-width="100px"
+        v-loading="editLoading"
+      >
+        <el-form-item label="订单ID：">
+          <el-input v-model="editForm.id" disabled />
+        </el-form-item>
+        <el-form-item label="用户ID：">
+          <el-input v-model="editForm.uid" disabled />
+        </el-form-item>
+        <el-form-item label="套餐名称：">
+          <el-input v-model="editForm.name" disabled />
+        </el-form-item>
+        <el-form-item label="套餐类型：">
+          <el-tag
+            :type="editForm.type === 2 ? 'primary' : 'success'"
+            size="large"
+          >
+            {{ editForm.type === 2 ? '包月计费' : '点数包' }}
+          </el-tag>
+        </el-form-item>
+        <el-form-item label="支付金额：" prop="amount">
+          <el-input-number
+            v-model="editForm.amount"
+            :min="0"
+            :precision="2"
+            :step="0.01"
+            style="width: 100%"
+            placeholder="请输入金额"
+          />
+        </el-form-item>
+        <el-form-item label="过期时间：" prop="expire_time">
+          <el-date-picker
+            v-model="editForm.expire_time"
+            type="datetime"
+            :placeholder="
+              editForm.type === 2 ? '选择过期时间' : '点数包无需设置过期时间'
+            "
+            format="YYYY-MM-DD HH:mm:ss"
+            value-format="x"
+            style="width: 100%"
+            :disabled="editForm.type !== 2"
+          />
+          <div
+            v-if="editForm.type !== 2"
+            style="margin-top: 5px; color: #909399; font-size: 12px"
+          >
+            点数包类型无需设置过期时间
+          </div>
+        </el-form-item>
+      </el-form>
+      <template #footer>
+        <span class="dialog-footer">
+          <el-button @click="cancelEdit">取消</el-button>
+          <el-button type="primary" @click="saveEdit" :loading="editLoading"
+            >保存</el-button
+          >
+        </span>
+      </template>
+    </el-dialog>
+  </div>
 </template>
 
 <style lang="less" scoped>
