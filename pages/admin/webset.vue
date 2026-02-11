@@ -1,5 +1,5 @@
 <script setup>
-import { Search } from '@element-plus/icons-vue'
+import { Search, Refresh } from '@element-plus/icons-vue'
 import { ElMessageBox } from 'element-plus'
 import { watch } from 'vue'
 
@@ -109,6 +109,8 @@ const advancedInfo = ref({
   api_logs_map_virtual: 'false',
   cdn_header: '',
 })
+
+const refreshKeysLoading = ref(false)
 
 // 登录设置相关
 const loginInfo = ref({
@@ -784,6 +786,40 @@ const advancedInfoSubmit = async () => {
     getAdvancedInfo()
   } else {
     $msg(res.msg, 'error')
+  }
+}
+
+// 刷新加密密钥
+const refreshEncryptionKeys = async () => {
+  try {
+    await ElMessageBox.confirm(
+      '<p>刷新密钥后，<strong>旧的密钥将立即失效</strong>。</p><p>这可能会导致正在进行的加密通信中断，或依赖旧密钥的客户端无法连接。</p><p style="color: #f56c6c; margin-top: 10px;">请确认是否继续执行此操作？</p>',
+      '危险操作确认',
+      {
+        confirmButtonText: '确定刷新',
+        cancelButtonText: '取消',
+        type: 'warning',
+        dangerouslyUseHTMLString: true,
+        confirmButtonClass: 'el-button--danger',
+      },
+    )
+
+    refreshKeysLoading.value = true
+    const res = await $myFetch('RefreshEncryptionKeys', {
+      method: 'POST',
+    })
+
+    if (res.code === 200) {
+      $msg('密钥刷新成功', 'success')
+    } else {
+      $msg(res.msg || '密钥刷新失败', 'error')
+    }
+  } catch (error) {
+    if (error !== 'cancel') {
+      $msg('操作失败，请重试', 'error')
+    }
+  } finally {
+    refreshKeysLoading.value = false
   }
 }
 
@@ -1890,6 +1926,109 @@ useHead({
               </div>
             </el-tab-pane>
 
+            <el-tab-pane label="安全设置" name="security">
+              <div class="security-settings-container" style="padding: 20px 0;">
+                <div
+                  class="setting-card"
+                  style="
+                    background: #fff;
+                    border: 1px solid #ebeef5;
+                    border-radius: 8px;
+                    padding: 24px;
+                    box-shadow: 0 2px 12px 0 rgba(0, 0, 0, 0.05);
+                  "
+                >
+                  <div
+                    class="card-header"
+                    style="
+                      display: flex;
+                      justify-content: space-between;
+                      align-items: center;
+                      margin-bottom: 24px;
+                      border-bottom: 1px solid #ebeef5;
+                      padding-bottom: 16px;
+                    "
+                  >
+                    <div>
+                      <h3
+                        style="
+                          margin: 0;
+                          font-size: 18px;
+                          font-weight: 600;
+                          color: #303133;
+                        "
+                      >
+                        API 加密密钥管理
+                      </h3>
+                      <p
+                        style="
+                          margin: 8px 0 0;
+                          font-size: 14px;
+                          color: #909399;
+                          line-height: 1.5;
+                        "
+                      >
+                        管理系统用于 API
+                        通信加密的核心密钥（AES与HMAC）。定期刷新密钥有助于提高系统安全性。
+                      </p>
+                    </div>
+                  </div>
+
+                  <div class="card-content">
+                    <el-alert
+                      title="高风险操作警告"
+                      type="warning"
+                      description="刷新密钥将导致当前使用的所有旧密钥立即失效。这可能会中断正在进行的加密通信，或导致未及时更新密钥的客户端无法连接。请务必在业务低峰期执行此操作，并做好应急准备。"
+                      show-icon
+                      :closable="false"
+                      style="margin-bottom: 24px"
+                    />
+
+                    <div
+                      class="action-area"
+                      style="
+                        display: flex;
+                        justify-content: flex-start;
+                        align-items: center;
+                        background-color: #fef0f0;
+                        padding: 16px;
+                        border-radius: 4px;
+                        border: 1px dashed #f56c6c;
+                      "
+                    >
+                      <div style="flex: 1">
+                        <span
+                          style="
+                            font-size: 14px;
+                            color: #f56c6c;
+                            font-weight: 500;
+                          "
+                          >执行密钥刷新</span
+                        >
+                        <p
+                          style="
+                            margin: 4px 0 0;
+                            font-size: 13px;
+                            color: #909399;
+                          "
+                        >
+                          此操作不可逆，请谨慎操作。
+                        </p>
+                      </div>
+                      <el-button
+                        type="danger"
+                        :icon="Refresh"
+                        @click="refreshEncryptionKeys"
+                        :loading="refreshKeysLoading"
+                      >
+                        立即刷新密钥
+                      </el-button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </el-tab-pane>
+
             <el-tab-pane label="高级设置" name="advanced">
               <div class="form">
                 <el-form
@@ -1981,6 +2120,7 @@ useHead({
                       用户开启CDN后用于获取IP的HTTP头，例如：X-Forwarded-For
                     </div>
                   </el-form-item>
+
                   <el-form-item>
                     <el-button type="primary" @click="advancedInfoSubmit">
                       提交
