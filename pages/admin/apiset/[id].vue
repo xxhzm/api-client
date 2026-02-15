@@ -159,15 +159,25 @@ const updateApiInfo = async () => {
     bodyValue.append('keyState', 0)
   }
 
-  const res = await $myFetch('ApiUpdate', {
-    method: 'POST',
-    body: bodyValue,
-  })
+  try {
+    // 提交基本信息
+    const res = await $myFetch('ApiUpdate', {
+      method: 'POST',
+      body: bodyValue,
+    })
 
-  if (res.code === 200) {
-    msg(res.msg, 'success')
-  } else {
-    msg(res.msg, 'error')
+    if (res.code === 200) {
+      msg(res.msg, 'success')
+      updateAdvancedSettings()
+    } else {
+      msg(res.msg, 'error')
+      buttonStatus.value = false
+      return
+    }
+  } catch (error) {
+    msg('提交失败', 'error')
+    buttonStatus.value = false
+    return
   }
 
   setTimeout(() => {
@@ -813,9 +823,17 @@ const advancedInfo = ref({
   minBalance: '',
   // 响应头扣费签名密钥（只读）
   secretKey: '',
+  // 接口详情页面指标显示控制
+  qps: 'true',
+  todayCallCount: 'true',
+  totalCallCount: 'true',
+  avgResponseTime: 'true',
 })
 
 const advancedLoading = ref(false)
+
+// 高级设置二级标签页
+const advancedTabName = ref('auth')
 
 // 获取高级设置
 const getAdvancedSettings = async () => {
@@ -847,6 +865,34 @@ const getAdvancedSettings = async () => {
         billingHeader: res.data.billing_header ?? '',
         minBalance: res.data.min_balance ?? '',
         secretKey: res.data.secret_key ?? '',
+        qps:
+          res.data.qps === true || res.data.qps === 1
+            ? 'true'
+            : res.data.qps === false || res.data.qps === 0
+              ? 'false'
+              : 'true',
+        todayCallCount:
+          res.data.today_call_count === true || res.data.today_call_count === 1
+            ? 'true'
+            : res.data.today_call_count === false ||
+                res.data.today_call_count === 0
+              ? 'false'
+              : 'true',
+        totalCallCount:
+          res.data.total_call_count === true || res.data.total_call_count === 1
+            ? 'true'
+            : res.data.total_call_count === false ||
+                res.data.total_call_count === 0
+              ? 'false'
+              : 'true',
+        avgResponseTime:
+          res.data.avg_response_time === true ||
+          res.data.avg_response_time === 1
+            ? 'true'
+            : res.data.avg_response_time === false ||
+                res.data.avg_response_time === 0
+              ? 'false'
+              : 'true',
       }
     }
   } catch (error) {
@@ -890,6 +936,19 @@ const updateAdvancedSettings = async () => {
   bodyValue.append('header', advancedInfo.value.headers || '')
   bodyValue.append('billingHeader', advancedInfo.value.billingHeader || '')
   bodyValue.append('minBalance', advancedInfo.value.minBalance || '')
+  bodyValue.append('QPS', advancedInfo.value.qps === 'true' ? 1 : 0)
+  bodyValue.append(
+    'todayCallCount',
+    advancedInfo.value.todayCallCount === 'true' ? 1 : 0,
+  )
+  bodyValue.append(
+    'totalCallCount',
+    advancedInfo.value.totalCallCount === 'true' ? 1 : 0,
+  )
+  bodyValue.append(
+    'avgResponseTime',
+    advancedInfo.value.avgResponseTime === 'true' ? 1 : 0,
+  )
 
   try {
     const res = await $myFetch('UpdateApiAdvancedSettings', {
@@ -1783,192 +1842,315 @@ useHead({
 
           <!-- 高级设置 -->
           <el-tab-pane label="高级设置" name="Advanced">
-            <div class="form">
-              <el-form
-                :model="advancedInfo"
-                label-position="top"
-                label-width="120px"
-              >
-                <!-- 绑定手机号（当前可用） -->
-                <el-form-item label="绑定手机号">
-                  <el-select
-                    v-model="advancedInfo.phoneBinding"
-                    placeholder="请选择是否绑定手机号"
-                    style="width: 100%"
-                  >
-                    <el-option label="是" value="true"></el-option>
-                    <el-option label="否" value="false"></el-option>
-                  </el-select>
-                  <div class="form-help">开启后需要用户绑定手机号才可使用</div>
-                </el-form-item>
+            <div class="advanced-settings-container">
+              <el-tabs v-model="advancedTabName">
+                <!-- 认证设置 -->
+                <el-tab-pane label="认证设置" name="auth">
+                  <div class="form">
+                    <el-form
+                      :model="advancedInfo"
+                      label-position="top"
+                      label-width="120px"
+                    >
+                      <!-- 绑定手机号（当前可用） -->
+                      <el-form-item label="绑定手机号">
+                        <el-select
+                          v-model="advancedInfo.phoneBinding"
+                          placeholder="请选择是否绑定手机号"
+                          style="width: 100%"
+                        >
+                          <el-option label="是" value="true"></el-option>
+                          <el-option label="否" value="false"></el-option>
+                        </el-select>
+                        <div class="form-help">
+                          开启后需要用户绑定手机号才可使用
+                        </div>
+                      </el-form-item>
 
-                <el-form-item label="SSE">
-                  <el-select
-                    v-model="advancedInfo.sse"
-                    placeholder="请选择是否启用SSE"
-                    style="width: 100%"
-                  >
-                    <el-option label="是" value="true"></el-option>
-                    <el-option label="否" value="false"></el-option>
-                  </el-select>
-                  <div class="form-help">启用后支持流式传输</div>
-                </el-form-item>
+                      <el-form-item label="SSE">
+                        <el-select
+                          v-model="advancedInfo.sse"
+                          placeholder="请选择是否启用SSE"
+                          style="width: 100%"
+                        >
+                          <el-option label="是" value="true"></el-option>
+                          <el-option label="否" value="false"></el-option>
+                        </el-select>
+                        <div class="form-help">启用后支持流式传输</div>
+                      </el-form-item>
 
-                <!-- 实名认证（后期更新） -->
-                <el-form-item label="实名认证（暂未实现）">
-                  <el-select
-                    v-model="advancedInfo.realNameAuth"
-                    placeholder="请选择是否启用实名认证"
-                    style="width: 100%"
-                  >
-                    <el-option label="是" value="true"></el-option>
-                    <el-option label="否" value="false"></el-option>
-                  </el-select>
-                  <div class="form-help">该功能暂未实现，保存不生效</div>
-                </el-form-item>
+                      <!-- 实名认证（后期更新） -->
+                      <el-form-item label="实名认证（暂未实现）">
+                        <el-select
+                          v-model="advancedInfo.realNameAuth"
+                          placeholder="请选择是否启用实名认证"
+                          style="width: 100%"
+                        >
+                          <el-option label="是" value="true"></el-option>
+                          <el-option label="否" value="false"></el-option>
+                        </el-select>
+                        <div class="form-help">该功能暂未实现，保存不生效</div>
+                      </el-form-item>
 
-                <!-- 企业认证（后期更新） -->
-                <el-form-item label="企业认证（暂未实现）">
-                  <el-select
-                    v-model="advancedInfo.enterpriseAuth"
-                    placeholder="请选择是否启用企业认证"
-                    style="width: 100%"
-                  >
-                    <el-option label="是" value="true"></el-option>
-                    <el-option label="否" value="false"></el-option>
-                  </el-select>
-                  <div class="form-help">该功能暂未实现，保存不生效</div>
-                </el-form-item>
+                      <!-- 企业认证（后期更新） -->
+                      <el-form-item label="企业认证（暂未实现）">
+                        <el-select
+                          v-model="advancedInfo.enterpriseAuth"
+                          placeholder="请选择是否启用企业认证"
+                          style="width: 100%"
+                        >
+                          <el-option label="是" value="true"></el-option>
+                          <el-option label="否" value="false"></el-option>
+                        </el-select>
+                        <div class="form-help">该功能暂未实现，保存不生效</div>
+                      </el-form-item>
 
-                <!-- VIP认证（后期更新） -->
-                <el-form-item label="VIP认证（暂未实现）">
-                  <el-select
-                    v-model="advancedInfo.vipAuth"
-                    placeholder="请选择是否启用VIP认证"
-                    style="width: 100%"
-                  >
-                    <el-option label="是" value="true"></el-option>
-                    <el-option label="否" value="false"></el-option>
-                  </el-select>
-                  <div class="form-help">该功能暂未实现，保存不生效</div>
-                </el-form-item>
+                      <!-- VIP认证（后期更新） -->
+                      <el-form-item label="VIP认证（暂未实现）">
+                        <el-select
+                          v-model="advancedInfo.vipAuth"
+                          placeholder="请选择是否启用VIP认证"
+                          style="width: 100%"
+                        >
+                          <el-option label="是" value="true"></el-option>
+                          <el-option label="否" value="false"></el-option>
+                        </el-select>
+                        <div class="form-help">该功能暂未实现，保存不生效</div>
+                      </el-form-item>
 
-                <!-- 2FA二次验证（后期更新） -->
-                <el-form-item label="2FA二次验证（暂未实现）">
-                  <el-select
-                    v-model="advancedInfo.twoFactorAuth"
-                    placeholder="请选择是否启用二次验证"
-                    style="width: 100%"
-                  >
-                    <el-option label="是" value="true"></el-option>
-                    <el-option label="否" value="false"></el-option>
-                  </el-select>
-                  <div class="form-help">该功能暂未实现，保存不生效</div>
-                </el-form-item>
+                      <!-- 2FA二次验证（后期更新） -->
+                      <el-form-item label="2FA二次验证（暂未实现）">
+                        <el-select
+                          v-model="advancedInfo.twoFactorAuth"
+                          placeholder="请选择是否启用二次验证"
+                          style="width: 100%"
+                        >
+                          <el-option label="是" value="true"></el-option>
+                          <el-option label="否" value="false"></el-option>
+                        </el-select>
+                        <div class="form-help">该功能暂未实现，保存不生效</div>
+                      </el-form-item>
 
-                <!-- HTTP/PHP-FPM 头信息配置（当前可用） -->
-                <el-form-item label="HTTP/PHP-FPM Header">
-                  <el-input
-                    v-model="advancedInfo.headers"
-                    type="textarea"
-                    :rows="4"
-                    placeholder="示例：Authorization=Bearer sk-token&a=1&b=2"
-                    style="width: 100%"
-                  />
-                  <div class="form-help">保存后用于请求头注入，使用&隔开</div>
-                </el-form-item>
-
-                <!-- 响应头扣费字段 -->
-                <el-form-item label="响应头扣费字段">
-                  <el-input
-                    v-model="advancedInfo.billingHeader"
-                    placeholder="示例：X-Usage-Count"
-                    style="width: 100%"
-                  />
-                  <div class="form-help">
-                    设置后系统将从响应头中读取该字段的值作为扣费数量
+                      <el-form-item>
+                        <el-button
+                          type="primary"
+                          size="large"
+                          :loading="advancedLoading"
+                          @click="updateAdvancedSettings"
+                        >
+                          {{ advancedLoading ? '保存中...' : '保存设置' }}
+                        </el-button>
+                      </el-form-item>
+                    </el-form>
                   </div>
-                  <el-alert
-                    type="info"
-                    :closable="false"
-                    show-icon
-                    style="margin-top: 8px"
-                  >
-                    <template #title>
-                      扣费规则：响应头返回正数（如 999）则扣除 999 余额，返回负数（如
-                      -0.01）则增加 0.01 余额
-                    </template>
-                  </el-alert>
-                </el-form-item>
+                </el-tab-pane>
 
-                <!-- 响应头扣费签名密钥 -->
-                <el-form-item label="签名密钥 (Secret Key)">
-                  <el-input
-                    v-model="advancedInfo.secretKey"
-                    readonly
-                    placeholder="保存高级设置后自动生成"
-                    style="width: 100%"
-                  >
-                    <template #append>
-                      <el-button @click="copySecretKey">复制</el-button>
-                    </template>
-                  </el-input>
-                  <div class="form-help">
-                    用于响应头扣费时的签名验证，请妥善保管
+                <!-- 请求配置 -->
+                <el-tab-pane label="请求配置" name="request">
+                  <div class="form">
+                    <el-form
+                      :model="advancedInfo"
+                      label-position="top"
+                      label-width="120px"
+                    >
+                      <!-- HTTP/PHP-FPM 头信息配置（当前可用） -->
+                      <el-form-item label="HTTP/PHP-FPM Header">
+                        <el-input
+                          v-model="advancedInfo.headers"
+                          type="textarea"
+                          :rows="4"
+                          placeholder="示例：Authorization=Bearer sk-token&a=1&b=2"
+                          style="width: 100%"
+                        />
+                        <div class="form-help">
+                          保存后用于请求头注入，使用&隔开
+                        </div>
+                      </el-form-item>
+
+                      <!-- 响应头扣费字段 -->
+                      <el-form-item label="响应头扣费字段">
+                        <el-input
+                          v-model="advancedInfo.billingHeader"
+                          placeholder="示例：X-Usage-Count"
+                          style="width: 100%"
+                        />
+                        <div class="form-help">
+                          设置后系统将从响应头中读取该字段的值作为扣费数量
+                        </div>
+                        <el-alert
+                          type="info"
+                          :closable="false"
+                          show-icon
+                          style="margin-top: 8px"
+                        >
+                          <template #title>
+                            扣费规则：响应头返回正数（如 999）则扣除 999
+                            余额，返回负数（如 -0.01）则增加 0.01 余额
+                          </template>
+                        </el-alert>
+                      </el-form-item>
+
+                      <!-- 响应头扣费签名密钥 -->
+                      <el-form-item label="签名密钥 (Secret Key)">
+                        <el-input
+                          v-model="advancedInfo.secretKey"
+                          readonly
+                          placeholder="保存高级设置后自动生成"
+                          style="width: 100%"
+                        >
+                          <template #append>
+                            <el-button @click="copySecretKey">复制</el-button>
+                          </template>
+                        </el-input>
+                        <div class="form-help">
+                          用于响应头扣费时的签名验证，请妥善保管
+                        </div>
+                        <el-alert
+                          type="info"
+                          :closable="false"
+                          show-icon
+                          style="margin-top: 8px"
+                        >
+                          <template #default>
+                            <div class="signature-info">
+                              <p>
+                                <strong
+                                  >签名计算方式（必须使用
+                                  HMAC-SHA256）：</strong
+                                >
+                              </p>
+                              <p>
+                                1.
+                                响应头需包含：<code>X-Billing-Timestamp</code>（时间戳，秒）和
+                                <code>X-Billing-Signature</code>（HMAC-SHA256
+                                签名）
+                              </p>
+                              <p>
+                                2. 签名算法：<code
+                                  >HMAC-SHA256(secretKey, amount + "|" +
+                                  timestamp)</code
+                                >
+                              </p>
+                              <p>3. 示例：扣费 0.01 元，时间戳 1234567890</p>
+                              <p style="margin-left: 12px">
+                                -
+                                签名内容：<code>0.01|1234567890</code>（正数扣费）
+                              </p>
+                              <p style="margin-left: 12px">
+                                - 使用 secretKey 对签名内容进行 HMAC-SHA256
+                                运算得到签名
+                              </p>
+                            </div>
+                          </template>
+                        </el-alert>
+                      </el-form-item>
+
+                      <!-- 最低余额限制 -->
+                      <el-form-item label="最低余额限制">
+                        <el-input
+                          v-model="advancedInfo.minBalance"
+                          placeholder="示例：10"
+                          style="width: 100%"
+                        >
+                          <template #suffix>元</template>
+                        </el-input>
+                        <div class="form-help">
+                          用户余额低于该值时将无法调用此接口，留空表示不限制
+                        </div>
+                      </el-form-item>
+
+                      <el-form-item>
+                        <el-button
+                          type="primary"
+                          size="large"
+                          :loading="advancedLoading"
+                          @click="updateAdvancedSettings"
+                        >
+                          {{ advancedLoading ? '保存中...' : '保存设置' }}
+                        </el-button>
+                      </el-form-item>
+                    </el-form>
                   </div>
-                  <el-alert
-                    type="info"
-                    :closable="false"
-                    show-icon
-                    style="margin-top: 8px"
-                  >
-                    <template #default>
-                      <div class="signature-info">
-                        <p><strong>签名计算方式（必须使用 HMAC-SHA256）：</strong></p>
-                        <p>
-                          1. 响应头需包含：<code>X-Billing-Timestamp</code>（时间戳，秒）和
-                          <code>X-Billing-Signature</code>（HMAC-SHA256 签名）
-                        </p>
-                        <p>
-                          2. 签名算法：<code
-                            >HMAC-SHA256(secretKey, amount + "|" +
-                            timestamp)</code
-                          >
-                        </p>
-                        <p>
-                          3. 示例：扣费 0.01 元，时间戳 1234567890
-                        </p>
-                        <p style="margin-left: 12px">
-                          - 签名内容：<code>0.01|1234567890</code>（正数扣费）
-                        </p>
-                        <p style="margin-left: 12px">
-                          - 使用 secretKey 对签名内容进行 HMAC-SHA256 运算得到签名
-                        </p>
-                      </div>
-                    </template>
-                  </el-alert>
-                </el-form-item>
+                </el-tab-pane>
 
-                <!-- 最低余额限制 -->
-                <el-form-item label="最低余额限制">
-                  <el-input
-                    v-model="advancedInfo.minBalance"
-                    placeholder="示例：10"
-                    style="width: 100%"
-                  >
-                    <template #suffix>元</template>
-                  </el-input>
-                  <div class="form-help">
-                    用户余额低于该值时将无法调用此接口，留空表示不限制
+                <!-- 显示控制 -->
+                <el-tab-pane label="显示控制" name="display">
+                  <div class="form">
+                    <el-form
+                      :model="advancedInfo"
+                      label-position="top"
+                      label-width="120px"
+                    >
+                      <el-form-item label="显示 QPS">
+                        <el-select
+                          v-model="advancedInfo.qps"
+                          placeholder="请选择是否显示 QPS"
+                          style="width: 100%"
+                        >
+                          <el-option label="显示" value="true"></el-option>
+                          <el-option label="隐藏" value="false"></el-option>
+                        </el-select>
+                        <div class="form-help">
+                          控制接口详情页面是否显示 QPS 指标
+                        </div>
+                      </el-form-item>
+
+                      <el-form-item label="显示今日调用次数">
+                        <el-select
+                          v-model="advancedInfo.todayCallCount"
+                          placeholder="请选择是否显示今日调用次数"
+                          style="width: 100%"
+                        >
+                          <el-option label="显示" value="true"></el-option>
+                          <el-option label="隐藏" value="false"></el-option>
+                        </el-select>
+                        <div class="form-help">
+                          控制接口详情页面是否显示今日调用次数指标
+                        </div>
+                      </el-form-item>
+
+                      <el-form-item label="显示总调用次数">
+                        <el-select
+                          v-model="advancedInfo.totalCallCount"
+                          placeholder="请选择是否显示总调用次数"
+                          style="width: 100%"
+                        >
+                          <el-option label="显示" value="true"></el-option>
+                          <el-option label="隐藏" value="false"></el-option>
+                        </el-select>
+                        <div class="form-help">
+                          控制接口详情页面是否显示总调用次数指标
+                        </div>
+                      </el-form-item>
+
+                      <el-form-item label="显示平均响应时间">
+                        <el-select
+                          v-model="advancedInfo.avgResponseTime"
+                          placeholder="请选择是否显示平均响应时间"
+                          style="width: 100%"
+                        >
+                          <el-option label="显示" value="true"></el-option>
+                          <el-option label="隐藏" value="false"></el-option>
+                        </el-select>
+                        <div class="form-help">
+                          控制接口详情页面是否显示平均响应时间指标
+                        </div>
+                      </el-form-item>
+
+                      <el-form-item>
+                        <el-button
+                          type="primary"
+                          size="large"
+                          :loading="advancedLoading"
+                          @click="updateAdvancedSettings"
+                        >
+                          {{ advancedLoading ? '保存中...' : '保存设置' }}
+                        </el-button>
+                      </el-form-item>
+                    </el-form>
                   </div>
-                </el-form-item>
-
-                <el-form-item>
-                  <el-button type="primary" @click="updateAdvancedSettings"
-                    >保存设置</el-button
-                  >
-                </el-form-item>
-              </el-form>
+                </el-tab-pane>
+              </el-tabs>
             </div>
           </el-tab-pane>
 
@@ -2376,6 +2558,41 @@ useHead({
         }
       }
     }
+  }
+}
+
+// 高级设置二级标签页样式
+.advanced-settings-container {
+  :deep(.el-tabs--card) {
+    > .el-tabs__header {
+      border-bottom: 1px solid #e4e7ed;
+      margin-bottom: 20px;
+
+      .el-tabs__nav {
+        border: none;
+      }
+
+      .el-tabs__item {
+        border: 1px solid transparent;
+        border-radius: 4px 4px 0 0;
+        margin-right: 5px;
+        transition: all 0.3s;
+
+        &:hover {
+          color: #409eff;
+        }
+
+        &.is-active {
+          color: #409eff;
+          background-color: #fff;
+          border-color: #e4e7ed #e4e7ed #fff;
+        }
+      }
+    }
+  }
+
+  .form {
+    width: 60%;
   }
 }
 

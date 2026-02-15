@@ -529,6 +529,18 @@ const openInNewWindow = (url) => {
   window.open(url, '_blank')
 }
 
+// 检查是否显示服务指标模块
+const shouldShowStats = computed(() => {
+  const { qps, avg_response_time, today_call_count, total_call_count } = apiInfo.value
+  // 如果所有指标都是-1或undefined，则不显示
+  const allInvalid =
+    (qps === -1 || qps === undefined) &&
+    (avg_response_time === -1 || avg_response_time === undefined) &&
+    (today_call_count === -1 || today_call_count === undefined) &&
+    (total_call_count === -1 || total_call_count === undefined)
+  return !allInvalid
+})
+
 // 格式化大数字显示
 const formatLargeNumber = (num) => {
   if (num === undefined || num === null) return '-'
@@ -1294,7 +1306,7 @@ const generatedExamples = computed(() => {
           <li class="nav-item">
             <a href="#overview" class="active">接口概览</a>
           </li>
-          <li class="nav-item">
+          <li class="nav-item" v-if="shouldShowStats">
             <a href="#stats">服务指标</a>
           </li>
           <li class="nav-item">
@@ -1371,10 +1383,10 @@ const generatedExamples = computed(() => {
         </div>
 
         <!-- 服务指标 -->
-        <div class="box" id="stats">
+        <div class="box" id="stats" v-if="shouldShowStats">
           <h2>服务指标</h2>
           <div class="stats-grid">
-            <div class="stat-card" v-if="apiInfo.qps !== undefined">
+            <div class="stat-card" v-if="apiInfo.qps !== undefined && apiInfo.qps !== -1">
               <div class="stat-icon qps-icon">
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
@@ -1396,7 +1408,7 @@ const generatedExamples = computed(() => {
 
             <div
               class="stat-card"
-              v-if="apiInfo.avg_response_time !== undefined"
+              v-if="apiInfo.avg_response_time !== undefined && apiInfo.avg_response_time !== -1"
             >
               <div class="stat-icon time-icon">
                 <svg
@@ -1421,7 +1433,7 @@ const generatedExamples = computed(() => {
 
             <div
               class="stat-card"
-              v-if="apiInfo.today_call_count !== undefined"
+              v-if="apiInfo.today_call_count !== undefined && apiInfo.today_call_count !== -1"
             >
               <div class="stat-icon today-icon">
                 <svg
@@ -1445,7 +1457,7 @@ const generatedExamples = computed(() => {
 
             <div
               class="stat-card"
-              v-if="apiInfo.total_call_count !== undefined"
+              v-if="apiInfo.total_call_count !== undefined && apiInfo.total_call_count !== -1"
             >
               <div class="stat-icon total-icon">
                 <svg
