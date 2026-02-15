@@ -2363,7 +2363,30 @@ useHead({
                             </el-input>
                           </el-form-item>
                         </el-col>
-                        <el-col :span="12"> </el-col>
+                        <el-col :span="12">
+                          <el-form-item
+                            label="有效期"
+                            v-if="packageInfo.type === 3"
+                          >
+                            <el-input
+                              v-model="packageInfo.duration"
+                              placeholder="请输入有效期(天)"
+                              class="full-width"
+                              @input="validateNumber('duration')"
+                            >
+                              <template #suffix>天</template>
+                            </el-input>
+                            <div
+                              style="
+                                margin-top: 4px;
+                                font-size: 12px;
+                                color: #909399;
+                              "
+                            >
+                              输入0表示永久有效
+                            </div>
+                          </el-form-item>
+                        </el-col>
                       </el-row>
 
                       <el-form-item label="状态">

@@ -4,7 +4,7 @@ import {
   InfoFilled,
   ShoppingCart,
   Check,
-  Menu
+  Menu,
 } from '@element-plus/icons-vue'
 
 const { $msg, $myFetch } = useNuxtApp()
@@ -291,7 +291,11 @@ useHead({
                     <span
                       >有效期:
                       <b>{{
-                        pkg.type === 2 ? `${pkg.duration}天` : '永久有效'
+                        pkg.type === 2
+                          ? `${pkg.duration}天`
+                          : pkg.type === 3 && pkg.duration && pkg.duration > 0
+                            ? `${pkg.duration}天`
+                            : '永久有效'
                       }}</b></span
                     >
                   </div>

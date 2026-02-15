@@ -275,7 +275,13 @@ useHead({
                       {{ getTypeText(row.type) }}
                     </el-tag>
                     <el-tag type="info" size="small" effect="light">
-                      {{ row.type === 3 ? '永久使用' : '不限次数' }}
+                      {{
+                        row.type === 3
+                          ? row.expire_time && row.expire_time !== '0'
+                            ? formatTime(row.expire_time)
+                            : '永久使用'
+                          : '不限次数'
+                      }}
                     </el-tag>
                     <el-tag
                       :type="getStatusTag(row.status)"
@@ -301,7 +307,9 @@ useHead({
                 row.status === 2
                   ? '已过期'
                   : row.type === 3
-                    ? '永久使用'
+                    ? row.expire_time && row.expire_time !== '0'
+                      ? formatTime(row.expire_time)
+                      : '永久使用'
                     : formatTime(row.expire_time)
               }}
             </template>
@@ -384,7 +392,15 @@ useHead({
               {{ getTypeText(selectedPackage.type) }}
             </el-tag>
           </div>
-          <div class="info-row" v-if="selectedPackage.type === 2">
+          <div
+            class="info-row"
+            v-if="
+              selectedPackage.type === 2 ||
+              (selectedPackage.type === 3 &&
+                selectedPackage.expire_time &&
+                selectedPackage.expire_time !== '0')
+            "
+          >
             <span class="label">当前到期时间：</span>
             <span class="value">{{
               formatTime(selectedPackage.expire_time)
