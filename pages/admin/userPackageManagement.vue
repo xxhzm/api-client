@@ -35,6 +35,11 @@ const editForm = ref({
   type: 1, // 套餐类型：1=点数包，2=包月计费
   amount: 0,
   expire_time: null,
+  status: 1, // 订单状态：1=有效，0=无效
+  points: 0, // 总点数
+  points_used: 0, // 已用点数
+  duration: 0, // 续费套餐时增加的天数
+  package_points: 0, // 续费套餐时添加的点数
 })
 
 // 编辑表单验证规则（动态计算）
@@ -49,6 +54,23 @@ const editRules = computed(() => {
         message: '金额不能超过999999.99',
         trigger: 'blur',
       },
+    ],
+    status: [{ required: true, message: '请选择订单状态', trigger: 'change' }],
+    points: [
+      { required: true, message: '请输入总点数', trigger: 'blur' },
+      { type: 'number', min: 0, message: '总点数不能小于0', trigger: 'blur' },
+    ],
+    points_used: [
+      { required: true, message: '请输入已用点数', trigger: 'blur' },
+      { type: 'number', min: 0, message: '已用点数不能小于0', trigger: 'blur' },
+    ],
+    duration: [
+      { required: true, message: '请输入天数', trigger: 'blur' },
+      { type: 'number', min: 0, message: '天数不能小于0', trigger: 'blur' },
+    ],
+    package_points: [
+      { required: true, message: '请输入套餐点数', trigger: 'blur' },
+      { type: 'number', min: 0, message: '套餐点数不能小于0', trigger: 'blur' },
     ],
   }
 
@@ -202,6 +224,11 @@ const showEdit = (row) => {
     // 如果是点数包（type !== 2），清空过期时间；如果是包月计费，保留原有时间戳
     expire_time:
       row.type === 2 && row.expire_time ? Number(row.expire_time) : null,
+    status: row.status ?? 1, // 订单状态（使用 ?? 避免 0 被当作 falsy）
+    points: Number(row.points) || 0, // 总点数
+    points_used: Number(row.points_used) || 0, // 已用点数
+    duration: Number(row.duration) || 0, // 天数
+    package_points: Number(row.package_points) || 0, // 套餐点数
   }
   editDialogVisible.value = true
 }
@@ -220,6 +247,11 @@ const cancelEdit = () => {
     type: 1,
     amount: 0,
     expire_time: null,
+    status: 1,
+    points: 0,
+    points_used: 0,
+    duration: 0,
+    package_points: 0,
   }
 }
 
@@ -240,6 +272,11 @@ const saveEdit = async () => {
     const updateData = {
       id: editForm.value.id,
       amount: Number(editForm.value.amount),
+      status: Number(editForm.value.status),
+      points: Number(editForm.value.points),
+      pointsUsed: Number(editForm.value.points_used),
+      duration: Number(editForm.value.duration),
+      packagePoints: Number(editForm.value.package_points),
     }
 
     // 根据套餐类型处理过期时间
@@ -598,6 +635,52 @@ useHead({
             :step="0.01"
             style="width: 100%"
             placeholder="请输入金额"
+          />
+        </el-form-item>
+        <el-form-item label="订单状态：" prop="status">
+          <el-radio-group v-model="editForm.status">
+            <el-radio :value="1">有效</el-radio>
+            <el-radio :value="0">无效</el-radio>
+          </el-radio-group>
+        </el-form-item>
+        <el-form-item label="总点数：" prop="points">
+          <el-input-number
+            v-model="editForm.points"
+            :min="0"
+            :precision="0"
+            :step="1"
+            style="width: 100%"
+            placeholder="请输入总点数"
+          />
+        </el-form-item>
+        <el-form-item label="已用点数：" prop="points_used">
+          <el-input-number
+            v-model="editForm.points_used"
+            :min="0"
+            :precision="0"
+            :step="1"
+            style="width: 100%"
+            placeholder="请输入已用点数"
+          />
+        </el-form-item>
+        <el-form-item label="套餐天数：" prop="duration">
+          <el-input-number
+            v-model="editForm.duration"
+            :min="0"
+            :precision="0"
+            :step="1"
+            style="width: 100%"
+            placeholder="请输入续费套餐时增加的天数"
+          />
+        </el-form-item>
+        <el-form-item label="套餐点数：" prop="package_points">
+          <el-input-number
+            v-model="editForm.package_points"
+            :min="0"
+            :precision="0"
+            :step="1"
+            style="width: 100%"
+            placeholder="请输入续费套餐时添加的点数"
           />
         </el-form-item>
         <el-form-item label="过期时间：" prop="expire_time">
