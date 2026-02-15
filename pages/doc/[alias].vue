@@ -20,12 +20,22 @@ const loadHighlightJs = async () => {
     { default: javascript },
     { default: php },
     { default: python },
+    { default: bash },
+    { default: java },
+    { default: go },
+    { default: csharp },
+    { default: ruby },
   ] = await Promise.all([
     import('highlight.js/lib/core'),
     import('highlight.js/lib/languages/json'),
     import('highlight.js/lib/languages/javascript'),
     import('highlight.js/lib/languages/php'),
     import('highlight.js/lib/languages/python'),
+    import('highlight.js/lib/languages/bash'),
+    import('highlight.js/lib/languages/java'),
+    import('highlight.js/lib/languages/go'),
+    import('highlight.js/lib/languages/csharp'),
+    import('highlight.js/lib/languages/ruby'),
   ])
   await import('highlight.js/styles/github.css')
 
@@ -33,11 +43,39 @@ const loadHighlightJs = async () => {
   core.registerLanguage('javascript.js', javascript)
   core.registerLanguage('php', php)
   core.registerLanguage('python', python)
+  core.registerLanguage('bash', bash)
+  core.registerLanguage('java', java)
+  core.registerLanguage('go', go)
+  core.registerLanguage('csharp', csharp)
+  core.registerLanguage('ruby', ruby)
   hljs = core
   return hljs
 }
 
-const activeName = ref('axios')
+const activeName = ref('shell')
+const jsActiveName = ref('axios')
+
+// 语言列表
+const languages = [
+  { name: 'shell', label: 'Shell' },
+  { name: 'javascript', label: 'JavaScript' },
+  { name: 'python', label: 'Python' },
+  { name: 'php', label: 'PHP' },
+  { name: 'java', label: 'Java' },
+  { name: 'go', label: 'Go' },
+  { name: 'csharp', label: 'C#' },
+  { name: 'ruby', label: 'Ruby' },
+]
+
+// JavaScript 库列表
+const jsLibraries = [
+  { name: 'axios', label: 'axios' },
+  { name: 'fetch', label: 'fetch' },
+  { name: 'ajax', label: 'jQuery' },
+  { name: 'xhr', label: 'xhr' },
+  { name: 'nodejs', label: 'Node.js' },
+]
+
 const route = useRoute()
 
 const apiInfo = ref({})
@@ -104,6 +142,18 @@ useHead({
 onMounted(async () => {
   await loadHighlightJs()
   hljs.highlightAll()
+})
+
+// 监听标签页切换，触发代码高亮
+watch([activeName, jsActiveName], async () => {
+  await nextTick()
+  if (hljs) {
+    // 只高亮代码展示区域内的代码块
+    const codeBlocks = document.querySelectorAll('.code-display code')
+    codeBlocks.forEach((block) => {
+      hljs.highlightElement(block)
+    })
+  }
 })
 
 const urlDom = ref()
@@ -495,6 +545,741 @@ const formatLargeNumber = (num) => {
 const buyPackage = (pkg) => {
   navigateTo(`/admin/buy?package_id=${pkg.id}`)
 }
+
+// 生成请求示例代码
+const generateExamples = () => {
+  const url = apiInfo.value.url
+  const method = apiInfo.value.method
+  const params = apiInfo.value.params || []
+
+  // 分离不同位置的参数
+  const headerParams = []
+  const bodyParams = []
+  const queryParams = []
+  let hasKeyParam = false
+
+  params.forEach((param) => {
+    if (String(param.name).toLowerCase() === 'key') {
+      hasKeyParam = true
+      return
+    }
+    if (param.position === 'header') {
+      headerParams.push(param)
+    } else if (param.position === 'body') {
+      bodyParams.push(param)
+    } else {
+      queryParams.push(param)
+    }
+  })
+
+  // 生成 axios 示例
+  const generateAxios = () => {
+    let code = `import axios from 'axios';\n\n`
+
+    if (method === 'POST') {
+      code += `const data = new URLSearchParams();\n`
+      const targetParams = bodyParams.length > 0 ? bodyParams : queryParams
+      targetParams.forEach((p) => {
+        code += `data.append('${p.param}', '${p.docs || ''}');\n`
+      })
+      code += `\n`
+    }
+
+    code += `axios({\n`
+    code += `  method: '${method}',\n`
+
+    let finalUrl = url
+    if (
+      method === 'GET' ||
+      (method === 'POST' && bodyParams.length > 0 && queryParams.length > 0)
+    ) {
+      const qParams =
+        method === 'GET' ? [...queryParams, ...bodyParams] : queryParams
+      if (qParams.length > 0) {
+        const queryStr = qParams
+          .map((p) => `${p.name}=\${${p.param}}`)
+          .join('&')
+        finalUrl += (url.includes('?') ? '&' : '?') + queryStr
+      }
+    }
+    code += `  url: '${finalUrl}',\n`
+
+    if (hasKeyParam || headerParams.length > 0) {
+      code += `  headers: {\n`
+      if (hasKeyParam) {
+        code += `    'Authorization': 'Bearer YOUR_API_KEY',\n`
+      }
+      headerParams.forEach((p) => {
+        code += `    '${p.name}': '${p.docs || ''}',\n`
+      })
+      code += `  },\n`
+    }
+
+    if (method === 'POST') {
+      code += `  data: data\n`
+    }
+
+    code += `})\n`
+    code += `.then(response => {\n`
+    code += `  console.log(response.data);\n`
+    code += `})\n`
+    code += `.catch(error => {\n`
+    code += `  console.error(error);\n`
+    code += `});`
+
+    return code
+  }
+
+  // 生成 ajax 示例
+  const generateAjax = () => {
+    let code = `$.ajax({\n`
+    code += `  type: '${method}',\n`
+
+    let finalUrl = url
+    if (
+      method === 'GET' ||
+      (method === 'POST' && bodyParams.length > 0 && queryParams.length > 0)
+    ) {
+      const qParams =
+        method === 'GET' ? [...queryParams, ...bodyParams] : queryParams
+      if (qParams.length > 0) {
+        const queryStr = qParams
+          .map((p) => `${p.name}=\${${p.param}}`)
+          .join('&')
+        finalUrl += (url.includes('?') ? '&' : '?') + queryStr
+      }
+    }
+    code += `  url: '${finalUrl}',\n`
+
+    if (hasKeyParam || headerParams.length > 0) {
+      code += `  headers: {\n`
+      if (hasKeyParam) {
+        code += `    'Authorization': 'Bearer YOUR_API_KEY',\n`
+      }
+      headerParams.forEach((p) => {
+        code += `    '${p.name}': '${p.docs || ''}',\n`
+      })
+      code += `  },\n`
+    }
+
+    if (method === 'POST') {
+      code += `  data: {\n`
+      const targetParams = bodyParams.length > 0 ? bodyParams : queryParams
+      targetParams.forEach((p, i) => {
+        code += `    '${p.param}': '${p.docs || ''}'${i < targetParams.length - 1 ? ',' : ''}\n`
+      })
+      code += `  },\n`
+    }
+
+    code += `  success: function(data) {\n`
+    code += `    console.log(data);\n`
+    code += `  },\n`
+    code += `  error: function(error) {\n`
+    code += `    console.error(error);\n`
+    code += `  }\n`
+    code += `});`
+
+    return code
+  }
+
+  // 生成 fetch 示例
+  const generateFetch = () => {
+    let finalUrl = url
+    let code = ''
+
+    if (
+      method === 'GET' ||
+      (method === 'POST' && bodyParams.length > 0 && queryParams.length > 0)
+    ) {
+      const qParams =
+        method === 'GET' ? [...queryParams, ...bodyParams] : queryParams
+      if (qParams.length > 0) {
+        const queryStr = qParams
+          .map((p) => `${p.name}=\${${p.param}}`)
+          .join('&')
+        finalUrl += (url.includes('?') ? '&' : '?') + queryStr
+      }
+    }
+
+    if (method === 'POST') {
+      code += `const formData = new URLSearchParams();\n`
+      const targetParams = bodyParams.length > 0 ? bodyParams : queryParams
+      targetParams.forEach((p) => {
+        code += `formData.append('${p.param}', '${p.docs || ''}');\n`
+      })
+      code += `\n`
+    }
+
+    code += `fetch('${finalUrl}', {\n`
+    code += `  method: '${method}',\n`
+
+    if (hasKeyParam || headerParams.length > 0) {
+      code += `  headers: {\n`
+      if (hasKeyParam) {
+        code += `    'Authorization': 'Bearer YOUR_API_KEY',\n`
+      }
+      headerParams.forEach((p) => {
+        code += `    '${p.name}': '${p.docs || ''}',\n`
+      })
+      code += `  },\n`
+    }
+
+    if (method === 'POST') {
+      code += `  body: formData\n`
+    }
+
+    code += `})\n`
+    code += `.then(response => response.json())\n`
+    code += `.then(data => {\n`
+    code += `  console.log(data);\n`
+    code += `})\n`
+    code += `.catch(error => {\n`
+    code += `  console.error(error);\n`
+    code += `});`
+
+    return code
+  }
+
+  // 生成 xhr 示例
+  const generateXhr = () => {
+    let finalUrl = url
+    let code = `const xhr = new XMLHttpRequest();\n\n`
+
+    if (
+      method === 'GET' ||
+      (method === 'POST' && bodyParams.length > 0 && queryParams.length > 0)
+    ) {
+      const qParams =
+        method === 'GET' ? [...queryParams, ...bodyParams] : queryParams
+      if (qParams.length > 0) {
+        const queryStr = qParams
+          .map((p) => `${p.name}=\${${p.param}}`)
+          .join('&')
+        finalUrl += (url.includes('?') ? '&' : '?') + queryStr
+      }
+    }
+
+    code += `xhr.open('${method}', '${finalUrl}', true);\n`
+
+    if (hasKeyParam) {
+      code += `xhr.setRequestHeader('Authorization', 'Bearer YOUR_API_KEY');\n`
+    }
+    headerParams.forEach((p) => {
+      code += `xhr.setRequestHeader('${p.name}', '${p.docs || ''}');\n`
+    })
+
+    if (method === 'POST') {
+      code += `xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');\n`
+    }
+
+    code += `\nxhr.onload = function() {\n`
+    code += `  if (xhr.status === 200) {\n`
+    code += `    console.log(JSON.parse(xhr.responseText));\n`
+    code += `  } else {\n`
+    code += `    console.error('Request failed');\n`
+    code += `  }\n`
+    code += `};\n\n`
+
+    if (method === 'POST') {
+      code += `const data = new URLSearchParams();\n`
+      const targetParams = bodyParams.length > 0 ? bodyParams : queryParams
+      targetParams.forEach((p) => {
+        code += `data.append('${p.param}', '${p.docs || ''}');\n`
+      })
+      code += `\nxhr.send(data);`
+    } else {
+      code += `xhr.send();`
+    }
+
+    return code
+  }
+
+  // 生成 PHP 示例
+  const generatePhp = () => {
+    let code = `<?php\n\n`
+    let finalUrl = url
+
+    if (
+      method === 'GET' ||
+      (method === 'POST' && bodyParams.length > 0 && queryParams.length > 0)
+    ) {
+      const qParams =
+        method === 'GET' ? [...queryParams, ...bodyParams] : queryParams
+      if (qParams.length > 0) {
+        const queryStr = qParams
+          .map((p) => `${p.name}=\${${p.param}}`)
+          .join('&')
+        finalUrl += (url.includes('?') ? '&' : '?') + queryStr
+      }
+    }
+
+    code += `$url = '${finalUrl}';\n\n`
+
+    if (method === 'POST') {
+      code += `$data = array(\n`
+      const targetParams = bodyParams.length > 0 ? bodyParams : queryParams
+      targetParams.forEach((p, i) => {
+        code += `    '${p.param}' => '${p.docs || ''}'${i < targetParams.length - 1 ? ',' : ''}\n`
+      })
+      code += `);\n\n`
+    }
+
+    code += `$options = array(\n`
+    code += `    'http' => array(\n`
+    code += `        'method' => '${method}',\n`
+
+    if (hasKeyParam || headerParams.length > 0) {
+      code += `        'header' => `
+      const headers = []
+      if (hasKeyParam) {
+        headers.push(`"Authorization: Bearer YOUR_API_KEY"`)
+      }
+      headerParams.forEach((p) => {
+        headers.push(`"${p.name}: ${p.docs || ''}"`)
+      })
+      if (method === 'POST') {
+        headers.push(`"Content-Type: application/x-www-form-urlencoded"`)
+      }
+      code += headers.join(' . "\\r\\n" . ') + `,\n`
+    }
+
+    if (method === 'POST') {
+      code += `        'content' => http_build_query($data)\n`
+    }
+
+    code += `    )\n`
+    code += `);\n\n`
+    code += `$context = stream_context_create($options);\n`
+    code += `$result = file_get_contents($url, false, $context);\n\n`
+    code += `if ($result === FALSE) {\n`
+    code += `    die('Error');\n`
+    code += `}\n\n`
+    code += `$response = json_decode($result, true);\n`
+    code += `print_r($response);\n\n`
+    code += `?>`
+
+    return code
+  }
+
+  // 生成 Python 示例
+  const generatePython = () => {
+    let code = `import requests\n\n`
+    let finalUrl = url
+
+    if (
+      method === 'GET' ||
+      (method === 'POST' && bodyParams.length > 0 && queryParams.length > 0)
+    ) {
+      const qParams =
+        method === 'GET' ? [...queryParams, ...bodyParams] : queryParams
+      if (qParams.length > 0) {
+        const queryStr = qParams
+          .map((p) => `${p.name}=\${${p.param}}`)
+          .join('&')
+        finalUrl += (url.includes('?') ? '&' : '?') + queryStr
+      }
+    }
+
+    code += `url = '${finalUrl}'\n\n`
+
+    if (hasKeyParam || headerParams.length > 0) {
+      code += `headers = {\n`
+      if (hasKeyParam) {
+        code += `    'Authorization': 'Bearer YOUR_API_KEY',\n`
+      }
+      headerParams.forEach((p) => {
+        code += `    '${p.name}': '${p.docs || ''}',\n`
+      })
+      code += `}\n\n`
+    }
+
+    if (method === 'POST') {
+      code += `data = {\n`
+      const targetParams = bodyParams.length > 0 ? bodyParams : queryParams
+      targetParams.forEach((p, i) => {
+        code += `    '${p.param}': '${p.docs || ''}'${i < targetParams.length - 1 ? ',' : ''}\n`
+      })
+      code += `}\n\n`
+    }
+
+    if (method === 'POST') {
+      code += `response = requests.post(url`
+      if (hasKeyParam || headerParams.length > 0) {
+        code += `, headers=headers`
+      }
+      code += `, data=data)\n`
+    } else {
+      code += `response = requests.get(url`
+      if (hasKeyParam || headerParams.length > 0) {
+        code += `, headers=headers`
+      }
+      code += `)\n`
+    }
+
+    code += `\nif response.status_code == 200:\n`
+    code += `    print(response.json())\n`
+    code += `else:\n`
+    code += `    print(f'Error: {response.status_code}')`
+
+    return code
+  }
+
+  // 生成 cURL 示例
+  const generateCurl = () => {
+    let finalUrl = url
+    let code = `curl -X ${method}`
+
+    if (
+      method === 'GET' ||
+      (method === 'POST' && bodyParams.length > 0 && queryParams.length > 0)
+    ) {
+      const qParams =
+        method === 'GET' ? [...queryParams, ...bodyParams] : queryParams
+      if (qParams.length > 0) {
+        const queryStr = qParams
+          .map((p) => `${p.name}=\${${p.param}}`)
+          .join('&')
+        finalUrl += (url.includes('?') ? '&' : '?') + queryStr
+      }
+    }
+
+    code += ` '${finalUrl}'`
+
+    if (hasKeyParam) {
+      code += ` \\\n  -H 'Authorization: Bearer YOUR_API_KEY'`
+    }
+    headerParams.forEach((p) => {
+      code += ` \\\n  -H '${p.name}: ${p.docs || ''}'`
+    })
+
+    if (method === 'POST') {
+      const targetParams = bodyParams.length > 0 ? bodyParams : queryParams
+      targetParams.forEach((p) => {
+        code += ` \\\n  -d '${p.param}=${p.docs || ''}'`
+      })
+    }
+
+    return code
+  }
+
+  // 生成 Java 示例
+  const generateJava = () => {
+    let finalUrl = url
+    let code = `import java.net.http.*;\nimport java.net.URI;\n\n`
+
+    if (
+      method === 'GET' ||
+      (method === 'POST' && bodyParams.length > 0 && queryParams.length > 0)
+    ) {
+      const qParams =
+        method === 'GET' ? [...queryParams, ...bodyParams] : queryParams
+      if (qParams.length > 0) {
+        const queryStr = qParams
+          .map((p) => `${p.name}=\${${p.param}}`)
+          .join('&')
+        finalUrl += (url.includes('?') ? '&' : '?') + queryStr
+      }
+    }
+
+    code += `HttpClient client = HttpClient.newHttpClient();\n\n`
+    code += `HttpRequest.Builder builder = HttpRequest.newBuilder()\n`
+    code += `    .uri(URI.create("${finalUrl}"))\n`
+
+    if (hasKeyParam) {
+      code += `    .header("Authorization", "Bearer YOUR_API_KEY")\n`
+    }
+    headerParams.forEach((p) => {
+      code += `    .header("${p.name}", "${p.docs || ''}")\n`
+    })
+
+    if (method === 'POST') {
+      const targetParams = bodyParams.length > 0 ? bodyParams : queryParams
+      const formData = targetParams
+        .map((p) => `"${p.param}=" + "${p.docs || ''}"`)
+        .join(' + "&" + ')
+      code += `    .header("Content-Type", "application/x-www-form-urlencoded")\n`
+      code += `    .POST(HttpRequest.BodyPublishers.ofString(${formData}));\n\n`
+    } else {
+      code += `    .GET();\n\n`
+    }
+
+    code += `HttpRequest request = builder.build();\n\n`
+    code += `try {\n`
+    code += `    HttpResponse<String> response = client.send(request,\n`
+    code += `        HttpResponse.BodyHandlers.ofString());\n`
+    code += `    System.out.println(response.body());\n`
+    code += `} catch (Exception e) {\n`
+    code += `    e.printStackTrace();\n`
+    code += `}`
+
+    return code
+  }
+
+  // 生成 Go 示例
+  const generateGo = () => {
+    let finalUrl = url
+    let code = `package main\n\nimport (\n    "fmt"\n    "io"\n    "net/http"\n`
+
+    if (method === 'POST') {
+      code += `    "net/url"\n    "strings"\n`
+    }
+
+    code += `)\n\nfunc main() {\n`
+
+    if (
+      method === 'GET' ||
+      (method === 'POST' && bodyParams.length > 0 && queryParams.length > 0)
+    ) {
+      const qParams =
+        method === 'GET' ? [...queryParams, ...bodyParams] : queryParams
+      if (qParams.length > 0) {
+        const queryStr = qParams
+          .map((p) => `${p.name}=\${${p.param}}`)
+          .join('&')
+        finalUrl += (url.includes('?') ? '&' : '?') + queryStr
+      }
+    }
+
+    code += `    url := "${finalUrl}"\n\n`
+
+    if (method === 'POST') {
+      code += `    data := url.Values{}\n`
+      const targetParams = bodyParams.length > 0 ? bodyParams : queryParams
+      targetParams.forEach((p) => {
+        code += `    data.Set("${p.param}", "${p.docs || ''}")\n`
+      })
+      code += `\n    req, _ := http.NewRequest("POST", url, strings.NewReader(data.Encode()))\n`
+      code += `    req.Header.Set("Content-Type", "application/x-www-form-urlencoded")\n`
+    } else {
+      code += `    req, _ := http.NewRequest("GET", url, nil)\n`
+    }
+
+    if (hasKeyParam) {
+      code += `    req.Header.Set("Authorization", "Bearer YOUR_API_KEY")\n`
+    }
+    headerParams.forEach((p) => {
+      code += `    req.Header.Set("${p.name}", "${p.docs || ''}")\n`
+    })
+
+    code += `\n    client := &http.Client{}\n`
+    code += `    resp, err := client.Do(req)\n`
+    code += `    if err != nil {\n`
+    code += `        panic(err)\n`
+    code += `    }\n`
+    code += `    defer resp.Body.Close()\n\n`
+    code += `    body, _ := io.ReadAll(resp.Body)\n`
+    code += `    fmt.Println(string(body))\n`
+    code += `}`
+
+    return code
+  }
+
+  // 生成 C# 示例
+  const generateCsharp = () => {
+    let finalUrl = url
+    let code = `using System;\nusing System.Net.Http;\nusing System.Collections.Generic;\nusing System.Threading.Tasks;\n\n`
+    code += `class Program\n{\n`
+    code += `    static async Task Main()\n    {\n`
+    code += `        using var client = new HttpClient();\n\n`
+
+    if (
+      method === 'GET' ||
+      (method === 'POST' && bodyParams.length > 0 && queryParams.length > 0)
+    ) {
+      const qParams =
+        method === 'GET' ? [...queryParams, ...bodyParams] : queryParams
+      if (qParams.length > 0) {
+        const queryStr = qParams
+          .map((p) => `${p.name}=\${${p.param}}`)
+          .join('&')
+        finalUrl += (url.includes('?') ? '&' : '?') + queryStr
+      }
+    }
+
+    code += `        var url = "${finalUrl}";\n\n`
+
+    if (hasKeyParam) {
+      code += `        client.DefaultRequestHeaders.Add("Authorization", "Bearer YOUR_API_KEY");\n`
+    }
+    headerParams.forEach((p) => {
+      code += `        client.DefaultRequestHeaders.Add("${p.name}", "${p.docs || ''}");\n`
+    })
+
+    if (method === 'POST') {
+      code += `\n        var data = new Dictionary<string, string>\n        {\n`
+      const targetParams = bodyParams.length > 0 ? bodyParams : queryParams
+      targetParams.forEach((p, i) => {
+        code += `            { "${p.param}", "${p.docs || ''}" }${i < targetParams.length - 1 ? ',' : ''}\n`
+      })
+      code += `        };\n\n`
+      code += `        var content = new FormUrlEncodedContent(data);\n`
+      code += `        var response = await client.PostAsync(url, content);\n`
+    } else {
+      code += `\n        var response = await client.GetAsync(url);\n`
+    }
+
+    code += `        var result = await response.Content.ReadAsStringAsync();\n`
+    code += `        Console.WriteLine(result);\n`
+    code += `    }\n`
+    code += `}`
+
+    return code
+  }
+
+  // 生成 Ruby 示例
+  const generateRuby = () => {
+    let finalUrl = url
+    let code = `require 'net/http'\nrequire 'uri'\n\n`
+
+    if (
+      method === 'GET' ||
+      (method === 'POST' && bodyParams.length > 0 && queryParams.length > 0)
+    ) {
+      const qParams =
+        method === 'GET' ? [...queryParams, ...bodyParams] : queryParams
+      if (qParams.length > 0) {
+        const queryStr = qParams
+          .map((p) => `${p.name}=\${${p.param}}`)
+          .join('&')
+        finalUrl += (url.includes('?') ? '&' : '?') + queryStr
+      }
+    }
+
+    code += `uri = URI.parse('${finalUrl}')\n`
+    code += `http = Net::HTTP.new(uri.host, uri.port)\n`
+    if (url.startsWith('https')) {
+      code += `http.use_ssl = true\n`
+    }
+    code += `\n`
+
+    if (method === 'POST') {
+      code += `request = Net::HTTP::Post.new(uri.request_uri)\n`
+      code += `request['Content-Type'] = 'application/x-www-form-urlencoded'\n`
+    } else {
+      code += `request = Net::HTTP::Get.new(uri.request_uri)\n`
+    }
+
+    if (hasKeyParam) {
+      code += `request['Authorization'] = 'Bearer YOUR_API_KEY'\n`
+    }
+    headerParams.forEach((p) => {
+      code += `request['${p.name}'] = '${p.docs || ''}'\n`
+    })
+
+    if (method === 'POST') {
+      const targetParams = bodyParams.length > 0 ? bodyParams : queryParams
+      const formData = targetParams
+        .map((p) => `'${p.param}' => '${p.docs || ''}'`)
+        .join(', ')
+      code += `\nrequest.set_form_data({ ${formData} })\n`
+    }
+
+    code += `\nresponse = http.request(request)\n`
+    code += `puts response.body`
+
+    return code
+  }
+
+  // 生成 Node.js 示例
+  const generateNodejs = () => {
+    let finalUrl = url
+    let code = `const https = require('https');\nconst querystring = require('querystring');\n\n`
+
+    if (
+      method === 'GET' ||
+      (method === 'POST' && bodyParams.length > 0 && queryParams.length > 0)
+    ) {
+      const qParams =
+        method === 'GET' ? [...queryParams, ...bodyParams] : queryParams
+      if (qParams.length > 0) {
+        const queryStr = qParams
+          .map((p) => `${p.name}=\${${p.param}}`)
+          .join('&')
+        finalUrl += (url.includes('?') ? '&' : '?') + queryStr
+      }
+    }
+
+    if (method === 'POST') {
+      code += `const postData = querystring.stringify({\n`
+      const targetParams = bodyParams.length > 0 ? bodyParams : queryParams
+      targetParams.forEach((p, i) => {
+        code += `  '${p.param}': '${p.docs || ''}'${i < targetParams.length - 1 ? ',' : ''}\n`
+      })
+      code += `});\n\n`
+    }
+
+    code += `const options = {\n`
+    code += `  method: '${method}',\n`
+    code += `  headers: {\n`
+
+    if (hasKeyParam) {
+      code += `    'Authorization': 'Bearer YOUR_API_KEY',\n`
+    }
+    headerParams.forEach((p) => {
+      code += `    '${p.name}': '${p.docs || ''}',\n`
+    })
+
+    if (method === 'POST') {
+      code += `    'Content-Type': 'application/x-www-form-urlencoded',\n`
+      code += `    'Content-Length': Buffer.byteLength(postData)\n`
+    }
+
+    code += `  }\n`
+    code += `};\n\n`
+
+    code += `const req = https.request('${finalUrl}', options, (res) => {\n`
+    code += `  let data = '';\n`
+    code += `  res.on('data', (chunk) => { data += chunk; });\n`
+    code += `  res.on('end', () => { console.log(JSON.parse(data)); });\n`
+    code += `});\n\n`
+
+    code += `req.on('error', (error) => { console.error(error); });\n`
+
+    if (method === 'POST') {
+      code += `req.write(postData);\n`
+    }
+
+    code += `req.end();`
+
+    return code
+  }
+
+  return {
+    axios: generateAxios(),
+    ajax: generateAjax(),
+    fetch: generateFetch(),
+    xhr: generateXhr(),
+    php: generatePhp(),
+    python: generatePython(),
+    curl: generateCurl(),
+    java: generateJava(),
+    go: generateGo(),
+    csharp: generateCsharp(),
+    ruby: generateRuby(),
+    nodejs: generateNodejs(),
+  }
+}
+
+// 生成的示例代码
+const generatedExamples = computed(() => {
+  if (!apiInfo.value.url || !apiInfo.value.params) {
+    return {
+      axios: apiInfo.value.axios || '',
+      ajax: apiInfo.value.ajax || '',
+      fetch: apiInfo.value.fetch || '',
+      xhr: apiInfo.value.xhr || '',
+      php: apiInfo.value.php || '',
+      python: apiInfo.value.python || '',
+      curl: '',
+      java: '',
+      go: '',
+      csharp: '',
+      ruby: '',
+      nodejs: '',
+    }
+  }
+  return generateExamples()
+})
 </script>
 
 <template>
@@ -569,6 +1354,16 @@ const buyPackage = (pkg) => {
                 ref="urlDom"
               >
                 <code class="api-url">{{ apiInfo.url }}</code>
+                <el-icon class="copy-icon"><CopyDocument /></el-icon>
+              </div>
+            </el-tooltip>
+          </div>
+
+          <div class="api-url-section" v-if="apiInfo.example_url">
+            <label class="url-label">请求示例：</label>
+            <el-tooltip effect="dark" content="点击复制" placement="top">
+              <div class="url-container" @click="copy(apiInfo.example_url)">
+                <code class="api-url">{{ apiInfo.example_url }}</code>
                 <el-icon class="copy-icon"><CopyDocument /></el-icon>
               </div>
             </el-tooltip>
@@ -924,67 +1719,171 @@ const buyPackage = (pkg) => {
         <div class="box" id="examples">
           <h2>请求示例</h2>
           <div class="examples-container">
-            <el-tabs v-model="activeName" type="card" class="example-tabs">
-              <el-tab-pane label="axios" name="axios">
+            <!-- 主标签页 -->
+            <div class="language-tabs">
+              <div
+                v-for="lang in languages"
+                :key="lang.name"
+                :class="['language-tab', { active: activeName === lang.name }]"
+                @click="activeName = lang.name"
+              >
+                {{ lang.label }}
+              </div>
+            </div>
+
+            <!-- JavaScript 子标签页 -->
+            <div v-if="activeName === 'javascript'" class="sub-language-tabs">
+              <div
+                v-for="lib in jsLibraries"
+                :key="lib.name"
+                :class="[
+                  'sub-language-tab',
+                  { active: jsActiveName === lib.name },
+                ]"
+                @click="jsActiveName = lib.name"
+              >
+                {{ lib.label }}
+              </div>
+            </div>
+
+            <!-- 代码展示区域 -->
+            <div class="code-display">
+              <!-- Shell -->
+              <div v-if="activeName === 'shell'">
                 <pre class="example mac_light mac_pre"><client-only><el-tooltip
                 class="box-item"
                 effect="dark"
                 content="复制"
                 placement="left"
-              ><div class="copy" @click="copy(apiInfo.axios)"><el-icon size="14"><CopyDocument /></el-icon></div
-              ></el-tooltip></client-only><code class="javascript.js" v-text="apiInfo.axios"></code></pre>
-              </el-tab-pane>
+              ><div class="copy" @click="copy(generatedExamples.curl)"><el-icon size="14"><CopyDocument /></el-icon></div
+              ></el-tooltip></client-only><code class="bash" v-text="generatedExamples.curl"></code></pre>
+              </div>
 
-              <el-tab-pane label="ajax" name="ajax">
+              <!-- JavaScript -->
+              <div v-if="activeName === 'javascript'">
+                <div v-if="jsActiveName === 'axios'">
+                  <pre
+                    class="example mac_light mac_pre"
+                  ><client-only><el-tooltip
+                  class="box-item"
+                  effect="dark"
+                  content="复制"
+                  placement="left"
+                ><div class="copy" @click="copy(generatedExamples.axios)"><el-icon size="14"><CopyDocument /></el-icon></div
+                ></el-tooltip></client-only><code class="javascript.js" v-text="generatedExamples.axios"></code></pre>
+                </div>
+                <div v-if="jsActiveName === 'fetch'">
+                  <pre
+                    class="example mac_light mac_pre"
+                  ><client-only><el-tooltip
+                  class="box-item"
+                  effect="dark"
+                  content="复制"
+                  placement="left"
+                ><div class="copy" @click="copy(generatedExamples.fetch)"><el-icon size="14"><CopyDocument /></el-icon></div
+                ></el-tooltip></client-only><code class="javascript.js" v-text="generatedExamples.fetch"></code></pre>
+                </div>
+                <div v-if="jsActiveName === 'ajax'">
+                  <pre
+                    class="example mac_light mac_pre"
+                  ><client-only><el-tooltip
+                  class="box-item"
+                  effect="dark"
+                  content="复制"
+                  placement="left"
+                ><div class="copy" @click="copy(generatedExamples.ajax)"><el-icon size="14"><CopyDocument /></el-icon></div
+                ></el-tooltip></client-only><code class="javascript.js" v-text="generatedExamples.ajax"></code></pre>
+                </div>
+                <div v-if="jsActiveName === 'xhr'">
+                  <pre
+                    class="example mac_light mac_pre"
+                  ><client-only><el-tooltip
+                  class="box-item"
+                  effect="dark"
+                  content="复制"
+                  placement="left"
+                ><div class="copy" @click="copy(generatedExamples.xhr)"><el-icon size="14"><CopyDocument /></el-icon></div
+                ></el-tooltip></client-only><code class="javascript.js" v-text="generatedExamples.xhr"></code></pre>
+                </div>
+                <div v-if="jsActiveName === 'nodejs'">
+                  <pre
+                    class="example mac_light mac_pre"
+                  ><client-only><el-tooltip
+                  class="box-item"
+                  effect="dark"
+                  content="复制"
+                  placement="left"
+                ><div class="copy" @click="copy(generatedExamples.nodejs)"><el-icon size="14"><CopyDocument /></el-icon></div
+                ></el-tooltip></client-only><code class="javascript.js" v-text="generatedExamples.nodejs"></code></pre>
+                </div>
+              </div>
+
+              <!-- Python -->
+              <div v-if="activeName === 'python'">
                 <pre class="example mac_light mac_pre"><client-only><el-tooltip
                 class="box-item"
                 effect="dark"
                 content="复制"
                 placement="left"
-              ><div class="copy" @click="copy(apiInfo.ajax)"><el-icon size="14"><CopyDocument /></el-icon></div
-              ></el-tooltip></client-only><code class="javascript.js" v-text="apiInfo.ajax"></code></pre>
-              </el-tab-pane>
+              ><div class="copy" @click="copy(generatedExamples.python)"><el-icon size="14"><CopyDocument /></el-icon></div
+              ></el-tooltip></client-only><code class="python" v-text="generatedExamples.python"></code></pre>
+              </div>
 
-              <el-tab-pane label="fetch" name="fetch">
-                <pre class="example mac_light mac_pre"><client-only><el-tooltip
-                class="box-item"
-                effect="dark"
-                content="copy"
-                placement="left"
-              ><div class="copy" @click="copy(apiInfo.fetch)"><el-icon size="14"><CopyDocument /></el-icon></div
-              ></el-tooltip></client-only><code class="javascript.js" v-text="apiInfo.fetch"></code></pre>
-              </el-tab-pane>
-
-              <el-tab-pane label="xhr" name="xhr">
+              <!-- PHP -->
+              <div v-if="activeName === 'php'">
                 <pre class="example mac_light mac_pre"><client-only><el-tooltip
                 class="box-item"
                 effect="dark"
                 content="复制"
                 placement="left"
-              ><div class="copy" @click="copy(apiInfo.xhr)"><el-icon size="14"><CopyDocument /></el-icon></div
-              ></el-tooltip></client-only><code class="javascript.js" v-text="apiInfo.xhr"></code></pre>
-              </el-tab-pane>
+              ><div class="copy" @click="copy(generatedExamples.php)"><el-icon size="14"><CopyDocument /></el-icon></div
+              ></el-tooltip></client-only><code class="php" v-text="generatedExamples.php"></code></pre>
+              </div>
 
-              <el-tab-pane label="php" name="php">
+              <!-- Java -->
+              <div v-if="activeName === 'java'">
                 <pre class="example mac_light mac_pre"><client-only><el-tooltip
                 class="box-item"
                 effect="dark"
                 content="复制"
                 placement="left"
-              ><div class="copy" @click="copy(apiInfo.php)"><el-icon size="14"><CopyDocument /></el-icon></div
-              ></el-tooltip></client-only><code class="php" v-text="apiInfo.php"></code></pre>
-              </el-tab-pane>
+              ><div class="copy" @click="copy(generatedExamples.java)"><el-icon size="14"><CopyDocument /></el-icon></div
+              ></el-tooltip></client-only><code class="java" v-text="generatedExamples.java"></code></pre>
+              </div>
 
-              <el-tab-pane label="python" name="python">
+              <!-- Go -->
+              <div v-if="activeName === 'go'">
                 <pre class="example mac_light mac_pre"><client-only><el-tooltip
                 class="box-item"
                 effect="dark"
                 content="复制"
                 placement="left"
-              ><div class="copy" @click="copy(apiInfo.python)"><el-icon size="14"><CopyDocument /></el-icon></div
-              ></el-tooltip></client-only><code class="python" v-text="apiInfo.python"></code></pre>
-              </el-tab-pane>
-            </el-tabs>
+              ><div class="copy" @click="copy(generatedExamples.go)"><el-icon size="14"><CopyDocument /></el-icon></div
+              ></el-tooltip></client-only><code class="go" v-text="generatedExamples.go"></code></pre>
+              </div>
+
+              <!-- C# -->
+              <div v-if="activeName === 'csharp'">
+                <pre class="example mac_light mac_pre"><client-only><el-tooltip
+                class="box-item"
+                effect="dark"
+                content="复制"
+                placement="left"
+              ><div class="copy" @click="copy(generatedExamples.csharp)"><el-icon size="14"><CopyDocument /></el-icon></div
+              ></el-tooltip></client-only><code class="csharp" v-text="generatedExamples.csharp"></code></pre>
+              </div>
+
+              <!-- Ruby -->
+              <div v-if="activeName === 'ruby'">
+                <pre class="example mac_light mac_pre"><client-only><el-tooltip
+                class="box-item"
+                effect="dark"
+                content="复制"
+                placement="left"
+              ><div class="copy" @click="copy(generatedExamples.ruby)"><el-icon size="14"><CopyDocument /></el-icon></div
+              ></el-tooltip></client-only><code class="ruby" v-text="generatedExamples.ruby"></code></pre>
+              </div>
+            </div>
           </div>
         </div>
 
@@ -1529,6 +2428,7 @@ const buyPackage = (pkg) => {
       }
 
       .api-url-section {
+        margin-top: 24px;
         .url-label {
           display: block;
           font-weight: 600;
@@ -1610,6 +2510,77 @@ const buyPackage = (pkg) => {
       }
 
       .examples-container {
+        // 主语言标签页
+        .language-tabs {
+          display: flex;
+          gap: 8px;
+          flex-wrap: wrap;
+          margin-bottom: 0;
+          padding-bottom: 16px;
+          border-bottom: 2px solid #e2e8f0;
+
+          .language-tab {
+            padding: 10px 20px;
+            font-size: 14px;
+            font-weight: 500;
+            color: #64748b;
+            background: transparent;
+            border: none;
+            border-bottom: 3px solid transparent;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            margin-bottom: -18px;
+
+            &:hover {
+              color: #3b82f6;
+            }
+
+            &.active {
+              color: #3b82f6;
+              border-bottom-color: #3b82f6;
+            }
+          }
+        }
+
+        // JavaScript 子标签页
+        .sub-language-tabs {
+          display: flex;
+          gap: 8px;
+          flex-wrap: wrap;
+          margin-bottom: 0;
+          padding: 16px 0;
+          border-bottom: 2px solid #e2e8f0;
+
+          .sub-language-tab {
+            padding: 8px 16px;
+            font-size: 13px;
+            font-weight: 500;
+            color: #64748b;
+            background: transparent;
+            border: none;
+            border-bottom: 3px solid transparent;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            margin-bottom: -18px;
+
+            &:hover {
+              color: #3b82f6;
+            }
+
+            &.active {
+              color: #3b82f6;
+              border-bottom-color: #3b82f6;
+            }
+          }
+        }
+
+        // 代码展示区域
+        .code-display {
+          margin-top: 20px;
+        }
+
         .example-tabs {
           .el-tabs__nav-scroll {
             margin-bottom: 15px;
@@ -1627,6 +2598,73 @@ const buyPackage = (pkg) => {
                   background: #3b82f6;
                   color: white;
                 }
+              }
+            }
+          }
+        }
+
+        // 子标签页样式
+        .sub-tabs {
+          margin-top: 20px;
+          padding: 20px;
+          background: #f8fafc;
+          border-radius: 12px;
+          border: 1px solid #e2e8f0;
+
+          :deep(.el-tabs__header) {
+            margin-bottom: 20px;
+          }
+
+          :deep(.el-tabs__nav-wrap) {
+            &::after {
+              display: none;
+            }
+          }
+
+          :deep(.el-tabs__nav) {
+            border: none;
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+          }
+
+          :deep(.el-tabs__item) {
+            border: 1px solid #cbd5e1;
+            margin-right: 0;
+            border-radius: 8px;
+            height: 36px;
+            line-height: 36px;
+            padding: 0 20px;
+            font-size: 14px;
+            font-weight: 500;
+            background: white;
+            color: #64748b;
+            transition: all 0.3s ease;
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+
+            &.is-active {
+              background: linear-gradient(135deg, #3b82f6, #2563eb);
+              border-color: #3b82f6;
+              color: white;
+              box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+              transform: translateY(-2px);
+            }
+
+            &:hover:not(.is-active) {
+              color: #3b82f6;
+              background: #eff6ff;
+              border-color: #93c5fd;
+              transform: translateY(-1px);
+              box-shadow: 0 2px 8px rgba(59, 130, 246, 0.15);
+            }
+          }
+
+          // 子标签页内容区域
+          :deep(.el-tabs__content) {
+            .el-tab-pane {
+              .example {
+                border-radius: 8px;
+                overflow: hidden;
               }
             }
           }
