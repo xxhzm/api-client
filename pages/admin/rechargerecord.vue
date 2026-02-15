@@ -151,10 +151,11 @@ useHead({
             style="width: 100%"
             v-loading="pageLoading"
           >
+            <el-table-column prop="id" label="ID" show-overflow-tooltip />
+            <el-table-column prop="uid" label="用户ID" show-overflow-tooltip />
             <el-table-column
-              prop="id"
-              label="ID"
-              min-width="180"
+              prop="username"
+              label="用户名"
               show-overflow-tooltip
             />
             <el-table-column prop="amount" label="充值金额" width="120">
@@ -196,12 +197,12 @@ useHead({
                 </el-tag>
               </template>
             </el-table-column>
-            <el-table-column label="创建时间" min-width="180">
+            <el-table-column label="创建时间">
               <template #default="scope">
                 {{ formatTimestamp(scope.row.create_time) }}
               </template>
             </el-table-column>
-            <el-table-column label="支付时间" min-width="180">
+            <el-table-column label="支付时间">
               <template #default="scope">
                 {{
                   scope.row.pay_time && scope.row.pay_time !== 0
@@ -210,7 +211,7 @@ useHead({
                 }}
               </template>
             </el-table-column>
-            <el-table-column label="操作" width="120" fixed="right">
+            <el-table-column label="操作" width="60" fixed="right">
               <template #default="scope">
                 <div class="table-actions">
                   <el-button type="primary" link @click="showDetail(scope.row)">
@@ -246,6 +247,10 @@ useHead({
         <div class="detail-item">
           <span class="label">用户ID：</span>
           <span class="value">{{ currentRecord.uid }}</span>
+        </div>
+        <div class="detail-item">
+          <span class="label">用户名：</span>
+          <span class="value">{{ currentRecord.username }}</span>
         </div>
         <div class="detail-item">
           <span class="label">订单号：</span>
