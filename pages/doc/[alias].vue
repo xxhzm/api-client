@@ -50,7 +50,7 @@ const {
     query: {
       alias: route.params.alias,
     },
-  })
+  }),
 )
 
 if (res.code !== 200) {
@@ -80,13 +80,7 @@ res.data.params = res.data.params.map((item) => {
   }
 })
 
-apiInfo.value = {
-  ...res.data,
-  qps: res.data.qps ?? 128,
-  avg_time: res.data.avg_time ?? 45,
-  today_calls: res.data.today_calls ?? 13862,
-  total_calls: res.data.total_calls ?? 2856900,
-}
+apiInfo.value = res.data
 
 // 配置项
 const options = useState('options')
@@ -172,7 +166,7 @@ const openDebugDialog = () => {
   debugForm.value = {}
   response.value = null
   const i = apiInfo.value?.params?.findIndex(
-    (p) => String(p.name).toLowerCase() === 'key'
+    (p) => String(p.name).toLowerCase() === 'key',
   )
   if (i !== undefined && i !== -1 && userAccessKey.value) {
     debugForm.value[i] = userAccessKey.value
@@ -194,7 +188,7 @@ const sendRequest = async () => {
     // 检查必填参数
     const missingParams = apiInfo.value.params
       .filter(
-        (param, index) => param.required === '必传' && !debugForm.value[index]
+        (param, index) => param.required === '必传' && !debugForm.value[index],
       )
       .map((param) => param.param)
 
@@ -464,7 +458,7 @@ const jsonBodyParam = computed(() => {
       p.name === 'json' &&
       p.param === 'json' &&
       p.position === 'body' &&
-      p.required === '必传'
+      p.required === '必传',
   )
 })
 
@@ -485,8 +479,8 @@ const openInNewWindow = (url) => {
   window.open(url, '_blank')
 }
 
-// 格式化大数字显示（如 1234567 -> 1,234,567; 超过万则用 x.x万）
-const formatNumber = (num) => {
+// 格式化大数字显示
+const formatLargeNumber = (num) => {
   if (num === undefined || num === null) return '-'
   if (num >= 100000000) {
     return (num / 100000000).toFixed(1) + '亿'
@@ -496,17 +490,6 @@ const formatNumber = (num) => {
   }
   return num.toLocaleString()
 }
-
-// 判断是否有性能指标数据
-const hasStats = computed(() => {
-  const info = apiInfo.value
-  return (
-    info.qps !== undefined ||
-    info.avg_time !== undefined ||
-    info.today_calls !== undefined ||
-    info.total_calls !== undefined
-  )
-})
 
 // 购买套餐
 const buyPackage = (pkg) => {
@@ -526,8 +509,8 @@ const buyPackage = (pkg) => {
           <li class="nav-item">
             <a href="#overview" class="active">接口概览</a>
           </li>
-          <li class="nav-item" v-if="hasStats">
-            <a href="#stats">性能指标</a>
+          <li class="nav-item">
+            <a href="#stats">服务指标</a>
           </li>
           <li class="nav-item">
             <a href="#description">接口描述</a>
@@ -590,31 +573,110 @@ const buyPackage = (pkg) => {
               </div>
             </el-tooltip>
           </div>
-
         </div>
 
-        <!-- 服务指标 
-        <div class="box" id="stats" v-if="hasStats">
+        <!-- 服务指标 -->
+        <div class="box" id="stats">
           <h2>服务指标</h2>
-          <div class="stats-desc-panel">
-            <div class="stats-desc-row" v-if="apiInfo.qps !== undefined">
-              <span class="stats-desc-label">QPS 上限</span>
-              <span class="stats-desc-value">{{ apiInfo.qps }} <em>次/秒</em></span>
+          <div class="stats-grid">
+            <div class="stat-card" v-if="apiInfo.qps !== undefined">
+              <div class="stat-icon qps-icon">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                >
+                  <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" />
+                </svg>
+              </div>
+              <div class="stat-content">
+                <div class="stat-label">QPS 上限</div>
+                <div class="stat-value">
+                  {{ apiInfo.qps }}<span class="stat-unit">次/秒</span>
+                </div>
+              </div>
             </div>
-            <div class="stats-desc-row" v-if="apiInfo.avg_time !== undefined">
-              <span class="stats-desc-label">平均响应时间</span>
-              <span class="stats-desc-value">{{ apiInfo.avg_time }} <em>ms</em></span>
+
+            <div
+              class="stat-card"
+              v-if="apiInfo.avg_response_time !== undefined"
+            >
+              <div class="stat-icon time-icon">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                >
+                  <circle cx="12" cy="12" r="10" />
+                  <path d="M12 6v6l4 2" />
+                </svg>
+              </div>
+              <div class="stat-content">
+                <div class="stat-label">平均响应时间</div>
+                <div class="stat-value">
+                  {{ apiInfo.avg_response_time
+                  }}<span class="stat-unit">ms</span>
+                </div>
+              </div>
             </div>
-            <div class="stats-desc-row" v-if="apiInfo.today_calls !== undefined">
-              <span class="stats-desc-label">今日调用量</span>
-              <span class="stats-desc-value">{{ formatNumber(apiInfo.today_calls) }} <em>次</em></span>
+
+            <div
+              class="stat-card"
+              v-if="apiInfo.today_call_count !== undefined"
+            >
+              <div class="stat-icon today-icon">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                >
+                  <path d="M22 12h-4l-3 9L9 3l-3 9H2" />
+                </svg>
+              </div>
+              <div class="stat-content">
+                <div class="stat-label">今日调用量</div>
+                <div class="stat-value">
+                  {{ formatLargeNumber(apiInfo.today_call_count)
+                  }}<span class="stat-unit">次</span>
+                </div>
+              </div>
             </div>
-            <div class="stats-desc-row" v-if="apiInfo.total_calls !== undefined">
-              <span class="stats-desc-label">累计调用量</span>
-              <span class="stats-desc-value">{{ formatNumber(apiInfo.total_calls) }} <em>次</em></span>
+
+            <div
+              class="stat-card"
+              v-if="apiInfo.total_call_count !== undefined"
+            >
+              <div class="stat-icon total-icon">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                >
+                  <path
+                    d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"
+                  />
+                  <polyline points="3.27 6.96 12 12.01 20.73 6.96" />
+                  <line x1="12" y1="22.08" x2="12" y2="12" />
+                </svg>
+              </div>
+              <div class="stat-content">
+                <div class="stat-label">累计调用量</div>
+                <div class="stat-value">
+                  {{ formatLargeNumber(apiInfo.total_call_count)
+                  }}<span class="stat-unit">次</span>
+                </div>
+              </div>
             </div>
           </div>
-        </div>-->
+        </div>
 
         <!-- 接口描述 -->
         <div class="box" id="description">
@@ -671,7 +733,7 @@ const buyPackage = (pkg) => {
             <div
               v-if="
                 apiInfo.params?.some(
-                  (p) => String(p.name).toLowerCase() === 'key'
+                  (p) => String(p.name).toLowerCase() === 'key',
                 )
               "
               class="key-guide-container"
@@ -1057,55 +1119,144 @@ const buyPackage = (pkg) => {
 </template>
 
 <style lang="less" scoped>
-// 服务指标描述面板
-.stats-desc-panel {
-  background: #f8fafc;
-  border: 1px solid #e2e8f0;
-  border-radius: 0;
+// 服务指标网格布局
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 20px;
+  margin-top: 24px;
 
-  .stats-desc-row {
+  @media (max-width: 768px) {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+}
+
+.stat-card {
+  background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 24px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, #3b82f6, #8b5cf6);
+    opacity: 0;
+    transition: opacity 0.3s ease;
+  }
+
+  &:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 12px 24px rgba(0, 0, 0, 0.08);
+    border-color: #cbd5e1;
+
+    &::before {
+      opacity: 1;
+    }
+
+    .stat-icon {
+      transform: scale(1.1);
+    }
+  }
+
+  .stat-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 12px;
     display: flex;
     align-items: center;
-    justify-content: space-between;
-    padding: 14px 20px;
-    border-bottom: 1px solid #e2e8f0;
+    justify-content: center;
+    flex-shrink: 0;
+    transition: transform 0.3s ease;
 
-    &:last-child {
-      border-bottom: none;
+    svg {
+      width: 24px;
+      height: 24px;
     }
 
-    .stats-desc-label {
+    &.qps-icon {
+      background: linear-gradient(135deg, #3b82f6, #2563eb);
+      color: white;
+    }
+
+    &.time-icon {
+      background: linear-gradient(135deg, #8b5cf6, #7c3aed);
+      color: white;
+    }
+
+    &.today-icon {
+      background: linear-gradient(135deg, #10b981, #059669);
+      color: white;
+    }
+
+    &.total-icon {
+      background: linear-gradient(135deg, #f59e0b, #d97706);
+      color: white;
+    }
+  }
+
+  .stat-content {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .stat-label {
+    font-size: 13px;
+    color: #64748b;
+    font-weight: 500;
+    margin-bottom: 8px;
+    letter-spacing: 0.3px;
+  }
+
+  .stat-value {
+    font-size: 28px;
+    font-weight: 700;
+    color: #1e293b;
+    line-height: 1;
+    font-variant-numeric: tabular-nums;
+
+    .stat-unit {
       font-size: 14px;
-      color: #475569;
-      font-weight: 500;
-    }
-
-    .stats-desc-value {
-      font-size: 15px;
-      font-weight: 700;
-      color: #1e293b;
-      font-variant-numeric: tabular-nums;
-
-      em {
-        font-style: normal;
-        font-size: 13px;
-        font-weight: 400;
-        color: #94a3b8;
-        margin-left: 4px;
-      }
+      font-weight: 400;
+      color: #94a3b8;
+      margin-left: 6px;
     }
   }
 
   @media (max-width: 768px) {
-    .stats-desc-row {
-      padding: 12px 16px;
+    padding: 20px;
 
-      .stats-desc-label {
-        font-size: 13px;
+    .stat-icon {
+      width: 40px;
+      height: 40px;
+
+      svg {
+        width: 20px;
+        height: 20px;
       }
+    }
 
-      .stats-desc-value {
-        font-size: 14px;
+    .stat-label {
+      font-size: 12px;
+      margin-bottom: 6px;
+    }
+
+    .stat-value {
+      font-size: 24px;
+
+      .stat-unit {
+        font-size: 12px;
       }
     }
   }
@@ -1259,9 +1410,9 @@ const buyPackage = (pkg) => {
   width: 100%;
   min-height: 100vh;
   background: #ffffff;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto,
-    'Helvetica Neue', Arial, 'Noto Sans', 'Apple Color Emoji', 'Segoe UI Emoji',
-    'Segoe UI Symbol';
+  font-family:
+    -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue',
+    Arial, 'Noto Sans', 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol';
 
   .apiinfo-container {
     max-width: 1600px;
@@ -1395,7 +1546,9 @@ const buyPackage = (pkg) => {
           border: 1px solid #e2e8f0;
           border-radius: 0;
           cursor: pointer;
-          transition: background 0.2s ease, border-color 0.2s ease;
+          transition:
+            background 0.2s ease,
+            border-color 0.2s ease;
 
           .api-url {
             font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
@@ -1641,7 +1794,9 @@ const buyPackage = (pkg) => {
         margin: 10px 0 16px 16px;
         border-radius: 50%;
         background: #ff5f56;
-        box-shadow: 20px 0 #ffbd2e, 40px 0 #27c93f;
+        box-shadow:
+          20px 0 #ffbd2e,
+          40px 0 #27c93f;
         width: 12px;
       }
 
