@@ -5,7 +5,7 @@ definePageMeta({
   layout: 'admin',
 })
 
-const { $msg, $myFetch } = useNuxtApp()
+const { $msg, $myFetch, $decryptPhone } = useNuxtApp()
 
 onMounted(() => {
   getData()
@@ -62,8 +62,12 @@ const getData = async () => {
       })
 
       if (res.code === 200) {
+        // 获取 token 用于解密
+        const token = useCookie('token').value
+
         tableData.value = res.data.sms_logs.map((item) => ({
           ...item,
+          phone: item.phone && token ? $decryptPhone(item.phone, token) : item.phone,
           status: item.status ? '成功' : '失败',
           createTime: new Date(item.time).toLocaleString(),
         }))

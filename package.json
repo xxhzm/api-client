@@ -20,6 +20,7 @@
   },
   "dependencies": {
     "@tinymce/tinymce-vue": "^6.2.0",
+    "crypto-js": "^4.2.0",
     "tinymce": "^7.9.1"
   }
 }

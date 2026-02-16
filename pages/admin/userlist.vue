@@ -1,6 +1,6 @@
 <script setup>
 import { User } from '@element-plus/icons-vue'
-const { $msg, $myFetch } = useNuxtApp()
+const { $msg, $myFetch, $decryptPhone } = useNuxtApp()
 
 definePageMeta({
   layout: 'admin',
@@ -48,6 +48,9 @@ const getData = async () => {
     return
   }
 
+  // 获取 token 用于解密
+  const token = useCookie('token').value
+
   res.data.userList.forEach((element, key) => {
     if (element.status === '0') {
       res.data.userList[key].status = '启用'
@@ -61,6 +64,11 @@ const getData = async () => {
     res.data.userList[key].create_time = new Date(
       element.create_time,
     ).toLocaleString()
+
+    // 解密手机号
+    if (element.phone && token) {
+      res.data.userList[key].phone = $decryptPhone(element.phone, token)
+    }
   })
 
   tableData.value = res.data.userList
@@ -780,7 +788,7 @@ useHead({
               label="上次登录时间"
               width="180"
             />
-            <el-table-column prop="ip" label="IP" />
+            <el-table-column prop="ip" label="IP" min-width="120" />
             <el-table-column prop="key" label="Key" width="160" />
             <el-table-column prop="phone" label="手机号" width="160" />
           </el-table>
