@@ -15,7 +15,7 @@ export const useWorkOrder = () => {
   const statusMap = {
     0: '待处理',
     1: '处理中',
-    2: '已完成',
+    2: '已完结',
   }
 
   const getStatusTagType = (status) => {

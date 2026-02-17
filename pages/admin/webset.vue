@@ -56,6 +56,7 @@ const mailInfo = ref({
   setfrom: '',
   port: '',
   name: '',
+  template: '',
 })
 
 // 支付宝配置相关
@@ -228,6 +229,17 @@ const getWebsetInfo = async () => {
 const getMailInfo = async () => {
   const res = await $myFetch('MailInfo')
   mailInfo.value = res.data
+  // 解码base64模板（支持中文）
+  if (mailInfo.value.template) {
+    try {
+      mailInfo.value.template = decodeURIComponent(
+        escape(atob(mailInfo.value.template)),
+      )
+    } catch (e) {
+      console.error('模板解码失败:', e)
+      mailInfo.value.template = ''
+    }
+  }
 }
 
 // 获取支付宝配置
@@ -614,6 +626,17 @@ const mailInfoSubmit = async () => {
     return false
   }
 
+  // 验证模板必须包含占位符
+  if (mailInfo.value.template) {
+    if (
+      !mailInfo.value.template.includes('{{title}}') ||
+      !mailInfo.value.template.includes('{{content}}')
+    ) {
+      $msg('邮件模板必须包含 {{title}} 和 {{content}} 占位符', 'error')
+      return false
+    }
+  }
+
   const bodyValue = new URLSearchParams()
   bodyValue.append('smtp', mailInfo.value.smtp)
   bodyValue.append('user', mailInfo.value.user)
@@ -621,6 +644,15 @@ const mailInfoSubmit = async () => {
   bodyValue.append('setfrom', mailInfo.value.setfrom)
   bodyValue.append('port', mailInfo.value.port)
   bodyValue.append('name', mailInfo.value.name)
+  // 编码模板为base64（支持中文）
+  if (mailInfo.value.template) {
+    bodyValue.append(
+      'template',
+      btoa(unescape(encodeURIComponent(mailInfo.value.template))),
+    )
+  } else {
+    bodyValue.append('template', '')
+  }
 
   const res = await $myFetch('MailInfoUpdate', {
     method: 'POST',
@@ -1275,6 +1307,59 @@ useHead({
                   <el-form-item label="发信名称" required>
                     <el-input v-model="mailInfo.name" />
                   </el-form-item>
+                  <el-form-item label="邮件模板（HTML）">
+                    <el-input
+                      v-model="mailInfo.template"
+                      type="textarea"
+                      :rows="15"
+                      placeholder="请输入HTML邮件模板，必须包含 {{title}} 和 {{content}} 占位符"
+                    />
+                    <div
+                      class="form-help"
+                      style="margin-top: 8px; color: #909399; font-size: 13px"
+                    >
+                      <p style="margin: 4px 0">
+                        • 模板必须包含
+                        <strong v-text="'{{title}}'"></strong> 和
+                        <strong v-text="'{{content}}'"></strong> 占位符
+                      </p>
+                      <p style="margin: 4px 0">
+                        • 支持完整的HTML代码，可以自定义样式
+                      </p>
+                    </div>
+                  </el-form-item>
+                  <!-- 模板预览 -->
+                  <div v-if="mailInfo.template" style="margin: 20px 0">
+                    <el-divider content-position="left">
+                      <span style="font-size: 14px; font-weight: 600"
+                        >模板预览</span
+                      >
+                    </el-divider>
+                    <div style="margin: 8px 0; color: #909399; font-size: 12px">
+                      * 预览使用示例数据替换占位符
+                    </div>
+                    <div
+                      style="
+                        border: 1px solid #dcdfe6;
+                        border-radius: 4px;
+                        padding: 20px;
+                        background-color: #f5f7fa;
+                        max-height: 500px;
+                        overflow-y: auto;
+                      "
+                    >
+                      <div
+                        v-html="
+                          mailInfo.template
+                            .replace(/\{\{title\}\}/g, '【示例标题】验证码通知')
+                            .replace(
+                              /\{\{content\}\}/g,
+                              '【示例内容】您的验证码是：123456，有效期5分钟。',
+                            )
+                        "
+                      ></div>
+                    </div>
+                  </div>
                   <el-form-item>
                     <el-button type="primary" @click="mailInfoSubmit"
                       >提交</el-button
@@ -1927,7 +2012,7 @@ useHead({
             </el-tab-pane>
 
             <el-tab-pane label="安全设置" name="security">
-              <div class="security-settings-container" style="padding: 20px 0;">
+              <div class="security-settings-container" style="padding: 20px 0">
                 <div
                   class="setting-card"
                   style="
