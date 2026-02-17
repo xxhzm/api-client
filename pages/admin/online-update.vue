@@ -12,7 +12,7 @@ definePageMeta({
   layout: 'admin',
 })
 
-const { $msg, $myFetch } = useNuxtApp()
+const { $msg, $myFetch, $fetchChangelog } = useNuxtApp()
 
 onMounted(() => {
   // 页面加载时获取系统信息
@@ -64,13 +64,7 @@ const normalizeChangelog = (item = {}) => {
 const getChangelogList = async (page = changelogPage.value) => {
   changelogLoading.value = true
   try {
-    const res = await $fetch('/api/yunque/changelog', {
-      method: 'GET',
-      params: {
-        page,
-        pageSize: changelogPageSize.value,
-      },
-    })
+    const res = await $fetchChangelog(page, changelogPageSize.value)
 
     if (res.code === 200) {
       changelogList.value = Array.isArray(res.data)
