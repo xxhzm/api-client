@@ -11,15 +11,21 @@ const { $msg, $myFetch } = useNuxtApp()
 const activeTab = ref('basic')
 const activeSubTab = ref('website')
 
-// 监听主选项卡变化，设置对应的子选项卡默认值
-watch(activeTab, (newTab) => {
-  if (newTab === 'basic') {
-    activeSubTab.value = 'website'
-  } else if (newTab === 'payment') {
-    activeSubTab.value = 'alipay'
-  } else if (newTab === 'system') {
-    activeSubTab.value = 'ai'
-  }
+// 数据加载状态追踪
+const loadedData = ref({
+  website: false,
+  mail: false,
+  topApi: false,
+  partners: false,
+  alipay: false,
+  wechatpay: false,
+  mpay: false,
+  hupi: false,
+  ai: false,
+  about: false,
+  advanced: false,
+  login: false,
+  captcha: false,
 })
 
 // 网站设置相关
@@ -541,22 +547,6 @@ const handleAddTopApi = async () => {
     addLoading.value = false
   }
 }
-
-onMounted(() => {
-  getWebsetInfo()
-  getMailInfo()
-  getTopApiList()
-  getAlipayInfo()
-  getWechatPayInfo()
-  getMPayInfo()
-  getHupiInfo()
-  getAIInfo()
-  getAboutInfo()
-  getAdvancedInfo()
-  getLoginInfo()
-  getCaptchaInfo()
-  getPartners()
-})
 
 // 提交网站设置
 const websetInfoSubmit = async () => {
@@ -1141,6 +1131,71 @@ const validateIPv4 = (rule, value, callback) => {
 const disabledDate = (time) => {
   return time.getTime() > Date.now()
 }
+
+// 监听主选项卡变化，设置对应的子选项卡默认值
+watch(activeTab, (newTab) => {
+  if (newTab === 'basic') {
+    activeSubTab.value = 'website'
+  } else if (newTab === 'payment') {
+    activeSubTab.value = 'alipay'
+  } else if (newTab === 'system') {
+    activeSubTab.value = 'ai'
+  }
+})
+
+// 监听子选项卡变化，按需加载数据
+watch(
+  activeSubTab,
+  async (newSubTab) => {
+    // 基本设置相关
+    if (newSubTab === 'website' && !loadedData.value.website) {
+      await getWebsetInfo()
+      loadedData.value.website = true
+    } else if (newSubTab === 'mail' && !loadedData.value.mail) {
+      await getMailInfo()
+      loadedData.value.mail = true
+    } else if (newSubTab === 'topApi' && !loadedData.value.topApi) {
+      await getTopApiList()
+      loadedData.value.topApi = true
+    } else if (newSubTab === 'partners' && !loadedData.value.partners) {
+      await getPartners()
+      loadedData.value.partners = true
+    }
+    // 支付设置相关
+    else if (newSubTab === 'alipay' && !loadedData.value.alipay) {
+      await getAlipayInfo()
+      loadedData.value.alipay = true
+    } else if (newSubTab === 'wechatpay' && !loadedData.value.wechatpay) {
+      await getWechatPayInfo()
+      loadedData.value.wechatpay = true
+    } else if (newSubTab === 'mpay' && !loadedData.value.mpay) {
+      await getMPayInfo()
+      loadedData.value.mpay = true
+    } else if (newSubTab === 'hupi' && !loadedData.value.hupi) {
+      await getHupiInfo()
+      loadedData.value.hupi = true
+    }
+    // 高级设置相关
+    else if (newSubTab === 'ai' && !loadedData.value.ai) {
+      await getAIInfo()
+      loadedData.value.ai = true
+    } else if (newSubTab === 'about' && !loadedData.value.about) {
+      await getAboutInfo()
+      loadedData.value.about = true
+    } else if (newSubTab === 'advanced' && !loadedData.value.advanced) {
+      await getAdvancedInfo()
+      loadedData.value.advanced = true
+    } else if (newSubTab === 'login' && !loadedData.value.login) {
+      await getLoginInfo()
+      loadedData.value.login = true
+    } else if (newSubTab === 'captcha' && !loadedData.value.captcha) {
+      await getCaptchaInfo()
+      loadedData.value.captcha = true
+    }
+    // 'test' 和 'security' 标签页不需要加载额外数据
+  },
+  { immediate: true },
+)
 
 useHead({
   title: '系统设置',
