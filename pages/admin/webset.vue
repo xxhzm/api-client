@@ -115,6 +115,7 @@ const advancedInfo = ref({
   clickhouse_retention_days: '',
   api_logs_map_virtual: 'false',
   cdn_header: '',
+  wechat_webhook_url: '',
 })
 
 const refreshKeysLoading = ref(false)
@@ -299,9 +300,6 @@ const getAdvancedInfo = async () => {
   const res = await $myFetch('AdvancedSetting')
   if (res.code === 200) {
     advancedInfo.value = res.data
-    if (advancedInfo.value.cdn_header === undefined) {
-      advancedInfo.value.cdn_header = ''
-    }
   }
 }
 
@@ -797,6 +795,10 @@ const advancedInfoSubmit = async () => {
     advancedInfo.value.api_logs_map_virtual || 'false',
   )
   bodyValue.append('cdnHeader', advancedInfo.value.cdn_header || '')
+  bodyValue.append(
+    'wechatWebhookUrl',
+    advancedInfo.value.wechat_webhook_url || '',
+  )
 
   const res = await $myFetch('UpdateAdvancedSetting', {
     method: 'POST',
@@ -2258,6 +2260,17 @@ useHead({
                     />
                     <div class="form-help">
                       用户开启CDN后用于获取IP的HTTP头，例如：X-Forwarded-For
+                    </div>
+                  </el-form-item>
+
+                  <el-form-item label="企业微信通知机器人Webhook URL">
+                    <el-input
+                      v-model="advancedInfo.wechat_webhook_url"
+                      placeholder="请输入企业微信机器人Webhook地址"
+                      style="width: 100%"
+                    />
+                    <div class="form-help">
+                      企业微信群机器人的Webhook地址，用于接收系统通知消息
                     </div>
                   </el-form-item>
 
