@@ -116,6 +116,7 @@ const advancedInfo = ref({
   api_logs_map_virtual: 'false',
   cdn_header: '',
   wechat_webhook_url: '',
+  force_bind_phone: 'false',
 })
 
 const refreshKeysLoading = ref(false)
@@ -798,6 +799,10 @@ const advancedInfoSubmit = async () => {
   bodyValue.append(
     'wechatWebhookUrl',
     advancedInfo.value.wechat_webhook_url || '',
+  )
+  bodyValue.append(
+    'forceBindPhone',
+    advancedInfo.value.force_bind_phone || 'false',
   )
 
   const res = await $myFetch('UpdateAdvancedSetting', {
@@ -2260,6 +2265,20 @@ useHead({
                     />
                     <div class="form-help">
                       用户开启CDN后用于获取IP的HTTP头，例如：X-Forwarded-For
+                    </div>
+                  </el-form-item>
+
+                  <el-form-item label="强制用户绑定手机号">
+                    <el-select
+                      v-model="advancedInfo.force_bind_phone"
+                      placeholder="请选择是否强制用户绑定手机号"
+                      style="width: 100%"
+                    >
+                      <el-option label="是" value="true" />
+                      <el-option label="否" value="false" />
+                    </el-select>
+                    <div class="form-help">
+                      开启后，用户必须绑定手机号才能正常使用平台功能
                     </div>
                   </el-form-item>
 
