@@ -531,7 +531,8 @@ const openInNewWindow = (url) => {
 
 // 检查是否显示服务指标模块
 const shouldShowStats = computed(() => {
-  const { qps, avg_response_time, today_call_count, total_call_count } = apiInfo.value
+  const { qps, avg_response_time, today_call_count, total_call_count } =
+    apiInfo.value
   // 如果所有指标都是-1或undefined，则不显示
   const allInvalid =
     (qps === -1 || qps === undefined) &&
@@ -1317,6 +1318,12 @@ const generatedExamples = computed(() => {
           </li>
           <li
             class="nav-item"
+            v-if="apiInfo.response_params && apiInfo.response_params.length > 0"
+          >
+            <a href="#response-params">返回参数</a>
+          </li>
+          <li
+            class="nav-item"
             v-if="apiInfo.package_list && apiInfo.package_list.length > 0"
           >
             <a href="#packages">相关套餐</a>
@@ -1386,7 +1393,10 @@ const generatedExamples = computed(() => {
         <div class="box" id="stats" v-if="shouldShowStats">
           <h2>服务指标</h2>
           <div class="stats-grid">
-            <div class="stat-card" v-if="apiInfo.qps !== undefined && apiInfo.qps !== -1">
+            <div
+              class="stat-card"
+              v-if="apiInfo.qps !== undefined && apiInfo.qps !== -1"
+            >
               <div class="stat-icon qps-icon">
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
@@ -1408,7 +1418,10 @@ const generatedExamples = computed(() => {
 
             <div
               class="stat-card"
-              v-if="apiInfo.avg_response_time !== undefined && apiInfo.avg_response_time !== -1"
+              v-if="
+                apiInfo.avg_response_time !== undefined &&
+                apiInfo.avg_response_time !== -1
+              "
             >
               <div class="stat-icon time-icon">
                 <svg
@@ -1433,7 +1446,10 @@ const generatedExamples = computed(() => {
 
             <div
               class="stat-card"
-              v-if="apiInfo.today_call_count !== undefined && apiInfo.today_call_count !== -1"
+              v-if="
+                apiInfo.today_call_count !== undefined &&
+                apiInfo.today_call_count !== -1
+              "
             >
               <div class="stat-icon today-icon">
                 <svg
@@ -1457,7 +1473,10 @@ const generatedExamples = computed(() => {
 
             <div
               class="stat-card"
-              v-if="apiInfo.total_call_count !== undefined && apiInfo.total_call_count !== -1"
+              v-if="
+                apiInfo.total_call_count !== undefined &&
+                apiInfo.total_call_count !== -1
+              "
             >
               <div class="stat-icon total-icon">
                 <svg
@@ -1628,6 +1647,54 @@ const generatedExamples = computed(() => {
                 placement="left"
               ><div class="copy" @click="copy(formattedJsonDocs)"><el-icon size="14"><CopyDocument /></el-icon></div
               ></el-tooltip></client-only><code class="json" v-text="formattedJsonDocs"></code></pre>
+          </div>
+        </div>
+
+        <!-- 返回参数 -->
+        <div
+          class="box"
+          id="response-params"
+          v-if="apiInfo.response_params && apiInfo.response_params.length > 0"
+        >
+          <h2>返回参数</h2>
+          <div class="table-container">
+            <el-table
+              :data="apiInfo.response_params"
+              row-key="id"
+              :tree-props="{ children: 'children' }"
+              default-expand-all
+              class="params-table response-params-table"
+            >
+              <el-table-column
+                prop="name"
+                label="参数名"
+                :min-width="isMobile ? 120 : 160"
+              />
+              <el-table-column
+                prop="param"
+                label="类型"
+                :width="isMobile ? 80 : 100"
+              />
+              <el-table-column
+                prop="docs"
+                label="说明"
+                :min-width="isMobile ? 160 : 220"
+                show-overflow-tooltip
+              />
+              <el-table-column
+                prop="example"
+                label="示例值"
+                :width="isMobile ? 120 : 220"
+                show-overflow-tooltip
+              >
+                <template #default="scope">
+                  <code v-if="scope.row.example" class="example-value">{{
+                    scope.row.example
+                  }}</code>
+                  <span v-else class="example-empty">—</span>
+                </template>
+              </el-table-column>
+            </el-table>
           </div>
         </div>
 
@@ -2518,6 +2585,28 @@ const generatedExamples = computed(() => {
               }
             }
           }
+        }
+
+        .example-value {
+          display: inline-block;
+          padding: 2px 8px;
+          font-size: 13px;
+          font-family:
+            'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
+          color: #334155;
+          background: #f1f5f9;
+          border: 1px solid #e2e8f0;
+          border-radius: 3px;
+          line-height: 1.5;
+          max-width: 100%;
+          overflow: hidden;
+          text-overflow: ellipsis;
+          white-space: nowrap;
+        }
+
+        .example-empty {
+          color: #cbd5e1;
+          font-size: 14px;
         }
       }
 

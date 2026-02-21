@@ -26,6 +26,7 @@ const loadedData = ref({
   advanced: false,
   login: false,
   captcha: false,
+  responseParams: false,
 })
 
 // 网站设置相关
@@ -1139,6 +1140,218 @@ const disabledDate = (time) => {
   return time.getTime() > Date.now()
 }
 
+// 全局返回参数（aid=0）
+const GLOBAL_RESPONSE_AID = 0
+const globalResponseParamsArr = ref([])
+const mapResponseParamNode = (node) => {
+  const row = {
+    id: node.id,
+    aid: node.aid,
+    parentId: node.parent_id ?? node.parentId ?? 0,
+    name: node.name,
+    param: node.param,
+    docs: node.docs,
+    example: node.example ?? '',
+    create_time: node.create_time
+      ? new Date(Number(node.create_time)).toLocaleString()
+      : '',
+  }
+  if (node.children && node.children.length > 0) {
+    row.children = node.children.map(mapResponseParamNode)
+  }
+  return row
+}
+const getGlobalResponseParams = async () => {
+  try {
+    const res = await $myFetch('ResponseParamList', {
+      params: { aid: GLOBAL_RESPONSE_AID },
+    })
+    const rawList = res?.data?.response_params ?? res?.data
+    if (Array.isArray(rawList)) {
+      globalResponseParamsArr.value = rawList.map(mapResponseParamNode)
+    } else {
+      globalResponseParamsArr.value = []
+    }
+  } catch (e) {
+    globalResponseParamsArr.value = []
+  }
+}
+
+const globalAddResponseParamDialogStatus = ref(false)
+const globalAddResponseParamInfo = ref({
+  name: '',
+  param: 'string',
+  docs: '',
+  example: '',
+  parentId: 0,
+})
+const globalResponseParamTypeOptions = [
+  { value: 'string', label: 'string' },
+  { value: 'int', label: 'int' },
+  { value: 'object', label: 'object' },
+  { value: 'array', label: 'array' },
+]
+const globalResponseParamParentOptions = computed(() => {
+  const list = [{ value: 0, label: '顶级参数' }]
+  const flatten = (nodes, depth = 0) => {
+    if (!nodes || !nodes.length) return
+    nodes.forEach((n) => {
+      list.push({
+        value: n.id,
+        label:
+          (depth ? '　'.repeat(depth) + '└ ' : '') + `${n.name} (ID: ${n.id})`,
+      })
+      if (n.children?.length) flatten(n.children, depth + 1)
+    })
+  }
+  flatten(globalResponseParamsArr.value)
+  return list
+})
+const handleGlobalAddResponseParam = (row = null) => {
+  globalAddResponseParamDialogStatus.value = true
+  globalAddResponseParamInfo.value = {
+    name: '',
+    param: 'string',
+    docs: '',
+    example: '',
+    parentId: row ? row.id : 0,
+  }
+}
+const globalAddResponseParam = async () => {
+  if (
+    !globalAddResponseParamInfo.value.name ||
+    !globalAddResponseParamInfo.value.param ||
+    !globalAddResponseParamInfo.value.docs
+  ) {
+    $msg('请填写参数名称、类型和说明', 'error')
+    return
+  }
+  const bodyValue = new URLSearchParams()
+  bodyValue.append('aid', String(GLOBAL_RESPONSE_AID))
+  bodyValue.append(
+    'parentId',
+    String(globalAddResponseParamInfo.value.parentId ?? 0),
+  )
+  bodyValue.append('name', globalAddResponseParamInfo.value.name)
+  bodyValue.append('param', globalAddResponseParamInfo.value.param)
+  bodyValue.append('docs', globalAddResponseParamInfo.value.docs)
+  if (globalAddResponseParamInfo.value.example) {
+    bodyValue.append('example', globalAddResponseParamInfo.value.example)
+  }
+  const res = await $myFetch('ResponseParamCreate', {
+    method: 'POST',
+    body: bodyValue,
+  })
+  if (res.code === 200) {
+    $msg(res.msg, 'success')
+    globalAddResponseParamDialogStatus.value = false
+    await getGlobalResponseParams()
+  } else {
+    $msg(res.msg, 'error')
+  }
+}
+watch(globalAddResponseParamDialogStatus, (newVal) => {
+  if (!newVal) {
+    globalAddResponseParamInfo.value = {
+      name: '',
+      param: 'string',
+      docs: '',
+      example: '',
+      parentId: 0,
+    }
+  }
+})
+
+const globalEditResponseParamDialogStatus = ref(false)
+const globalEditResponseParamInfo = ref({
+  id: '',
+  aid: '',
+  parentId: 0,
+  name: '',
+  param: 'string',
+  docs: '',
+  example: '',
+})
+const globalEditResponseParamParentOptions = computed(() => {
+  const id = globalEditResponseParamInfo.value.id
+  if (!id) return globalResponseParamParentOptions.value
+  return globalResponseParamParentOptions.value.filter(
+    (opt) => opt.value !== id,
+  )
+})
+const handleGlobalEditResponseParam = (row) => {
+  globalEditResponseParamDialogStatus.value = true
+  globalEditResponseParamInfo.value = {
+    id: row.id,
+    aid: row.aid,
+    parentId: row.parentId ?? 0,
+    name: row.name,
+    param: row.param,
+    docs: row.docs,
+    example: row.example ?? '',
+  }
+}
+const globalUpdateResponseParam = async () => {
+  if (
+    !globalEditResponseParamInfo.value.name ||
+    !globalEditResponseParamInfo.value.param ||
+    !globalEditResponseParamInfo.value.docs
+  ) {
+    $msg('请填写参数名称、类型和说明', 'error')
+    return
+  }
+  const bodyValue = new URLSearchParams()
+  bodyValue.append('id', globalEditResponseParamInfo.value.id)
+  bodyValue.append(
+    'aid',
+    String(globalEditResponseParamInfo.value.aid ?? GLOBAL_RESPONSE_AID),
+  )
+  bodyValue.append(
+    'parentId',
+    String(globalEditResponseParamInfo.value.parentId ?? 0),
+  )
+  bodyValue.append('name', globalEditResponseParamInfo.value.name)
+  bodyValue.append('param', globalEditResponseParamInfo.value.param)
+  bodyValue.append('docs', globalEditResponseParamInfo.value.docs)
+  if (globalEditResponseParamInfo.value.example) {
+    bodyValue.append('example', globalEditResponseParamInfo.value.example)
+  }
+  const res = await $myFetch('ResponseParamUpdate', {
+    method: 'POST',
+    body: bodyValue,
+  })
+  if (res.code === 200) {
+    $msg(res.msg, 'success')
+    globalEditResponseParamDialogStatus.value = false
+    await getGlobalResponseParams()
+  } else {
+    $msg(res.msg, 'error')
+  }
+}
+watch(globalEditResponseParamDialogStatus, (newVal) => {
+  if (!newVal) {
+    globalEditResponseParamInfo.value = {
+      id: '',
+      aid: '',
+      parentId: 0,
+      name: '',
+      param: 'string',
+      docs: '',
+      example: '',
+    }
+  }
+})
+
+const handleGlobalDeleteResponseParam = async (row) => {
+  const res = await $myFetch('ResponseParamDelete', { params: { pid: row.id } })
+  if (res.code === 200) {
+    $msg(res.msg, 'success')
+    await getGlobalResponseParams()
+  } else {
+    $msg(res.msg, 'error')
+  }
+}
+
 // 监听主选项卡变化，设置对应的子选项卡默认值
 watch(activeTab, (newTab) => {
   if (newTab === 'basic') {
@@ -1198,6 +1411,12 @@ watch(
     } else if (newSubTab === 'captcha' && !loadedData.value.captcha) {
       await getCaptchaInfo()
       loadedData.value.captcha = true
+    } else if (
+      newSubTab === 'responseParams' &&
+      !loadedData.value.responseParams
+    ) {
+      await getGlobalResponseParams()
+      loadedData.value.responseParams = true
     }
     // 'test' 和 'security' 标签页不需要加载额外数据
   },
@@ -2176,6 +2395,278 @@ useHead({
               </div>
             </el-tab-pane>
 
+            <el-tab-pane label="全局返回参数" name="responseParams">
+              <client-only>
+                <el-alert
+                  title="全局返回参数说明"
+                  type="info"
+                  show-icon
+                  :closable="false"
+                  style="margin-bottom: 20px"
+                >
+                  <template #default>
+                    <div>
+                      全局返回参数（aid=0）将作为接口文档中返回结构的通用说明，可在接口编辑页为单接口维护专属返回参数。
+                    </div>
+                  </template>
+                </el-alert>
+              </client-only>
+
+              <div class="param-header">
+                <div class="header-left">
+                  <span class="param-title">返回参数列表</span>
+                </div>
+                <div class="header-right">
+                  <el-button
+                    type="primary"
+                    @click="handleGlobalAddResponseParam"
+                  >
+                    <span>添加返回参数</span>
+                  </el-button>
+                </div>
+              </div>
+
+              <el-table
+                :data="globalResponseParamsArr"
+                row-key="id"
+                :tree-props="{ children: 'children' }"
+                default-expand-all
+              >
+                <el-table-column prop="name" label="参数名称" min-width="120" />
+                <el-table-column
+                  prop="id"
+                  label="ID"
+                  width="80"
+                  align="right"
+                />
+                <el-table-column
+                  prop="parentId"
+                  label="父级ID"
+                  width="80"
+                  align="right"
+                />
+                <el-table-column prop="param" label="类型" width="100" />
+                <el-table-column
+                  prop="docs"
+                  label="说明"
+                  min-width="160"
+                  show-overflow-tooltip
+                />
+                <el-table-column
+                  prop="example"
+                  label="示例值"
+                  width="120"
+                  show-overflow-tooltip
+                />
+                <el-table-column
+                  prop="create_time"
+                  label="创建时间"
+                  width="180"
+                />
+                <el-table-column label="操作" width="220" fixed="right">
+                  <template #default="scope">
+                    <div class="table-actions">
+                      <el-button
+                        size="small"
+                        type="primary"
+                        link
+                        @click="handleGlobalEditResponseParam(scope.row)"
+                      >
+                        编辑
+                      </el-button>
+                      <el-button
+                        size="small"
+                        type="primary"
+                        link
+                        @click="handleGlobalAddResponseParam(scope.row)"
+                      >
+                        添加
+                      </el-button>
+                      <el-popconfirm
+                        confirm-button-text="确定"
+                        cancel-button-text="取消"
+                        title="确定要删除该返回参数吗？"
+                        @confirm="handleGlobalDeleteResponseParam(scope.row)"
+                      >
+                        <template #reference>
+                          <el-button size="small" type="danger" link>
+                            删除
+                          </el-button>
+                        </template>
+                      </el-popconfirm>
+                    </div>
+                  </template>
+                </el-table-column>
+              </el-table>
+
+              <el-dialog
+                v-model="globalAddResponseParamDialogStatus"
+                title="添加返回参数"
+                width="600px"
+                destroy-on-close
+                class="param-dialog"
+              >
+                <div class="dialog-content">
+                  <el-form
+                    :model="globalAddResponseParamInfo"
+                    label-width="100px"
+                  >
+                    <el-form-item label="参数名称" required>
+                      <el-input
+                        v-model="globalAddResponseParamInfo.name"
+                        placeholder="如 code、data、msg"
+                      />
+                    </el-form-item>
+                    <el-form-item label="参数类型" required>
+                      <el-select
+                        v-model="globalAddResponseParamInfo.param"
+                        placeholder="请选择或输入类型，如 string、int、object、array"
+                        style="width: 100%"
+                        filterable
+                        allow-create
+                        default-first-option
+                        :teleported="false"
+                      >
+                        <el-option
+                          v-for="item in globalResponseParamTypeOptions"
+                          :key="item.value"
+                          :label="item.label"
+                          :value="item.value"
+                        />
+                      </el-select>
+                    </el-form-item>
+                    <el-form-item label="父级参数">
+                      <el-select
+                        v-model="globalAddResponseParamInfo.parentId"
+                        placeholder="请选择父级，不选则为顶级"
+                        style="width: 100%"
+                        clearable
+                        :teleported="false"
+                      >
+                        <el-option
+                          v-for="opt in globalResponseParamParentOptions"
+                          :key="opt.value"
+                          :label="opt.label"
+                          :value="opt.value"
+                        />
+                      </el-select>
+                    </el-form-item>
+                    <el-form-item label="参数说明" required>
+                      <el-input
+                        v-model="globalAddResponseParamInfo.docs"
+                        type="textarea"
+                        :rows="3"
+                        placeholder="请输入参数说明"
+                      />
+                    </el-form-item>
+                    <el-form-item label="示例值">
+                      <el-input
+                        v-model="globalAddResponseParamInfo.example"
+                        placeholder="选填，如 200、success"
+                      />
+                    </el-form-item>
+                  </el-form>
+                </div>
+                <template #footer>
+                  <div class="dialog-footer">
+                    <el-button
+                      @click="globalAddResponseParamDialogStatus = false"
+                    >
+                      取消
+                    </el-button>
+                    <el-button type="primary" @click="globalAddResponseParam">
+                      添加
+                    </el-button>
+                  </div>
+                </template>
+              </el-dialog>
+
+              <el-dialog
+                v-model="globalEditResponseParamDialogStatus"
+                title="编辑返回参数"
+                width="600px"
+                destroy-on-close
+                class="param-dialog"
+              >
+                <div class="dialog-content">
+                  <el-form
+                    :model="globalEditResponseParamInfo"
+                    label-width="100px"
+                  >
+                    <el-form-item label="参数名称" required>
+                      <el-input
+                        v-model="globalEditResponseParamInfo.name"
+                        placeholder="如 code、data、msg"
+                      />
+                    </el-form-item>
+                    <el-form-item label="参数类型" required>
+                      <el-select
+                        v-model="globalEditResponseParamInfo.param"
+                        placeholder="请选择或输入类型"
+                        style="width: 100%"
+                        filterable
+                        allow-create
+                        default-first-option
+                        :teleported="false"
+                      >
+                        <el-option
+                          v-for="item in globalResponseParamTypeOptions"
+                          :key="item.value"
+                          :label="item.label"
+                          :value="item.value"
+                        />
+                      </el-select>
+                    </el-form-item>
+                    <el-form-item label="父级参数">
+                      <el-select
+                        v-model="globalEditResponseParamInfo.parentId"
+                        placeholder="请选择父级，不选则为顶级"
+                        style="width: 100%"
+                        clearable
+                        :teleported="false"
+                      >
+                        <el-option
+                          v-for="opt in globalEditResponseParamParentOptions"
+                          :key="opt.value"
+                          :label="opt.label"
+                          :value="opt.value"
+                        />
+                      </el-select>
+                    </el-form-item>
+                    <el-form-item label="参数说明" required>
+                      <el-input
+                        v-model="globalEditResponseParamInfo.docs"
+                        type="textarea"
+                        :rows="3"
+                        placeholder="请输入参数说明"
+                      />
+                    </el-form-item>
+                    <el-form-item label="示例值">
+                      <el-input
+                        v-model="globalEditResponseParamInfo.example"
+                        placeholder="选填，如 200、success"
+                      />
+                    </el-form-item>
+                  </el-form>
+                </div>
+                <template #footer>
+                  <div class="dialog-footer">
+                    <el-button
+                      @click="globalEditResponseParamDialogStatus = false"
+                    >
+                      取消
+                    </el-button>
+                    <el-button
+                      type="primary"
+                      @click="globalUpdateResponseParam"
+                    >
+                      更新
+                    </el-button>
+                  </div>
+                </template>
+              </el-dialog>
+            </el-tab-pane>
+
             <el-tab-pane label="高级设置" name="advanced">
               <div class="form">
                 <el-form
@@ -3135,6 +3626,70 @@ useHead({
 
   .el-button {
     margin-top: 1px;
+  }
+}
+
+.param-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px 24px;
+  margin-bottom: 16px;
+  background: #f8fafc;
+  border-radius: 8px;
+
+  .header-left {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+
+    .param-title {
+      font-size: 16px;
+      font-weight: 600;
+      color: #1a1f36;
+    }
+  }
+
+  .header-right {
+    .el-button {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+  }
+}
+
+.table-actions {
+  display: flex;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+
+  .el-button {
+    padding: 4px 8px;
+    font-size: 12px;
+  }
+}
+
+:deep(.param-dialog) {
+  .dialog-content {
+    padding: 20px 0;
+  }
+
+  .dialog-footer {
+    text-align: right;
+
+    .el-button {
+      margin-left: 10px;
+    }
+  }
+
+  .el-form-item {
+    margin-bottom: 20px;
+  }
+
+  .el-textarea {
+    width: 100%;
   }
 }
 

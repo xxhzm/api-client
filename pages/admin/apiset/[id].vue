@@ -41,6 +41,7 @@ const apiSetInfo = ref({
 const exampleEditorType = ref('basic')
 
 const paramsArr = ref()
+const responseParamsArr = ref([])
 const packageList = ref([])
 
 // 请求方法选项
@@ -92,6 +93,32 @@ const getData = async () => {
       required: item.required === 1 ? '必传' : '可选',
     }
   })
+
+  // 返回参数列表（树形：response_params，含 children）
+  const mapResponseParamNode = (node) => {
+    const row = {
+      id: node.id,
+      aid: node.aid,
+      parentId: node.parent_id ?? node.parentId ?? 0,
+      name: node.name,
+      param: node.param,
+      docs: node.docs,
+      example: node.example ?? '',
+      create_time: node.create_time
+        ? new Date(Number(node.create_time)).toLocaleString()
+        : '',
+    }
+    if (node.children && node.children.length > 0) {
+      row.children = node.children.map(mapResponseParamNode)
+    }
+    return row
+  }
+  const rawList = res.data.response_params ?? res.data.responseParams
+  if (Array.isArray(rawList)) {
+    responseParamsArr.value = rawList.map(mapResponseParamNode)
+  } else {
+    responseParamsArr.value = []
+  }
 
   apiSetInfo.value = res.data
 
@@ -1152,6 +1179,195 @@ watch(addParamDialogStatus, (newValue) => {
   }
 })
 
+// 返回参数设置：使用 ResponseParamCreate 接口
+const addResponseParamDialogStatus = ref(false)
+const addResponseParamInfo = ref({
+  name: '',
+  param: 'string',
+  docs: '',
+  example: '',
+  parentId: 0,
+})
+// 参数类型选项（与接口文档一致）
+const responseParamTypeOptions = [
+  { value: 'string', label: 'string' },
+  { value: 'int', label: 'int' },
+  { value: 'object', label: 'object' },
+  { value: 'array', label: 'array' },
+]
+
+// 扁平化返回参数树，供父级选择下拉用
+const responseParamParentOptions = computed(() => {
+  const list = [{ value: 0, label: '顶级参数' }]
+  const flatten = (nodes, depth = 0) => {
+    if (!nodes || !nodes.length) return
+    nodes.forEach((n) => {
+      list.push({
+        value: n.id,
+        label:
+          (depth ? '　'.repeat(depth) + '└ ' : '') + `${n.name} (ID: ${n.id})`,
+      })
+      if (n.children?.length) flatten(n.children, depth + 1)
+    })
+  }
+  flatten(responseParamsArr.value)
+  return list
+})
+
+// row 为空则添加顶级参数，否则添加为该行的子参数
+const handleAddResponseParam = (row = null) => {
+  addResponseParamDialogStatus.value = true
+  addResponseParamInfo.value = {
+    name: '',
+    param: 'string',
+    docs: '',
+    example: '',
+    parentId: row ? row.id : 0,
+  }
+}
+
+const addResponseParam = async () => {
+  if (
+    !addResponseParamInfo.value.name ||
+    !addResponseParamInfo.value.param ||
+    !addResponseParamInfo.value.docs
+  ) {
+    msg('请填写参数名称、类型和说明', 'error')
+    return
+  }
+
+  const bodyValue = new URLSearchParams()
+  bodyValue.append('aid', route.params.id)
+  bodyValue.append('parentId', String(addResponseParamInfo.value.parentId ?? 0))
+  bodyValue.append('name', addResponseParamInfo.value.name)
+  bodyValue.append('param', addResponseParamInfo.value.param)
+  bodyValue.append('docs', addResponseParamInfo.value.docs)
+  if (addResponseParamInfo.value.example) {
+    bodyValue.append('example', addResponseParamInfo.value.example)
+  }
+
+  const res = await $myFetch('ResponseParamCreate', {
+    method: 'POST',
+    body: bodyValue,
+  })
+
+  if (res.code === 200) {
+    msg(res.msg, 'success')
+    addResponseParamDialogStatus.value = false
+    await getData()
+  } else {
+    msg(res.msg, 'error')
+  }
+}
+
+watch(addResponseParamDialogStatus, (newValue) => {
+  if (!newValue) {
+    addResponseParamInfo.value = {
+      name: '',
+      param: 'string',
+      docs: '',
+      example: '',
+      parentId: 0,
+    }
+  }
+})
+
+// 编辑返回参数：ResponseParamUpdate 接口
+const editResponseParamDialogStatus = ref(false)
+const editResponseParamInfo = ref({
+  id: '',
+  aid: '',
+  parentId: 0,
+  name: '',
+  param: 'string',
+  docs: '',
+  example: '',
+})
+// 编辑时父级选项排除当前节点，避免选自己为父级
+const editResponseParamParentOptions = computed(() => {
+  const id = editResponseParamInfo.value.id
+  if (!id) return responseParamParentOptions.value
+  return responseParamParentOptions.value.filter((opt) => opt.value !== id)
+})
+
+const handleEditResponseParam = (row) => {
+  editResponseParamDialogStatus.value = true
+  editResponseParamInfo.value = {
+    id: row.id,
+    aid: row.aid,
+    parentId: row.parentId ?? 0,
+    name: row.name,
+    param: row.param,
+    docs: row.docs,
+    example: row.example ?? '',
+  }
+}
+
+const updateResponseParam = async () => {
+  if (
+    !editResponseParamInfo.value.name ||
+    !editResponseParamInfo.value.param ||
+    !editResponseParamInfo.value.docs
+  ) {
+    msg('请填写参数名称、类型和说明', 'error')
+    return
+  }
+
+  const bodyValue = new URLSearchParams()
+  bodyValue.append('id', editResponseParamInfo.value.id)
+  bodyValue.append('aid', editResponseParamInfo.value.aid)
+  bodyValue.append(
+    'parentId',
+    String(editResponseParamInfo.value.parentId ?? 0),
+  )
+  bodyValue.append('name', editResponseParamInfo.value.name)
+  bodyValue.append('param', editResponseParamInfo.value.param)
+  bodyValue.append('docs', editResponseParamInfo.value.docs)
+  if (editResponseParamInfo.value.example) {
+    bodyValue.append('example', editResponseParamInfo.value.example)
+  }
+
+  const res = await $myFetch('ResponseParamUpdate', {
+    method: 'POST',
+    body: bodyValue,
+  })
+
+  if (res.code === 200) {
+    msg(res.msg, 'success')
+    editResponseParamDialogStatus.value = false
+    await getData()
+  } else {
+    msg(res.msg, 'error')
+  }
+}
+
+watch(editResponseParamDialogStatus, (newValue) => {
+  if (!newValue) {
+    editResponseParamInfo.value = {
+      id: '',
+      aid: '',
+      parentId: 0,
+      name: '',
+      param: 'string',
+      docs: '',
+      example: '',
+    }
+  }
+})
+
+// 删除返回参数：ResponseParamDelete，GET 传 pid
+const handleDeleteResponseParam = async (row) => {
+  const res = await $myFetch('ResponseParamDelete', {
+    params: { pid: row.id },
+  })
+  if (res.code === 200) {
+    msg(res.msg, 'success')
+    await getData()
+  } else {
+    msg(res.msg, 'error')
+  }
+}
+
 useHead({
   title: '编辑接口',
   viewport:
@@ -1561,6 +1777,250 @@ useHead({
                   </el-button>
                   <el-button type="primary" @click="updateParam">
                     更新
+                  </el-button>
+                </div>
+              </template>
+            </el-dialog>
+          </el-tab-pane>
+
+          <el-tab-pane label="返回参数" name="ResponseParam">
+            <div class="param-header">
+              <div class="header-left">
+                <span class="param-title">返回参数列表</span>
+              </div>
+              <div class="header-right">
+                <el-button type="primary" @click="handleAddResponseParam">
+                  <span>添加返回参数</span>
+                </el-button>
+              </div>
+            </div>
+
+            <el-table
+              :data="responseParamsArr"
+              row-key="id"
+              :tree-props="{ children: 'children' }"
+              default-expand-all
+            >
+              <el-table-column prop="name" label="参数名称" min-width="150">
+                <template #default="scope">
+                  <span>{{ scope.row.name }}</span>
+                  <el-tag
+                    v-if="scope.row.aid === 0"
+                    size="small"
+                    type="warning"
+                    effect="light"
+                    style="margin-left: 6px"
+                  >
+                    全局
+                  </el-tag>
+                </template>
+              </el-table-column>
+              <el-table-column prop="id" label="ID" width="80" align="right" />
+              <el-table-column
+                prop="parentId"
+                label="父级ID"
+                width="80"
+                align="right"
+              />
+              <el-table-column prop="param" label="类型" width="100" />
+              <el-table-column
+                prop="docs"
+                label="说明"
+                min-width="160"
+                show-overflow-tooltip
+              />
+              <el-table-column
+                prop="example"
+                label="示例值"
+                width="120"
+                show-overflow-tooltip
+              />
+              <el-table-column
+                prop="create_time"
+                label="创建时间"
+                width="180"
+              />
+              <el-table-column label="操作" width="220" fixed="right">
+                <template #default="scope">
+                  <div class="table-actions">
+                    <el-button
+                      size="small"
+                      type="primary"
+                      link
+                      @click="handleEditResponseParam(scope.row)"
+                    >
+                      编辑
+                    </el-button>
+                    <el-button
+                      size="small"
+                      type="primary"
+                      link
+                      @click="handleAddResponseParam(scope.row)"
+                    >
+                      添加
+                    </el-button>
+                    <el-popconfirm
+                      confirm-button-text="确定"
+                      cancel-button-text="取消"
+                      title="确定要删除该返回参数吗？"
+                      @confirm="handleDeleteResponseParam(scope.row)"
+                    >
+                      <template #reference>
+                        <el-button size="small" type="danger" link>
+                          删除
+                        </el-button>
+                      </template>
+                    </el-popconfirm>
+                  </div>
+                </template>
+              </el-table-column>
+            </el-table>
+
+            <el-dialog
+              v-model="editResponseParamDialogStatus"
+              title="编辑返回参数"
+              width="600px"
+              destroy-on-close
+              class="param-dialog"
+            >
+              <div class="dialog-content">
+                <el-form :model="editResponseParamInfo" label-width="100px">
+                  <el-form-item label="参数名称" required>
+                    <el-input
+                      v-model="editResponseParamInfo.name"
+                      placeholder="如 code、data、msg"
+                    />
+                  </el-form-item>
+                  <el-form-item label="参数类型" required>
+                    <el-select
+                      v-model="editResponseParamInfo.param"
+                      placeholder="请选择或输入类型"
+                      style="width: 100%"
+                      filterable
+                      allow-create
+                      default-first-option
+                    >
+                      <el-option
+                        v-for="item in responseParamTypeOptions"
+                        :key="item.value"
+                        :label="item.label"
+                        :value="item.value"
+                      />
+                    </el-select>
+                  </el-form-item>
+                  <el-form-item label="父级参数">
+                    <el-select
+                      v-model="editResponseParamInfo.parentId"
+                      placeholder="请选择父级，不选则为顶级"
+                      style="width: 100%"
+                      clearable
+                    >
+                      <el-option
+                        v-for="opt in editResponseParamParentOptions"
+                        :key="opt.value"
+                        :label="opt.label"
+                        :value="opt.value"
+                      />
+                    </el-select>
+                  </el-form-item>
+                  <el-form-item label="参数说明" required>
+                    <el-input
+                      v-model="editResponseParamInfo.docs"
+                      type="textarea"
+                      :rows="3"
+                      placeholder="请输入参数说明"
+                    />
+                  </el-form-item>
+                  <el-form-item label="示例值">
+                    <el-input
+                      v-model="editResponseParamInfo.example"
+                      placeholder="选填，如 200、success"
+                    />
+                  </el-form-item>
+                </el-form>
+              </div>
+              <template #footer>
+                <div class="dialog-footer">
+                  <el-button @click="editResponseParamDialogStatus = false">
+                    取消
+                  </el-button>
+                  <el-button type="primary" @click="updateResponseParam">
+                    更新
+                  </el-button>
+                </div>
+              </template>
+            </el-dialog>
+
+            <el-dialog
+              v-model="addResponseParamDialogStatus"
+              title="添加返回参数"
+              width="600px"
+              destroy-on-close
+              class="param-dialog"
+            >
+              <div class="dialog-content">
+                <el-form :model="addResponseParamInfo" label-width="100px">
+                  <el-form-item label="参数名称" required>
+                    <el-input
+                      v-model="addResponseParamInfo.name"
+                      placeholder="如 code、data、msg"
+                    />
+                  </el-form-item>
+                  <el-form-item label="参数类型" required>
+                    <el-select
+                      v-model="addResponseParamInfo.param"
+                      placeholder="请选择或输入类型，如 string、int、object、array"
+                      style="width: 100%"
+                      filterable
+                      allow-create
+                      default-first-option
+                    >
+                      <el-option
+                        v-for="item in responseParamTypeOptions"
+                        :key="item.value"
+                        :label="item.label"
+                        :value="item.value"
+                      />
+                    </el-select>
+                  </el-form-item>
+                  <el-form-item label="父级参数">
+                    <el-select
+                      v-model="addResponseParamInfo.parentId"
+                      placeholder="请选择父级，不选则为顶级"
+                      style="width: 100%"
+                      clearable
+                    >
+                      <el-option
+                        v-for="opt in responseParamParentOptions"
+                        :key="opt.value"
+                        :label="opt.label"
+                        :value="opt.value"
+                      />
+                    </el-select>
+                  </el-form-item>
+                  <el-form-item label="参数说明" required>
+                    <el-input
+                      v-model="addResponseParamInfo.docs"
+                      type="textarea"
+                      :rows="3"
+                      placeholder="请输入参数说明"
+                    />
+                  </el-form-item>
+                  <el-form-item label="示例值">
+                    <el-input
+                      v-model="addResponseParamInfo.example"
+                      placeholder="选填，如 200、success"
+                    />
+                  </el-form-item>
+                </el-form>
+              </div>
+              <template #footer>
+                <div class="dialog-footer">
+                  <el-button @click="addResponseParamDialogStatus = false">
+                    取消
+                  </el-button>
+                  <el-button type="primary" @click="addResponseParam">
+                    添加
                   </el-button>
                 </div>
               </template>
