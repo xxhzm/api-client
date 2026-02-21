@@ -22,6 +22,7 @@ const defaultActive = ref('')
 
 const { $msg, $myFetch } = useNuxtApp()
 const routeInfo = useCookie('routeInfo')
+const { onlyPhoneBind } = usePhoneBind()
 
 // 判断是否拥有权限，动态显示左侧边栏
 const routeShow = (path) => {
@@ -139,9 +140,13 @@ const pathMap = {
 
 const thirdPath = pathArr[2] // 注意 pathArr[2] 是第3段
 
-if (thirdPath && pathMap[thirdPath]) {
-  defaultOpeneds.value = [pathMap[thirdPath]]
-}
+watchEffect(() => {
+  if (onlyPhoneBind.value) {
+    defaultOpeneds.value = ['7']
+  } else if (thirdPath && pathMap[thirdPath]) {
+    defaultOpeneds.value = [pathMap[thirdPath]]
+  }
+})
 
 // 路由与菜单索引映射，用于高亮当前项
 const pathIndexMap = {
@@ -224,7 +229,7 @@ watch(
       class="sidebar-menu"
       @open="handleOpen"
       @close="handleClose"
-      :unique-opened="true"
+      :unique-opened="!onlyPhoneBind"
       :default-openeds="defaultOpeneds"
       :default-active="defaultActive"
     >

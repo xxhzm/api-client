@@ -5,6 +5,7 @@ const { $logout } = useNuxtApp()
 const route = useRoute()
 
 const username = useCookie('username')
+const { onlyPhoneBind } = usePhoneBind()
 
 // 路由路径与名称映射
 const routeNameMap = {
@@ -118,7 +119,7 @@ const parentNameMap = {
   '/admin/workorder': '工单系统',
   '/admin/myworkorder': '工单系统',
   '/admin/createworkorder': '工单系统',
-  '/admin/workorderdetail': '工单系统',  // 动态路由会匹配到此
+  '/admin/workorderdetail': '工单系统', // 动态路由会匹配到此
 
   // 个人中心
   '/admin/key': '个人中心',
@@ -143,7 +144,9 @@ const breadcrumbs = computed(() => {
   // 如果是动态路由（包含ID），则获取基础路径
   if (
     pathParts.length > 3 &&
-    (pathParts[2] === 'apiset' || pathParts[2] === 'articleset' || pathParts[2] === 'workorderdetail')
+    (pathParts[2] === 'apiset' ||
+      pathParts[2] === 'articleset' ||
+      pathParts[2] === 'workorderdetail')
   ) {
     basePath = `/${pathParts[1]}/${pathParts[2]}`
   }
@@ -171,6 +174,13 @@ const breadcrumbs = computed(() => {
 // --- Visited Views Logic ---
 const visitedViews = useState('visitedViews', () => [])
 
+const visibleViews = computed(() => {
+  if (!onlyPhoneBind.value) return visitedViews.value
+  return visitedViews.value.filter(
+    (v) => v.path === '/admin' || v.path === '/admin/phone',
+  )
+})
+
 const addVisitedView = () => {
   const path = route.path.replace(/\/$/, '') || '/admin'
 
@@ -181,7 +191,9 @@ const addVisitedView = () => {
 
   if (
     pathParts.length > 3 &&
-    (pathParts[2] === 'apiset' || pathParts[2] === 'articleset' || pathParts[2] === 'workorderdetail')
+    (pathParts[2] === 'apiset' ||
+      pathParts[2] === 'articleset' ||
+      pathParts[2] === 'workorderdetail')
   ) {
     basePath = `/${pathParts[1]}/${pathParts[2]}`
   }
@@ -194,6 +206,10 @@ const addVisitedView = () => {
 
   // Prevent adding if title is unknown or redirect
   if (path.startsWith('/redirect')) return
+
+  // 仅绑定手机号权限时，只允许 /admin 和 /admin/phone
+  if (onlyPhoneBind.value && path !== '/admin' && path !== '/admin/phone')
+    return
 
   const view = {
     path,
@@ -358,7 +374,7 @@ const handleSelect = (key) => {
     <div class="tags-view-container">
       <div class="tags-view-wrapper" ref="tagsWrapperRef">
         <router-link
-          v-for="tag in visitedViews"
+          v-for="tag in visibleViews"
           :key="tag.path"
           :class="isActive(tag) ? 'active' : ''"
           :to="{ path: tag.path }"

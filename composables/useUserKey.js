@@ -1,6 +1,7 @@
 export const useUserKey = () => {
   const { $myFetch } = useNuxtApp()
   const username = useCookie('username')
+  const { onlyPhoneBind } = usePhoneBind()
   const userAccessKey = useCookie('userAccessKey', {
     decode: (v) => v,
     encode: (v) => v,
@@ -19,7 +20,7 @@ export const useUserKey = () => {
     return res
   }
 
-  if (!userAccessKey.value) {
+  if (!userAccessKey.value && !onlyPhoneBind) {
     fetchUserKey()
   }
 

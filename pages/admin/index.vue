@@ -29,6 +29,7 @@ import {
   Iphone,
   Reading,
   ShoppingCart,
+  Lock,
 } from '@element-plus/icons-vue'
 
 definePageMeta({
@@ -39,6 +40,8 @@ const { $myFetch, $msg } = useNuxtApp()
 const username = useCookie('username')
 const routeInfo = useCookie('routeInfo')
 const { userAccessKey } = useUserKey()
+
+const { onlyPhoneBind } = usePhoneBind()
 
 // 判断是否是管理员（通过 /admin/system 路由权限判断）
 const isAdmin = computed(() => {
@@ -123,22 +126,118 @@ const recentAccessLinks = computed(() => {
 
 // Resource stats - 普通用户 (使用 markRaw 避免组件被转为响应式)
 const userResourceStats = ref([
-  { icon: markRaw(Box), title: '我的套餐', count: 0, unit: '个', color: '#3b82f6', bgColor: '#eff6ff', path: '/admin/mypackage' },
-  { icon: markRaw(TrendCharts), title: '今日调用', count: 0, unit: '次', color: '#8b5cf6', bgColor: '#f5f3ff', path: '/admin/statistics' },
-  { icon: markRaw(Key), title: 'API密钥', count: 1, unit: '个', color: '#10b981', bgColor: '#ecfdf5', path: '/admin/key' },
-  { icon: markRaw(Timer), title: '即将到期', count: 0, unit: '个', color: '#f59e0b', bgColor: '#fffbeb', path: '/admin/mypackage' },
+  {
+    icon: markRaw(Box),
+    title: '我的套餐',
+    count: 0,
+    unit: '个',
+    color: '#3b82f6',
+    bgColor: '#eff6ff',
+    path: '/admin/mypackage',
+  },
+  {
+    icon: markRaw(TrendCharts),
+    title: '今日调用',
+    count: 0,
+    unit: '次',
+    color: '#8b5cf6',
+    bgColor: '#f5f3ff',
+    path: '/admin/statistics',
+  },
+  {
+    icon: markRaw(Key),
+    title: 'API密钥',
+    count: 1,
+    unit: '个',
+    color: '#10b981',
+    bgColor: '#ecfdf5',
+    path: '/admin/key',
+  },
+  {
+    icon: markRaw(Timer),
+    title: '即将到期',
+    count: 0,
+    unit: '个',
+    color: '#f59e0b',
+    bgColor: '#fffbeb',
+    path: '/admin/mypackage',
+  },
 ])
 
 // Resource stats - 管理员 (data from Profile API, 使用 markRaw 避免组件被转为响应式)
 const adminResourceStats = ref([
-  { icon: markRaw(Avatar), title: '用户总数', count: 0, unit: '人', color: '#3b82f6', bgColor: '#eff6ff', path: '/admin/userlist' },
-  { icon: markRaw(Iphone), title: '已绑定手机', count: 0, unit: '人', color: '#06b6d4', bgColor: '#ecfeff', path: '/admin/userlist' },
-  { icon: markRaw(User), title: '24h新注册', count: 0, unit: '人', color: '#ef4444', bgColor: '#fef2f2', path: '/admin/userlist' },
-  { icon: markRaw(List), title: '接口总数', count: 0, unit: '个', color: '#8b5cf6', bgColor: '#f5f3ff', path: '/admin/apilist' },
-  { icon: markRaw(TrendCharts), title: '总请求数', count: 0, unit: '次', color: '#10b981', bgColor: '#ecfdf5', path: '/admin/statistics' },
-  { icon: markRaw(Coin), title: '今日收入', count: 0, unit: '元', color: '#f59e0b', bgColor: '#fffbeb', path: '/admin/rechargerecord' },
-  { icon: markRaw(Reading), title: '文章总数', count: 0, unit: '篇', color: '#ec4899', bgColor: '#fdf2f8', path: '/admin/articlelist' },
-  { icon: markRaw(ShoppingCart), title: '套餐销量', count: 0, unit: '单', color: '#22c55e', bgColor: '#f0fdf4', path: '/admin/buypackagerecord' },
+  {
+    icon: markRaw(Avatar),
+    title: '用户总数',
+    count: 0,
+    unit: '人',
+    color: '#3b82f6',
+    bgColor: '#eff6ff',
+    path: '/admin/userlist',
+  },
+  {
+    icon: markRaw(Iphone),
+    title: '已绑定手机',
+    count: 0,
+    unit: '人',
+    color: '#06b6d4',
+    bgColor: '#ecfeff',
+    path: '/admin/userlist',
+  },
+  {
+    icon: markRaw(User),
+    title: '24h新注册',
+    count: 0,
+    unit: '人',
+    color: '#ef4444',
+    bgColor: '#fef2f2',
+    path: '/admin/userlist',
+  },
+  {
+    icon: markRaw(List),
+    title: '接口总数',
+    count: 0,
+    unit: '个',
+    color: '#8b5cf6',
+    bgColor: '#f5f3ff',
+    path: '/admin/apilist',
+  },
+  {
+    icon: markRaw(TrendCharts),
+    title: '总请求数',
+    count: 0,
+    unit: '次',
+    color: '#10b981',
+    bgColor: '#ecfdf5',
+    path: '/admin/statistics',
+  },
+  {
+    icon: markRaw(Coin),
+    title: '今日收入',
+    count: 0,
+    unit: '元',
+    color: '#f59e0b',
+    bgColor: '#fffbeb',
+    path: '/admin/rechargerecord',
+  },
+  {
+    icon: markRaw(Reading),
+    title: '文章总数',
+    count: 0,
+    unit: '篇',
+    color: '#ec4899',
+    bgColor: '#fdf2f8',
+    path: '/admin/articlelist',
+  },
+  {
+    icon: markRaw(ShoppingCart),
+    title: '套餐销量',
+    count: 0,
+    unit: '单',
+    color: '#22c55e',
+    bgColor: '#f0fdf4',
+    path: '/admin/buypackagerecord',
+  },
 ])
 
 // Fetch Profile
@@ -147,7 +246,7 @@ const fetchProfile = async () => {
     const res = await $myFetch('Profile')
     if (res.code === 200) {
       const data = res.data
-      
+
       // 基本用户信息
       userInfo.id = data.id
       userInfo.username = username.value || '用户'
@@ -161,10 +260,10 @@ const fetchProfile = async () => {
       chartData.today_request = data.today_request || []
 
       // 用户资源统计 - 使用接口返回的数据
-      userResourceStats.value[0].count = data.available_packages || 0  // 我的套餐
+      userResourceStats.value[0].count = data.available_packages || 0 // 我的套餐
       packageStats.total = data.available_packages || 0
-      
-      userResourceStats.value[3].count = data.expiring_packages || 0   // 即将到期
+
+      userResourceStats.value[3].count = data.expiring_packages || 0 // 即将到期
       packageStats.expiringSoon = data.expiring_packages || 0
 
       // 计算今日调用总数
@@ -192,14 +291,14 @@ const fetchProfile = async () => {
         adminStats.totalArticles = data.total_articles || 0
         adminStats.totalPackageSales = data.total_package_sold || 0
 
-        adminResourceStats.value[0].count = data.total_users || 0              // 用户总数
-        adminResourceStats.value[1].count = data.phone_bind_users || 0        // 已绑定手机
-        adminResourceStats.value[2].count = data.new_users_in_24h || 0        // 24h新注册
-        adminResourceStats.value[3].count = data.total_apis || 0              // 接口总数
-        adminResourceStats.value[4].count = data.total_requests || 0          // 总请求数
-        adminResourceStats.value[5].count = Number(data.today_income || 0)    // 今日收入
-        adminResourceStats.value[6].count = data.total_articles || 0          // 文章总数
-        adminResourceStats.value[7].count = data.total_package_sold || 0      // 套餐销量
+        adminResourceStats.value[0].count = data.total_users || 0 // 用户总数
+        adminResourceStats.value[1].count = data.phone_bind_users || 0 // 已绑定手机
+        adminResourceStats.value[2].count = data.new_users_in_24h || 0 // 24h新注册
+        adminResourceStats.value[3].count = data.total_apis || 0 // 接口总数
+        adminResourceStats.value[4].count = data.total_requests || 0 // 总请求数
+        adminResourceStats.value[5].count = Number(data.today_income || 0) // 今日收入
+        adminResourceStats.value[6].count = data.total_articles || 0 // 文章总数
+        adminResourceStats.value[7].count = data.total_package_sold || 0 // 套餐销量
       }
 
       nextTick(() => {
@@ -229,7 +328,6 @@ const fetchBalance = async (showTip = false) => {
   }
 }
 
-
 // Init Chart
 const initChart = async () => {
   if (!process.client) return
@@ -241,9 +339,8 @@ const initChart = async () => {
   if (!echarts) {
     const echartsCore = await import('echarts/core')
     const { LineChart } = await import('echarts/charts')
-    const { TooltipComponent, GridComponent, GraphicComponent } = await import(
-      'echarts/components'
-    )
+    const { TooltipComponent, GridComponent, GraphicComponent } =
+      await import('echarts/components')
     const { CanvasRenderer } = await import('echarts/renderers')
 
     echartsCore.use([
@@ -283,7 +380,13 @@ const initChart = async () => {
       borderWidth: 1,
       textStyle: { color: '#374151' },
     },
-    grid: { left: '3%', right: '4%', top: '10%', bottom: '15%', containLabel: true },
+    grid: {
+      left: '3%',
+      right: '4%',
+      top: '10%',
+      bottom: '15%',
+      containLabel: true,
+    },
     xAxis: {
       type: 'category',
       data: xAxisData,
@@ -351,19 +454,154 @@ const formatCNY = (n) => {
 }
 
 onMounted(() => {
-  fetchProfile()  // 包含用户信息、套餐统计、管理员统计数据
-  fetchBalance()  // 获取账户余额
+  if (!onlyPhoneBind.value) {
+    fetchProfile() // 包含用户信息、套餐统计、管理员统计数据
+    fetchBalance() // 获取账户余额
+  }
 })
 
 useHead({
   title: '管理后台',
-  viewport: 'width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0',
+  viewport:
+    'width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0',
 })
 </script>
 
 <template>
   <div class="dashboard-page">
-    <div class="dashboard-layout">
+    <!-- 仅有绑定手机号权限时，只显示提示 -->
+    <div v-if="onlyPhoneBind" class="phone-bind-page">
+      <!-- 政策提示横幅 -->
+      <div class="policy-banner">
+        <el-icon><Bell /></el-icon>
+        <span
+          >根据相关法律法规及平台实名制要求，您需要完成手机号绑定后方可使用平台服务。</span
+        >
+      </div>
+
+      <div class="phone-bind-wrap">
+        <!-- 左侧说明 -->
+        <div class="card bind-info-card">
+          <div class="card-header">
+            <span class="card-title">为什么需要绑定手机号</span>
+          </div>
+          <div class="bind-reason-list">
+            <div class="reason-item">
+              <div class="reason-icon-wrap" style="background: #ecf5ff">
+                <el-icon style="color: #409eff"><Lock /></el-icon>
+              </div>
+              <div class="reason-text">
+                <span class="reason-title">实名认证要求</span>
+                <span class="reason-desc"
+                  >依据《网络安全法》等相关规定，平台须对用户进行实名核验，手机号为核验凭证之一。</span
+                >
+              </div>
+            </div>
+            <div class="reason-item">
+              <div class="reason-icon-wrap" style="background: #f0f9eb">
+                <el-icon style="color: #67c23a"><CircleCheck /></el-icon>
+              </div>
+              <div class="reason-text">
+                <span class="reason-title">账户安全保障</span>
+                <span class="reason-desc"
+                  >绑定手机号后可用于登录验证、密码找回，有效防止账户被盗。</span
+                >
+              </div>
+            </div>
+            <div class="reason-item">
+              <div class="reason-icon-wrap" style="background: #fdf6ec">
+                <el-icon style="color: #e6a23c"><Bell /></el-icon>
+              </div>
+              <div class="reason-text">
+                <span class="reason-title">重要通知送达</span>
+                <span class="reason-desc"
+                  >余额变动、套餐到期、系统公告等关键信息将通过短信及时通知您。</span
+                >
+              </div>
+            </div>
+            <div class="reason-item">
+              <div class="reason-icon-wrap" style="background: #fef0f0">
+                <el-icon style="color: #f56c6c"><Iphone /></el-icon>
+              </div>
+              <div class="reason-text">
+                <span class="reason-title">解锁完整服务</span>
+                <span class="reason-desc"
+                  >完成绑定后即可使用 API
+                  调用、套餐购买、充值等全部平台功能。</span
+                >
+              </div>
+            </div>
+          </div>
+          <div class="bind-privacy-note">
+            <el-icon><Warning /></el-icon>
+            <span>您的手机号信息受到严格保护。</span>
+          </div>
+        </div>
+
+        <!-- 右侧操作 -->
+        <div class="bind-action-card">
+          <div class="card bind-action-inner">
+            <div class="card-header">
+              <span class="card-title">立即完成绑定</span>
+            </div>
+            <div class="bind-current-user">
+              <div class="user-avatar-md">
+                {{
+                  String(username ?? '')
+                    .charAt(0)
+                    ?.toUpperCase() || 'U'
+                }}
+              </div>
+              <div class="user-meta-md">
+                <span class="user-name-md">{{ username || '用户' }}</span>
+                <span class="user-status"
+                  ><el-icon><Phone /></el-icon> 未绑定手机号</span
+                >
+              </div>
+            </div>
+
+            <div class="bind-steps">
+              <div class="step-item">
+                <div class="step-num">1</div>
+                <div class="step-content">
+                  <span class="step-title">点击下方按钮</span>
+                  <span class="step-desc">进入手机号绑定页面</span>
+                </div>
+              </div>
+              <div class="step-divider"></div>
+              <div class="step-item">
+                <div class="step-num">2</div>
+                <div class="step-content">
+                  <span class="step-title">填写手机号</span>
+                  <span class="step-desc">输入您的常用手机号码</span>
+                </div>
+              </div>
+              <div class="step-divider"></div>
+              <div class="step-item">
+                <div class="step-num">3</div>
+                <div class="step-content">
+                  <span class="step-title">验证并完成</span>
+                  <span class="step-desc">输入短信验证码，完成绑定</span>
+                </div>
+              </div>
+            </div>
+
+            <el-button
+              type="primary"
+              size="large"
+              class="bind-action-btn"
+              @click="navigateTo('/admin/phone')"
+            >
+              <el-icon><Phone /></el-icon>
+              前往绑定手机号
+            </el-button>
+          </div>
+        </div>
+      </div>
+
+      <AdminPhoneBindForm />
+    </div>
+    <div v-else class="dashboard-layout">
       <!-- Main Content -->
       <div class="main-content">
         <!-- Recent Access -->
@@ -396,14 +634,21 @@ useHead({
               class="resource-item admin-item"
               @click="navigateTo(stat.path)"
             >
-              <div class="resource-icon" :style="{ backgroundColor: stat.bgColor }">
+              <div
+                class="resource-icon"
+                :style="{ backgroundColor: stat.bgColor }"
+              >
                 <el-icon :style="{ color: stat.color }">
                   <component :is="stat.icon" />
                 </el-icon>
               </div>
               <span class="resource-title">{{ stat.title }}</span>
               <span class="resource-count">
-                {{ typeof stat.count === 'number' && stat.title === '今日收入' ? formatCNY(stat.count) : stat.count.toLocaleString() }}
+                {{
+                  typeof stat.count === 'number' && stat.title === '今日收入'
+                    ? formatCNY(stat.count)
+                    : stat.count.toLocaleString()
+                }}
                 <small v-if="stat.title !== '今日收入'">{{ stat.unit }}</small>
               </span>
             </div>
@@ -422,7 +667,10 @@ useHead({
               class="resource-item"
               @click="navigateTo(stat.path)"
             >
-              <div class="resource-icon" :style="{ backgroundColor: stat.bgColor }">
+              <div
+                class="resource-icon"
+                :style="{ backgroundColor: stat.bgColor }"
+              >
                 <el-icon :style="{ color: stat.color }">
                   <component :is="stat.icon" />
                 </el-icon>
@@ -460,12 +708,24 @@ useHead({
             </div>
           </div>
           <!-- 请求趋势图表 -->
-          <div v-show="activeChartTab === 'trend'" id="dataOverviewChart" class="chart-container"></div>
+          <div
+            v-show="activeChartTab === 'trend'"
+            id="dataOverviewChart"
+            class="chart-container"
+          ></div>
           <!-- 今日调用排行 -->
-          <div v-show="activeChartTab === 'ranking'" class="today-ranking-panel">
+          <div
+            v-show="activeChartTab === 'ranking'"
+            class="today-ranking-panel"
+          >
             <div class="ranking-header">
               <span class="ranking-title">今日接口调用排行</span>
-              <span class="ranking-total">共 {{ chartData.today_request.length }} 个接口，{{ userResourceStats[1].count.toLocaleString() }} 次调用</span>
+              <span class="ranking-total"
+                >共 {{ chartData.today_request.length }} 个接口，{{
+                  userResourceStats[1].count.toLocaleString()
+                }}
+                次调用</span
+              >
             </div>
             <div class="ranking-table">
               <div class="ranking-table-header">
@@ -483,11 +743,18 @@ useHead({
                   <span :class="['col-rank', { top: index < 3 }]">
                     <span class="rank-badge">{{ index + 1 }}</span>
                   </span>
-                  <span class="col-name" :title="item.name">{{ item.name }}</span>
+                  <span class="col-name" :title="item.name">{{
+                    item.name
+                  }}</span>
                   <span class="col-alias">{{ item.alias }}</span>
-                  <span class="col-count">{{ item.number.toLocaleString() }}</span>
+                  <span class="col-count">{{
+                    item.number.toLocaleString()
+                  }}</span>
                 </div>
-                <div v-if="!chartData.today_request.length" class="ranking-empty">
+                <div
+                  v-if="!chartData.today_request.length"
+                  class="ranking-empty"
+                >
                   暂无调用数据
                 </div>
               </div>
@@ -513,12 +780,18 @@ useHead({
         <div class="card user-mini-card">
           <div class="user-header">
             <div class="user-avatar" :class="{ admin: isAdmin }">
-              <span>{{ String(userInfo.username ?? '').charAt(0)?.toUpperCase() || 'U' }}</span>
+              <span>{{
+                String(userInfo.username ?? '')
+                  .charAt(0)
+                  ?.toUpperCase() || 'U'
+              }}</span>
             </div>
             <div class="user-meta">
               <div class="user-name">
                 {{ userInfo.username || '用户' }}
-                <el-tag v-if="isAdmin" size="small" type="danger" effect="dark">管理员</el-tag>
+                <el-tag v-if="isAdmin" size="small" type="danger" effect="dark"
+                  >管理员</el-tag
+                >
                 <el-icon v-else class="external-link"><Link /></el-icon>
               </div>
               <div class="user-id">
@@ -530,21 +803,41 @@ useHead({
           <div class="user-verifications">
             <div class="verification-item">
               <span class="item-label">邮箱绑定</span>
-              <span :class="['status', userInfo.mail_verified ? 'verified' : 'unverified']">
+              <span
+                :class="[
+                  'status',
+                  userInfo.mail_verified ? 'verified' : 'unverified',
+                ]"
+              >
                 <el-icon v-if="userInfo.mail_verified"><CircleCheck /></el-icon>
                 {{ userInfo.mail_verified ? '已绑定' : '未绑定' }}
               </span>
-              <span v-if="userInfo.mail" class="item-value">{{ userInfo.mail }}</span>
-              <span class="action-link" @click="navigateTo('/admin/profile')">{{ userInfo.mail_verified ? '修改' : '绑定' }}</span>
+              <span v-if="userInfo.mail" class="item-value">{{
+                userInfo.mail
+              }}</span>
+              <span class="action-link" @click="navigateTo('/admin/profile')">{{
+                userInfo.mail_verified ? '修改' : '绑定'
+              }}</span>
             </div>
             <div class="verification-item">
               <span class="item-label">手机绑定</span>
-              <span :class="['status', userInfo.phone_verified ? 'verified' : 'unverified']">
-                <el-icon v-if="userInfo.phone_verified"><CircleCheck /></el-icon>
+              <span
+                :class="[
+                  'status',
+                  userInfo.phone_verified ? 'verified' : 'unverified',
+                ]"
+              >
+                <el-icon v-if="userInfo.phone_verified"
+                  ><CircleCheck
+                /></el-icon>
                 {{ userInfo.phone_verified ? '已绑定' : '未绑定' }}
               </span>
-              <span v-if="userInfo.phone" class="item-value">{{ userInfo.phone }}</span>
-              <span class="action-link" @click="navigateTo('/admin/phone')">{{ userInfo.phone_verified ? '修改' : '绑定' }}</span>
+              <span v-if="userInfo.phone" class="item-value">{{
+                userInfo.phone
+              }}</span>
+              <span class="action-link" @click="navigateTo('/admin/phone')">{{
+                userInfo.phone_verified ? '修改' : '绑定'
+              }}</span>
             </div>
           </div>
         </div>
@@ -555,27 +848,51 @@ useHead({
             <span class="card-title">管理操作</span>
           </div>
           <div class="admin-action-list">
-            <div v-if="hasRoute('/admin/webset')" class="admin-action-item" @click="navigateTo('/admin/webset')">
+            <div
+              v-if="hasRoute('/admin/webset')"
+              class="admin-action-item"
+              @click="navigateTo('/admin/webset')"
+            >
               <el-icon><Setting /></el-icon>
               <span>系统设置</span>
             </div>
-            <div v-if="hasRoute('/admin/userlist')" class="admin-action-item" @click="navigateTo('/admin/userlist')">
+            <div
+              v-if="hasRoute('/admin/userlist')"
+              class="admin-action-item"
+              @click="navigateTo('/admin/userlist')"
+            >
               <el-icon><Avatar /></el-icon>
               <span>用户管理</span>
             </div>
-            <div v-if="hasRoute('/admin/apilist')" class="admin-action-item" @click="navigateTo('/admin/apilist')">
+            <div
+              v-if="hasRoute('/admin/apilist')"
+              class="admin-action-item"
+              @click="navigateTo('/admin/apilist')"
+            >
               <el-icon><List /></el-icon>
               <span>接口管理</span>
             </div>
-            <div v-if="hasRoute('/admin/package')" class="admin-action-item" @click="navigateTo('/admin/package')">
+            <div
+              v-if="hasRoute('/admin/package')"
+              class="admin-action-item"
+              @click="navigateTo('/admin/package')"
+            >
               <el-icon><Box /></el-icon>
               <span>套餐管理</span>
             </div>
-            <div v-if="hasRoute('/admin/statistics')" class="admin-action-item" @click="navigateTo('/admin/statistics')">
+            <div
+              v-if="hasRoute('/admin/statistics')"
+              class="admin-action-item"
+              @click="navigateTo('/admin/statistics')"
+            >
               <el-icon><DataLine /></el-icon>
               <span>统计分析</span>
             </div>
-            <div v-if="hasRoute('/admin/merchant')" class="admin-action-item" @click="navigateTo('/admin/merchant')">
+            <div
+              v-if="hasRoute('/admin/merchant')"
+              class="admin-action-item"
+              @click="navigateTo('/admin/merchant')"
+            >
               <el-icon><Shop /></el-icon>
               <span>商户审核</span>
             </div>
@@ -588,14 +905,20 @@ useHead({
             <span class="card-title">费用信息</span>
             <div class="billing-links">
               <span @click="navigateTo('/admin/rechargerecord')">充值记录</span>
-              <span @click="navigateTo('/admin/buypackagerecord')">购买记录</span>
+              <span @click="navigateTo('/admin/buypackagerecord')"
+                >购买记录</span
+              >
             </div>
           </div>
           <div class="balance-section">
             <div class="balance-label">账户余额 (元)</div>
             <div class="balance-row">
               <span class="balance-amount">{{ formatCNY(balance) }}</span>
-              <el-button type="primary" size="small" @click="navigateTo('/admin/pay')">
+              <el-button
+                type="primary"
+                size="small"
+                @click="navigateTo('/admin/pay')"
+              >
                 充值
               </el-button>
             </div>
@@ -603,7 +926,9 @@ useHead({
           <div class="billing-stats">
             <div class="billing-stat">
               <span class="stat-label">本月充值</span>
-              <span class="stat-value">¥{{ formatCNY(currentMonthTopUp) }}</span>
+              <span class="stat-value"
+                >¥{{ formatCNY(currentMonthTopUp) }}</span
+              >
             </div>
             <div class="billing-stat">
               <span class="stat-label">累计充值</span>
@@ -616,11 +941,18 @@ useHead({
         <div class="card expiring-card">
           <div class="expiring-header">
             <span class="expiring-label">30天内到期套餐</span>
-            <span :class="['expiring-count', { warning: packageStats.expiringSoon > 0 }]">
+            <span
+              :class="[
+                'expiring-count',
+                { warning: packageStats.expiringSoon > 0 },
+              ]"
+            >
               ({{ packageStats.expiringSoon }})
             </span>
           </div>
-          <span class="expiring-link" @click="navigateTo('/admin/mypackage')">立即续费</span>
+          <span class="expiring-link" @click="navigateTo('/admin/mypackage')"
+            >立即续费</span
+          >
         </div>
 
         <!-- API Key Info -->
@@ -635,13 +967,19 @@ useHead({
           <div class="apikey-info">
             <div class="apikey-label">当前密钥</div>
             <div class="apikey-value">
-              <code>{{ userAccessKey ? userAccessKey.slice(0, 8) + '****' + userAccessKey.slice(-4) : '-' }}</code>
+              <code>{{
+                userAccessKey
+                  ? userAccessKey.slice(0, 8) + '****' + userAccessKey.slice(-4)
+                  : '-'
+              }}</code>
             </div>
           </div>
           <div class="apikey-stats">
             <div class="apikey-stat">
               <span class="stat-label">24小时调用</span>
-              <span class="stat-value">{{ total24h.toLocaleString() }} <small>次</small></span>
+              <span class="stat-value"
+                >{{ total24h.toLocaleString() }} <small>次</small></span
+              >
             </div>
           </div>
         </div>
@@ -660,11 +998,17 @@ useHead({
               <el-icon><Wallet /></el-icon>
               <span>账户充值</span>
             </div>
-            <div class="quick-action-item" @click="navigateTo('/admin/useRechargeCard')">
+            <div
+              class="quick-action-item"
+              @click="navigateTo('/admin/useRechargeCard')"
+            >
               <el-icon><Box /></el-icon>
               <span>使用充值卡</span>
             </div>
-            <div class="quick-action-item" @click="navigateTo('/admin/password')">
+            <div
+              class="quick-action-item"
+              @click="navigateTo('/admin/password')"
+            >
               <el-icon><Key /></el-icon>
               <span>修改密码</span>
             </div>
@@ -1525,6 +1869,233 @@ useHead({
     .col-count {
       width: 80px;
     }
+  }
+}
+
+// Phone Bind Page
+.phone-bind-page {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.policy-banner {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 16px;
+  background: #fdf6ec;
+  border: 1px solid #faecd8;
+  border-radius: 8px;
+  font-size: 13px;
+  color: #e6a23c;
+  line-height: 1.6;
+
+  .el-icon {
+    font-size: 15px;
+    flex-shrink: 0;
+  }
+}
+
+.phone-bind-wrap {
+  display: flex;
+  gap: 16px;
+  align-items: stretch;
+}
+
+.bind-info-card {
+  flex: 1;
+  min-width: 0;
+
+  .bind-reason-list {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    margin-bottom: 16px;
+  }
+
+  .reason-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+
+    .reason-icon-wrap {
+      width: 36px;
+      height: 36px;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+
+      .el-icon {
+        font-size: 18px;
+      }
+    }
+
+    .reason-text {
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+      padding-top: 2px;
+
+      .reason-title {
+        font-size: 13px;
+        font-weight: 600;
+        color: #303133;
+      }
+
+      .reason-desc {
+        font-size: 12px;
+        color: #909399;
+        line-height: 1.6;
+      }
+    }
+  }
+
+  .bind-privacy-note {
+    display: flex;
+    align-items: flex-start;
+    gap: 6px;
+    padding: 10px 12px;
+    background: #f5f7fa;
+    border-radius: 6px;
+    font-size: 12px;
+    color: #909399;
+    line-height: 1.6;
+
+    .el-icon {
+      font-size: 13px;
+      flex-shrink: 0;
+      margin-top: 2px;
+    }
+  }
+}
+
+.bind-action-card {
+  width: 300px;
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+
+  .bind-action-inner {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    flex: 1;
+  }
+
+  .bind-current-user {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 0 20px;
+    border-bottom: 1px solid #f0f0f0;
+    margin-bottom: 20px;
+
+    .user-avatar-md {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      background: #409eff;
+      color: #fff;
+      font-size: 16px;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+
+    .user-meta-md {
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+
+      .user-name-md {
+        font-size: 14px;
+        font-weight: 600;
+        color: #303133;
+      }
+
+      .user-status {
+        display: flex;
+        align-items: center;
+        gap: 4px;
+        font-size: 12px;
+        color: #f56c6c;
+
+        .el-icon {
+          font-size: 12px;
+        }
+      }
+    }
+  }
+
+  .bind-steps {
+    display: flex;
+    flex-direction: column;
+    margin-bottom: 20px;
+
+    .step-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+
+      .step-num {
+        width: 24px;
+        height: 24px;
+        border-radius: 50%;
+        background: #409eff;
+        color: #fff;
+        font-size: 12px;
+        font-weight: 600;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+      }
+
+      .step-content {
+        display: flex;
+        flex-direction: column;
+        gap: 1px;
+        padding-top: 3px;
+
+        .step-title {
+          font-size: 13px;
+          font-weight: 600;
+          color: #303133;
+        }
+
+        .step-desc {
+          font-size: 12px;
+          color: #909399;
+        }
+      }
+    }
+
+    .step-divider {
+      width: 1px;
+      height: 18px;
+      background: #e4e7ed;
+      margin-left: 11px;
+    }
+  }
+
+  .bind-action-btn {
+    width: 100%;
+    font-size: 14px;
+  }
+}
+
+@media screen and (max-width: 768px) {
+  .phone-bind-wrap {
+    flex-direction: column;
+  }
+
+  .bind-action-card {
+    width: 100%;
   }
 }
 </style>

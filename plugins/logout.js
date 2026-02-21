@@ -4,10 +4,12 @@ export default defineNuxtPlugin((/* nuxtApp */) => {
       // 向服务器发送请求判断 token 是否正确
       logout: () => {
         const username = useCookie('username')
+        const userAccessKey = useCookie('userAccessKey')
         const token = useTokenCookie()
 
         username.value = undefined
         token.value = undefined
+        userAccessKey.value = undefined
 
         setTimeout(() => {
           window.location.href = '/login'
