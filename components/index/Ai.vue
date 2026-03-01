@@ -94,7 +94,15 @@ const loadHighlightJs = async () => {
   return hljs
 }
 
+const props = defineProps({
+  alias: {
+    type: String,
+    default: '',
+  },
+})
+
 const { $myFetch } = useNuxtApp()
+const token = useTokenCookie()
 
 // 聊天状态
 const chatVisible = ref(false)
@@ -103,6 +111,7 @@ const chatMessages = ref([])
 const isLoading = ref(false)
 const unreadCount = ref(0)
 const chatMessagesContainer = ref(null)
+const conversationId = ref(null)
 
 // 拖动相关状态
 const isDragging = ref(false)
@@ -119,10 +128,12 @@ const welcomeMessage = {
 
 // 切换聊天窗口
 const toggleChat = () => {
-  chatVisible.value = !chatVisible.value
+  if (!token.value) {
+    ElMessage.warning('请先登录后再使用 AI 助手')
+    return navigateTo('/login')
+  }
 
-  // 保存当前聊天窗口状态到localStorage
-  localStorage.setItem('chatVisible', chatVisible.value ? 'true' : 'false')
+  chatVisible.value = !chatVisible.value
 
   if (chatVisible.value) {
     // 打开聊天窗口时预加载 highlight.js
@@ -166,18 +177,38 @@ const sendMessage = async () => {
 
   try {
     // 调用实际的Chat API接口
+    const query = { message: message }
+    if (conversationId.value) {
+      query.conversation_id = conversationId.value
+    }
+    if (props.alias) {
+      query.alias = props.alias
+    }
+
     const res = await $myFetch('Chat', {
-      query: {
-        message: message,
-      },
+      query: query,
     })
 
     // 检查响应状态
     if (res.code === 200 && res.data) {
+      // 保存 conversation_id
+      if (res.data.conversation_id) {
+        conversationId.value = res.data.conversation_id
+      }
+
+      // 从 list 中提取最新的 assistant 回复
+      let aiContent = ''
+      const assistantMessages = (res.data.list || []).filter(
+        (m) => m.role === 'assistant',
+      )
+      if (assistantMessages.length > 0) {
+        aiContent = assistantMessages[assistantMessages.length - 1].content
+      }
+
       // 添加AI回复
       chatMessages.value.push({
         role: 'assistant',
-        content: res.data,
+        content: aiContent || '抱歉，未获取到有效回复。',
         time: formatTime(new Date()),
       })
     } else {
@@ -232,40 +263,7 @@ function formatTime(date) {
   return `${hours}:${minutes}`
 }
 
-// 监听消息变化，保存到本地存储
-watch(
-  chatMessages,
-  (newMessages) => {
-    if (newMessages.length > 0) {
-      localStorage.setItem('chatHistory', JSON.stringify(newMessages))
-    }
-  },
-  { deep: true }
-)
-
-// 挂载时从本地存储加载历史消息
 onMounted(() => {
-  // 加载聊天历史
-  const savedMessages = localStorage.getItem('chatHistory')
-  if (savedMessages) {
-    try {
-      chatMessages.value = JSON.parse(savedMessages)
-    } catch (e) {}
-  }
-
-  // 恢复聊天窗口的可见状态
-  const savedChatVisible = localStorage.getItem('chatVisible')
-  if (savedChatVisible === 'true') {
-    chatVisible.value = true
-    // 恢复时也预加载 highlight.js
-    loadHighlightJs()
-
-    // 滚动到最新消息
-    nextTick(() => {
-      scrollToBottom()
-    })
-  }
-
   // 添加鼠标事件监听器到document
   document.addEventListener('mousemove', handleMouseMove)
   document.addEventListener('mouseup', handleMouseUp)
@@ -321,7 +319,8 @@ onBeforeUnmount(() => {
 const formatMessageContent = (content) => {
   if (!content) return ''
 
-  let formattedContent = content
+  let formattedContent =
+    typeof content === 'string' ? content : JSON.stringify(content, null, 2)
 
   // 处理代码块 (```code```)
   formattedContent = formattedContent.replace(
@@ -339,19 +338,19 @@ const formatMessageContent = (content) => {
       } catch (e) {}
 
       return `<pre class="code-block"><code class="hljs language-${validLang}">${highlightedCode}</code></pre>`
-    }
+    },
   )
 
   // 处理加粗文本 (**text**)
   formattedContent = formattedContent.replace(
     /\*\*([^*]+)\*\*/g,
-    '<strong class="bold-text">$1</strong>'
+    '<strong class="bold-text">$1</strong>',
   )
 
   // 处理行内代码 (`code`)
   formattedContent = formattedContent.replace(
     /`([^`]+)`/g,
-    '<code class="inline-code">$1</code>'
+    '<code class="inline-code">$1</code>',
   )
 
   // 处理换行符

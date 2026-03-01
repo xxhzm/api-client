@@ -2091,7 +2091,7 @@ const generatedExamples = computed(() => {
       </div>
     </el-dialog>
 
-    <IndexAi></IndexAi>
+    <IndexAi :alias="route.params.alias"></IndexAi>
     <IndexFooter :options="options"></IndexFooter>
   </div>
 </template>

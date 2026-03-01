@@ -123,6 +123,7 @@ const pathMap = {
   articlelist: '6',
   createarticle: '6',
   'ai-article': '6',
+  'ai-chat': '6',
   ad: '6',
   links: '6',
 
@@ -196,8 +197,9 @@ const pathIndexMap = {
   '/admin/articlelist': '6-1',
   '/admin/createarticle': '6-2',
   '/admin/ai-article': '6-3',
-  '/admin/ad': '6-4',
-  '/admin/links': '6-5',
+  '/admin/ai-chat': '6-4',
+  '/admin/ad': '6-5',
+  '/admin/links': '6-6',
 
   // Personal Center (7)
   '/admin/profile': '7-1',
@@ -556,6 +558,7 @@ watch(
               '/admin/articlelist',
               '/admin/createarticle',
               '/admin/ai-article',
+              '/admin/ai-chat',
               '/admin/ad',
               '/admin/links',
             ])
@@ -588,12 +591,18 @@ watch(
             >
             <el-menu-item
               index="6-4"
+              @click="navigateTo('/admin/ai-chat')"
+              v-if="routeShow('/admin/ai-chat')"
+              >AI会话管理</el-menu-item
+            >
+            <el-menu-item
+              index="6-5"
               @click="navigateTo('/admin/ad')"
               v-if="routeShow('/admin/ad')"
               >广告位管理</el-menu-item
             >
             <el-menu-item
-              index="6-5"
+              index="6-6"
               @click="navigateTo('/admin/links')"
               v-if="routeShow('/admin/links')"
             >

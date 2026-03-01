@@ -34,7 +34,7 @@ const { data: articleData } = await useAsyncData('HomeArticleList', () =>
       limit: 5,
       type: '',
     },
-  })
+  }),
 )
 
 const articleList = computed(() => articleData.value?.data?.list || [])
@@ -78,7 +78,7 @@ const searchAPI = () => {
   if (searchKeyword.value.trim()) {
     // 跳转到市场页面并传递搜索关键词
     navigateTo(
-      `/api-market?search=${encodeURIComponent(searchKeyword.value.trim())}`
+      `/api-market?search=${encodeURIComponent(searchKeyword.value.trim())}`,
     )
   } else {
     // 如果没有输入关键词，直接跳转到市场页面
@@ -268,7 +268,6 @@ const handleEnterSearch = (event) => {
 
     <LazyIndexPartners />
     <IndexFooter :options="options" />
-    <LazyIndexAi />
   </div>
 </template>
 
