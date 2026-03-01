@@ -20,7 +20,8 @@ export const useUserKey = () => {
     return res
   }
 
-  if (!userAccessKey.value && !onlyPhoneBind) {
+  if (!userAccessKey.value && !onlyPhoneBind.value) {
+    console.log('获取秘钥')
     fetchUserKey()
   }
 
