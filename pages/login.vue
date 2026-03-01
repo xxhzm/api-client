@@ -69,7 +69,7 @@ const login = async () => {
     body: bodyValue,
   })
 
-  if (res.code === 200 && res.data.username === info.username) {
+  if (res.code === 200) {
     // 设置cookie
     username.value = res.data.username
     token.value = res.data.token
@@ -686,7 +686,7 @@ useHead({
           <el-form-item>
             <el-input
               v-model="info.username"
-              placeholder="请输入用户名"
+              placeholder="请输入用户名/邮箱/手机号"
               prefix-icon="el-icon-user"
               @keyup.enter="login"
             />
