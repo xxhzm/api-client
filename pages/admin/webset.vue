@@ -2817,6 +2817,7 @@ useHead({
                       <el-radio-group v-model="loginInfo.provider">
                         <el-radio value="aliyun">阿里云</el-radio>
                         <el-radio value="tencent">腾讯云</el-radio>
+                        <el-radio value="smsbao">短信宝</el-radio>
                       </el-radio-group>
                     </el-form-item>
 
@@ -2911,6 +2912,33 @@ useHead({
                           placeholder="请输入secretKey"
                         />
                         <div class="form-help">腾讯云API密钥Key</div>
+                      </el-form-item>
+                    </template>
+
+                    <!-- 短信宝配置 -->
+                    <template v-if="loginInfo.provider === 'smsbao'">
+                      <el-divider content-position="left"
+                        >短信宝平台配置</el-divider
+                      >
+
+                      <el-form-item label="用户名 (secretId)">
+                        <el-input
+                          v-model="loginInfo.secretId"
+                          placeholder="请输入短信宝用户名"
+                        />
+                        <div class="form-help">短信宝平台注册的用户名</div>
+                      </el-form-item>
+
+                      <el-form-item label="密钥 (secretKey)">
+                        <el-input
+                          v-model="loginInfo.secretKey"
+                          type="password"
+                          show-password
+                          placeholder="请输入密码MD5值(32位)或ApiKey"
+                        />
+                        <div class="form-help">
+                          平台登录密码经MD5加密后的值（32位，不区分大小写）或ApiKey（推荐，更安全），可在短信宝后台或联系客服获得
+                        </div>
                       </el-form-item>
                     </template>
                   </template>

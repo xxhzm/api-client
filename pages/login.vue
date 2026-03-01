@@ -109,6 +109,34 @@ const LoginIsRegisterChange = () => {
 const getVerifyCodeButtonState = ref(false)
 // 邮箱登录验证码按钮状态
 const getEmailVerifyCodeButtonState = ref(false)
+// 注册验证码倒计时
+const smsCountdown = ref(0)
+let smsCountdownTimer = null
+// 登录验证码倒计时
+const smsLoginCountdown = ref(0)
+let smsLoginCountdownTimer = null
+
+const startSmsCountdown = () => {
+  smsCountdown.value = 60
+  clearInterval(smsCountdownTimer)
+  smsCountdownTimer = setInterval(() => {
+    smsCountdown.value--
+    if (smsCountdown.value <= 0) {
+      clearInterval(smsCountdownTimer)
+    }
+  }, 1000)
+}
+
+const startSmsLoginCountdown = () => {
+  smsLoginCountdown.value = 60
+  clearInterval(smsLoginCountdownTimer)
+  smsLoginCountdownTimer = setInterval(() => {
+    smsLoginCountdown.value--
+    if (smsLoginCountdown.value <= 0) {
+      clearInterval(smsLoginCountdownTimer)
+    }
+  }, 1000)
+}
 
 // 图片验证码信息
 const captchaInfo = ref({
@@ -133,7 +161,7 @@ watch(
   },
   {
     immediate: true,
-  }
+  },
 )
 
 // 获取邮箱验证码
@@ -202,6 +230,7 @@ const getMailCode = async () => {
 
   info.sign = res.data
   getVerifyCodeButtonState.value = false
+  startSmsCountdown()
 }
 
 const register = async () => {
@@ -325,7 +354,7 @@ const toggleEmailLogin = (targetMethod = false) => {
     } else if (targetMethod && availableLoginMethods.value.length > 1) {
       // 在可用的登录方式之间切换
       const currentIndex = availableLoginMethods.value.indexOf(
-        currentLoginMethod.value
+        currentLoginMethod.value,
       )
       const nextIndex = (currentIndex + 1) % availableLoginMethods.value.length
       currentLoginMethod.value = availableLoginMethods.value[nextIndex]
@@ -483,6 +512,7 @@ const getMailLoginCode = async () => {
     if (res.code === 200) {
       $msg(res.data, 'success')
       info.sign = res.data
+      startSmsLoginCountdown()
     } else {
       $msg(res.msg, 'error')
       getCaptchaInfo()
@@ -605,8 +635,8 @@ useHead({
             isForgotPassword
               ? toggleForgotPassword()
               : isEmailLogin
-              ? toggleEmailLogin()
-              : goBack()
+                ? toggleEmailLogin()
+                : goBack()
           "
         >
           <img src="@/assets/images/goback.svg" alt="返回" />
@@ -614,8 +644,8 @@ useHead({
             isForgotPassword
               ? '返回登录'
               : isEmailLogin
-              ? '返回登录'
-              : '返回首页'
+                ? '返回登录'
+                : '返回首页'
           }}
         </span>
         <div class="header-content">
@@ -624,12 +654,12 @@ useHead({
               isForgotPassword
                 ? '找回密码'
                 : isEmailLogin
-                ? currentLoginMethod === 'sms'
-                  ? '手机号登录'
-                  : '邮箱登录'
-                : LoginIsRegister
-                ? '账号登录'
-                : '注册账号'
+                  ? currentLoginMethod === 'sms'
+                    ? '手机号登录'
+                    : '邮箱登录'
+                  : LoginIsRegister
+                    ? '账号登录'
+                    : '注册账号'
             }}
           </h2>
           <p class="subtitle">
@@ -637,12 +667,12 @@ useHead({
               isForgotPassword
                 ? '输入您的用户名和邮箱找回密码'
                 : isEmailLogin
-                ? currentLoginMethod === 'sms'
-                  ? '使用手机号验证码快速登录'
-                  : '使用邮箱验证码快速登录'
-                : LoginIsRegister
-                ? '欢迎使用' + options.website_name + '，请登录您的账号'
-                : '欢迎加入' + options.website_name + '，请完成注册'
+                  ? currentLoginMethod === 'sms'
+                    ? '使用手机号验证码快速登录'
+                    : '使用邮箱验证码快速登录'
+                  : LoginIsRegister
+                    ? '欢迎使用' + options.website_name + '，请登录您的账号'
+                    : '欢迎加入' + options.website_name + '，请完成注册'
             }}
           </p>
         </div>
@@ -811,9 +841,14 @@ useHead({
               <el-button
                 @click="getMailLoginCode"
                 :loading="getEmailVerifyCodeButtonState"
+                :disabled="smsLoginCountdown > 0"
                 class="verify-code-btn"
               >
-                获取验证码
+                {{
+                  smsLoginCountdown > 0
+                    ? smsLoginCountdown + 's 后重新获取'
+                    : '获取验证码'
+                }}
               </el-button>
             </div>
           </el-form-item>
@@ -955,9 +990,14 @@ useHead({
               <el-button
                 @click="getMailCode"
                 :loading="getVerifyCodeButtonState"
+                :disabled="smsCountdown > 0"
                 class="verify-code-btn"
               >
-                获取验证码
+                {{
+                  smsCountdown > 0
+                    ? smsCountdown + 's 后重新获取'
+                    : '获取验证码'
+                }}
               </el-button>
             </div>
           </el-form-item>
