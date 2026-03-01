@@ -626,11 +626,12 @@ const githubLogin = async () => {
 }
 
 // 处理 GitHub OAuth 回调
-const handleGithubCallback = async (code) => {
+const handleGithubCallback = async (code, state) => {
   githubLoginLoading.value = true
   try {
     const body = new URLSearchParams()
     body.append('code', code)
+    body.append('state', state)
     const res = await $myFetch('GitHubCallback', {
       method: 'POST',
       body,
@@ -663,11 +664,12 @@ onMounted(() => {
   // 检测 GitHub OAuth 回调
   const route = useRoute()
   const code = route.query.code
-  if (code) {
-    // 清除 URL 中的 code 参数
+  const state = route.query.state
+  if (code && state) {
+    // 清除 URL 中的 code 和 state 参数
     const cleanUrl = window.location.pathname
     window.history.replaceState({}, '', cleanUrl)
-    handleGithubCallback(code)
+    handleGithubCallback(code, state)
   }
 })
 
