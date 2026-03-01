@@ -63,6 +63,8 @@ const isImageResponse = ref(false)
 const imageUrl = ref('')
 const isVideoResponse = ref(false)
 const videoUrl = ref('')
+const isHtmlResponse = ref(false)
+const htmlContent = ref('')
 
 // highlight.js 动态导入
 let hljs = null
@@ -224,7 +226,13 @@ const sendRequest = async () => {
 
     // 处理直接返回的媒体类型
     if (contentType) {
-      if (
+      if (contentType.includes('text/html')) {
+        isHtmlResponse.value = true
+        isVideoResponse.value = false
+        isImageResponse.value = false
+        htmlContent.value = await res.text()
+        response.value = { code: 200, msg: 'HTML内容获取成功' }
+      } else if (
         contentType.includes('video/') ||
         contentType.includes('application/x-mpegURL')
       ) {
@@ -321,6 +329,8 @@ watch(debugVisible, (val) => {
     response.value = null
     isImageResponse.value = false
     isVideoResponse.value = false
+    isHtmlResponse.value = false
+    htmlContent.value = ''
     if (imageUrl.value) {
       URL.revokeObjectURL(imageUrl.value)
       imageUrl.value = ''
@@ -415,6 +425,21 @@ watch(debugVisible, (val) => {
                 复制图片链接
               </el-button>
             </div>
+          </div>
+        </template>
+        <template v-else-if="isHtmlResponse">
+          <div class="html-response">
+            <div class="html-response-actions">
+              <el-button size="small" @click="copy(htmlContent)">
+                <el-icon><CopyDocument /></el-icon>
+                复制HTML源码
+              </el-button>
+            </div>
+            <iframe
+              class="html-preview-iframe"
+              :srcdoc="htmlContent"
+              sandbox="allow-same-origin allow-scripts"
+            />
           </div>
         </template>
         <template v-else>
@@ -567,6 +592,33 @@ watch(debugVisible, (val) => {
             margin-right: 4px;
           }
         }
+      }
+    }
+
+    .html-response {
+      background: #f9fafb;
+      border-radius: 8px;
+      border: 1px solid #f1f5f9;
+      padding: 16px;
+
+      .html-response-actions {
+        display: flex;
+        justify-content: flex-end;
+        margin-bottom: 12px;
+
+        .el-button {
+          .el-icon {
+            margin-right: 4px;
+          }
+        }
+      }
+
+      .html-preview-iframe {
+        width: 100%;
+        min-height: 400px;
+        border: 1px solid #e2e8f0;
+        border-radius: 4px;
+        background: #fff;
       }
     }
 
