@@ -131,6 +131,8 @@ const loginInfo = ref({
   secretKey: '',
   signName: '',
   templateCode: '',
+  githubClientId: '',
+  githubClientSecret: '',
 })
 
 // 验证码配置相关
@@ -864,6 +866,11 @@ const loginInfoSubmit = async () => {
   bodyValue.append('secretKey', loginInfo.value.secretKey || '')
   bodyValue.append('signName', loginInfo.value.signName || '')
   bodyValue.append('templateCode', loginInfo.value.templateCode || '')
+  bodyValue.append('gitHubClientId', loginInfo.value.githubClientId || '')
+  bodyValue.append(
+    'gitHubClientSecret',
+    loginInfo.value.githubClientSecret || '',
+  )
 
   const res = await $myFetch('UpdateLoginMethodInfo', {
     method: 'POST',
@@ -2804,144 +2811,182 @@ useHead({
                     <el-checkbox-group v-model="loginInfo.method">
                       <el-checkbox label="email">邮箱验证码登录</el-checkbox>
                       <el-checkbox label="sms">手机号验证码登录</el-checkbox>
+                      <el-checkbox label="github">GitHub 快捷登录</el-checkbox>
                     </el-checkbox-group>
                   </el-form-item>
 
-                  <!-- 手机号登录配置 -->
-                  <template v-if="loginInfo.method.includes('sms')">
-                    <el-divider content-position="left"
-                      >短信平台配置</el-divider
+                  <el-tabs
+                    v-if="
+                      loginInfo.method.includes('sms') ||
+                      loginInfo.method.includes('github')
+                    "
+                    class="sub-tabs"
+                    style="margin-bottom: 20px"
+                  >
+                    <!-- 短信平台配置 -->
+                    <el-tab-pane
+                      v-if="loginInfo.method.includes('sms')"
+                      label="短信平台配置"
                     >
+                      <el-form-item label="短信服务商">
+                        <el-radio-group v-model="loginInfo.provider">
+                          <el-radio value="aliyun">阿里云</el-radio>
+                          <el-radio value="tencent">腾讯云</el-radio>
+                          <el-radio value="smsbao">短信宝</el-radio>
+                        </el-radio-group>
+                      </el-form-item>
 
-                    <el-form-item label="短信服务商">
-                      <el-radio-group v-model="loginInfo.provider">
-                        <el-radio value="aliyun">阿里云</el-radio>
-                        <el-radio value="tencent">腾讯云</el-radio>
-                        <el-radio value="smsbao">短信宝</el-radio>
-                      </el-radio-group>
-                    </el-form-item>
+                      <!-- 阿里云配置 -->
+                      <template v-if="loginInfo.provider === 'aliyun'">
+                        <el-divider content-position="left"
+                          >阿里云平台配置</el-divider
+                        >
 
-                    <!-- 阿里云配置 -->
-                    <template v-if="loginInfo.provider === 'aliyun'">
-                      <el-divider content-position="left"
-                        >阿里云平台配置</el-divider
-                      >
+                        <el-form-item label="签名名称">
+                          <el-input
+                            v-model="loginInfo.signName"
+                            placeholder="示例：山东省云鹊网络科技"
+                          />
+                          <div class="form-help">
+                            短信签名名称，用于标识短信发送方
+                          </div>
+                        </el-form-item>
 
-                      <el-form-item label="签名名称">
+                        <el-form-item label="模版代码">
+                          <el-input
+                            v-model="loginInfo.templateCode"
+                            placeholder="示例：SMS_311225217"
+                          />
+                          <div class="form-help">阿里云短信模板代码</div>
+                        </el-form-item>
+
+                        <el-form-item label="AccessKeyId">
+                          <el-input
+                            v-model="loginInfo.secretId"
+                            placeholder="请输入AccessKeyId"
+                          />
+                          <div class="form-help">阿里云访问密钥ID</div>
+                        </el-form-item>
+
+                        <el-form-item label="AccessKeySecret">
+                          <el-input
+                            v-model="loginInfo.secretKey"
+                            type="password"
+                            show-password
+                            placeholder="请输入AccessKeySecret"
+                          />
+                          <div class="form-help">阿里云访问密钥Secret</div>
+                        </el-form-item>
+                      </template>
+
+                      <!-- 腾讯云配置 -->
+                      <template v-if="loginInfo.provider === 'tencent'">
+                        <el-divider content-position="left"
+                          >腾讯云平台配置</el-divider
+                        >
+
+                        <el-form-item label="SdkAppId">
+                          <el-input
+                            v-model="loginInfo.sdkAppId"
+                            placeholder="请输入SdkAppId"
+                          />
+                          <div class="form-help">腾讯云短信应用ID</div>
+                        </el-form-item>
+
+                        <el-form-item label="模板ID">
+                          <el-input
+                            v-model="loginInfo.templateCode"
+                            placeholder="请输入模板ID"
+                          />
+                          <div class="form-help">腾讯云短信模板ID</div>
+                        </el-form-item>
+
+                        <el-form-item label="签名名称">
+                          <el-input
+                            v-model="loginInfo.signName"
+                            placeholder="示例：山东省云鹊网络"
+                          />
+                          <div class="form-help">
+                            短信签名名称，用于标识短信发送方
+                          </div>
+                        </el-form-item>
+
+                        <el-form-item label="secretId">
+                          <el-input
+                            v-model="loginInfo.secretId"
+                            placeholder="请输入secretId"
+                          />
+                          <div class="form-help">腾讯云API密钥ID</div>
+                        </el-form-item>
+
+                        <el-form-item label="secretKey">
+                          <el-input
+                            v-model="loginInfo.secretKey"
+                            type="password"
+                            show-password
+                            placeholder="请输入secretKey"
+                          />
+                          <div class="form-help">腾讯云API密钥Key</div>
+                        </el-form-item>
+                      </template>
+
+                      <!-- 短信宝配置 -->
+                      <template v-if="loginInfo.provider === 'smsbao'">
+                        <el-divider content-position="left"
+                          >短信宝平台配置</el-divider
+                        >
+
+                        <el-form-item label="用户名 (secretId)">
+                          <el-input
+                            v-model="loginInfo.secretId"
+                            placeholder="请输入短信宝用户名"
+                          />
+                          <div class="form-help">短信宝平台注册的用户名</div>
+                        </el-form-item>
+
+                        <el-form-item label="密钥 (secretKey)">
+                          <el-input
+                            v-model="loginInfo.secretKey"
+                            type="password"
+                            show-password
+                            placeholder="请输入密码MD5值(32位)或ApiKey"
+                          />
+                          <div class="form-help">
+                            平台登录密码经MD5加密后的值（32位，不区分大小写）或ApiKey（推荐，更安全），可在短信宝后台或联系客服获得
+                          </div>
+                        </el-form-item>
+                      </template>
+                    </el-tab-pane>
+
+                    <!-- GitHub 第三方登录配置 -->
+                    <el-tab-pane
+                      v-if="loginInfo.method.includes('github')"
+                      label="GitHub 登录配置"
+                    >
+                      <el-form-item label="GitHub Client ID">
                         <el-input
-                          v-model="loginInfo.signName"
-                          placeholder="示例：山东省云鹊网络科技"
+                          v-model="loginInfo.githubClientId"
+                          placeholder="请输入 GitHub OAuth App 的 Client ID"
                         />
                         <div class="form-help">
-                          短信签名名称，用于标识短信发送方
+                          在 GitHub Settings → Developer settings → OAuth Apps
+                          中创建应用获取
                         </div>
                       </el-form-item>
 
-                      <el-form-item label="模版代码">
+                      <el-form-item label="GitHub Client Secret">
                         <el-input
-                          v-model="loginInfo.templateCode"
-                          placeholder="示例：SMS_311225217"
-                        />
-                        <div class="form-help">阿里云短信模板代码</div>
-                      </el-form-item>
-
-                      <el-form-item label="AccessKeyId">
-                        <el-input
-                          v-model="loginInfo.secretId"
-                          placeholder="请输入AccessKeyId"
-                        />
-                        <div class="form-help">阿里云访问密钥ID</div>
-                      </el-form-item>
-
-                      <el-form-item label="AccessKeySecret">
-                        <el-input
-                          v-model="loginInfo.secretKey"
+                          v-model="loginInfo.githubClientSecret"
                           type="password"
                           show-password
-                          placeholder="请输入AccessKeySecret"
-                        />
-                        <div class="form-help">阿里云访问密钥Secret</div>
-                      </el-form-item>
-                    </template>
-
-                    <!-- 腾讯云配置 -->
-                    <template v-if="loginInfo.provider === 'tencent'">
-                      <el-divider content-position="left"
-                        >腾讯云平台配置</el-divider
-                      >
-
-                      <el-form-item label="SdkAppId">
-                        <el-input
-                          v-model="loginInfo.sdkAppId"
-                          placeholder="请输入SdkAppId"
-                        />
-                        <div class="form-help">腾讯云短信应用ID</div>
-                      </el-form-item>
-
-                      <el-form-item label="模板ID">
-                        <el-input
-                          v-model="loginInfo.templateCode"
-                          placeholder="请输入模板ID"
-                        />
-                        <div class="form-help">腾讯云短信模板ID</div>
-                      </el-form-item>
-
-                      <el-form-item label="签名名称">
-                        <el-input
-                          v-model="loginInfo.signName"
-                          placeholder="示例：山东省云鹊网络"
+                          placeholder="请输入 GitHub OAuth App 的 Client Secret"
                         />
                         <div class="form-help">
-                          短信签名名称，用于标识短信发送方
+                          OAuth App 的密钥，请妥善保管，不要泄露
                         </div>
                       </el-form-item>
-
-                      <el-form-item label="secretId">
-                        <el-input
-                          v-model="loginInfo.secretId"
-                          placeholder="请输入secretId"
-                        />
-                        <div class="form-help">腾讯云API密钥ID</div>
-                      </el-form-item>
-
-                      <el-form-item label="secretKey">
-                        <el-input
-                          v-model="loginInfo.secretKey"
-                          type="password"
-                          show-password
-                          placeholder="请输入secretKey"
-                        />
-                        <div class="form-help">腾讯云API密钥Key</div>
-                      </el-form-item>
-                    </template>
-
-                    <!-- 短信宝配置 -->
-                    <template v-if="loginInfo.provider === 'smsbao'">
-                      <el-divider content-position="left"
-                        >短信宝平台配置</el-divider
-                      >
-
-                      <el-form-item label="用户名 (secretId)">
-                        <el-input
-                          v-model="loginInfo.secretId"
-                          placeholder="请输入短信宝用户名"
-                        />
-                        <div class="form-help">短信宝平台注册的用户名</div>
-                      </el-form-item>
-
-                      <el-form-item label="密钥 (secretKey)">
-                        <el-input
-                          v-model="loginInfo.secretKey"
-                          type="password"
-                          show-password
-                          placeholder="请输入密码MD5值(32位)或ApiKey"
-                        />
-                        <div class="form-help">
-                          平台登录密码经MD5加密后的值（32位，不区分大小写）或ApiKey（推荐，更安全），可在短信宝后台或联系客服获得
-                        </div>
-                      </el-form-item>
-                    </template>
-                  </template>
+                    </el-tab-pane>
+                  </el-tabs>
 
                   <el-form-item>
                     <el-button type="primary" @click="loginInfoSubmit">

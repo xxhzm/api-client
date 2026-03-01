@@ -600,9 +600,75 @@ const mailLogin = async () => {
 // 获取配置信息
 const options = useState('options')
 
+// GitHub 登录
+const githubLoginLoading = ref(false)
+
+const githubLogin = async () => {
+  if (!isPolicyAgreed.value) {
+    $msg('请阅读并同意隐私政策和用户协议', 'error')
+    return
+  }
+  githubLoginLoading.value = true
+  try {
+    const res = await $myFetch('GitHubLogin', {
+      method: 'GET',
+    })
+    if (res.code === 200 && res.data && res.data.url) {
+      window.location.href = res.data.url
+    } else {
+      $msg(res.msg || 'GitHub 登录暂不可用', 'error')
+    }
+  } catch (error) {
+    $msg('获取 GitHub 授权地址失败', 'error')
+  } finally {
+    githubLoginLoading.value = false
+  }
+}
+
+// 处理 GitHub OAuth 回调
+const handleGithubCallback = async (code) => {
+  githubLoginLoading.value = true
+  try {
+    const body = new URLSearchParams()
+    body.append('code', code)
+    const res = await $myFetch('GitHubCallback', {
+      method: 'POST',
+      body,
+    })
+    if (res.code === 200 && res.data.username) {
+      username.value = res.data.username
+      token.value = res.data.token
+
+      const authorization = useState('Authorization')
+      authorization.value = res.data.token
+
+      $msg('GitHub 登录成功', 'success')
+
+      routeInfo.value = res.data.routeInfo
+      navigateTo('/admin')
+    } else {
+      $msg(res.msg || 'GitHub 登录失败', 'error')
+    }
+  } catch (error) {
+    $msg('GitHub 登录失败，请稍后重试', 'error')
+  } finally {
+    githubLoginLoading.value = false
+  }
+}
+
 // 组件挂载时获取登录方式配置
 onMounted(() => {
   getLoginMethodConfig()
+
+  // 检测 GitHub OAuth 回调
+  const route = useRoute()
+  const code = route.query.code
+  if (code) {
+    // 清除 URL 中的 code 参数
+    const cleanUrl = window.location.pathname
+    window.history.replaceState({}, '', cleanUrl)
+    handleGithubCallback(code)
+  }
 })
 
 useHead({
@@ -734,6 +800,32 @@ useHead({
             登录
           </el-button>
         </el-form>
+        <div
+          v-if="availableLoginMethods.includes('github')"
+          class="third-party-login"
+        >
+          <div class="divider">
+            <span>或使用第三方登录</span>
+          </div>
+          <el-button
+            class="github-btn"
+            @click="githubLogin"
+            :loading="githubLoginLoading"
+          >
+            <svg
+              class="github-icon"
+              viewBox="0 0 16 16"
+              width="20"
+              height="20"
+              fill="currentColor"
+            >
+              <path
+                d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"
+              />
+            </svg>
+            GitHub 登录
+          </el-button>
+        </div>
         <div class="form-footer">
           <span>还没有账号？</span>
           <a @click="LoginIsRegisterChange">立即注册</a>
@@ -1042,7 +1134,7 @@ useHead({
   .login-card {
     width: 100%;
     max-width: 420px;
-    height: 560px;
+    height: 620px;
     background: #fff;
     border-radius: 12px;
     box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
@@ -1183,6 +1275,60 @@ useHead({
       }
     }
 
+    .third-party-login {
+      padding: 0 32px;
+
+      .divider {
+        display: flex;
+        align-items: center;
+        margin: 16px 0;
+
+        &::before,
+        &::after {
+          content: '';
+          flex: 1;
+          height: 1px;
+          background: #dcdfe6;
+        }
+
+        span {
+          padding: 0 12px;
+          font-size: 12px;
+          color: #909399;
+          white-space: nowrap;
+        }
+      }
+
+      .github-btn {
+        width: 100%;
+        height: 40px;
+        font-size: 14px;
+        color: #fff;
+        background-color: #24292e;
+        border: none;
+        border-radius: 6px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        transition: background-color 0.3s;
+
+        &:hover,
+        &:focus {
+          background-color: #3b4045;
+          color: #fff;
+        }
+
+        &:active {
+          background-color: #1b1f23;
+        }
+
+        .github-icon {
+          flex-shrink: 0;
+        }
+      }
+    }
+
     .form-footer {
       text-align: center;
       margin-top: 20px;
@@ -1225,7 +1371,7 @@ useHead({
     padding: 16px;
 
     .login-card {
-      height: 500px;
+      height: 560px;
 
       &.is-register {
         height: 580px;
