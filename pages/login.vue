@@ -1136,7 +1136,7 @@ useHead({
   .login-card {
     width: 100%;
     max-width: 420px;
-    height: 620px;
+    min-height: 560px;
     background: #fff;
     border-radius: 12px;
     box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
