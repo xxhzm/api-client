@@ -403,11 +403,9 @@ onUnmounted(() => {
               <el-input
                 v-model="formData.captcha"
                 placeholder="请输入验证码"
-                maxlength="4"
                 clearable
                 :prefix-icon="Key"
                 class="captcha-input"
-                @input="(val) => (formData.captcha = val.replace(/\D/g, ''))"
               />
               <div class="captcha-image" @click="getCaptchaInfo">
                 <img :src="captchaInfo.url" alt="验证码" />
