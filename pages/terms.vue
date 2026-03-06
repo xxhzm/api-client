@@ -1,19 +1,14 @@
 <script setup>
 import {
   Document,
-  Lock,
   User,
   Service,
-  Warning,
-  Connection,
-  DataAnalysis,
   Timer,
   Message,
   Phone,
   Location,
 } from '@element-plus/icons-vue'
 
-// 配置项
 const options = useState('options')
 
 useHead({
@@ -38,12 +33,11 @@ useHead({
   ],
 })
 
-// 服务条款数据
 const termsData = ref([
   {
     id: 'service-description',
     title: '服务说明',
-    icon: 'Service',
+    color: '#3b82f6',
     content: `
       <p>本平台是一个专业的API服务平台，致力于为开发者提供高质量、稳定可靠的API接口服务。我们提供的服务包括但不限于：</p>
       <ul class="bullet-list">
@@ -59,7 +53,7 @@ const termsData = ref([
   {
     id: 'user-agreement',
     title: '用户协议',
-    icon: 'User',
+    color: '#10b981',
     content: `
       <p>在使用本平台服务前，请仔细阅读并理解以下用户协议：</p>
       <ol class="numbered-list">
@@ -74,7 +68,7 @@ const termsData = ref([
   {
     id: 'api-usage',
     title: 'API使用条款',
-    icon: 'Connection',
+    color: '#8b5cf6',
     content: `
       <p>使用我们的API服务时，您需要遵守以下条款：</p>
       <div class="terms-subsection">
@@ -106,7 +100,7 @@ const termsData = ref([
   {
     id: 'payment-terms',
     title: '付费条款',
-    icon: 'DataAnalysis',
+    color: '#f59e0b',
     content: `
       <p>对于付费API服务，以下条款适用：</p>
       <ol class="numbered-list">
@@ -122,7 +116,7 @@ const termsData = ref([
   {
     id: 'data-security',
     title: '数据安全',
-    icon: 'Lock',
+    color: '#10b981',
     content: `
       <p>我们高度重视数据安全，采取以下措施保护用户数据：</p>
       <div class="terms-subsection">
@@ -149,7 +143,7 @@ const termsData = ref([
   {
     id: 'service-availability',
     title: '服务可用性',
-    icon: 'Lock',
+    color: '#3b82f6',
     content: `
       <p>我们致力于提供稳定可靠的服务，但需要说明以下情况：</p>
       <ol class="numbered-list">
@@ -164,7 +158,7 @@ const termsData = ref([
   {
     id: 'liability-limitation',
     title: '责任限制',
-    icon: 'Warning',
+    color: '#ef4444',
     content: `
       <p>在法律允许的最大范围内，我们的责任限制如下：</p>
       <ol class="numbered-list">
@@ -180,7 +174,7 @@ const termsData = ref([
   {
     id: 'terms-modification',
     title: '条款修改',
-    icon: 'Document',
+    color: '#8b5cf6',
     content: `
       <p>我们保留修改本服务条款的权利，修改时将遵循以下原则：</p>
       <ul class="bullet-list">
@@ -194,21 +188,6 @@ const termsData = ref([
   },
 ])
 
-// 图标映射函数
-const getIcon = (iconName) => {
-  const iconMap = {
-    Service,
-    User,
-    Connection,
-    DataAnalysis,
-    Lock,
-    Warning,
-    Document,
-  }
-  return iconMap[iconName] || Service
-}
-
-// 联系信息
 const contactInfo = ref({
   email: options.value?.contact_email || '',
   phone: options.value?.contact_phone || '',
@@ -218,512 +197,986 @@ const contactInfo = ref({
 </script>
 
 <template>
-  <div class="terms-container">
+  <div class="terms-page">
     <IndexNavbar></IndexNavbar>
-    <div class="container">
-      <!-- 页面标题 -->
-      <div class="section">
-        <h1 class="page-title">服务条款</h1>
-        <div class="content-card intro">
-          <p class="intro-text">
+
+    <!-- Hero Section -->
+    <section class="hero-section">
+      <div class="hero-bg-pattern"></div>
+      <div class="container hero-container">
+        <div class="hero-content">
+          <div class="badge"><span class="badge-dot"></span> 法律条款</div>
+          <h1 class="hero-title">服务条款</h1>
+          <p class="hero-subtitle">
             欢迎使用我们的API服务平台。在使用我们的服务之前，请仔细阅读并理解以下服务条款。
             这些条款构成您与我们之间的法律协议，使用我们的服务即表示您同意遵守这些条款。
           </p>
-          <p class="update-notice">
+          <div class="update-time">
             <el-icon><Timer /></el-icon>
             最后更新时间：{{ new Date().toLocaleDateString('zh-CN') }}
-          </p>
+          </div>
         </div>
       </div>
+    </section>
 
-      <!-- 服务条款内容 -->
-      <div class="section" v-for="term in termsData" :key="term.id">
-        <h2 class="section-title">
-          <el-icon class="section-icon">
-            <component :is="getIcon(term.icon)"></component>
-          </el-icon>
-          {{ term.title }}
-        </h2>
-        <div class="content-card terms-content">
-          <div v-html="term.content"></div>
-        </div>
-      </div>
+    <!-- Terms Content -->
+    <section class="section terms-list-section">
+      <div class="container">
+        <div class="terms-layout">
+          <!-- Sidebar Nav -->
+          <aside class="terms-nav">
+            <div class="nav-sticky">
+              <h3 class="nav-title">目录</h3>
+              <a
+                v-for="(term, index) in termsData"
+                :key="term.id"
+                :href="`#${term.id}`"
+                class="nav-item"
+              >
+                <span class="nav-num">{{ String(index + 1).padStart(2, '0') }}</span>
+                <span class="nav-text">{{ term.title }}</span>
+              </a>
+            </div>
+          </aside>
 
-      <!-- 重要提醒 -->
-      <div class="section">
-        <h2 class="section-title">
-          <el-icon class="section-icon"><Warning /></el-icon>
-          重要提醒
-        </h2>
-        <div class="content-card important-notice">
-          <div class="notice-grid">
-            <div class="notice-item">
-              <el-icon><Document /></el-icon>
-              <div>
-                <h4>法律效力</h4>
-                <p>本服务条款具有法律约束力，请在使用服务前仔细阅读。</p>
+          <!-- Main Content -->
+          <div class="terms-main">
+            <div
+              v-for="(term, index) in termsData"
+              :key="term.id"
+              :id="term.id"
+              class="terms-block"
+            >
+              <div class="block-header">
+                <div class="block-num">{{ String(index + 1).padStart(2, '0') }}</div>
+                <div class="block-meta">
+                  <h2>{{ term.title }}</h2>
+                  <div class="block-divider" :style="{ backgroundColor: term.color }"></div>
+                </div>
               </div>
-            </div>
-            <div class="notice-item">
-              <el-icon><User /></el-icon>
-              <div>
-                <h4>用户责任</h4>
-                <p>用户应对自己的行为负责，遵守相关法律法规。</p>
-              </div>
-            </div>
-            <div class="notice-item">
-              <el-icon><Service /></el-icon>
-              <div>
-                <h4>服务变更</h4>
-                <p>我们可能会根据业务需要调整服务内容和条款。</p>
-              </div>
+              <div class="block-body" v-html="term.content"></div>
             </div>
           </div>
         </div>
       </div>
+    </section>
 
-      <!-- 联系我们 -->
-      <div class="section">
-        <h2 class="section-title">
-          <el-icon class="section-icon"><Message /></el-icon>
-          联系我们
-        </h2>
-        <div class="content-card contact">
-          <p class="contact-intro">
-            如果您对服务条款有任何疑问，请通过以下方式联系我们：
-          </p>
-          <div class="contact-grid">
-            <div class="contact-item">
+    <!-- Important Notice -->
+    <section class="section notice-section">
+      <div class="container">
+        <div class="section-header text-center">
+          <h2 class="section-title">重要提醒</h2>
+          <p class="section-desc">请在使用服务前务必了解以下事项</p>
+        </div>
+        <div class="notice-grid">
+          <div class="notice-card">
+            <div class="icon-box" style="background-color: #fef3c715; color: #f59e0b;">
+              <el-icon><Document /></el-icon>
+            </div>
+            <h3>法律效力</h3>
+            <p>本服务条款具有法律约束力，请在使用服务前仔细阅读。</p>
+          </div>
+          <div class="notice-card">
+            <div class="icon-box" style="background-color: #fef3c715; color: #f59e0b;">
+              <el-icon><User /></el-icon>
+            </div>
+            <h3>用户责任</h3>
+            <p>用户应对自己的行为负责，遵守相关法律法规。</p>
+          </div>
+          <div class="notice-card">
+            <div class="icon-box" style="background-color: #fef3c715; color: #f59e0b;">
+              <el-icon><Service /></el-icon>
+            </div>
+            <h3>服务变更</h3>
+            <p>我们可能会根据业务需要调整服务内容和条款。</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Contact Section -->
+    <section class="section contact-section">
+      <div class="container">
+        <div class="contact-bar">
+          <div class="contact-left">
+            <h3>对条款有疑问？</h3>
+            <p>如果您对服务条款有任何疑问，请通过以下方式联系我们，我们将尽快为您解答。</p>
+          </div>
+          <div class="contact-right">
+            <div class="contact-item" v-if="contactInfo.email">
               <el-icon><Message /></el-icon>
               <div>
-                <span class="label">邮箱：</span>
-                <a :href="`mailto:${contactInfo.email}`">{{
-                  contactInfo.email
-                }}</a>
+                <span class="label">邮箱</span>
+                <a :href="`mailto:${contactInfo.email}`">{{ contactInfo.email }}</a>
               </div>
             </div>
-            <div class="contact-item">
+            <div class="contact-item" v-if="contactInfo.phone">
               <el-icon><Phone /></el-icon>
               <div>
-                <span class="label">电话：</span>
+                <span class="label">电话</span>
                 <span>{{ contactInfo.phone }}</span>
               </div>
             </div>
-            <div class="contact-item">
+            <div class="contact-item" v-if="contactInfo.address">
               <el-icon><Location /></el-icon>
               <div>
-                <span class="label">地址：</span>
+                <span class="label">地址</span>
                 <span>{{ contactInfo.address }}</span>
               </div>
             </div>
-            <div class="contact-item">
+            <div class="contact-item" v-if="contactInfo.workTime">
               <el-icon><Timer /></el-icon>
               <div>
-                <span class="label">工作时间：</span>
+                <span class="label">工作时间</span>
                 <span>{{ contactInfo.workTime }}</span>
               </div>
             </div>
           </div>
         </div>
       </div>
-    </div>
+    </section>
 
     <IndexFooter :options="options"></IndexFooter>
   </div>
 </template>
 
 <style lang="less" scoped>
-.terms-container {
-  width: 100%;
-  min-height: 100vh;
-  background: linear-gradient(to bottom, #f7f9fe, #ffffff);
+.terms-page {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto,
+    sans-serif;
+  color: #1e293b;
+  background-color: #ffffff;
+  overflow-x: hidden;
+}
 
-  .container {
-    width: 90%;
-    max-width: 1200px;
-    margin: 0 auto;
-    padding: 20px 0;
+.container {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 0 24px;
+}
+
+/* Hero Section */
+.hero-section {
+  position: relative;
+  padding: 120px 0 80px;
+  background-color: #f8fafc;
+  overflow: hidden;
+
+  .hero-bg-pattern {
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 50%;
+    height: 100%;
+    background-image: radial-gradient(#e2e8f0 1px, transparent 1px);
+    background-size: 32px 32px;
+    opacity: 0.5;
+    z-index: 0;
+    mask-image: linear-gradient(to left, black, transparent);
   }
 
-  .section {
-    margin-bottom: 32px;
+  .hero-container {
+    position: relative;
+    z-index: 1;
+  }
+
+  .hero-content {
+    max-width: 800px;
+  }
+
+  .badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 6px 12px;
+    background-color: #eff6ff;
+    color: #2563eb;
+    border-radius: 100px;
+    font-size: 14px;
+    font-weight: 500;
+    margin-bottom: 24px;
+
+    .badge-dot {
+      width: 6px;
+      height: 6px;
+      background-color: #2563eb;
+      border-radius: 50%;
+      margin-right: 8px;
+    }
+  }
+
+  .hero-title {
+    font-size: 48px;
+    line-height: 1.15;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    margin-bottom: 20px;
+    color: #0f172a;
+  }
+
+  .hero-subtitle {
+    font-size: 17px;
+    line-height: 1.8;
+    color: #64748b;
+    margin-bottom: 24px;
+  }
+
+  .update-time {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 16px;
+    background: white;
+    border-radius: 8px;
+    font-size: 14px;
+    color: #64748b;
+    border: 1px solid #e2e8f0;
+
+    .el-icon {
+      font-size: 16px;
+      color: #3b82f6;
+    }
+  }
+}
+
+/* Sections */
+.section {
+  padding: 80px 0;
+
+  .section-header {
+    margin-bottom: 60px;
+
+    &.text-center {
+      text-align: center;
+    }
+
+    .section-title {
+      font-size: 36px;
+      font-weight: 700;
+      color: #0f172a;
+      margin-bottom: 16px;
+    }
+
+    .section-desc {
+      font-size: 18px;
+      color: #64748b;
+    }
+  }
+}
+
+/* Terms List */
+.terms-list-section {
+  padding-top: 60px;
+  background: #f8fafc;
+
+  .terms-layout {
+    display: flex;
+    gap: 48px;
+    align-items: flex-start;
+  }
+
+  .terms-nav {
+    width: 240px;
+    flex-shrink: 0;
+
+    .nav-sticky {
+      position: sticky;
+      top: 100px;
+    }
+
+    .nav-title {
+      font-size: 12px;
+      font-weight: 700;
+      color: #94a3b8;
+      text-transform: uppercase;
+      letter-spacing: 1.5px;
+      margin: 0 0 16px;
+      padding-left: 12px;
+    }
+
+    .nav-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 10px 12px;
+      border-radius: 8px;
+      text-decoration: none;
+      transition: all 0.2s ease;
+      margin-bottom: 4px;
+
+      &:hover {
+        background: white;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+
+        .nav-num {
+          color: #2563eb;
+        }
+
+        .nav-text {
+          color: #0f172a;
+        }
+      }
+
+      .nav-num {
+        font-size: 13px;
+        font-weight: 700;
+        color: #cbd5e1;
+        font-variant-numeric: tabular-nums;
+        transition: color 0.2s;
+      }
+
+      .nav-text {
+        font-size: 14px;
+        color: #64748b;
+        font-weight: 500;
+        transition: color 0.2s;
+      }
+    }
+  }
+
+  .terms-main {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .terms-block {
+    background: white;
+    border-radius: 16px;
+    border: 1px solid #e2e8f0;
+    margin-bottom: 28px;
+    transition: all 0.3s ease;
+    overflow: hidden;
 
     &:last-child {
       margin-bottom: 0;
     }
-  }
 
-  .page-title {
-    font-size: 28px;
-    color: #1f2f3d;
-    text-align: center;
-    margin: 0 0 20px 0;
-    font-weight: 500;
-  }
-
-  .section-title {
-    position: relative;
-    color: #1f2f3d;
-    font-size: 16px;
-    font-weight: normal;
-    margin: 0 0 20px 0;
-    padding-left: 24px;
-    line-height: 1.4;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-
-    &::before {
-      content: '';
-      position: absolute;
-      left: 0;
-      top: 50%;
-      transform: translateY(-50%);
-      width: 3px;
-      height: 16px;
-      background: #409eff;
-      border-radius: 3px;
+    &:hover {
+      box-shadow: 0 12px 32px -8px rgba(15, 23, 42, 0.1);
+      border-color: transparent;
     }
 
-    .section-icon {
-      font-size: 18px;
-      color: #409eff;
-      margin-left: 0;
-    }
-  }
-
-  .content-card {
-    background: #fff;
-    border-radius: 12px;
-    padding: 24px;
-    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.06);
-  }
-
-  .intro {
-    .intro-text {
-      color: #606266;
-      font-size: 14px;
-      line-height: 1.8;
-      margin: 0 0 16px 0;
-      text-indent: 2em;
-    }
-
-    .update-notice {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      color: #909399;
-      font-size: 13px;
-      padding: 12px 16px;
-      background: #f5f7fa;
-      border-radius: 8px;
-      margin: 0;
-
-      .el-icon {
-        font-size: 14px;
-      }
-    }
-  }
-
-  .terms-content {
-    :deep(p) {
-      color: #606266;
-      font-size: 14px;
-      line-height: 1.8;
-      margin: 0 0 16px 0;
-      text-indent: 2em;
-
-      &:last-child {
-        margin-bottom: 0;
-      }
-
-      &.notice {
-        background: #fff7e6;
-        border: 1px solid #ffd591;
-        border-radius: 8px;
-        padding: 12px 16px;
-        text-indent: 0;
-        color: #d46b08;
-      }
-    }
-
-    :deep(.highlight) {
-      color: #409eff;
-      font-weight: 500;
-    }
-
-    :deep(.numbered-list) {
-      margin: 0 0 16px 0;
-      padding-left: 20px;
-      counter-reset: item;
-
-      li {
-        margin-bottom: 12px;
-        line-height: 1.8;
-        color: #606266;
-        font-size: 14px;
-        display: block;
-        position: relative;
-
-        &:before {
-          content: counter(item) '. ';
-          counter-increment: item;
-          color: #409eff;
-          font-weight: 500;
-        }
-
-        &:last-child {
-          margin-bottom: 0;
-        }
-      }
-    }
-
-    :deep(.bullet-list) {
-      margin: 0 0 16px 0;
-      padding-left: 20px;
-      list-style-type: disc;
-
-      li {
-        margin-bottom: 8px;
-        line-height: 1.8;
-        color: #606266;
-        font-size: 14px;
-
-        &:last-child {
-          margin-bottom: 0;
-        }
-      }
-    }
-
-    :deep(.terms-subsection) {
-      margin: 20px 0;
-      padding: 16px;
-      background: #f9fafc;
-      border-radius: 8px;
-
-      h4 {
-        color: #303133;
-        font-size: 15px;
-        margin: 0 0 12px 0;
-        font-weight: 500;
-      }
-
-      .bullet-list {
-        margin-bottom: 0;
-      }
-    }
-  }
-
-  .important-notice {
-    .notice-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-      gap: 20px;
-    }
-
-    .notice-item {
+    .block-header {
       display: flex;
       align-items: flex-start;
-      gap: 12px;
-      padding: 16px;
-      background: #fff7e6;
-      border-radius: 8px;
-      border: 1px solid #ffd591;
+      gap: 20px;
+      padding: 32px 36px 24px;
 
-      .el-icon {
-        font-size: 20px;
-        color: #d46b08;
-        margin-top: 2px;
+      .block-num {
+        font-size: 48px;
+        font-weight: 800;
+        color: #f1f5f9;
+        line-height: 1;
+        letter-spacing: -0.04em;
+        flex-shrink: 0;
+        user-select: none;
       }
 
-      h4 {
-        color: #d46b08;
-        font-size: 14px;
-        margin: 0 0 4px 0;
-        font-weight: 500;
+      .block-meta {
+        padding-top: 10px;
       }
 
-      p {
-        color: #d46b08;
-        font-size: 13px;
-        line-height: 1.6;
-        margin: 0;
+      h2 {
+        font-size: 22px;
+        font-weight: 700;
+        color: #0f172a;
+        margin: 0 0 8px;
+      }
+
+      .block-divider {
+        width: 40px;
+        height: 3px;
+        border-radius: 2px;
+        opacity: 0.6;
       }
     }
-  }
 
-  .contact {
-    .contact-intro {
-      color: #606266;
-      font-size: 14px;
-      line-height: 1.8;
-      margin: 0 0 20px 0;
-      text-indent: 2em;
-    }
+    .block-body {
+      padding: 0 36px 32px 36px;
 
-    .contact-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-      gap: 16px;
-    }
+      :deep(p) {
+        color: #475569;
+        font-size: 15px;
+        line-height: 1.8;
+        margin: 0 0 16px;
 
-    .contact-item {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      padding: 16px;
-      background: #f5f7fa;
-      border-radius: 8px;
-      transition: all 0.3s ease;
+        &:last-child {
+          margin-bottom: 0;
+        }
 
-      &:hover {
-        background: #ecf5ff;
-      }
-
-      .el-icon {
-        font-size: 18px;
-        color: #409eff;
-      }
-
-      .label {
-        color: #909399;
-        font-size: 13px;
-        margin-right: 4px;
-      }
-
-      a {
-        color: #409eff;
-        text-decoration: none;
-        font-size: 14px;
-        transition: color 0.3s ease;
-
-        &:hover {
-          color: #66b1ff;
+        &.notice {
+          background: #fffbeb;
+          border: 1px solid #fde68a;
+          border-radius: 10px;
+          padding: 14px 18px;
+          color: #92400e;
+          font-size: 14px;
         }
       }
 
-      span:not(.label) {
-        color: #606266;
-        font-size: 14px;
+      :deep(.highlight) {
+        color: #2563eb;
+        font-weight: 600;
+      }
+
+      :deep(.numbered-list) {
+        margin: 0 0 16px;
+        padding-left: 0;
+        counter-reset: item;
+        list-style: none;
+
+        li {
+          margin-bottom: 14px;
+          line-height: 1.8;
+          color: #475569;
+          font-size: 15px;
+          display: flex;
+          gap: 10px;
+
+          &::before {
+            content: counter(item);
+            counter-increment: item;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 24px;
+            height: 24px;
+            background: #eff6ff;
+            color: #2563eb;
+            border-radius: 6px;
+            font-size: 13px;
+            font-weight: 700;
+            flex-shrink: 0;
+            margin-top: 3px;
+          }
+
+          &:last-child {
+            margin-bottom: 0;
+          }
+        }
+      }
+
+      :deep(.bullet-list) {
+        margin: 0 0 16px;
+        padding-left: 0;
+        list-style: none;
+
+        li {
+          margin-bottom: 10px;
+          line-height: 1.8;
+          color: #475569;
+          font-size: 15px;
+          padding-left: 22px;
+          position: relative;
+
+          &::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 10px;
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: #3b82f6;
+          }
+
+          &:last-child {
+            margin-bottom: 0;
+          }
+        }
+      }
+
+      :deep(.terms-subsection) {
+        margin: 20px 0;
+        padding: 24px;
+        background: #f8fafc;
+        border-radius: 12px;
+        border: 1px solid #f1f5f9;
+
+        h4 {
+          color: #0f172a;
+          font-size: 16px;
+          margin: 0 0 14px;
+          font-weight: 700;
+        }
+
+        .bullet-list {
+          margin-bottom: 0;
+        }
       }
     }
   }
 }
 
-@media screen and (max-width: 768px) {
-  .terms-container {
-    .container {
-      width: 95%;
+/* Notice Section */
+.notice-section {
+  background: #f8fafc;
+
+  .notice-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 28px;
+  }
+
+  .notice-card {
+    padding: 32px;
+    background: white;
+    border-radius: 16px;
+    border: 1px solid #f1f5f9;
+    transition: all 0.3s ease;
+
+    &:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 12px 32px -8px rgba(15, 23, 42, 0.1);
+      border-color: transparent;
     }
 
-    .page-title {
-      font-size: 24px;
+    .icon-box {
+      width: 52px;
+      height: 52px;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 26px;
+      margin-bottom: 20px;
     }
 
-    .section-title {
+    h3 {
+      font-size: 18px;
+      font-weight: 700;
+      color: #0f172a;
+      margin: 0 0 10px;
+    }
+
+    p {
       font-size: 15px;
-      padding-left: 20px;
+      color: #64748b;
+      line-height: 1.6;
+      margin: 0;
+    }
+  }
+}
 
-      &::before {
-        height: 14px;
-      }
+/* Contact Section */
+.contact-section {
+  background: white;
 
-      .section-icon {
-        font-size: 16px;
+  .contact-bar {
+    display: flex;
+    background: #0f172a;
+    border-radius: 20px;
+    overflow: hidden;
+    box-shadow: 0 25px 50px -12px rgba(15, 23, 42, 0.25);
+  }
+
+  .contact-left {
+    flex: 1;
+    padding: 48px;
+    background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+
+    h3 {
+      font-size: 28px;
+      font-weight: 700;
+      color: white;
+      margin: 0 0 14px;
+    }
+
+    p {
+      font-size: 15px;
+      color: #94a3b8;
+      line-height: 1.7;
+      margin: 0;
+    }
+  }
+
+  .contact-right {
+    flex: 1;
+    padding: 48px;
+    background: white;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+  }
+
+  .contact-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 16px;
+    background: #f8fafc;
+    border-radius: 12px;
+    transition: all 0.2s ease;
+
+    &:hover {
+      background: #f1f5f9;
+    }
+
+    .el-icon {
+      font-size: 20px;
+      color: #3b82f6;
+      margin-top: 2px;
+    }
+
+    .label {
+      display: block;
+      font-size: 12px;
+      color: #94a3b8;
+      font-weight: 500;
+      margin-bottom: 4px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    a {
+      color: #2563eb;
+      text-decoration: none;
+      font-size: 14px;
+      font-weight: 500;
+      transition: color 0.2s;
+
+      &:hover {
+        color: #3b82f6;
       }
     }
 
-    .content-card {
-      padding: 20px;
+    span:not(.label) {
+      color: #334155;
+      font-size: 14px;
+      font-weight: 500;
+    }
+  }
+}
+
+/* Responsive - Tablet */
+@media (max-width: 1024px) {
+  .terms-list-section {
+    .terms-nav {
+      display: none;
     }
 
-    .intro {
-      .intro-text {
-        font-size: 13px;
-      }
+    .terms-layout {
+      gap: 0;
+    }
+  }
 
-      .update-notice {
-        font-size: 12px;
-        padding: 10px 12px;
-      }
+  .notice-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+
+  .contact-section {
+    .contact-bar {
+      flex-direction: column;
     }
 
-    .terms-content {
-      :deep(p) {
-        font-size: 13px;
+    .contact-left {
+      padding: 36px;
+    }
+
+    .contact-right {
+      padding: 36px;
+    }
+  }
+}
+
+/* Responsive - Mobile */
+@media (max-width: 768px) {
+  .container {
+    padding: 0 16px;
+  }
+
+  .section {
+    padding: 60px 0;
+
+    .section-header {
+      margin-bottom: 40px;
+
+      .section-title {
+        font-size: 28px;
       }
 
-      :deep(.numbered-list) {
-        padding-left: 16px;
+      .section-desc {
+        font-size: 15px;
+      }
+    }
+  }
 
-        li {
-          font-size: 13px;
+  .hero-section {
+    padding: 80px 0 60px;
+
+    .hero-title {
+      font-size: 32px;
+    }
+
+    .hero-subtitle {
+      font-size: 15px;
+    }
+
+    .badge {
+      margin-bottom: 16px;
+    }
+  }
+
+  .terms-list-section {
+    padding-top: 40px;
+
+    .terms-block {
+      margin-bottom: 20px;
+
+      .block-header {
+        padding: 20px 24px 16px;
+        gap: 14px;
+
+        .block-num {
+          font-size: 36px;
+        }
+
+        h2 {
+          font-size: 17px;
+          margin-bottom: 6px;
+        }
+
+        .block-divider {
+          width: 32px;
+          height: 2px;
         }
       }
 
-      :deep(.bullet-list) {
-        padding-left: 16px;
+      .block-body {
+        padding: 0 24px 24px;
 
-        li {
-          font-size: 13px;
-        }
-      }
-
-      :deep(.terms-subsection) {
-        padding: 12px;
-
-        h4 {
+        :deep(p) {
           font-size: 14px;
         }
-      }
-    }
 
-    .important-notice {
-      .notice-grid {
-        gap: 12px;
-      }
-
-      .notice-item {
-        padding: 12px;
-
-        .el-icon {
-          font-size: 18px;
+        :deep(.numbered-list li) {
+          font-size: 14px;
         }
 
-        h4 {
-          font-size: 13px;
+        :deep(.bullet-list li) {
+          font-size: 14px;
         }
 
-        p {
-          font-size: 12px;
+        :deep(.terms-subsection) {
+          padding: 18px;
+
+          h4 {
+            font-size: 15px;
+          }
         }
       }
     }
+  }
 
-    .contact {
-      .contact-intro {
+  .notice-section {
+    .notice-grid {
+      grid-template-columns: 1fr;
+      gap: 16px;
+    }
+
+    .notice-card {
+      padding: 24px;
+
+      .icon-box {
+        width: 44px;
+        height: 44px;
+        font-size: 22px;
+        margin-bottom: 16px;
+      }
+
+      h3 {
+        font-size: 16px;
+      }
+
+      p {
+        font-size: 14px;
+      }
+    }
+  }
+
+  .contact-section {
+    .contact-left {
+      padding: 28px 24px;
+
+      h3 {
+        font-size: 22px;
+        margin-bottom: 10px;
+      }
+
+      p {
+        font-size: 14px;
+      }
+    }
+
+    .contact-right {
+      padding: 24px;
+      grid-template-columns: 1fr;
+      gap: 12px;
+    }
+
+    .contact-item {
+      padding: 14px;
+
+      .el-icon {
+        font-size: 18px;
+      }
+
+      a,
+      span:not(.label) {
         font-size: 13px;
       }
+    }
+  }
+}
 
-      .contact-grid {
-        gap: 12px;
+/* Responsive - Small Mobile */
+@media (max-width: 480px) {
+  .container {
+    padding: 0 12px;
+  }
+
+  .section {
+    padding: 48px 0;
+
+    .section-header {
+      margin-bottom: 32px;
+
+      .section-title {
+        font-size: 24px;
       }
 
-      .contact-item {
-        padding: 12px;
+      .section-desc {
+        font-size: 14px;
+      }
+    }
+  }
 
-        .el-icon {
-          font-size: 16px;
+  .hero-section {
+    padding: 70px 0 48px;
+
+    .hero-title {
+      font-size: 26px;
+      margin-bottom: 14px;
+    }
+
+    .hero-subtitle {
+      font-size: 14px;
+    }
+
+    .badge {
+      font-size: 12px;
+      padding: 5px 10px;
+    }
+
+    .update-time {
+      font-size: 13px;
+      padding: 6px 12px;
+    }
+  }
+
+  .terms-list-section {
+    .terms-block {
+      .block-header {
+        padding: 16px 20px 12px;
+        gap: 10px;
+
+        .block-num {
+          font-size: 28px;
         }
 
-        .label {
-          font-size: 12px;
+        .block-meta {
+          padding-top: 2px;
         }
 
-        a,
-        span:not(.label) {
+        h2 {
+          font-size: 15px;
+          margin-bottom: 4px;
+        }
+
+        .block-divider {
+          width: 24px;
+          height: 2px;
+        }
+      }
+
+      .block-body {
+        padding: 0 20px 20px;
+
+        :deep(p) {
           font-size: 13px;
         }
+
+        :deep(.numbered-list li) {
+          font-size: 13px;
+          gap: 8px;
+
+          &::before {
+            width: 20px;
+            height: 20px;
+            font-size: 11px;
+          }
+        }
+
+        :deep(.bullet-list li) {
+          font-size: 13px;
+        }
+
+        :deep(.terms-subsection) {
+          padding: 14px;
+          border-radius: 10px;
+
+          h4 {
+            font-size: 14px;
+          }
+        }
+      }
+    }
+  }
+
+  .notice-section .notice-card {
+    padding: 20px;
+
+    .icon-box {
+      width: 40px;
+      height: 40px;
+      font-size: 20px;
+    }
+
+    h3 {
+      font-size: 15px;
+    }
+
+    p {
+      font-size: 13px;
+    }
+  }
+
+  .contact-section {
+    .contact-bar {
+      border-radius: 14px;
+    }
+
+    .contact-left {
+      padding: 24px 20px;
+
+      h3 {
+        font-size: 20px;
+      }
+
+      p {
+        font-size: 13px;
+      }
+    }
+
+    .contact-right {
+      padding: 20px 16px;
+      gap: 10px;
+    }
+
+    .contact-item {
+      padding: 12px;
+
+      .label {
+        font-size: 11px;
       }
     }
   }

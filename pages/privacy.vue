@@ -1,27 +1,28 @@
 <script setup>
 import {
-  Lock,
   Document,
-  DataAnalysis,
-  Setting,
-  Warning,
   User,
-  Connection,
+  Service,
   Timer,
+  Message,
   Phone,
+  Location,
 } from '@element-plus/icons-vue'
 
-// 配置项
 const options = useState('options')
 
-// 隐私政策数据
+const privacyColors = [
+  '#3b82f6', '#10b981', '#8b5cf6', '#f59e0b',
+  '#3b82f6', '#10b981', '#ef4444', '#8b5cf6',
+]
+
 const privacyData = ref({
   lastUpdated: '2025年10月12日',
   effectiveDate: '2025年10月12日',
   sections: [
     {
+      id: 'info-collection',
       title: '信息收集',
-      icon: 'DataAnalysis',
       content: [
         {
           subtitle: '个人信息收集',
@@ -47,8 +48,8 @@ const privacyData = ref({
       ],
     },
     {
+      id: 'info-usage',
       title: '信息使用',
-      icon: 'Setting',
       content: [
         {
           subtitle: '使用目的',
@@ -78,8 +79,8 @@ const privacyData = ref({
       ],
     },
     {
+      id: 'info-sharing',
       title: '信息共享',
-      icon: 'Connection',
       content: [
         {
           subtitle: '共享情况',
@@ -106,8 +107,8 @@ const privacyData = ref({
       ],
     },
     {
+      id: 'data-security',
       title: '数据安全',
-      icon: 'Lock',
       content: [
         {
           subtitle: '安全措施',
@@ -136,8 +137,8 @@ const privacyData = ref({
       ],
     },
     {
+      id: 'user-rights',
       title: '用户权利',
-      icon: 'User',
       content: [
         {
           subtitle: '您的权利',
@@ -165,8 +166,8 @@ const privacyData = ref({
       ],
     },
     {
+      id: 'cookie-policy',
       title: 'Cookie政策',
-      icon: 'Document',
       content: [
         {
           subtitle: 'Cookie使用',
@@ -192,8 +193,8 @@ const privacyData = ref({
       ],
     },
     {
+      id: 'data-retention',
       title: '数据保留',
-      icon: 'Timer',
       content: [
         {
           subtitle: '保留期限',
@@ -220,18 +221,18 @@ const privacyData = ref({
       ],
     },
     {
+      id: 'contact-us',
       title: '联系我们',
-      icon: 'Phone',
       content: [
         {
           subtitle: '联系方式',
           description: '如有隐私相关问题，请通过以下方式联系我们：',
           items: [
-            '邮箱：' + options.value?.contact_email || '',
-            '客服热线：' + options.value?.contact_phone || '',
+            '邮箱：' + (options.value?.contact_email || ''),
+            '客服热线：' + (options.value?.contact_phone || ''),
             '在线客服：网站右下角客服窗口',
-            '邮寄地址：' + options.value?.contact_address || '',
-            '工作时间：' + options.value?.working_hours || '',
+            '邮寄地址：' + (options.value?.contact_address || ''),
+            '工作时间：' + (options.value?.working_hours || ''),
           ],
         },
         {
@@ -272,417 +273,751 @@ useHead({
     },
   ],
 })
-
-// 获取图标组件
-const getIconComponent = (iconName) => {
-  const iconMap = {
-    DataAnalysis,
-    Setting,
-    Connection,
-    Lock,
-    User,
-    Document,
-    Timer,
-    Phone,
-  }
-  return iconMap[iconName] || Document
-}
 </script>
 
 <template>
-  <div class="privacy-container">
+  <div class="privacy-page">
     <IndexNavbar></IndexNavbar>
-    <div class="container">
-      <!-- 页面标题 -->
-      <div class="section">
-        <h1 class="page-title">隐私政策</h1>
-        <div class="content-card intro-card">
-          <div class="intro-content">
-            <div class="intro-icon">
-              <el-icon><Lock /></el-icon>
+
+    <!-- Hero Section -->
+    <section class="hero-section">
+      <div class="hero-bg-pattern"></div>
+      <div class="container hero-container">
+        <div class="hero-content">
+          <div class="badge"><span class="badge-dot"></span> 法律条款</div>
+          <h1 class="hero-title">隐私政策</h1>
+          <p class="hero-subtitle">
+            本隐私政策说明了我们如何收集、使用、存储和保护您的个人信息。我们严格遵守相关法律法规，
+            采用行业领先的安全措施来保护您的数据安全。
+          </p>
+          <div class="hero-meta">
+            <div class="meta-tag">
+              <el-icon><Timer /></el-icon>
+              生效日期：{{ privacyData.effectiveDate }}
             </div>
-            <div class="intro-text">
-              <h3>保护您的隐私是我们的承诺</h3>
-              <p>
-                本隐私政策说明了我们如何收集、使用、存储和保护您的个人信息。我们严格遵守相关法律法规，
-                采用行业领先的安全措施来保护您的数据安全。请仔细阅读本政策，了解您的权利和我们的义务。
-              </p>
-              <div class="policy-meta">
-                <span class="meta-item">
-                  <strong>生效日期：</strong>{{ privacyData.effectiveDate }}
-                </span>
-                <span class="meta-item">
-                  <strong>最后更新：</strong>{{ privacyData.lastUpdated }}
-                </span>
+            <div class="meta-tag">
+              <el-icon><Document /></el-icon>
+              最后更新：{{ privacyData.lastUpdated }}
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Privacy Content -->
+    <section class="section privacy-list-section">
+      <div class="container">
+        <div class="privacy-layout">
+          <!-- Sidebar Nav -->
+          <aside class="privacy-nav">
+            <div class="nav-sticky">
+              <h3 class="nav-title">目录</h3>
+              <a
+                v-for="(section, index) in privacyData.sections"
+                :key="section.id"
+                :href="`#${section.id}`"
+                class="nav-item"
+              >
+                <span class="nav-num">{{ String(index + 1).padStart(2, '0') }}</span>
+                <span class="nav-text">{{ section.title }}</span>
+              </a>
+            </div>
+          </aside>
+
+          <!-- Main Content -->
+          <div class="privacy-main">
+            <div
+              v-for="(section, index) in privacyData.sections"
+              :key="section.id"
+              :id="section.id"
+              class="privacy-block"
+            >
+              <div class="block-header">
+                <div class="block-num">{{ String(index + 1).padStart(2, '0') }}</div>
+                <div class="block-meta">
+                  <h2>{{ section.title }}</h2>
+                  <div
+                    class="block-divider"
+                    :style="{ backgroundColor: privacyColors[index % privacyColors.length] }"
+                  ></div>
+                </div>
+              </div>
+              <div class="block-body">
+                <div
+                  v-for="(content, contentIndex) in section.content"
+                  :key="contentIndex"
+                  class="content-group"
+                >
+                  <h3>{{ content.subtitle }}</h3>
+                  <p class="group-desc">{{ content.description }}</p>
+                  <ul class="group-list">
+                    <li
+                      v-for="(item, itemIndex) in content.items"
+                      :key="itemIndex"
+                    >
+                      {{ item }}
+                    </li>
+                  </ul>
+                </div>
               </div>
             </div>
           </div>
         </div>
       </div>
+    </section>
 
-      <!-- 隐私政策内容 -->
-      <div
-        v-for="(section, index) in privacyData.sections"
-        :key="index"
-        class="section"
-      >
-        <h2 class="section-title">{{ section.title }}</h2>
-        <div class="content-card">
-          <div
-            v-for="(content, contentIndex) in section.content"
-            :key="contentIndex"
-            class="policy-section"
-          >
-            <div class="section-header-with-icon">
-              <div class="section-icon">
-                <component :is="getIconComponent(section.icon)"></component>
-              </div>
-              <h3>{{ content.subtitle }}</h3>
+    <!-- Important Notice -->
+    <section class="section notice-section">
+      <div class="container">
+        <div class="section-header text-center">
+          <h2 class="section-title">重要提醒</h2>
+          <p class="section-desc">关于本隐私政策您需要了解的重要事项</p>
+        </div>
+        <div class="notice-grid">
+          <div class="notice-card">
+            <div class="icon-box">
+              <el-icon><Document /></el-icon>
             </div>
-            <p class="section-description">{{ content.description }}</p>
-            <ul class="policy-list">
-              <li v-for="(item, itemIndex) in content.items" :key="itemIndex">
-                {{ item }}
-              </li>
-            </ul>
+            <h3>政策更新</h3>
+            <p>我们可能会不时更新本隐私政策。重大变更将通过网站公告、邮件通知等方式告知您。继续使用我们的服务即表示您接受更新后的政策。</p>
+          </div>
+          <div class="notice-card">
+            <div class="icon-box">
+              <el-icon><User /></el-icon>
+            </div>
+            <h3>争议解决</h3>
+            <p>如对本政策有任何疑问或争议，请首先通过我们的客服渠道联系我们。我们将诚恳地与您协商解决。</p>
+          </div>
+          <div class="notice-card">
+            <div class="icon-box">
+              <el-icon><Service /></el-icon>
+            </div>
+            <h3>法律适用</h3>
+            <p>本隐私政策受中华人民共和国法律管辖。如有争议，双方应友好协商解决；协商不成的，可向有管辖权的人民法院提起诉讼。</p>
           </div>
         </div>
       </div>
-
-      <!-- 重要提醒 -->
-      <div class="section">
-        <div class="content-card warning-card">
-          <div class="warning-header">
-            <el-icon class="warning-icon"><Warning /></el-icon>
-            <h3>重要提醒</h3>
-          </div>
-          <div class="warning-content">
-            <p>
-              <strong>政策更新：</strong>
-              我们可能会不时更新本隐私政策。重大变更将通过网站公告、邮件通知等方式告知您。
-              继续使用我们的服务即表示您接受更新后的政策。
-            </p>
-            <p>
-              <strong>争议解决：</strong>
-              如对本政策有任何疑问或争议，请首先通过我们的客服渠道联系我们。
-              我们将诚恳地与您协商解决。
-            </p>
-            <p>
-              <strong>法律适用：</strong>
-              本隐私政策受中华人民共和国法律管辖。如有争议，
-              双方应友好协商解决；协商不成的，可向有管辖权的人民法院提起诉讼。
-            </p>
-          </div>
-        </div>
-      </div>
-    </div>
+    </section>
 
     <IndexFooter :options="options"></IndexFooter>
   </div>
 </template>
 
 <style lang="less" scoped>
-.privacy-container {
-  width: 100%;
-  min-height: 100vh;
-  background: linear-gradient(to bottom, #f7f9fe, #ffffff);
+.privacy-page {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto,
+    sans-serif;
+  color: #1e293b;
+  background-color: #ffffff;
+  overflow-x: hidden;
+}
 
-  .container {
-    width: 90%;
-    max-width: 1200px;
-    margin: 0 auto;
-    padding: 20px 0;
+.container {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 0 24px;
+}
+
+/* Hero Section */
+.hero-section {
+  position: relative;
+  padding: 120px 0 80px;
+  background-color: #f8fafc;
+  overflow: hidden;
+
+  .hero-bg-pattern {
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 50%;
+    height: 100%;
+    background-image: radial-gradient(#e2e8f0 1px, transparent 1px);
+    background-size: 32px 32px;
+    opacity: 0.5;
+    z-index: 0;
+    mask-image: linear-gradient(to left, black, transparent);
   }
 
-  .section {
-    margin-bottom: 32px;
+  .hero-container {
+    position: relative;
+    z-index: 1;
+  }
+
+  .hero-content {
+    max-width: 800px;
+  }
+
+  .badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 6px 12px;
+    background-color: #eff6ff;
+    color: #2563eb;
+    border-radius: 100px;
+    font-size: 14px;
+    font-weight: 500;
+    margin-bottom: 24px;
+
+    .badge-dot {
+      width: 6px;
+      height: 6px;
+      background-color: #2563eb;
+      border-radius: 50%;
+      margin-right: 8px;
+    }
+  }
+
+  .hero-title {
+    font-size: 48px;
+    line-height: 1.15;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    margin-bottom: 20px;
+    color: #0f172a;
+  }
+
+  .hero-subtitle {
+    font-size: 17px;
+    line-height: 1.8;
+    color: #64748b;
+    margin-bottom: 24px;
+  }
+
+  .hero-meta {
+    display: flex;
+    gap: 16px;
+    flex-wrap: wrap;
+
+    .meta-tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 16px;
+      background: white;
+      border-radius: 8px;
+      font-size: 14px;
+      color: #64748b;
+      border: 1px solid #e2e8f0;
+
+      .el-icon {
+        font-size: 16px;
+        color: #3b82f6;
+      }
+    }
+  }
+}
+
+/* Sections */
+.section {
+  padding: 80px 0;
+
+  .section-header {
+    margin-bottom: 60px;
+
+    &.text-center {
+      text-align: center;
+    }
+
+    .section-title {
+      font-size: 36px;
+      font-weight: 700;
+      color: #0f172a;
+      margin-bottom: 16px;
+    }
+
+    .section-desc {
+      font-size: 18px;
+      color: #64748b;
+    }
+  }
+}
+
+/* Privacy List */
+.privacy-list-section {
+  padding-top: 60px;
+  background: #f8fafc;
+
+  .privacy-layout {
+    display: flex;
+    gap: 48px;
+    align-items: flex-start;
+  }
+
+  .privacy-nav {
+    width: 240px;
+    flex-shrink: 0;
+
+    .nav-sticky {
+      position: sticky;
+      top: 100px;
+    }
+
+    .nav-title {
+      font-size: 12px;
+      font-weight: 700;
+      color: #94a3b8;
+      text-transform: uppercase;
+      letter-spacing: 1.5px;
+      margin: 0 0 16px;
+      padding-left: 12px;
+    }
+
+    .nav-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 10px 12px;
+      border-radius: 8px;
+      text-decoration: none;
+      transition: all 0.2s ease;
+      margin-bottom: 4px;
+
+      &:hover {
+        background: white;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+
+        .nav-num {
+          color: #2563eb;
+        }
+
+        .nav-text {
+          color: #0f172a;
+        }
+      }
+
+      .nav-num {
+        font-size: 13px;
+        font-weight: 700;
+        color: #cbd5e1;
+        font-variant-numeric: tabular-nums;
+        transition: color 0.2s;
+      }
+
+      .nav-text {
+        font-size: 14px;
+        color: #64748b;
+        font-weight: 500;
+        transition: color 0.2s;
+      }
+    }
+  }
+
+  .privacy-main {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .privacy-block {
+    background: white;
+    border-radius: 16px;
+    border: 1px solid #e2e8f0;
+    margin-bottom: 28px;
+    transition: all 0.3s ease;
+    overflow: hidden;
 
     &:last-child {
       margin-bottom: 0;
     }
-  }
 
-  .page-title {
-    font-size: 28px;
-    color: #1f2f3d;
-    text-align: center;
-    margin: 0 0 24px 0;
-    font-weight: 600;
-  }
-
-  .section-title {
-    position: relative;
-    color: #1f2f3d;
-    font-size: 16px;
-    font-weight: normal;
-    margin: 0 0 20px 0;
-    padding-left: 12px;
-    line-height: 1.4;
-
-    &::before {
-      content: '';
-      position: absolute;
-      left: 0;
-      top: 50%;
-      transform: translateY(-50%);
-      width: 3px;
-      height: 16px;
-      background: #409eff;
-      border-radius: 3px;
+    &:hover {
+      box-shadow: 0 12px 32px -8px rgba(15, 23, 42, 0.1);
+      border-color: transparent;
     }
-  }
 
-  .content-card {
-    background: #fff;
-    border-radius: 12px;
-    padding: 24px;
-    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.06);
-  }
-
-  .intro-card {
-    .intro-content {
+    .block-header {
       display: flex;
       align-items: flex-start;
       gap: 20px;
+      padding: 32px 36px 24px;
+
+      .block-num {
+        font-size: 48px;
+        font-weight: 800;
+        color: #f1f5f9;
+        line-height: 1;
+        letter-spacing: -0.04em;
+        flex-shrink: 0;
+        user-select: none;
+      }
+
+      .block-meta {
+        padding-top: 10px;
+      }
+
+      h2 {
+        font-size: 22px;
+        font-weight: 700;
+        color: #0f172a;
+        margin: 0 0 8px;
+      }
+
+      .block-divider {
+        width: 40px;
+        height: 3px;
+        border-radius: 2px;
+        opacity: 0.6;
+      }
     }
 
-    .intro-icon {
-      width: 60px;
-      height: 60px;
+    .block-body {
+      padding: 0 36px 32px;
+    }
+
+    .content-group {
+      padding: 24px;
+      background: #f8fafc;
       border-radius: 12px;
-      background: #ecf5ff;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      color: #409eff;
-      font-size: 28px;
-      flex-shrink: 0;
-    }
-
-    .intro-text {
-      flex: 1;
-
-      h3 {
-        font-size: 20px;
-        color: #303133;
-        margin: 0 0 12px 0;
-        font-weight: 500;
-      }
-
-      p {
-        color: #606266;
-        font-size: 14px;
-        line-height: 1.8;
-        margin: 0 0 16px 0;
-      }
-    }
-
-    .policy-meta {
-      display: flex;
-      gap: 24px;
-      flex-wrap: wrap;
-
-      .meta-item {
-        color: #909399;
-        font-size: 13px;
-
-        strong {
-          color: #606266;
-        }
-      }
-    }
-  }
-
-  .policy-section {
-    margin-bottom: 24px;
-
-    &:last-child {
-      margin-bottom: 0;
-    }
-  }
-
-  .section-header-with-icon {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    margin-bottom: 12px;
-
-    .section-icon {
-      width: 32px;
-      height: 32px;
-      border-radius: 8px;
-      background: #ecf5ff;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      color: #409eff;
-      font-size: 16px;
-    }
-
-    h3 {
-      font-size: 16px;
-      color: #303133;
-      margin: 0;
-      font-weight: 500;
-    }
-  }
-
-  .section-description {
-    color: #606266;
-    font-size: 14px;
-    line-height: 1.6;
-    margin: 0 0 16px 0;
-  }
-
-  .policy-list {
-    margin: 0;
-    padding-left: 20px;
-    list-style-type: disc;
-
-    li {
-      color: #606266;
-      font-size: 14px;
-      line-height: 1.8;
-      margin-bottom: 8px;
+      border: 1px solid #f1f5f9;
+      margin-bottom: 16px;
 
       &:last-child {
         margin-bottom: 0;
       }
-    }
-  }
-
-  .warning-card {
-    border-left: 4px solid #e6a23c;
-    background: #fdf6ec;
-
-    .warning-header {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      margin-bottom: 16px;
-
-      .warning-icon {
-        color: #e6a23c;
-        font-size: 20px;
-      }
 
       h3 {
-        color: #e6a23c;
         font-size: 16px;
-        margin: 0;
-        font-weight: 500;
+        font-weight: 700;
+        color: #0f172a;
+        margin: 0 0 10px;
       }
-    }
 
-    .warning-content {
-      p {
-        color: #606266;
-        font-size: 14px;
-        line-height: 1.8;
-        margin: 0 0 12px 0;
+      .group-desc {
+        font-size: 15px;
+        color: #475569;
+        line-height: 1.7;
+        margin: 0 0 16px;
+      }
 
-        &:last-child {
-          margin-bottom: 0;
-        }
+      .group-list {
+        margin: 0;
+        padding: 0;
+        list-style: none;
 
-        strong {
-          color: #303133;
+        li {
+          font-size: 15px;
+          color: #475569;
+          line-height: 1.8;
+          margin-bottom: 10px;
+          padding-left: 22px;
+          position: relative;
+
+          &::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 10px;
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: #3b82f6;
+          }
+
+          &:last-child {
+            margin-bottom: 0;
+          }
         }
       }
     }
   }
 }
 
-@media screen and (max-width: 768px) {
-  .privacy-container {
-    .container {
-      width: 95%;
+/* Notice Section */
+.notice-section {
+  background: white;
+
+  .notice-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 28px;
+  }
+
+  .notice-card {
+    padding: 32px;
+    background: white;
+    border-radius: 16px;
+    border: 1px solid #f1f5f9;
+    transition: all 0.3s ease;
+
+    &:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 12px 32px -8px rgba(15, 23, 42, 0.1);
+      border-color: transparent;
     }
 
-    .page-title {
-      font-size: 24px;
+    .icon-box {
+      width: 52px;
+      height: 52px;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 26px;
       margin-bottom: 20px;
+      background-color: #fffbeb;
+      color: #f59e0b;
     }
 
-    .content-card {
-      padding: 20px;
+    h3 {
+      font-size: 18px;
+      font-weight: 700;
+      color: #0f172a;
+      margin: 0 0 10px;
     }
 
-    .intro-card {
-      .intro-content {
-        flex-direction: column;
-        gap: 16px;
-      }
+    p {
+      font-size: 15px;
+      color: #64748b;
+      line-height: 1.7;
+      margin: 0;
+    }
+  }
+}
 
-      .intro-icon {
-        width: 50px;
-        height: 50px;
-        font-size: 24px;
-        align-self: center;
-      }
-
-      .intro-text {
-        h3 {
-          font-size: 18px;
-          text-align: center;
-        }
-
-        p {
-          font-size: 13px;
-        }
-      }
-
-      .policy-meta {
-        flex-direction: column;
-        gap: 8px;
-
-        .meta-item {
-          font-size: 12px;
-        }
-      }
+/* Responsive - Tablet */
+@media (max-width: 1024px) {
+  .privacy-list-section {
+    .privacy-nav {
+      display: none;
     }
 
-    .section-header-with-icon {
-      gap: 8px;
+    .privacy-layout {
+      gap: 0;
+    }
+  }
 
-      .section-icon {
-        width: 28px;
-        height: 28px;
-        font-size: 14px;
+  .notice-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+/* Responsive - Mobile */
+@media (max-width: 768px) {
+  .container {
+    padding: 0 16px;
+  }
+
+  .section {
+    padding: 60px 0;
+
+    .section-header {
+      margin-bottom: 40px;
+
+      .section-title {
+        font-size: 28px;
       }
 
-      h3 {
+      .section-desc {
         font-size: 15px;
       }
     }
+  }
 
-    .section-description {
-      font-size: 13px;
+  .hero-section {
+    padding: 80px 0 60px;
+
+    .hero-title {
+      font-size: 32px;
     }
 
-    .policy-list {
-      li {
+    .hero-subtitle {
+      font-size: 15px;
+    }
+
+    .badge {
+      margin-bottom: 16px;
+    }
+
+    .hero-meta {
+      flex-direction: column;
+      gap: 10px;
+
+      .meta-tag {
         font-size: 13px;
-        line-height: 1.6;
+        padding: 6px 12px;
       }
     }
+  }
 
-    .warning-card {
-      .warning-header {
-        .warning-icon {
-          font-size: 18px;
+  .privacy-list-section {
+    padding-top: 40px;
+
+    .privacy-block {
+      margin-bottom: 20px;
+
+      .block-header {
+        padding: 20px 24px 16px;
+        gap: 14px;
+
+        .block-num {
+          font-size: 36px;
         }
+
+        h2 {
+          font-size: 17px;
+          margin-bottom: 6px;
+        }
+
+        .block-divider {
+          width: 32px;
+          height: 2px;
+        }
+      }
+
+      .block-body {
+        padding: 0 24px 24px;
+      }
+
+      .content-group {
+        padding: 18px;
 
         h3 {
           font-size: 15px;
         }
+
+        .group-desc {
+          font-size: 14px;
+        }
+
+        .group-list li {
+          font-size: 14px;
+        }
+      }
+    }
+  }
+
+  .notice-section {
+    .notice-grid {
+      grid-template-columns: 1fr;
+      gap: 16px;
+    }
+
+    .notice-card {
+      padding: 24px;
+
+      .icon-box {
+        width: 44px;
+        height: 44px;
+        font-size: 22px;
+        margin-bottom: 16px;
       }
 
-      .warning-content {
-        p {
+      h3 {
+        font-size: 16px;
+      }
+
+      p {
+        font-size: 14px;
+      }
+    }
+  }
+}
+
+/* Responsive - Small Mobile */
+@media (max-width: 480px) {
+  .container {
+    padding: 0 12px;
+  }
+
+  .section {
+    padding: 48px 0;
+
+    .section-header {
+      margin-bottom: 32px;
+
+      .section-title {
+        font-size: 24px;
+      }
+
+      .section-desc {
+        font-size: 14px;
+      }
+    }
+  }
+
+  .hero-section {
+    padding: 70px 0 48px;
+
+    .hero-title {
+      font-size: 26px;
+      margin-bottom: 14px;
+    }
+
+    .hero-subtitle {
+      font-size: 14px;
+    }
+
+    .badge {
+      font-size: 12px;
+      padding: 5px 10px;
+    }
+
+    .hero-meta .meta-tag {
+      font-size: 12px;
+    }
+  }
+
+  .privacy-list-section {
+    .privacy-block {
+      .block-header {
+        padding: 16px 20px 12px;
+        gap: 10px;
+
+        .block-num {
+          font-size: 28px;
+        }
+
+        .block-meta {
+          padding-top: 2px;
+        }
+
+        h2 {
+          font-size: 15px;
+          margin-bottom: 4px;
+        }
+
+        .block-divider {
+          width: 24px;
+          height: 2px;
+        }
+      }
+
+      .block-body {
+        padding: 0 20px 20px;
+      }
+
+      .content-group {
+        padding: 14px;
+
+        h3 {
+          font-size: 14px;
+        }
+
+        .group-desc {
+          font-size: 13px;
+        }
+
+        .group-list li {
           font-size: 13px;
         }
       }
+    }
+  }
+
+  .notice-section .notice-card {
+    padding: 20px;
+
+    .icon-box {
+      width: 40px;
+      height: 40px;
+      font-size: 20px;
+    }
+
+    h3 {
+      font-size: 15px;
+    }
+
+    p {
+      font-size: 13px;
     }
   }
 }
