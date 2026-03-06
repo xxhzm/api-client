@@ -3,15 +3,25 @@ import { ref, onMounted, onUnmounted } from 'vue'
 
 const { $myFetch } = useNuxtApp()
 
-// 声明 ref 用于获取 DOM 元素
 const chartRef = ref(null)
 let chart = null
-// 添加 updateTimer 声明
 let updateTimer = null
+let isFirstRender = true
 
-// 添加数据响应式
+const MAX_RENDER_ITEMS = 200
+
 const attackData = ref([])
 const mapType = ref('china')
+
+const MAJOR_COUNTRIES = new Set([
+  '中国', '俄罗斯', '美国', '加拿大', '巴西', '澳大利亚', '印度',
+  '阿根廷', '哈萨克斯坦', '阿尔及利亚', '刚果民主共和国', '沙特阿拉伯',
+  '墨西哥', '印度尼西亚', '苏丹', '利比亚', '伊朗', '蒙古', '秘鲁',
+  '乍得', '尼日尔', '安哥拉', '马里', '南非', '哥伦比亚', '埃塞俄比亚',
+  '玻利维亚', '毛里塔尼亚', '埃及', '坦桑尼亚', '尼日利亚',
+  '巴基斯坦', '土耳其', '法国', '德国', '西班牙', '日本',
+  '英国', '意大利', '乌克兰', '格陵兰',
+])
 
 // 切换地图类型的函数
 const toggleMapType = () => {
@@ -24,7 +34,8 @@ const toggleMapType = () => {
         center: mapType.value === 'china' ? [105.97, 29.71] : [0, -10],
         zoom: mapType.value === 'china' ? 1.5 : 1.8,
         label: {
-          show: mapType.value === 'china',
+          show: true,
+          fontSize: mapType.value === 'china' ? 10 : 9,
         },
       },
     })
@@ -32,7 +43,6 @@ const toggleMapType = () => {
   }
 }
 
-// 添加一个辅助函数来检查坐标是否有效
 const isValidCoordinate = (coord) => {
   return (
     coord &&
@@ -42,21 +52,11 @@ const isValidCoordinate = (coord) => {
   )
 }
 
-// 判断坐标是否在中国境内
-const isInChina = (coord) => {
-  if (!isValidCoordinate(coord)) return false
-  const [lng, lat] = coord
-  return lng >= 73 && lng <= 136 && lat >= 18 && lat <= 54
-}
-
-// 修改数据转换函数
 const convertData = (data) => {
   const res = []
   for (let i = 0; i < data.length; i++) {
     const fromCoord = data[i][0].coordinate
     const toCoord = data[i][1].coordinate
-
-    // 确保坐标是有效的数组
     if (
       Array.isArray(fromCoord) &&
       Array.isArray(toCoord) &&
@@ -74,24 +74,8 @@ const convertData = (data) => {
   return res
 }
 
-// 图表配置
 const getOption = (nameMap = {}) => ({
-  backgroundColor: {
-    type: 'radial',
-    x: 0.5,
-    y: 0.5,
-    r: 0.8,
-    colorStops: [
-      {
-        offset: 0,
-        color: '#0a2b4e',
-      },
-      {
-        offset: 1,
-        color: '#081832',
-      },
-    ],
-  },
+  backgroundColor: '#081832',
   tooltip: {
     trigger: 'item',
     formatter: (params) => {
@@ -121,39 +105,26 @@ const getOption = (nameMap = {}) => ({
     layoutCenter: ['50%', '65%'],
     layoutSize: '85%',
     aspectScale: 0.85,
+    silent: mapType.value === 'world',
     label: {
-      show: mapType.value === 'china',
+      show: true,
       position: 'inside',
       color: 'rgba(220, 246, 255, 0.8)',
-      fontSize: 10,
+      fontSize: mapType.value === 'china' ? 10 : 9,
       formatter: (params) => {
-        return params.name.replace(
-          /(省|市|自治区|特别行政区|壮族|维吾尔|回族)$/,
-          ''
-        )
+        if (mapType.value === 'china') {
+          return params.name.replace(
+            /(省|市|自治区|特别行政区|壮族|维吾尔|回族)$/,
+            ''
+          )
+        }
+        return MAJOR_COUNTRIES.has(params.name) ? params.name : ''
       },
     },
     itemStyle: {
-      areaColor: {
-        type: 'radial',
-        x: 0.5,
-        y: 0.5,
-        r: 0.8,
-        colorStops: [
-          {
-            offset: 0,
-            color: 'rgba(10, 70, 99, 0.3)',
-          },
-          {
-            offset: 1,
-            color: 'rgba(10, 70, 99, 0.8)',
-          },
-        ],
-      },
+      areaColor: 'rgba(10, 70, 99, 0.6)',
       borderColor: '#0692a4',
       borderWidth: 1,
-      shadowColor: 'rgba(6, 146, 164, 0.4)',
-      shadowBlur: 10,
     },
     emphasis: {
       label: {
@@ -172,40 +143,26 @@ const getOption = (nameMap = {}) => ({
       type: 'lines',
       coordinateSystem: 'geo',
       zlevel: 3,
+      large: true,
+      largeThreshold: 100,
       effect: {
         show: true,
-        period: 3,
-        trailLength: 0.1,
+        period: 4,
+        trailLength: 0.05,
         color: '#fff',
-        symbolSize: 3,
+        symbolSize: 2,
         symbol: 'circle',
       },
       lineStyle: {
-        color: {
-          type: 'linear',
-          x: 0,
-          y: 0,
-          x2: 1,
-          y2: 0,
-          colorStops: [
-            { offset: 0, color: 'rgba(0, 255, 255, 0.1)' },
-            { offset: 0.5, color: 'rgba(0, 255, 255, 0.3)' },
-            { offset: 1, color: 'rgba(0, 255, 255, 0.1)' },
-          ],
-        },
+        color: 'rgba(0, 255, 255, 0.25)',
         width: 1,
         opacity: 0.6,
         curveness: 0.3,
-        type: 'solid',
       },
-      animation: true,
-      animationDuration: 2000,
-      animationDelay: function (idx) {
-        return idx * 200
-      },
-      progressiveThreshold: 500,
-      progressive: 200,
-      data: convertData(attackData.value),
+      animation: false,
+      progressiveThreshold: 100,
+      progressive: 50,
+      data: [],
     },
     {
       name: '攻击点',
@@ -214,17 +171,17 @@ const getOption = (nameMap = {}) => ({
       zlevel: 4,
       rippleEffect: {
         brushType: 'stroke',
-        scale: 6,
-        period: 4,
+        scale: 3,
+        period: 5,
       },
       symbol: 'circle',
-      symbolSize: (val) => val[2] / 8,
+      symbolSize: (val) => Math.min(val[2] / 8, 20),
       itemStyle: {
         color: '#0ff',
-        shadowBlur: 20,
+        shadowBlur: 5,
         shadowColor: '#0ff',
       },
-      animation: true,
+      animation: false,
       data: [],
     },
     {
@@ -232,29 +189,25 @@ const getOption = (nameMap = {}) => ({
       type: 'scatter',
       coordinateSystem: 'geo',
       zlevel: 4,
-      symbolSize: 12,
+      large: true,
+      largeThreshold: 100,
+      symbolSize: 8,
       itemStyle: {
         color: '#ff0',
-        shadowBlur: 20,
-        shadowColor: 'rgba(255, 255, 0, 0.8)',
+        shadowBlur: 5,
+        shadowColor: 'rgba(255, 255, 0, 0.5)',
       },
-      animation: true,
+      animation: false,
       data: [],
     },
   ],
 })
 
-// 添加状态控制
 const isLoading = ref(false)
 const hasError = ref(false)
-
-// 添加当前时间的响应式引用
 const currentTime = ref('')
-
-// 添加一个计算请求源数量的响应式引用
 const attackCount = ref(0)
 
-// 更新时间的函数
 const updateTime = () => {
   const now = new Date()
   const hours = now.getHours().toString().padStart(2, '0')
@@ -263,7 +216,13 @@ const updateTime = () => {
   currentTime.value = `${hours}:${minutes}:${seconds}`
 }
 
-// 修改获取数据函数
+const scheduleNextUpdate = () => {
+  if (updateTimer) clearTimeout(updateTimer)
+  updateTimer = setTimeout(() => {
+    fetchAttackData()
+  }, 5000)
+}
+
 const fetchAttackData = async () => {
   if (isLoading.value) return
 
@@ -273,7 +232,6 @@ const fetchAttackData = async () => {
 
     const response = await $myFetch('ApiLogsMap')
 
-    // 处理暂无数据的情况
     if (response.data === '暂无数据') {
       attackCount.value = 0
       attackData.value = []
@@ -282,9 +240,7 @@ const fetchAttackData = async () => {
       return
     }
 
-    // 处理正常数据
     if (response?.data && Array.isArray(response.data)) {
-      // 只计算有效坐标的数据数量
       const validData = response.data.filter(
         (item) =>
           isValidCoordinate(item.sourceCoordinate) &&
@@ -292,8 +248,7 @@ const fetchAttackData = async () => {
       )
       attackCount.value = validData.length
 
-      // 转换数据格式
-      attackData.value = response.data.map((item) => [
+      attackData.value = validData.map((item) => [
         {
           name: item.source,
           coordinate: item.sourceCoordinate,
@@ -311,71 +266,82 @@ const fetchAttackData = async () => {
     hasError.value = true
   } finally {
     isLoading.value = false
+    scheduleNextUpdate()
   }
 }
 
-// 修改 updateChart 函数
+const filterDataByMap = (data) => {
+  if (mapType.value === 'world') {
+    return data.filter((item) => {
+      const sourceIsChina = item[0].name.includes('中国')
+      const targetIsChina = item[1].name.includes('中国')
+      return sourceIsChina !== targetIsChina
+    })
+  }
+  if (mapType.value === 'china') {
+    return data.filter((item) => {
+      const sourceIsChina = item[0].name.includes('中国')
+      const targetIsChina = item[1].name.includes('中国')
+      return sourceIsChina && targetIsChina
+    })
+  }
+  return data
+}
+
 const updateChart = () => {
   if (!chart) return
 
-  // 过滤掉无效坐标的数据
   let validData = attackData.value.filter(
     (item) =>
       isValidCoordinate(item[0].coordinate) &&
       isValidCoordinate(item[1].coordinate)
   )
 
-  // 如果是世界地图，只显示跨国数据（保留中国与境外的交互数据）
-  if (mapType.value === 'world') {
-    validData = validData.filter((item) => {
-      const sourceIsChina = item[0].name.includes('中国')
-      const targetIsChina = item[1].name.includes('中国')
-      // 只保留起点和终点一个在境内一个在境外的数据
-      return sourceIsChina !== targetIsChina
-    })
-  } else if (mapType.value === 'china') {
-    validData = validData.filter((item) => {
-      const sourceIsChina = item[0].name.includes('中国')
-      const targetIsChina = item[1].name.includes('中国')
-      // 只保留起点和终点都在境内的数据
-      return sourceIsChina && targetIsChina
-    })
+  validData = filterDataByMap(validData)
+
+  if (validData.length > MAX_RENDER_ITEMS) {
+    validData = validData.slice(-MAX_RENDER_ITEMS)
   }
 
   const convertedData = convertData(validData)
 
+  const targetPoints = new Map()
+  const sourcePoints = new Map()
+
+  for (const item of validData) {
+    const tKey = item[1].coordinate.join(',')
+    if (!targetPoints.has(tKey)) {
+      targetPoints.set(tKey, {
+        name: item[1].name,
+        value: [...item[1].coordinate, 100],
+      })
+    }
+
+    const sKey = item[0].coordinate.join(',')
+    if (!sourcePoints.has(sKey)) {
+      sourcePoints.set(sKey, {
+        name: item[0].name,
+        value: [...item[0].coordinate, item[1].value],
+      })
+    }
+  }
+
   chart.setOption(
     {
       series: [
-        {
-          // 攻击路径
-          data: convertedData,
-        },
-        {
-          // 攻击点数据
-          data: validData.map((dataItem) => ({
-            name: dataItem[1].name,
-            value: [...dataItem[1].coordinate, 100],
-            fixed: true,
-          })),
-        },
-        {
-          // 起始点数据
-          data: validData.map((dataItem) => ({
-            name: dataItem[0].name,
-            value: [...dataItem[0].coordinate, dataItem[1].value],
-          })),
-        },
+        { data: convertedData },
+        { data: Array.from(targetPoints.values()) },
+        { data: Array.from(sourcePoints.values()) },
       ],
     },
-    false
+    { notMerge: false, lazyUpdate: true }
   )
+
+  isFirstRender = false
 }
 
-// 修改初始化图表部分
 const initChart = async () => {
   try {
-    // 动态导入 echarts
     const echarts = await import('echarts/core')
     const { MapChart, LinesChart, ScatterChart, EffectScatterChart } =
       await import('echarts/charts')
@@ -384,7 +350,6 @@ const initChart = async () => {
     )
     const { CanvasRenderer } = await import('echarts/renderers')
 
-    // 注册必需的组件
     echarts.use([
       TitleComponent,
       TooltipComponent,
@@ -396,48 +361,39 @@ const initChart = async () => {
       CanvasRenderer,
     ])
 
-    // 从 public 目录通过 fetch 加载地图数据（不打包进 JS，减小 bundle 体积）
     const [chinaJSON, worldJSON, countryNameMap] = await Promise.all([
       $fetch('/data/map.json'),
       $fetch('/data/world.json'),
       $fetch('/data/countryNameMap.json'),
     ])
 
-    // 注册地图数据
     echarts.registerMap('china', chinaJSON)
     echarts.registerMap('world', worldJSON)
 
     chart = echarts.init(chartRef.value)
     chart.setOption(getOption(countryNameMap))
 
-    // 首次获取数据
     await fetchAttackData()
 
-    // 设置定时更新
-    updateTimer = setInterval(async () => {
-      await fetchAttackData()
-    }, 5000) // 每5秒更新一次数据
-
-    // 添加窗口大小改变时的自适应处理
     window.addEventListener('resize', handleResize)
   } catch (error) {}
 }
 
-// 处理窗口大小改变
+let resizeTimer = null
 const handleResize = () => {
-  chart?.resize()
+  if (resizeTimer) clearTimeout(resizeTimer)
+  resizeTimer = setTimeout(() => {
+    chart?.resize()
+  }, 200)
 }
 
-// 组件挂载时初始化
 onMounted(() => {
   initChart()
 })
 
-// 组件卸载时清理
 onUnmounted(() => {
-  if (updateTimer) {
-    clearInterval(updateTimer)
-  }
+  if (updateTimer) clearTimeout(updateTimer)
+  if (resizeTimer) clearTimeout(resizeTimer)
   window.removeEventListener('resize', handleResize)
   chart?.dispose()
 })
@@ -471,7 +427,7 @@ body {
   width: 100%;
   height: 100%;
   overflow: hidden;
-  background: radial-gradient(circle at center, #0a2b4e 0%, #081832 100%);
+  background: #081832;
 }
 
 .map-container {
@@ -479,52 +435,33 @@ body {
   height: 100vh;
   position: relative;
   overflow: hidden;
-
-  &::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: linear-gradient(
-        45deg,
-        rgba(0, 255, 255, 0.1) 0%,
-        transparent 100%
-      ),
-      radial-gradient(circle at center, transparent 0%, rgba(0, 0, 0, 0.3) 100%);
-    pointer-events: none;
-    z-index: 1;
-  }
+  background: #081832;
 
   .attack-map {
     width: 100%;
     height: 100%;
-    position: fixed;
+    position: absolute;
     top: 0;
     left: 0;
   }
 }
 
 .attack-info {
-  position: fixed;
+  position: absolute;
   top: 20px;
   right: 20px;
-  background: rgba(0, 43, 77, 0.8);
+  background: rgba(0, 43, 77, 0.9);
   padding: 20px;
   border-radius: 8px;
   color: #fff;
   font-size: 14px;
-  z-index: 1000;
-  backdrop-filter: blur(10px);
+  z-index: 10;
   border: 1px solid rgba(0, 255, 255, 0.2);
-  box-shadow: 0 0 20px rgba(0, 255, 255, 0.1);
 
   .attack-count {
     margin-bottom: 8px;
     color: #0ff;
     font-size: 16px;
-    text-shadow: 0 0 10px rgba(0, 255, 255, 0.5);
   }
 
   .update-time {
@@ -539,7 +476,7 @@ body {
     border-radius: 4px;
     cursor: pointer;
     text-align: center;
-    transition: all 0.3s;
+    transition: background 0.3s;
     color: #0ff;
 
     &:hover {
@@ -549,7 +486,7 @@ body {
 }
 
 .error-message {
-  position: fixed;
+  position: absolute;
   top: 20px;
   left: 50%;
   transform: translateX(-50%);
@@ -557,9 +494,7 @@ body {
   padding: 15px 30px;
   border-radius: 8px;
   color: #fff;
-  z-index: 1000;
-  backdrop-filter: blur(10px);
+  z-index: 10;
   border: 1px solid rgba(255, 0, 0, 0.3);
-  box-shadow: 0 0 20px rgba(255, 0, 0, 0.2);
 }
 </style>
