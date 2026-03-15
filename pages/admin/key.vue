@@ -451,7 +451,7 @@ useHead({
                       </div>
 
                       <!-- 方法4 -->
-                      <div class="method-card deprecated">
+                      <!-- <div class="method-card deprecated">
                         <div class="card-badge">不推荐</div>
                         <div class="card-title">
                           方法 4：放在网址后面 (Query)
@@ -471,7 +471,7 @@ useHead({
                           </div>
                           <el-icon class="copy-icon"><CopyDocument /></el-icon>
                         </div>
-                      </div>
+                      </div> -->
                     </div>
                   </div>
                 </div>
