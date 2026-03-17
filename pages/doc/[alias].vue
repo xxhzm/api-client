@@ -117,6 +117,34 @@ res.data.params = res.data.params.map((item) => {
 
 apiInfo.value = res.data
 
+const getMethodList = (method) => {
+  return [
+    ...new Set(
+      String(method || '')
+        .split('|')
+        .map((item) => item.trim().toUpperCase())
+        .filter(Boolean),
+    ),
+  ]
+}
+
+const getPreferredMethod = (method) => {
+  const methodList = getMethodList(method)
+
+  if (methodList.includes('POST')) {
+    return 'POST'
+  }
+
+  if (methodList.includes('GET')) {
+    return 'GET'
+  }
+
+  return methodList[0] || 'GET'
+}
+
+const docMethodList = computed(() => getMethodList(apiInfo.value.method))
+const preferredMethod = computed(() => getPreferredMethod(apiInfo.value.method))
+
 // 配置项
 const options = useState('options')
 
@@ -287,7 +315,7 @@ const buyPackage = (pkg) => {
 // 生成请求示例代码
 const generateExamples = () => {
   const url = apiInfo.value.url
-  const method = apiInfo.value.method
+  const method = getPreferredMethod(apiInfo.value.method)
   const params = apiInfo.value.params || []
 
   // 分离不同位置的参数
@@ -1069,7 +1097,16 @@ const generatedExamples = computed(() => {
           <div class="api-header">
             <h1>{{ apiInfo.name }}</h1>
             <div class="api-meta">
-              <el-tag type="success" size="large">{{ apiInfo.method }}</el-tag>
+              <div class="method-tags">
+                <el-tag
+                  v-for="method in docMethodList"
+                  :key="method"
+                  :type="method === 'GET' ? 'success' : 'warning'"
+                  size="large"
+                >
+                  {{ method }}
+                </el-tag>
+              </div>
               <el-button
                 type="primary"
                 @click="debugDialogRef?.openDebugDialog()"
@@ -1363,7 +1400,7 @@ const generatedExamples = computed(() => {
           </div>
           <div v-else>
             <div style="margin-bottom: 10px">
-              请使用 POST 请求传递以下 JSON 参数：
+              请优先使用 {{ preferredMethod }} 请求传递以下 JSON 参数：
             </div>
             <pre class="example mac_light mac_pre"><client-only><el-tooltip
                 class="box-item"
@@ -2132,6 +2169,11 @@ const generatedExamples = computed(() => {
           align-items: center;
           gap: 16px;
 
+          .method-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+          }
           .debug-btn {
             margin-left: 12px;
           }

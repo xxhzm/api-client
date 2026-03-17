@@ -26,7 +26,7 @@ const apiSetInfo = ref({
   description: '',
   keywords: '',
   url: '',
-  method: '',
+  method: [],
   example: '',
   category: '',
   categoryId: '',
@@ -55,6 +55,20 @@ const methodOptions = [
     label: 'POST',
   },
 ]
+
+const allowedMethods = methodOptions.map((item) => item.value)
+
+const normalizeMethodValue = (value) => {
+  const methodList = Array.isArray(value)
+    ? value
+    : String(value || '').split('|')
+
+  return [
+    ...new Set(methodList.map((item) => String(item).trim().toUpperCase())),
+  ].filter((item) => allowedMethods.includes(item))
+}
+
+const stringifyMethodValue = (value) => normalizeMethodValue(value).join('|')
 
 // 缓存类型常量
 const CACHE_TYPE = {
@@ -121,6 +135,7 @@ const getData = async () => {
   }
 
   apiSetInfo.value = res.data
+  apiSetInfo.value.method = normalizeMethodValue(res.data.method)
 
   apiSetInfo.value.prefixValue = res.data.prefixName
   apiSetInfo.value.prefix = res.data.prefix
@@ -153,10 +168,16 @@ const updateApiInfo = async () => {
     !apiSetInfo.value.alias ||
     !apiSetInfo.value.description ||
     !apiSetInfo.value.keywords ||
-    !apiSetInfo.value.method ||
     !apiSetInfo.value.prefix
   ) {
     msg('请填写内容', 'error')
+    return false
+  }
+
+  const methodValue = stringifyMethodValue(apiSetInfo.value.method)
+
+  if (!methodValue) {
+    msg('请选择正确的请求类型', 'error')
     return false
   }
 
@@ -170,7 +191,7 @@ const updateApiInfo = async () => {
   bodyValue.append('description', apiSetInfo.value.description)
   bodyValue.append('keywords', apiSetInfo.value.keywords)
   bodyValue.append('url', apiSetInfo.value.url)
-  bodyValue.append('method', apiSetInfo.value.method)
+  bodyValue.append('method', methodValue)
   // 多分类以 | 拼接传递到后端
   const categoryIdsJoined = selectedCategories.value.map((c) => c.id).join('|')
   bodyValue.append('categoryId', categoryIdsJoined)
@@ -1420,6 +1441,9 @@ useHead({
                   <el-form-item label="请求类型" :label-width="90" required>
                     <el-select
                       v-model="apiSetInfo.method"
+                      multiple
+                      collapse-tags
+                      collapse-tags-tooltip
                       placeholder="请选择请求类型"
                       style="width: 100%"
                     >

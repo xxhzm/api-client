@@ -74,6 +74,17 @@ watch(
 const tableData = ref([])
 const search = ref('')
 
+const getMethodList = (method) => {
+  return [...new Set(String(method || '')
+    .split('|')
+    .map((item) => item.trim().toUpperCase())
+    .filter(Boolean))]
+}
+
+const getMethodTagType = (method) => {
+  return method === 'GET' ? 'success' : 'warning'
+}
+
 const getData = async () => {
   const res = await $myFetch('ApiList', {
     params: {
@@ -368,14 +379,18 @@ useHead({
               width="80"
               show-overflow-tooltip
             />
-            <el-table-column prop="method" label="请求方法" width="90">
+            <el-table-column prop="method" label="请求方法" width="140">
               <template #default="scope">
-                <el-tag
-                  :type="scope.row.method === 'GET' ? 'success' : 'warning'"
-                  size="small"
-                >
-                  {{ scope.row.method }}
-                </el-tag>
+                <div class="method-tags">
+                  <el-tag
+                    v-for="method in getMethodList(scope.row.method)"
+                    :key="method"
+                    :type="getMethodTagType(method)"
+                    size="small"
+                  >
+                    {{ method }}
+                  </el-tag>
+                </div>
               </template>
             </el-table-column>
             <el-table-column prop="uname" label="创建人" width="100" />
@@ -532,6 +547,12 @@ useHead({
         gap: 4px;
         margin: 0;
         padding: 0;
+      }
+
+      .method-tags {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px;
       }
 
       .pagination {

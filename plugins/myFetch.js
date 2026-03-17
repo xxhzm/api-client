@@ -18,6 +18,10 @@ export default defineNuxtPlugin((/* nuxtApp */) => {
             ) {
               $msg(response._data.msg, 'error')
             }
+            if (response._data.code === -5) {
+              const token = useCookie('token')
+              token.value = undefined
+            }
           },
         }
 

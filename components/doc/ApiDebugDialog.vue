@@ -11,6 +11,29 @@ const props = defineProps({
 
 const { userAccessKey } = useUserKey()
 
+const getMethodList = (method) => {
+  return [...new Set(String(method || '')
+    .split('|')
+    .map((item) => item.trim().toUpperCase())
+    .filter(Boolean))]
+}
+
+const getPreferredMethod = (method) => {
+  const methodList = getMethodList(method)
+
+  if (methodList.includes('POST')) {
+    return 'POST'
+  }
+
+  if (methodList.includes('GET')) {
+    return 'GET'
+  }
+
+  return methodList[0] || 'GET'
+}
+
+const requestMethod = computed(() => getPreferredMethod(props.apiInfo.method))
+
 // 调试相关的响应式变量
 const debugVisible = ref(false)
 
@@ -113,7 +136,7 @@ const sendRequest = async () => {
 
     let url = props.apiInfo.url
     let options = {
-      method: props.apiInfo.method,
+      method: requestMethod.value,
       headers: {
         'Content-Type': 'application/x-www-form-urlencoded',
       },
@@ -151,7 +174,7 @@ const sendRequest = async () => {
     })
 
     // 处理 POST 请求
-    if (props.apiInfo.method === 'POST') {
+    if (requestMethod.value === 'POST') {
       const formData = new URLSearchParams()
       // 添加body参数
       bodyParams.forEach((param) => {

@@ -14,7 +14,7 @@ const createapiInfo = reactive({
   description: '',
   keywords: '',
   url: '',
-  method: '',
+  method: [],
   categoryId: '',
   example: '',
   state: 1,
@@ -145,6 +145,20 @@ const methodOptions = [
   },
 ]
 
+const allowedMethods = methodOptions.map((item) => item.value)
+
+const normalizeMethodValue = (value) => {
+  const methodList = Array.isArray(value)
+    ? value
+    : String(value || '').split('|')
+
+  return [
+    ...new Set(methodList.map((item) => String(item).trim().toUpperCase())),
+  ].filter((item) => allowedMethods.includes(item))
+}
+
+const stringifyMethodValue = (value) => normalizeMethodValue(value).join('|')
+
 watch(
   () => parameterList.value,
   (newValue) => {
@@ -164,7 +178,6 @@ const create = async () => {
     !createapiInfo.alias ||
     !createapiInfo.description ||
     !createapiInfo.keywords ||
-    !createapiInfo.method ||
     !createapiInfo.prefix
   ) {
     msg('请填写内容', 'error')
@@ -177,7 +190,9 @@ const create = async () => {
     return false
   }
 
-  if (createapiInfo.method !== 'GET' && createapiInfo.method !== 'POST') {
+  const methodValue = stringifyMethodValue(createapiInfo.method)
+
+  if (!methodValue) {
     msg('请选择正确的请求类型', 'error')
     return false
   }
@@ -188,7 +203,7 @@ const create = async () => {
   apiBodyValue.append('description', createapiInfo.description)
   apiBodyValue.append('keywords', createapiInfo.keywords)
   apiBodyValue.append('url', createapiInfo.url)
-  apiBodyValue.append('method', createapiInfo.method)
+  apiBodyValue.append('method', methodValue)
   // 多分类以 | 拼接传递到后端
   const categoryIdsJoined = selectedCategories.value.map((c) => c.id).join('|')
   apiBodyValue.append('categoryId', categoryIdsJoined)
@@ -490,6 +505,9 @@ useHead({
             <el-form-item label="请求类型" required>
               <el-select
                 v-model="createapiInfo.method"
+                multiple
+                collapse-tags
+                collapse-tags-tooltip
                 placeholder="请选择请求类型"
                 style="width: 100%"
               >
