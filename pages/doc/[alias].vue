@@ -144,6 +144,13 @@ const getPreferredMethod = (method) => {
 
 const docMethodList = computed(() => getMethodList(apiInfo.value.method))
 const preferredMethod = computed(() => getPreferredMethod(apiInfo.value.method))
+const methodGuideText = computed(() => {
+  if (docMethodList.value.length <= 1) {
+    return `当前接口使用 ${preferredMethod.value} 请求`
+  }
+
+  return `当前接口支持 ${docMethodList.value.join(' / ')}，推荐优先使用 ${preferredMethod.value}`
+})
 
 // 配置项
 const options = useState('options')
@@ -1064,6 +1071,9 @@ const generatedExamples = computed(() => {
             <a href="#stats">服务指标</a>
           </li>
           <li class="nav-item">
+            <a href="#request-method">请求方法</a>
+          </li>
+          <li class="nav-item">
             <a href="#description">接口描述</a>
           </li>
           <li class="nav-item">
@@ -1097,16 +1107,6 @@ const generatedExamples = computed(() => {
           <div class="api-header">
             <h1>{{ apiInfo.name }}</h1>
             <div class="api-meta">
-              <div class="method-tags">
-                <el-tag
-                  v-for="method in docMethodList"
-                  :key="method"
-                  :type="method === 'GET' ? 'success' : 'warning'"
-                  size="large"
-                >
-                  {{ method }}
-                </el-tag>
-              </div>
               <el-button
                 type="primary"
                 @click="debugDialogRef?.openDebugDialog()"
@@ -1263,6 +1263,29 @@ const generatedExamples = computed(() => {
                 </div>
               </div>
             </div>
+          </div>
+        </div>
+
+        <!-- 请求方法 -->
+        <div class="box" id="request-method">
+          <h2>请求方法</h2>
+          <div class="request-method-panel">
+            <div class="request-method-header">
+              <span class="request-method-label">调用方式</span>
+              <div class="request-method-tags">
+                <span
+                  v-for="method in docMethodList"
+                  :key="`box-${method}`"
+                  :class="[
+                    'request-method-tag',
+                    method === 'GET' ? 'is-get' : 'is-post',
+                  ]"
+                >
+                  {{ method }}
+                </span>
+              </div>
+            </div>
+            <p class="request-method-text">{{ methodGuideText }}</p>
           </div>
         </div>
 
@@ -2167,21 +2190,79 @@ const generatedExamples = computed(() => {
         .api-meta {
           display: flex;
           align-items: center;
-          gap: 16px;
+          flex-wrap: wrap;
+          justify-content: flex-end;
+          gap: 12px;
 
-          .method-tags {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 8px;
-          }
           .debug-btn {
-            margin-left: 12px;
+            margin-left: 0;
           }
 
           .view-markdown-btn {
-            margin-left: 8px;
+            margin-left: 0;
           }
         }
+      }
+
+      .request-method-panel {
+        padding: 24px;
+        background: linear-gradient(180deg, #f8fbff 0%, #eef5ff 100%);
+        border: 1px solid #dbeafe;
+        border-radius: 16px;
+      }
+
+      .request-method-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 16px;
+        margin-bottom: 14px;
+
+        @media (max-width: 768px) {
+          flex-direction: column;
+          align-items: flex-start;
+        }
+      }
+
+      .request-method-label {
+        font-size: 14px;
+        font-weight: 700;
+        color: #1e3a8a;
+      }
+
+      .request-method-tags {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+      }
+
+      .request-method-tag {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-width: 52px;
+        padding: 6px 12px;
+        border-radius: 999px;
+        font-size: 12px;
+        font-weight: 700;
+        line-height: 1;
+      }
+
+      .request-method-tag.is-get {
+        color: #166534;
+        background: #dcfce7;
+      }
+
+      .request-method-tag.is-post {
+        color: #b45309;
+        background: #fef3c7;
+      }
+
+      .request-method-text {
+        margin: 0;
+        font-size: 15px;
+        line-height: 1.8;
+        color: #475569;
       }
 
       .api-url-section {
