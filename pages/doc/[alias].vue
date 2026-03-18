@@ -144,13 +144,6 @@ const getPreferredMethod = (method) => {
 
 const docMethodList = computed(() => getMethodList(apiInfo.value.method))
 const preferredMethod = computed(() => getPreferredMethod(apiInfo.value.method))
-const methodGuideText = computed(() => {
-  if (docMethodList.value.length <= 1) {
-    return `当前接口使用 ${preferredMethod.value} 请求`
-  }
-
-  return `当前接口支持 ${docMethodList.value.join(' / ')}，推荐优先使用 ${preferredMethod.value}`
-})
 
 // 配置项
 const options = useState('options')
@@ -239,8 +232,7 @@ const isHtmlContent = computed(() => {
   return htmlRegex.test(apiInfo.value.example)
 })
 
-// 添加新的计算属性
-const highlightedExample = computed(() => {
+const formattedExampleText = computed(() => {
   if (!apiInfo.value.example) return ''
 
   // 如果是HTML内容（来自高级编辑器），直接返回
@@ -256,14 +248,29 @@ const highlightedExample = computed(() => {
         : apiInfo.value.example
 
     const formatted = JSON.stringify(parsed, null, 2)
-    // 使用highlight.js进行代码高亮
-    if (hljs) return hljs.highlight(formatted, { language: 'json' }).value
     return formatted
   } catch (e) {
     // 如果解析失败,直接返回原始内容
     return apiInfo.value.example
   }
 })
+
+const highlightedExample = computed(() => {
+  if (!formattedExampleText.value) return ''
+  if (isHtmlContent.value) return formattedExampleText.value
+  if (hljs) {
+    return hljs.highlight(formattedExampleText.value, { language: 'json' })
+      .value
+  }
+  return formattedExampleText.value
+})
+
+const responseExampleLines = computed(() => {
+  if (!formattedExampleText.value || isHtmlContent.value) return []
+  return formattedExampleText.value.split('\n')
+})
+
+const getCodeLines = (code) => String(code || '').split('\n')
 
 const jsonBodyParam = computed(() => {
   if (!apiInfo.value.params) return null
@@ -289,19 +296,6 @@ const formattedJsonDocs = computed(() => {
   }
 })
 
-// 检查是否显示服务指标模块
-const shouldShowStats = computed(() => {
-  const { qps, avg_response_time, today_call_count, total_call_count } =
-    apiInfo.value
-  // 如果所有指标都是-1或undefined，则不显示
-  const allInvalid =
-    (qps === -1 || qps === undefined) &&
-    (avg_response_time === -1 || avg_response_time === undefined) &&
-    (today_call_count === -1 || today_call_count === undefined) &&
-    (total_call_count === -1 || total_call_count === undefined)
-  return !allInvalid
-})
-
 // 格式化大数字显示
 const formatLargeNumber = (num) => {
   if (num === undefined || num === null) return '-'
@@ -313,6 +307,53 @@ const formatLargeNumber = (num) => {
   }
   return num.toLocaleString()
 }
+
+const hasMetricValue = (value) =>
+  value !== undefined && value !== null && value !== -1
+
+const bottomStats = computed(() => {
+  const { qps, avg_response_time, today_call_count, total_call_count } =
+    apiInfo.value
+  const items = []
+
+  if (hasMetricValue(qps)) {
+    items.push({
+      key: 'qps',
+      label: 'QPS 上限',
+      value: qps,
+      unit: '次/秒',
+    })
+  }
+
+  if (hasMetricValue(avg_response_time)) {
+    items.push({
+      key: 'avg_response_time',
+      label: '平均响应时间',
+      value: avg_response_time,
+      unit: 'ms',
+    })
+  }
+
+  if (hasMetricValue(today_call_count)) {
+    items.push({
+      key: 'today_call_count',
+      label: '今日调用量',
+      value: formatLargeNumber(today_call_count),
+      unit: '次',
+    })
+  }
+
+  if (hasMetricValue(total_call_count)) {
+    items.push({
+      key: 'total_call_count',
+      label: '累计调用量',
+      value: formatLargeNumber(total_call_count),
+      unit: '次',
+    })
+  }
+
+  return items
+})
 
 // 购买套餐
 const buyPackage = (pkg) => {
@@ -1060,69 +1101,50 @@ const generatedExamples = computed(() => {
     <!-- 导航栏 -->
     <IndexNavbar></IndexNavbar>
     <div class="apiinfo-container">
-      <!-- 侧边导航 -->
-      <div class="sidebar">
-        <div class="nav-title">{{ apiInfo.name }}</div>
-        <ul class="nav-menu">
-          <li class="nav-item">
-            <a href="#overview" class="active">接口概览</a>
-          </li>
-          <li class="nav-item" v-if="shouldShowStats">
-            <a href="#stats">服务指标</a>
-          </li>
-          <li class="nav-item">
-            <a href="#request-method">请求方法</a>
-          </li>
-          <li class="nav-item">
-            <a href="#description">接口描述</a>
-          </li>
-          <li class="nav-item">
-            <a href="#parameters">请求参数</a>
-          </li>
-          <li
-            class="nav-item"
-            v-if="apiInfo.response_params && apiInfo.response_params.length > 0"
-          >
-            <a href="#response-params">返回参数</a>
-          </li>
-          <li
-            class="nav-item"
-            v-if="apiInfo.package_list && apiInfo.package_list.length > 0"
-          >
-            <a href="#packages">相关套餐</a>
-          </li>
-          <li class="nav-item">
-            <a href="#examples">请求示例</a>
-          </li>
-          <li class="nav-item">
-            <a href="#response">返回示例</a>
-          </li>
-        </ul>
-      </div>
-
       <!-- 主要内容 -->
       <div class="main-content">
         <!-- 接口概览 -->
         <div class="box" id="overview">
           <div class="api-header">
-            <h1>{{ apiInfo.name }}</h1>
+            <div class="api-heading">
+              <div class="api-title-row">
+                <h1>{{ apiInfo.name }}</h1>
+                <div class="request-method-tags api-method-tags">
+                  <span
+                    v-for="method in docMethodList"
+                    :key="`header-${method}`"
+                    :class="[
+                      'request-method-tag',
+                      method === 'GET' ? 'is-get' : 'is-post',
+                    ]"
+                  >
+                    {{ method }}
+                  </span>
+                </div>
+              </div>
+              <p class="description-text api-description">
+                {{ apiInfo.description }}
+              </p>
+            </div>
             <div class="api-meta">
-              <el-button
-                type="primary"
-                @click="debugDialogRef?.openDebugDialog()"
-                class="debug-btn"
-              >
-                <el-icon><VideoPlay /></el-icon>
-                在线调试
-              </el-button>
-              <el-button
-                type="info"
-                @click="$router.push(`/markdown/${route.params.alias}`)"
-                class="view-markdown-btn"
-              >
-                <el-icon><Document /></el-icon>
-                查看Markdown
-              </el-button>
+              <div class="api-actions">
+                <el-button
+                  type="primary"
+                  @click="debugDialogRef?.openDebugDialog()"
+                  class="debug-btn"
+                >
+                  <el-icon><VideoPlay /></el-icon>
+                  在线调试
+                </el-button>
+                <el-button
+                  type="info"
+                  @click="$router.push(`/markdown/${route.params.alias}`)"
+                  class="view-markdown-btn"
+                >
+                  <el-icon><Document /></el-icon>
+                  查看Markdown
+                </el-button>
+              </div>
             </div>
           </div>
 
@@ -1149,150 +1171,6 @@ const generatedExamples = computed(() => {
               </div>
             </el-tooltip>
           </div>
-        </div>
-
-        <!-- 服务指标 -->
-        <div class="box" id="stats" v-if="shouldShowStats">
-          <h2>服务指标</h2>
-          <div class="stats-grid">
-            <div
-              class="stat-card"
-              v-if="apiInfo.qps !== undefined && apiInfo.qps !== -1"
-            >
-              <div class="stat-icon qps-icon">
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  stroke-width="2"
-                >
-                  <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" />
-                </svg>
-              </div>
-              <div class="stat-content">
-                <div class="stat-label">QPS 上限</div>
-                <div class="stat-value">
-                  {{ apiInfo.qps }}<span class="stat-unit">次/秒</span>
-                </div>
-              </div>
-            </div>
-
-            <div
-              class="stat-card"
-              v-if="
-                apiInfo.avg_response_time !== undefined &&
-                apiInfo.avg_response_time !== -1
-              "
-            >
-              <div class="stat-icon time-icon">
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  stroke-width="2"
-                >
-                  <circle cx="12" cy="12" r="10" />
-                  <path d="M12 6v6l4 2" />
-                </svg>
-              </div>
-              <div class="stat-content">
-                <div class="stat-label">平均响应时间</div>
-                <div class="stat-value">
-                  {{ apiInfo.avg_response_time
-                  }}<span class="stat-unit">ms</span>
-                </div>
-              </div>
-            </div>
-
-            <div
-              class="stat-card"
-              v-if="
-                apiInfo.today_call_count !== undefined &&
-                apiInfo.today_call_count !== -1
-              "
-            >
-              <div class="stat-icon today-icon">
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  stroke-width="2"
-                >
-                  <path d="M22 12h-4l-3 9L9 3l-3 9H2" />
-                </svg>
-              </div>
-              <div class="stat-content">
-                <div class="stat-label">今日调用量</div>
-                <div class="stat-value">
-                  {{ formatLargeNumber(apiInfo.today_call_count)
-                  }}<span class="stat-unit">次</span>
-                </div>
-              </div>
-            </div>
-
-            <div
-              class="stat-card"
-              v-if="
-                apiInfo.total_call_count !== undefined &&
-                apiInfo.total_call_count !== -1
-              "
-            >
-              <div class="stat-icon total-icon">
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  stroke-width="2"
-                >
-                  <path
-                    d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"
-                  />
-                  <polyline points="3.27 6.96 12 12.01 20.73 6.96" />
-                  <line x1="12" y1="22.08" x2="12" y2="12" />
-                </svg>
-              </div>
-              <div class="stat-content">
-                <div class="stat-label">累计调用量</div>
-                <div class="stat-value">
-                  {{ formatLargeNumber(apiInfo.total_call_count)
-                  }}<span class="stat-unit">次</span>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- 请求方法 -->
-        <div class="box" id="request-method">
-          <h2>请求方法</h2>
-          <div class="request-method-panel">
-            <div class="request-method-header">
-              <span class="request-method-label">调用方式</span>
-              <div class="request-method-tags">
-                <span
-                  v-for="method in docMethodList"
-                  :key="`box-${method}`"
-                  :class="[
-                    'request-method-tag',
-                    method === 'GET' ? 'is-get' : 'is-post',
-                  ]"
-                >
-                  {{ method }}
-                </span>
-              </div>
-            </div>
-            <p class="request-method-text">{{ methodGuideText }}</p>
-          </div>
-        </div>
-
-        <!-- 接口描述 -->
-        <div class="box" id="description">
-          <h2>接口描述</h2>
-          <p class="description-text">{{ apiInfo.description }}</p>
         </div>
 
         <!-- 请求参数 -->
@@ -1349,74 +1227,22 @@ const generatedExamples = computed(() => {
               "
               class="key-guide-container"
             >
-              <div class="usage-guide">
-                <div class="guide-title">
-                  <el-icon><Connection /></el-icon>
-                  <span>怎么传递这个 Key？</span>
+              <div class="key-guide-inline">
+                <div class="key-guide-header">
+                  <span class="key-guide-title">将 Key 放到 Header 中</span>
+                  <span class="key-guide-text"
+                    >使用 Authorization 请求头，按 Bearer Token 方式传递</span
+                  >
                 </div>
-                <div class="method-cards">
-                  <!-- 方法1 -->
-                  <div class="method-card recommended">
-                    <div class="card-badge">推荐</div>
-                    <div class="card-title">方法 1：Bearer Token (Header)</div>
-                    <div class="card-desc">标准规范，兼容性最好，最安全</div>
-                    <div
-                      class="code-block"
-                      @click="copy('Authorization: Bearer Key')"
-                    >
-                      <div class="code-line">
-                        <span class="label">Authorization:</span>
-                        <span class="value">Bearer Key</span>
-                      </div>
-                      <el-icon class="copy-icon"><CopyDocument /></el-icon>
-                    </div>
+                <div
+                  class="key-guide-code"
+                  @click="copy('Authorization: Bearer YOUR_API_KEY')"
+                >
+                  <div class="key-guide-code-line">
+                    <span class="label">Authorization:</span>
+                    <span class="value">Bearer YOUR_API_KEY</span>
                   </div>
-
-                  <!-- 方法2 -->
-                  <div class="method-card">
-                    <div class="card-title">方法 2：放在请求头 (Header)</div>
-                    <div class="card-desc">
-                      直接使用 Authorization，无需前缀
-                    </div>
-                    <div class="code-block" @click="copy('Authorization: Key')">
-                      <div class="code-line">
-                        <span class="label">Authorization:</span>
-                        <span class="value">Key</span>
-                      </div>
-                      <el-icon class="copy-icon"><CopyDocument /></el-icon>
-                    </div>
-                  </div>
-
-                  <!-- 方法3 -->
-                  <div class="method-card">
-                    <div class="card-title">方法 3：放在请求头 (Header)</div>
-                    <div class="card-desc">自定义 Header key 字段</div>
-                    <div class="code-block" @click="copy('key: Key')">
-                      <div class="code-line">
-                        <span class="label">key:</span>
-                        <span class="value">Key</span>
-                      </div>
-                      <el-icon class="copy-icon"><CopyDocument /></el-icon>
-                    </div>
-                  </div>
-
-                  <!-- 方法4 -->
-                  <!-- <div class="method-card deprecated">
-                    <div class="card-badge">不推荐</div>
-                    <div class="card-title">方法 4：放在网址后面 (Query)</div>
-                    <div class="card-desc">
-                      不安全，可能泄露 Key，<span class="danger-text"
-                        >即将弃用</span
-                      >
-                    </div>
-                    <div class="code-block" @click="copy('?key=Key')">
-                      <div class="code-line">
-                        <span class="label">网址?key=</span>
-                        <span class="value">Key</span>
-                      </div>
-                      <el-icon class="copy-icon"><CopyDocument /></el-icon>
-                    </div>
-                  </div> -->
+                  <el-icon class="copy-icon"><CopyDocument /></el-icon>
                 </div>
               </div>
             </div>
@@ -1482,20 +1308,6 @@ const generatedExamples = computed(() => {
             </el-table>
           </div>
         </div>
-
-        <!-- 广告位 -->
-        <client-only>
-          <div
-            class="box ad-section"
-            v-if="
-              adDisplay &&
-              !(apiInfo.package_list && apiInfo.package_list.length > 0)
-            "
-          >
-            <h2>推荐内容</h2>
-            <Ad @adInfo="adInfo"></Ad>
-          </div>
-        </client-only>
 
         <!-- 套餐列表 -->
         <div
@@ -1579,6 +1391,37 @@ const generatedExamples = computed(() => {
           </div>
         </div>
 
+        <div v-if="bottomStats.length" class="box api-stats-box" id="api-stats">
+          <h2>接口指标</h2>
+          <div class="bottom-stats-grid">
+            <div
+              v-for="stat in bottomStats"
+              :key="stat.key"
+              class="bottom-stat-card"
+            >
+              <div class="bottom-stat-label">{{ stat.label }}</div>
+              <div class="bottom-stat-value">
+                {{ stat.value
+                }}<span class="bottom-stat-unit">{{ stat.unit }}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 广告位 -->
+        <client-only>
+          <div
+            class="box ad-section"
+            v-if="
+              adDisplay &&
+              !(apiInfo.package_list && apiInfo.package_list.length > 0)
+            "
+          >
+            <h2>推荐内容</h2>
+            <Ad @adInfo="adInfo"></Ad>
+          </div>
+        </client-only>
+
         <!-- 请求示例 -->
         <div class="box" id="examples">
           <h2>请求示例</h2>
@@ -1614,138 +1457,423 @@ const generatedExamples = computed(() => {
             <div class="code-display">
               <!-- Shell -->
               <div v-if="activeName === 'shell'">
-                <pre class="example mac_light mac_pre"><client-only><el-tooltip
-                class="box-item"
-                effect="dark"
-                content="复制"
-                placement="left"
-              ><div class="copy" @click="copy(generatedExamples.curl)"><el-icon size="14"><CopyDocument /></el-icon></div
-              ></el-tooltip></client-only><code class="bash" v-text="generatedExamples.curl"></code></pre>
+                <div class="example-code-block mac_light">
+                  <client-only>
+                    <el-tooltip
+                      class="box-item"
+                      effect="dark"
+                      content="复制"
+                      placement="left"
+                    >
+                      <div class="copy" @click="copy(generatedExamples.curl)">
+                        <el-icon size="14"><CopyDocument /></el-icon>
+                      </div>
+                    </el-tooltip>
+                  </client-only>
+                  <div class="example-code-grid">
+                    <div class="example-line-numbers" aria-hidden="true">
+                      <span
+                        v-for="(_, index) in getCodeLines(
+                          generatedExamples.curl,
+                        )"
+                        :key="`curl-line-${index}`"
+                        class="example-line-number"
+                      >
+                        {{ index + 1 }}
+                      </span>
+                    </div>
+                    <pre class="example mac_pre example-code-pre"><code
+                        class="bash"
+                        v-text="generatedExamples.curl"
+                      ></code></pre>
+                  </div>
+                </div>
               </div>
 
               <!-- JavaScript -->
               <div v-if="activeName === 'javascript'">
                 <div v-if="jsActiveName === 'axios'">
-                  <pre
-                    class="example mac_light mac_pre"
-                  ><client-only><el-tooltip
-                  class="box-item"
-                  effect="dark"
-                  content="复制"
-                  placement="left"
-                ><div class="copy" @click="copy(generatedExamples.axios)"><el-icon size="14"><CopyDocument /></el-icon></div
-                ></el-tooltip></client-only><code class="javascript.js" v-text="generatedExamples.axios"></code></pre>
+                  <div class="example-code-block mac_light">
+                    <client-only>
+                      <el-tooltip
+                        class="box-item"
+                        effect="dark"
+                        content="复制"
+                        placement="left"
+                      >
+                        <div
+                          class="copy"
+                          @click="copy(generatedExamples.axios)"
+                        >
+                          <el-icon size="14"><CopyDocument /></el-icon>
+                        </div>
+                      </el-tooltip>
+                    </client-only>
+                    <div class="example-code-grid">
+                      <div class="example-line-numbers" aria-hidden="true">
+                        <span
+                          v-for="(_, index) in getCodeLines(
+                            generatedExamples.axios,
+                          )"
+                          :key="`axios-line-${index}`"
+                          class="example-line-number"
+                        >
+                          {{ index + 1 }}
+                        </span>
+                      </div>
+                      <pre class="example mac_pre example-code-pre"><code
+                          class="javascript.js"
+                          v-text="generatedExamples.axios"
+                        ></code></pre>
+                    </div>
+                  </div>
                 </div>
                 <div v-if="jsActiveName === 'fetch'">
-                  <pre
-                    class="example mac_light mac_pre"
-                  ><client-only><el-tooltip
-                  class="box-item"
-                  effect="dark"
-                  content="复制"
-                  placement="left"
-                ><div class="copy" @click="copy(generatedExamples.fetch)"><el-icon size="14"><CopyDocument /></el-icon></div
-                ></el-tooltip></client-only><code class="javascript.js" v-text="generatedExamples.fetch"></code></pre>
+                  <div class="example-code-block mac_light">
+                    <client-only>
+                      <el-tooltip
+                        class="box-item"
+                        effect="dark"
+                        content="复制"
+                        placement="left"
+                      >
+                        <div
+                          class="copy"
+                          @click="copy(generatedExamples.fetch)"
+                        >
+                          <el-icon size="14"><CopyDocument /></el-icon>
+                        </div>
+                      </el-tooltip>
+                    </client-only>
+                    <div class="example-code-grid">
+                      <div class="example-line-numbers" aria-hidden="true">
+                        <span
+                          v-for="(_, index) in getCodeLines(
+                            generatedExamples.fetch,
+                          )"
+                          :key="`fetch-line-${index}`"
+                          class="example-line-number"
+                        >
+                          {{ index + 1 }}
+                        </span>
+                      </div>
+                      <pre class="example mac_pre example-code-pre"><code
+                          class="javascript.js"
+                          v-text="generatedExamples.fetch"
+                        ></code></pre>
+                    </div>
+                  </div>
                 </div>
                 <div v-if="jsActiveName === 'ajax'">
-                  <pre
-                    class="example mac_light mac_pre"
-                  ><client-only><el-tooltip
-                  class="box-item"
-                  effect="dark"
-                  content="复制"
-                  placement="left"
-                ><div class="copy" @click="copy(generatedExamples.ajax)"><el-icon size="14"><CopyDocument /></el-icon></div
-                ></el-tooltip></client-only><code class="javascript.js" v-text="generatedExamples.ajax"></code></pre>
+                  <div class="example-code-block mac_light">
+                    <client-only>
+                      <el-tooltip
+                        class="box-item"
+                        effect="dark"
+                        content="复制"
+                        placement="left"
+                      >
+                        <div class="copy" @click="copy(generatedExamples.ajax)">
+                          <el-icon size="14"><CopyDocument /></el-icon>
+                        </div>
+                      </el-tooltip>
+                    </client-only>
+                    <div class="example-code-grid">
+                      <div class="example-line-numbers" aria-hidden="true">
+                        <span
+                          v-for="(_, index) in getCodeLines(
+                            generatedExamples.ajax,
+                          )"
+                          :key="`ajax-line-${index}`"
+                          class="example-line-number"
+                        >
+                          {{ index + 1 }}
+                        </span>
+                      </div>
+                      <pre class="example mac_pre example-code-pre"><code
+                          class="javascript.js"
+                          v-text="generatedExamples.ajax"
+                        ></code></pre>
+                    </div>
+                  </div>
                 </div>
                 <div v-if="jsActiveName === 'xhr'">
-                  <pre
-                    class="example mac_light mac_pre"
-                  ><client-only><el-tooltip
-                  class="box-item"
-                  effect="dark"
-                  content="复制"
-                  placement="left"
-                ><div class="copy" @click="copy(generatedExamples.xhr)"><el-icon size="14"><CopyDocument /></el-icon></div
-                ></el-tooltip></client-only><code class="javascript.js" v-text="generatedExamples.xhr"></code></pre>
+                  <div class="example-code-block mac_light">
+                    <client-only>
+                      <el-tooltip
+                        class="box-item"
+                        effect="dark"
+                        content="复制"
+                        placement="left"
+                      >
+                        <div class="copy" @click="copy(generatedExamples.xhr)">
+                          <el-icon size="14"><CopyDocument /></el-icon>
+                        </div>
+                      </el-tooltip>
+                    </client-only>
+                    <div class="example-code-grid">
+                      <div class="example-line-numbers" aria-hidden="true">
+                        <span
+                          v-for="(_, index) in getCodeLines(
+                            generatedExamples.xhr,
+                          )"
+                          :key="`xhr-line-${index}`"
+                          class="example-line-number"
+                        >
+                          {{ index + 1 }}
+                        </span>
+                      </div>
+                      <pre class="example mac_pre example-code-pre"><code
+                          class="javascript.js"
+                          v-text="generatedExamples.xhr"
+                        ></code></pre>
+                    </div>
+                  </div>
                 </div>
                 <div v-if="jsActiveName === 'nodejs'">
-                  <pre
-                    class="example mac_light mac_pre"
-                  ><client-only><el-tooltip
-                  class="box-item"
-                  effect="dark"
-                  content="复制"
-                  placement="left"
-                ><div class="copy" @click="copy(generatedExamples.nodejs)"><el-icon size="14"><CopyDocument /></el-icon></div
-                ></el-tooltip></client-only><code class="javascript.js" v-text="generatedExamples.nodejs"></code></pre>
+                  <div class="example-code-block mac_light">
+                    <client-only>
+                      <el-tooltip
+                        class="box-item"
+                        effect="dark"
+                        content="复制"
+                        placement="left"
+                      >
+                        <div
+                          class="copy"
+                          @click="copy(generatedExamples.nodejs)"
+                        >
+                          <el-icon size="14"><CopyDocument /></el-icon>
+                        </div>
+                      </el-tooltip>
+                    </client-only>
+                    <div class="example-code-grid">
+                      <div class="example-line-numbers" aria-hidden="true">
+                        <span
+                          v-for="(_, index) in getCodeLines(
+                            generatedExamples.nodejs,
+                          )"
+                          :key="`nodejs-line-${index}`"
+                          class="example-line-number"
+                        >
+                          {{ index + 1 }}
+                        </span>
+                      </div>
+                      <pre class="example mac_pre example-code-pre"><code
+                          class="javascript.js"
+                          v-text="generatedExamples.nodejs"
+                        ></code></pre>
+                    </div>
+                  </div>
                 </div>
               </div>
 
               <!-- Python -->
               <div v-if="activeName === 'python'">
-                <pre class="example mac_light mac_pre"><client-only><el-tooltip
-                class="box-item"
-                effect="dark"
-                content="复制"
-                placement="left"
-              ><div class="copy" @click="copy(generatedExamples.python)"><el-icon size="14"><CopyDocument /></el-icon></div
-              ></el-tooltip></client-only><code class="python" v-text="generatedExamples.python"></code></pre>
+                <div class="example-code-block mac_light">
+                  <client-only>
+                    <el-tooltip
+                      class="box-item"
+                      effect="dark"
+                      content="复制"
+                      placement="left"
+                    >
+                      <div class="copy" @click="copy(generatedExamples.python)">
+                        <el-icon size="14"><CopyDocument /></el-icon>
+                      </div>
+                    </el-tooltip>
+                  </client-only>
+                  <div class="example-code-grid">
+                    <div class="example-line-numbers" aria-hidden="true">
+                      <span
+                        v-for="(_, index) in getCodeLines(
+                          generatedExamples.python,
+                        )"
+                        :key="`python-line-${index}`"
+                        class="example-line-number"
+                      >
+                        {{ index + 1 }}
+                      </span>
+                    </div>
+                    <pre class="example mac_pre example-code-pre"><code
+                        class="python"
+                        v-text="generatedExamples.python"
+                      ></code></pre>
+                  </div>
+                </div>
               </div>
 
               <!-- PHP -->
               <div v-if="activeName === 'php'">
-                <pre class="example mac_light mac_pre"><client-only><el-tooltip
-                class="box-item"
-                effect="dark"
-                content="复制"
-                placement="left"
-              ><div class="copy" @click="copy(generatedExamples.php)"><el-icon size="14"><CopyDocument /></el-icon></div
-              ></el-tooltip></client-only><code class="php" v-text="generatedExamples.php"></code></pre>
+                <div class="example-code-block mac_light">
+                  <client-only>
+                    <el-tooltip
+                      class="box-item"
+                      effect="dark"
+                      content="复制"
+                      placement="left"
+                    >
+                      <div class="copy" @click="copy(generatedExamples.php)">
+                        <el-icon size="14"><CopyDocument /></el-icon>
+                      </div>
+                    </el-tooltip>
+                  </client-only>
+                  <div class="example-code-grid">
+                    <div class="example-line-numbers" aria-hidden="true">
+                      <span
+                        v-for="(_, index) in getCodeLines(
+                          generatedExamples.php,
+                        )"
+                        :key="`php-line-${index}`"
+                        class="example-line-number"
+                      >
+                        {{ index + 1 }}
+                      </span>
+                    </div>
+                    <pre class="example mac_pre example-code-pre"><code
+                        class="php"
+                        v-text="generatedExamples.php"
+                      ></code></pre>
+                  </div>
+                </div>
               </div>
 
               <!-- Java -->
               <div v-if="activeName === 'java'">
-                <pre class="example mac_light mac_pre"><client-only><el-tooltip
-                class="box-item"
-                effect="dark"
-                content="复制"
-                placement="left"
-              ><div class="copy" @click="copy(generatedExamples.java)"><el-icon size="14"><CopyDocument /></el-icon></div
-              ></el-tooltip></client-only><code class="java" v-text="generatedExamples.java"></code></pre>
+                <div class="example-code-block mac_light">
+                  <client-only>
+                    <el-tooltip
+                      class="box-item"
+                      effect="dark"
+                      content="复制"
+                      placement="left"
+                    >
+                      <div class="copy" @click="copy(generatedExamples.java)">
+                        <el-icon size="14"><CopyDocument /></el-icon>
+                      </div>
+                    </el-tooltip>
+                  </client-only>
+                  <div class="example-code-grid">
+                    <div class="example-line-numbers" aria-hidden="true">
+                      <span
+                        v-for="(_, index) in getCodeLines(
+                          generatedExamples.java,
+                        )"
+                        :key="`java-line-${index}`"
+                        class="example-line-number"
+                      >
+                        {{ index + 1 }}
+                      </span>
+                    </div>
+                    <pre class="example mac_pre example-code-pre"><code
+                        class="java"
+                        v-text="generatedExamples.java"
+                      ></code></pre>
+                  </div>
+                </div>
               </div>
 
               <!-- Go -->
               <div v-if="activeName === 'go'">
-                <pre class="example mac_light mac_pre"><client-only><el-tooltip
-                class="box-item"
-                effect="dark"
-                content="复制"
-                placement="left"
-              ><div class="copy" @click="copy(generatedExamples.go)"><el-icon size="14"><CopyDocument /></el-icon></div
-              ></el-tooltip></client-only><code class="go" v-text="generatedExamples.go"></code></pre>
+                <div class="example-code-block mac_light">
+                  <client-only>
+                    <el-tooltip
+                      class="box-item"
+                      effect="dark"
+                      content="复制"
+                      placement="left"
+                    >
+                      <div class="copy" @click="copy(generatedExamples.go)">
+                        <el-icon size="14"><CopyDocument /></el-icon>
+                      </div>
+                    </el-tooltip>
+                  </client-only>
+                  <div class="example-code-grid">
+                    <div class="example-line-numbers" aria-hidden="true">
+                      <span
+                        v-for="(_, index) in getCodeLines(generatedExamples.go)"
+                        :key="`go-line-${index}`"
+                        class="example-line-number"
+                      >
+                        {{ index + 1 }}
+                      </span>
+                    </div>
+                    <pre class="example mac_pre example-code-pre"><code
+                        class="go"
+                        v-text="generatedExamples.go"
+                      ></code></pre>
+                  </div>
+                </div>
               </div>
 
               <!-- C# -->
               <div v-if="activeName === 'csharp'">
-                <pre class="example mac_light mac_pre"><client-only><el-tooltip
-                class="box-item"
-                effect="dark"
-                content="复制"
-                placement="left"
-              ><div class="copy" @click="copy(generatedExamples.csharp)"><el-icon size="14"><CopyDocument /></el-icon></div
-              ></el-tooltip></client-only><code class="csharp" v-text="generatedExamples.csharp"></code></pre>
+                <div class="example-code-block mac_light">
+                  <client-only>
+                    <el-tooltip
+                      class="box-item"
+                      effect="dark"
+                      content="复制"
+                      placement="left"
+                    >
+                      <div class="copy" @click="copy(generatedExamples.csharp)">
+                        <el-icon size="14"><CopyDocument /></el-icon>
+                      </div>
+                    </el-tooltip>
+                  </client-only>
+                  <div class="example-code-grid">
+                    <div class="example-line-numbers" aria-hidden="true">
+                      <span
+                        v-for="(_, index) in getCodeLines(
+                          generatedExamples.csharp,
+                        )"
+                        :key="`csharp-line-${index}`"
+                        class="example-line-number"
+                      >
+                        {{ index + 1 }}
+                      </span>
+                    </div>
+                    <pre class="example mac_pre example-code-pre"><code
+                        class="csharp"
+                        v-text="generatedExamples.csharp"
+                      ></code></pre>
+                  </div>
+                </div>
               </div>
 
               <!-- Ruby -->
               <div v-if="activeName === 'ruby'">
-                <pre class="example mac_light mac_pre"><client-only><el-tooltip
-                class="box-item"
-                effect="dark"
-                content="复制"
-                placement="left"
-              ><div class="copy" @click="copy(generatedExamples.ruby)"><el-icon size="14"><CopyDocument /></el-icon></div
-              ></el-tooltip></client-only><code class="ruby" v-text="generatedExamples.ruby"></code></pre>
+                <div class="example-code-block mac_light">
+                  <client-only>
+                    <el-tooltip
+                      class="box-item"
+                      effect="dark"
+                      content="复制"
+                      placement="left"
+                    >
+                      <div class="copy" @click="copy(generatedExamples.ruby)">
+                        <el-icon size="14"><CopyDocument /></el-icon>
+                      </div>
+                    </el-tooltip>
+                  </client-only>
+                  <div class="example-code-grid">
+                    <div class="example-line-numbers" aria-hidden="true">
+                      <span
+                        v-for="(_, index) in getCodeLines(
+                          generatedExamples.ruby,
+                        )"
+                        :key="`ruby-line-${index}`"
+                        class="example-line-number"
+                      >
+                        {{ index + 1 }}
+                      </span>
+                    </div>
+                    <pre class="example mac_pre example-code-pre"><code
+                        class="ruby"
+                        v-text="generatedExamples.ruby"
+                      ></code></pre>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
@@ -1773,12 +1901,35 @@ const generatedExamples = computed(() => {
             </div>
 
             <!-- 基础模式：代码格式 -->
-            <pre
-              v-else
-              class="example mac_light mac_pre"
-            ><client-only><el-tooltip class="box-item" effect="dark" content="复制" placement="left"
-           ><div class="copy" @click="copy(apiInfo.example)"><el-icon size="14"><CopyDocument /></el-icon></div
-           ></el-tooltip></client-only><code class="json" v-text="apiInfo.example"></code></pre>
+            <div v-else class="response-code-block mac_light">
+              <client-only>
+                <el-tooltip
+                  class="box-item"
+                  effect="dark"
+                  content="复制"
+                  placement="left"
+                >
+                  <div class="copy" @click="copy(apiInfo.example)">
+                    <el-icon size="14"><CopyDocument /></el-icon>
+                  </div>
+                </el-tooltip>
+              </client-only>
+              <div class="response-code-grid">
+                <div class="response-line-numbers" aria-hidden="true">
+                  <span
+                    v-for="(_, index) in responseExampleLines"
+                    :key="`response-line-${index}`"
+                    class="response-line-number"
+                  >
+                    {{ index + 1 }}
+                  </span>
+                </div>
+                <pre class="example mac_pre response-code-pre"><code
+                    class="json"
+                    v-html="highlightedExample"
+                  ></code></pre>
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -1793,285 +1944,141 @@ const generatedExamples = computed(() => {
 </template>
 
 <style lang="less" scoped>
-// 服务指标网格布局
-.stats-grid {
+.bottom-stats-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-  gap: 20px;
-  margin-top: 24px;
-
-  @media (max-width: 768px) {
-    grid-template-columns: 1fr;
-    gap: 16px;
-  }
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 16px;
 }
 
-.stat-card {
+.api-stats-box {
+  padding-bottom: 0;
+}
+
+.bottom-stat-card {
+  padding: 18px 20px;
   background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
   border: 1px solid #e2e8f0;
   border-radius: 12px;
-  padding: 24px;
+}
+
+.bottom-stat-label {
+  font-size: 13px;
+  color: #64748b;
+  font-weight: 500;
+  margin-bottom: 10px;
+  letter-spacing: 0.3px;
+}
+
+.bottom-stat-value {
+  font-size: 28px;
+  font-weight: 700;
+  color: #1e293b;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+}
+
+.bottom-stat-unit {
+  font-size: 14px;
+  font-weight: 400;
+  color: #94a3b8;
+  margin-left: 6px;
+}
+
+.key-guide-container {
+  margin-top: 16px;
+}
+
+.key-guide-inline {
   display: flex;
   align-items: center;
+  justify-content: space-between;
   gap: 16px;
-  transition: all 0.3s ease;
-  position: relative;
-  overflow: hidden;
+  padding: 12px 14px;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
 
-  &::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    height: 3px;
-    background: linear-gradient(90deg, #3b82f6, #8b5cf6);
-    opacity: 0;
-    transition: opacity 0.3s ease;
+  @media (max-width: 768px) {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 10px;
   }
+}
+
+.key-guide-header {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+
+.key-guide-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: #334155;
+}
+
+.key-guide-text {
+  font-size: 12px;
+  line-height: 1.5;
+  color: #64748b;
+}
+
+.key-guide-code {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  min-width: min(100%, 320px);
+  padding: 10px 12px;
+  background: #fff;
+  border: 1px solid #dbeafe;
+  border-radius: 8px;
+  cursor: pointer;
+  transition:
+    border-color 0.2s ease,
+    box-shadow 0.2s ease;
 
   &:hover {
-    transform: translateY(-4px);
-    box-shadow: 0 12px 24px rgba(0, 0, 0, 0.08);
-    border-color: #cbd5e1;
+    border-color: #93c5fd;
+    box-shadow: 0 4px 12px rgba(37, 99, 235, 0.08);
 
-    &::before {
+    .copy-icon {
       opacity: 1;
-    }
-
-    .stat-icon {
-      transform: scale(1.1);
-    }
-  }
-
-  .stat-icon {
-    width: 48px;
-    height: 48px;
-    border-radius: 12px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    flex-shrink: 0;
-    transition: transform 0.3s ease;
-
-    svg {
-      width: 24px;
-      height: 24px;
-    }
-
-    &.qps-icon {
-      background: linear-gradient(135deg, #3b82f6, #2563eb);
-      color: white;
-    }
-
-    &.time-icon {
-      background: linear-gradient(135deg, #8b5cf6, #7c3aed);
-      color: white;
-    }
-
-    &.today-icon {
-      background: linear-gradient(135deg, #10b981, #059669);
-      color: white;
-    }
-
-    &.total-icon {
-      background: linear-gradient(135deg, #f59e0b, #d97706);
-      color: white;
-    }
-  }
-
-  .stat-content {
-    flex: 1;
-    min-width: 0;
-  }
-
-  .stat-label {
-    font-size: 13px;
-    color: #64748b;
-    font-weight: 500;
-    margin-bottom: 8px;
-    letter-spacing: 0.3px;
-  }
-
-  .stat-value {
-    font-size: 28px;
-    font-weight: 700;
-    color: #1e293b;
-    line-height: 1;
-    font-variant-numeric: tabular-nums;
-
-    .stat-unit {
-      font-size: 14px;
-      font-weight: 400;
-      color: #94a3b8;
-      margin-left: 6px;
     }
   }
 
   @media (max-width: 768px) {
-    padding: 20px;
-
-    .stat-icon {
-      width: 40px;
-      height: 40px;
-
-      svg {
-        width: 20px;
-        height: 20px;
-      }
-    }
-
-    .stat-label {
-      font-size: 12px;
-      margin-bottom: 6px;
-    }
-
-    .stat-value {
-      font-size: 24px;
-
-      .stat-unit {
-        font-size: 12px;
-      }
-    }
+    min-width: 0;
+    width: 100%;
   }
 }
 
-.key-guide-container {
-  margin-top: 24px;
+.key-guide-code-line {
+  min-width: 0;
+  font-family: 'Roboto Mono', monospace;
+  font-size: 12px;
+  line-height: 1.5;
+  word-break: break-all;
 
-  .usage-guide {
-    .guide-title {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      margin-bottom: 20px;
-      font-size: 16px;
-      font-weight: 600;
-      color: #2e3033;
-
-      .el-icon {
-        color: #4096ff;
-        font-size: 20px;
-      }
-    }
-
-    .method-cards {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-      gap: 20px;
-
-      .method-card {
-        position: relative;
-        background: #fff;
-        border: 1px solid #edf1f7;
-        border-radius: 12px;
-        padding: 20px;
-        transition: all 0.3s;
-
-        &:hover {
-          transform: translateY(-2px);
-          box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
-          border-color: #d9e1ec;
-
-          .code-block {
-            background: #ecf5ff;
-            border-color: #c6e2ff;
-
-            .copy-icon {
-              opacity: 1;
-            }
-          }
-        }
-
-        &.recommended {
-          border: 1px solid #b3d8ff;
-          background: #f0f9ff;
-
-          .card-badge {
-            background: #4096ff;
-            color: #fff;
-          }
-        }
-
-        &.deprecated {
-          border: 1px solid #ffccc7;
-          background: #fff2f0;
-
-          .card-badge {
-            background: #ff4d4f;
-            color: #fff;
-          }
-
-          .danger-text {
-            color: #ff4d4f;
-            font-weight: 500;
-          }
-        }
-
-        .card-badge {
-          position: absolute;
-          top: 0;
-          right: 0;
-          font-size: 12px;
-          padding: 2px 10px;
-          border-bottom-left-radius: 8px;
-          border-top-right-radius: 12px;
-        }
-
-        .card-title {
-          font-size: 15px;
-          font-weight: 600;
-          color: #2e3033;
-          margin-bottom: 8px;
-        }
-
-        .card-desc {
-          font-size: 13px;
-          color: #8c95a5;
-          margin-bottom: 16px;
-          line-height: 1.5;
-        }
-
-        .code-block {
-          background: #f8fafc;
-          border: 1px solid #e1e5eb;
-          border-radius: 8px;
-          padding: 12px;
-          cursor: pointer;
-          display: flex;
-          justify-content: space-between;
-          align-items: center;
-          transition: all 0.2s;
-
-          .code-line {
-            font-family: 'Roboto Mono', monospace;
-            font-size: 13px;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            white-space: nowrap;
-            margin-right: 10px;
-
-            .label {
-              color: #d63200;
-              margin-right: 8px;
-            }
-
-            .value {
-              color: #0052d9;
-              font-weight: 500;
-            }
-          }
-
-          .copy-icon {
-            font-size: 16px;
-            color: #4096ff;
-            opacity: 0.5;
-            transition: all 0.2s;
-          }
-        }
-      }
-    }
+  .label {
+    color: #c2410c;
+    margin-right: 8px;
   }
+
+  .value {
+    color: #1d4ed8;
+    font-weight: 600;
+  }
+}
+
+.key-guide-code .copy-icon {
+  flex-shrink: 0;
+  font-size: 16px;
+  color: #2563eb;
+  opacity: 0.6;
+  transition: opacity 0.2s ease;
 }
 </style>
 
@@ -2089,70 +2096,13 @@ const generatedExamples = computed(() => {
     Arial, 'Noto Sans', 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol';
 
   .apiinfo-container {
-    max-width: 1600px;
+    max-width: 1200px;
     margin: 0 auto;
     padding: 40px 24px;
-    display: grid;
-    grid-template-columns: 260px 1fr;
-    column-gap: 24px;
-    row-gap: 0;
-    align-items: start;
+    display: block;
 
     @media (max-width: 1024px) {
       padding: 24px 16px;
-      display: block;
-    }
-
-    .sidebar {
-      display: block;
-      position: sticky;
-      top: 24px;
-      align-self: start;
-
-      @media (max-width: 1024px) {
-        display: none;
-      }
-
-      .nav-title {
-        font-size: 18px;
-        font-weight: 600;
-        color: #1e293b;
-        margin-bottom: 16px;
-        padding-bottom: 12px;
-        border-bottom: 2px solid #e2e8f0;
-      }
-
-      .nav-menu {
-        list-style: none;
-        padding: 0;
-        margin: 0;
-
-        .nav-item {
-          margin-bottom: 8px;
-
-          a {
-            display: block;
-            padding: 12px 16px;
-            color: #64748b;
-            text-decoration: none;
-            border-radius: 8px;
-            transition: all 0.3s ease;
-            font-weight: 500;
-
-            &:hover {
-              background: #f1f5f9;
-              color: #3b82f6;
-              transform: translateX(4px);
-            }
-
-            &.active {
-              background: linear-gradient(135deg, #3b82f6, #1d4ed8);
-              color: white;
-              box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
-            }
-          }
-        }
-      }
     }
 
     .main-content {
@@ -2162,7 +2112,6 @@ const generatedExamples = computed(() => {
     .box {
       background: transparent;
       padding: 32px 0;
-      border-bottom: 1px solid #e2e8f0;
 
       &:last-child {
         border-bottom: none;
@@ -2187,12 +2136,46 @@ const generatedExamples = computed(() => {
           line-height: 1.2;
         }
 
+        .api-heading {
+          flex: 1;
+          min-width: 0;
+        }
+
+        .api-title-row {
+          display: flex;
+          align-items: flex-end;
+          flex-wrap: wrap;
+          gap: 12px;
+
+          @media (max-width: 768px) {
+            align-items: flex-end !important;
+          }
+        }
+
         .api-meta {
           display: flex;
           align-items: center;
           flex-wrap: wrap;
           justify-content: flex-end;
           gap: 12px;
+          flex-shrink: 0;
+
+          .api-actions {
+            display: flex;
+            align-items: center;
+            flex-wrap: wrap;
+            justify-content: flex-end;
+            gap: 12px;
+          }
+
+          @media (max-width: 768px) {
+            width: 100%;
+            align-items: flex-start;
+
+            .api-actions {
+              justify-content: flex-start;
+            }
+          }
 
           .debug-btn {
             margin-left: 0;
@@ -2202,32 +2185,6 @@ const generatedExamples = computed(() => {
             margin-left: 0;
           }
         }
-      }
-
-      .request-method-panel {
-        padding: 24px;
-        background: linear-gradient(180deg, #f8fbff 0%, #eef5ff 100%);
-        border: 1px solid #dbeafe;
-        border-radius: 16px;
-      }
-
-      .request-method-header {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        gap: 16px;
-        margin-bottom: 14px;
-
-        @media (max-width: 768px) {
-          flex-direction: column;
-          align-items: flex-start;
-        }
-      }
-
-      .request-method-label {
-        font-size: 14px;
-        font-weight: 700;
-        color: #1e3a8a;
       }
 
       .request-method-tags {
@@ -2240,29 +2197,22 @@ const generatedExamples = computed(() => {
         display: inline-flex;
         align-items: center;
         justify-content: center;
-        min-width: 52px;
-        padding: 6px 12px;
-        border-radius: 999px;
+        min-width: 42px;
+        padding: 4px 4px;
+        border-radius: 4px;
         font-size: 12px;
         font-weight: 700;
         line-height: 1;
       }
 
       .request-method-tag.is-get {
-        color: #166534;
-        background: #dcfce7;
+        color: #17b26a;
+        background: #e3f6ed;
       }
 
       .request-method-tag.is-post {
-        color: #b45309;
-        background: #fef3c7;
-      }
-
-      .request-method-text {
-        margin: 0;
-        font-size: 15px;
-        line-height: 1.8;
-        color: #475569;
+        color: #ef6820;
+        background: #fdede4;
       }
 
       .api-url-section {
@@ -2317,6 +2267,14 @@ const generatedExamples = computed(() => {
         line-height: 1.6;
         color: #475569;
         margin: 0;
+      }
+
+      .api-description {
+        margin-top: 24px;
+      }
+
+      .api-method-tags {
+        flex-shrink: 0;
       }
 
       .table-container {
@@ -2439,6 +2397,71 @@ const generatedExamples = computed(() => {
         // 代码展示区域
         .code-display {
           margin-top: 20px;
+
+          .example-code-block {
+            position: relative;
+            background: #f9fafb;
+            border: 1px solid #f1f5f9;
+            border-radius: 8px;
+            overflow: hidden;
+
+            .copy {
+              position: absolute;
+              top: 12px;
+              right: 12px;
+              padding: 6px;
+              background: rgba(255, 255, 255, 0.95);
+              border-radius: 4px;
+              opacity: 0;
+              transition: all 0.3s ease;
+              cursor: pointer;
+              z-index: 1;
+
+              &:hover {
+                background: #fff;
+              }
+            }
+
+            &:hover .copy {
+              opacity: 1;
+            }
+          }
+
+          .example-code-grid {
+            display: grid;
+            grid-template-columns: auto minmax(0, 1fr);
+          }
+
+          .example-line-numbers {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+            padding: 16px 12px 16px 16px;
+            background: #f8fafc;
+            border-right: 1px solid #e2e8f0;
+            user-select: none;
+          }
+
+          .example-line-number {
+            min-width: 24px;
+            font-size: 13px;
+            line-height: 1.6;
+            color: #94a3b8;
+            text-align: right;
+            font-variant-numeric: tabular-nums;
+          }
+
+          .example-code-pre {
+            overflow-x: auto;
+            border-radius: 0;
+            border: none;
+
+            code {
+              display: block;
+              white-space: pre;
+              word-break: normal;
+            }
+          }
         }
 
         .example-tabs {
@@ -2532,6 +2555,71 @@ const generatedExamples = computed(() => {
       }
 
       .response-container {
+        .response-code-block {
+          position: relative;
+          background: #f9fafb;
+          border: 1px solid #e2e8f0;
+          border-radius: 8px;
+          overflow: hidden;
+
+          .copy {
+            position: absolute;
+            top: 12px;
+            right: 12px;
+            padding: 6px;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 4px;
+            opacity: 0;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            z-index: 1;
+
+            &:hover {
+              background: #fff;
+            }
+          }
+
+          &:hover .copy {
+            opacity: 1;
+          }
+        }
+
+        .response-code-grid {
+          display: grid;
+          grid-template-columns: auto minmax(0, 1fr);
+        }
+
+        .response-line-numbers {
+          display: flex;
+          flex-direction: column;
+          align-items: flex-end;
+          padding: 16px 12px 16px 16px;
+          background: #f8fafc;
+          border-right: 1px solid #e2e8f0;
+          user-select: none;
+        }
+
+        .response-line-number {
+          min-width: 24px;
+          font-size: 13px;
+          line-height: 1.6;
+          color: #94a3b8;
+          text-align: right;
+          font-variant-numeric: tabular-nums;
+        }
+
+        .response-code-pre {
+          overflow-x: auto;
+          border-radius: 0;
+          border: none;
+
+          code {
+            display: block;
+            white-space: pre;
+            word-break: normal;
+          }
+        }
+
         .example-html-container {
           border: 1px solid #e2e8f0;
         }
