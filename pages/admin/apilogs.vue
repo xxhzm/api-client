@@ -2,6 +2,7 @@
 import { Search, Document } from '@element-plus/icons-vue'
 
 const { $msg, $myFetch } = useNuxtApp()
+const { isAdmin } = useRouteAccess()
 
 definePageMeta({
   layout: 'admin',
@@ -21,6 +22,9 @@ const pageSize = ref(100)
 watch(
   () => page.value,
   async (newValue, oldValue) => {
+    const currentSearchUserId =
+      searchInputUserId.value.trim() || searchUserId.value
+
     if (pageLock.value === true) {
       pageLock.value = false
       return false
@@ -32,6 +36,7 @@ watch(
       !searchIp.value &&
       !searchAliasValue.value &&
       !searchStatusCode.value &&
+      !currentSearchUserId &&
       searchId.value === ''
     ) {
       await getData()
@@ -123,12 +128,15 @@ const disabledDate = (time) => {
 }
 
 const handleSearchTime = async (sPage) => {
+  const currentSearchUserId = searchInputUserId.value.trim() || searchUserId.value
+
   // 如果没有任何筛选条件，则返回错误
   if (
     searchTime.value === undefined &&
     !searchIp.value &&
     !searchAliasValue.value &&
-    !searchStatusCode.value
+    !searchStatusCode.value &&
+    !currentSearchUserId
   ) {
     $msg('请至少选择一项筛选条件', 'error')
     return false
@@ -156,6 +164,10 @@ const handleSearchTime = async (sPage) => {
 
   if (searchStatusCode.value) {
     params.status_code = searchStatusCode.value
+  }
+
+  if (isAdmin.value && currentSearchUserId) {
+    params.uid = currentSearchUserId
   }
 
   const res = await $myFetch('ApiLogList', { params })
@@ -270,10 +282,15 @@ const searchIp = ref('')
 const searchAlias = ref('')
 const searchAliasValue = ref('')
 const searchStatusCode = ref('')
+const searchUser = ref('')
+const searchUserId = ref('')
+const searchInputUserId = ref('')
 
 // 接口搜索相关变量
 const searchApiData = ref([])
 const searchApiOldValue = ref('')
+const searchUserData = ref([])
+const searchUserOldValue = ref('')
 
 // 接口名称搜索
 const querySearchAsync = async (queryString, cb) => {
@@ -319,15 +336,94 @@ const handleSearchSelect = (item) => {
   searchAliasValue.value = item.alias // 保存选中项的alias值用于搜索
 }
 
+watch(searchAlias, (newValue) => {
+  if (!newValue) {
+    searchAliasValue.value = ''
+    return
+  }
+
+  const selectedItem = searchApiData.value.find(
+    (item) => item.value === newValue,
+  )
+  if (!selectedItem) {
+    searchAliasValue.value = ''
+  }
+})
+
+const queryUserSearchAsync = async (queryString, cb) => {
+  const keyword = queryString.trim()
+
+  if (!isAdmin.value || keyword === '') {
+    searchUser.value = ''
+    searchUserId.value = ''
+    cb([])
+    return false
+  }
+
+  if (queryString === searchUserOldValue.value) {
+    cb(searchUserData.value)
+    return false
+  }
+
+  const res = await $myFetch('UserList', {
+    params: {
+      page: 1,
+      limit: 10,
+      keyword,
+    },
+  })
+
+  if (res.code !== 200) {
+    $msg(res.msg, 'error')
+    cb([])
+    return
+  }
+
+  const formattedData = (res.data.userList || []).map((item) => ({
+    value: `${item.username} (#${item.id})`,
+    id: item.id,
+    username: item.username,
+  }))
+
+  searchUserOldValue.value = queryString
+  searchUserData.value = formattedData
+  cb(searchUserData.value)
+}
+
+const handleUserSearchSelect = (item) => {
+  searchUser.value = item.value
+  searchUserId.value = item.id
+}
+
+watch(searchUser, (newValue) => {
+  if (!newValue) {
+    searchUserId.value = ''
+    return
+  }
+
+  const selectedItem = searchUserData.value.find(
+    (item) => item.value === newValue,
+  )
+  if (!selectedItem) {
+    searchUserId.value = ''
+  }
+})
+
 const handleReset = () => {
-  getData()
   searchTime.value = undefined
   searchId.value = ''
   searchIp.value = ''
   searchAlias.value = ''
   searchAliasValue.value = ''
   searchStatusCode.value = ''
+  searchUser.value = ''
+  searchUserId.value = ''
+  searchInputUserId.value = ''
   searchApiOldValue.value = ''
+  searchApiData.value = []
+  searchUserOldValue.value = ''
+  searchUserData.value = []
+  getData()
 }
 useHead({
   title: '接口日志',
@@ -468,6 +564,35 @@ useHead({
                 </el-icon>
               </template>
             </el-autocomplete>
+          </div>
+          <div v-if="isAdmin" class="search-input">
+            <el-autocomplete
+              v-model="searchUser"
+              :fetch-suggestions="queryUserSearchAsync"
+              placeholder="请输入用户名"
+              clearable
+              class="full-width"
+              @select="handleUserSearchSelect"
+            >
+              <template #prefix>
+                <el-icon>
+                  <Search />
+                </el-icon>
+              </template>
+            </el-autocomplete>
+          </div>
+          <div v-if="isAdmin" class="search-input">
+            <el-input
+              v-model="searchInputUserId"
+              placeholder="请输入用户ID"
+              clearable
+            >
+              <template #prefix>
+                <el-icon>
+                  <Search />
+                </el-icon>
+              </template>
+            </el-input>
           </div>
           <div class="search-input">
             <el-input

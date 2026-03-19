@@ -38,22 +38,10 @@ definePageMeta({
 
 const { $myFetch, $msg } = useNuxtApp()
 const username = useCookie('username')
-const routeInfo = useCookie('routeInfo')
 const { userAccessKey } = useUserKey()
+const { isAdmin, hasRoute } = useRouteAccess()
 
 const { onlyPhoneBind } = usePhoneBind()
-
-// 判断是否是管理员（通过 /admin/system 路由权限判断）
-const isAdmin = computed(() => {
-  if (!routeInfo.value) return false
-  return routeInfo.value.some((r) => r.path === '/admin/system')
-})
-
-// 判断是否有某个路由权限
-const hasRoute = (path) => {
-  if (!routeInfo.value) return false
-  return routeInfo.value.some((r) => r.path === path)
-}
 
 // User Info State
 const userInfo = reactive({

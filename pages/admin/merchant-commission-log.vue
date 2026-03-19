@@ -6,13 +6,7 @@ definePageMeta({
 })
 
 const { $myFetch, $msg } = useNuxtApp()
-const routeInfo = useCookie('routeInfo')
-
-// 判断是否是管理员（通过 /admin/system 路由权限判断）
-const isAdmin = computed(() => {
-  if (!routeInfo.value) return false
-  return routeInfo.value.some((r) => r.path === '/admin/system')
-})
+const { isAdmin } = useRouteAccess()
 
 // 加载状态
 const loading = ref(false)
