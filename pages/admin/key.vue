@@ -4,7 +4,6 @@ import {
   Refresh,
   Document,
   InfoFilled,
-  Connection,
   CopyDocument,
 } from '@element-plus/icons-vue'
 // highlight.js 动态导入，避免静态打包
@@ -384,94 +383,27 @@ useHead({
                   </el-alert>
 
                   <div class="usage-guide">
-                    <div class="guide-title">
-                      <el-icon><Connection /></el-icon>
-                      <span>怎么使用这个 Key？</span>
-                    </div>
-                    <div class="method-cards">
-                      <!-- 方法1 -->
-                      <div class="method-card recommended">
-                        <div class="card-badge">推荐</div>
-                        <div class="card-title">
-                          方法 1：Bearer Token (Header)
-                        </div>
-                        <div class="card-desc">
-                          标准规范，兼容性最好，最安全
+                    <div class="key-guide-container">
+                      <div class="key-guide-inline">
+                        <div class="key-guide-header">
+                          <span class="key-guide-title">将 Key 放到 Header 中</span>
+                          <span class="key-guide-text"
+                            >使用 Authorization 请求头，按 Bearer Token 方式传递</span
+                          >
                         </div>
                         <div
-                          class="code-block"
+                          class="key-guide-code"
                           @click="
                             copyText(`Authorization: Bearer ${keyInfo.key}`)
                           "
                         >
-                          <div class="code-line">
+                          <div class="key-guide-code-line">
                             <span class="label">Authorization:</span>
                             <span class="value">Bearer {{ keyInfo.key }}</span>
                           </div>
                           <el-icon class="copy-icon"><CopyDocument /></el-icon>
                         </div>
                       </div>
-
-                      <!-- 方法2 -->
-                      <div class="method-card">
-                        <div class="card-title">
-                          方法 2：放在请求头 (Header)
-                        </div>
-                        <div class="card-desc">
-                          直接使用 Authorization，无需前缀
-                        </div>
-                        <div
-                          class="code-block"
-                          @click="copyText(`Authorization: ${keyInfo.key}`)"
-                        >
-                          <div class="code-line">
-                            <span class="label">Authorization:</span>
-                            <span class="value">{{ keyInfo.key }}</span>
-                          </div>
-                          <el-icon class="copy-icon"><CopyDocument /></el-icon>
-                        </div>
-                      </div>
-
-                      <!-- 方法3 -->
-                      <div class="method-card">
-                        <div class="card-title">
-                          方法 3：放在请求头 (Header)
-                        </div>
-                        <div class="card-desc">自定义 Header key 字段</div>
-                        <div
-                          class="code-block"
-                          @click="copyText(`key: ${keyInfo.key}`)"
-                        >
-                          <div class="code-line">
-                            <span class="label">key:</span>
-                            <span class="value">{{ keyInfo.key }}</span>
-                          </div>
-                          <el-icon class="copy-icon"><CopyDocument /></el-icon>
-                        </div>
-                      </div>
-
-                      <!-- 方法4 -->
-                      <!-- <div class="method-card deprecated">
-                        <div class="card-badge">不推荐</div>
-                        <div class="card-title">
-                          方法 4：放在网址后面 (Query)
-                        </div>
-                        <div class="card-desc">
-                          不安全，可能泄露 Key，<span class="danger-text"
-                            >即将弃用</span
-                          >
-                        </div>
-                        <div
-                          class="code-block"
-                          @click="copyText(`?key=${keyInfo.key}`)"
-                        >
-                          <div class="code-line">
-                            <span class="label">网址?key=</span>
-                            <span class="value">{{ keyInfo.key }}</span>
-                          </div>
-                          <el-icon class="copy-icon"><CopyDocument /></el-icon>
-                        </div>
-                      </div> -->
                     </div>
                   </div>
                 </div>
@@ -710,7 +642,7 @@ useHead({
           <div class="notice">
             <el-alert type="warning" :closable="false">
               <template #title>
-                1. 请勿在原始请求参数中包含签名秘钥；<br />2. key
+                1. 请勿在原始请求参数中包含签名密钥；<br />2. key
                 参数不参与签名计算，请通过 Header 传递；<br />3.
                 sign参数必须放在请求头(Header)中
               </template>
@@ -873,136 +805,101 @@ useHead({
           .usage-guide {
             margin-top: 20px;
 
-            .guide-title {
+            .key-guide-container {
+              margin-top: 16px;
+            }
+
+            .key-guide-inline {
               display: flex;
               align-items: center;
-              gap: 8px;
-              margin-bottom: 20px;
-              font-size: 16px;
-              font-weight: 600;
-              color: #2e3033;
+              justify-content: space-between;
+              gap: 16px;
+              padding: 12px 14px;
+              background: #f8fafc;
+              border: 1px solid #e2e8f0;
+              border-radius: 10px;
 
-              .el-icon {
-                color: #4096ff;
-                font-size: 20px;
+              @media (max-width: 768px) {
+                flex-direction: column;
+                align-items: stretch;
+                gap: 10px;
               }
             }
 
-            .method-cards {
-              display: grid;
-              grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-              gap: 20px;
+            .key-guide-header {
+              display: flex;
+              flex-direction: column;
+              gap: 4px;
+              min-width: 0;
+            }
 
-              .method-card {
-                position: relative;
-                background: #fff;
-                border: 1px solid #edf1f7;
-                border-radius: 12px;
-                padding: 20px;
-                transition: all 0.3s;
+            .key-guide-title {
+              font-size: 13px;
+              font-weight: 600;
+              color: #334155;
+            }
 
-                &:hover {
-                  transform: translateY(-2px);
-                  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
-                  border-color: #d9e1ec;
+            .key-guide-text {
+              font-size: 12px;
+              line-height: 1.5;
+              color: #64748b;
+            }
 
-                  .code-block {
-                    background: #ecf5ff;
-                    border-color: #c6e2ff;
+            .key-guide-code {
+              flex-shrink: 0;
+              display: flex;
+              align-items: center;
+              justify-content: space-between;
+              gap: 12px;
+              min-width: min(100%, 320px);
+              padding: 10px 12px;
+              background: #fff;
+              border: 1px solid #dbeafe;
+              border-radius: 8px;
+              cursor: pointer;
+              transition:
+                border-color 0.2s ease,
+                box-shadow 0.2s ease;
 
-                    .copy-icon {
-                      opacity: 1;
-                    }
-                  }
-                }
+              &:hover {
+                border-color: #93c5fd;
+                box-shadow: 0 4px 12px rgba(37, 99, 235, 0.08);
 
-                &.recommended {
-                  border: 1px solid #b3d8ff;
-                  background: #f0f9ff;
-
-                  .card-badge {
-                    background: #4096ff;
-                    color: #fff;
-                  }
-                }
-
-                &.deprecated {
-                  border: 1px solid #ffccc7;
-                  background: #fff2f0;
-
-                  .card-badge {
-                    background: #ff4d4f;
-                    color: #fff;
-                  }
-
-                  .danger-text {
-                    color: #ff4d4f;
-                    font-weight: 500;
-                  }
-                }
-
-                .card-badge {
-                  position: absolute;
-                  top: 0;
-                  right: 0;
-                  font-size: 12px;
-                  padding: 2px 10px;
-                  border-bottom-left-radius: 8px;
-                  border-top-right-radius: 12px;
-                }
-
-                .card-title {
-                  font-size: 15px;
-                  font-weight: 600;
-                  color: #2e3033;
-                  margin-bottom: 8px;
-                }
-
-                .card-desc {
-                  font-size: 13px;
-                  color: #8c95a5;
-                  margin-bottom: 16px;
-                  line-height: 1.5;
-                }
-
-                .code-block {
-                  background: #f8fafc;
-                  border: 1px solid #e1e5eb;
-                  border-radius: 8px;
-                  padding: 12px;
-                  cursor: pointer;
-                  display: flex;
-                  justify-content: space-between;
-                  align-items: center;
-                  transition: all 0.2s;
-
-                  .code-line {
-                    font-family: 'Roboto Mono', monospace;
-                    font-size: 13px;
-                    overflow: hidden;
-                    text-overflow: ellipsis;
-                    white-space: nowrap;
-                    margin-right: 10px;
-
-                    .label {
-                      color: #d63200;
-                      margin-right: 8px;
-                    }
-
-                    .value {
-                      color: #0052d9;
-                      font-weight: 500;
-                    }
-                  }
-
-                  .copy-icon {
-                    font-size: 16px;
-                    color: #4096ff;
-                    opacity: 0.5;
-                    transition: all 0.2s;
-                  }
+                .copy-icon {
+                  opacity: 1;
                 }
               }
+
+              @media (max-width: 768px) {
+                min-width: 0;
+                width: 100%;
+              }
+            }
+
+            .key-guide-code-line {
+              min-width: 0;
+              font-family: 'Roboto Mono', monospace;
+              font-size: 12px;
+              line-height: 1.5;
+              word-break: break-all;
+
+              .label {
+                color: #c2410c;
+                margin-right: 8px;
+              }
+
+              .value {
+                color: #1d4ed8;
+                font-weight: 600;
+              }
+            }
+
+            .key-guide-code .copy-icon {
+              flex-shrink: 0;
+              font-size: 16px;
+              color: #2563eb;
+              opacity: 0.6;
+              transition: opacity 0.2s ease;
             }
           }
         }
