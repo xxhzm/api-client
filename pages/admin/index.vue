@@ -142,7 +142,7 @@ const userResourceStats = ref([
     unit: '次',
     color: '#8b5cf6',
     bgColor: '#f5f3ff',
-    path: '/admin/statistics',
+    path: '/admin/apilogs',
   },
   {
     icon: markRaw(Key),
