@@ -688,7 +688,7 @@ useHead({
         <div class="card data-overview">
           <div class="card-header">
             <span class="card-title">数据概览</span>
-            <span class="card-link" @click="navigateTo('/admin/statistics')">
+            <span class="card-link" @click="navigateTo('/admin/apilogs')">
               查看详情
               <el-icon><ArrowRight /></el-icon>
             </span>
