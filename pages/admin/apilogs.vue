@@ -1,5 +1,5 @@
 <script setup>
-import { Search, Document } from '@element-plus/icons-vue'
+import { Search } from '@element-plus/icons-vue'
 
 const { $msg, $myFetch } = useNuxtApp()
 const { isAdmin } = useRouteAccess()
@@ -21,7 +21,7 @@ const pageSize = ref(100)
 // 监听页数变化
 watch(
   () => page.value,
-  async (newValue, oldValue) => {
+  async (newValue) => {
     const currentSearchUserId =
       searchInputUserId.value.trim() || searchUserId.value
 
@@ -61,6 +61,49 @@ const callStats = ref({
 })
 const topApis = ref([])
 
+const applyStats = (callStat = {}) => {
+  callStats.value = {
+    day1: callStat.day_1 || 0,
+    day3: callStat.day_3 || 0,
+    day7: callStat.day_7 || 0,
+    month1: callStat.day_30 || 0,
+  }
+}
+
+const applyTopApis = (items = []) => {
+  if (!Array.isArray(items) || items.length === 0) {
+    topApis.value = []
+    return
+  }
+
+  topApis.value = items.slice(0, 5).map((item) => ({
+    name: item.name,
+    count: item.count,
+  }))
+}
+
+const formatPath = (url = '') => {
+  const parts = url.split(' ')
+  const path = parts[1]?.split('clientIP=')[0] || ''
+  return path.replace(/[?&]$/, '')
+}
+
+const formatLogs = (logs = []) =>
+  logs.map((item, index) => ({
+    ...item,
+    key: index + 1,
+    timestamp: new Date(item.timestamp).toLocaleString(),
+    method: item.url?.split(' ')[0] || '',
+    path: formatPath(item.url),
+  }))
+
+const applyListData = (data = {}) => {
+  applyStats(data.call_stat)
+  applyTopApis(data.top_apis)
+  tableData.value = formatLogs(data.logs || [])
+  maxPage.value = data.max_page_count || 1
+}
+
 const getData = async () => {
   const res = await $myFetch('ApiLogList', {
     params: {
@@ -76,50 +119,7 @@ const getData = async () => {
     return
   }
 
-  // 处理统计数据
-  if (res.data.call_stat) {
-    callStats.value = {
-      day1: res.data.call_stat.day_1 || 0,
-      day3: res.data.call_stat.day_3 || 0,
-      day7: res.data.call_stat.day_7 || 0,
-      month1: res.data.call_stat.day_30 || 0,
-    }
-  }
-
-  // 处理Top API数据
-  if (res.data.top_apis && Array.isArray(res.data.top_apis)) {
-    const topList = res.data.top_apis
-    const max = topList.length > 0 ? topList[0].count : 0
-    topApis.value = topList.map((item) => ({
-      name: item.name,
-      count: item.count,
-      percentage: max > 0 ? Math.round((item.count / max) * 100) : 0,
-    }))
-  } else {
-    topApis.value = []
-  }
-
-  res.data.logs.forEach((element, key) => {
-    res.data.logs[key].key = key + 1
-    res.data.logs[key].timestamp = new Date(element.timestamp).toLocaleString()
-    // 提取URL中的信息
-    const parts = res.data.logs[key].url.split(' ')
-    res.data.logs[key].method = parts[0]
-
-    const pathAndParams = parts[1].split('clientIP=')
-    // 如果最右侧为?则移除
-    if (pathAndParams[0].endsWith('?')) {
-      pathAndParams[0] = pathAndParams[0].slice(0, -1)
-    }
-    // 如果最右侧为&则移除
-    if (pathAndParams[0].endsWith('&')) {
-      pathAndParams[0] = pathAndParams[0].slice(0, -1)
-    }
-    res.data.logs[key].path = pathAndParams[0]
-  })
-
-  tableData.value = res.data.logs
-  maxPage.value = res.data.max_page_count
+  applyListData(res.data)
 }
 
 // 禁用时间
@@ -179,55 +179,16 @@ const handleSearchTime = async (sPage) => {
     return false
   }
 
-  // 处理统计数据
-  if (res.data.call_stat) {
-    callStats.value = {
-      day1: res.data.call_stat.day_1 || 0,
-      day3: res.data.call_stat.day_3 || 0,
-      day7: res.data.call_stat.day_7 || 0,
-      month1: res.data.call_stat.day_30 || 0,
-    }
-  }
+  applyListData(res.data)
 
-  // 处理Top API数据
-  if (res.data.top_apis && Array.isArray(res.data.top_apis)) {
-    const topList = res.data.top_apis
-    const max = topList.length > 0 ? topList[0].count : 0
-    topApis.value = topList.map((item) => ({
-      name: item.name,
-      count: item.count,
-      percentage: max > 0 ? Math.round((item.count / max) * 100) : 0,
-    }))
-  } else {
-    topApis.value = []
-  }
-
-  res.data.logs.forEach((element, key) => {
-    res.data.logs[key].key = key + 1
-    res.data.logs[key].timestamp = new Date(element.timestamp).toLocaleString()
-    // 提取URL中的信息
-    const parts = res.data.logs[key].url.split(' ')
-    res.data.logs[key].method = parts[0]
-
-    const pathAndParams = parts[1].split('clientIP=')
-    // 移除右侧字符串
-    res.data.logs[key].path = pathAndParams[0].slice(0, -1)
-
-    // 直接使用API返回的ua字段，不再从URL中解析
-    // const uaArr = res.data.logs[key].url.split('=')
-    // res.data.logs[key].ua = uaArr[uaArr.length - 1]
-  })
-
-  tableData.value = res.data.logs
-  maxPage.value = res.data.max_page_count
-  if (page.value != sPage) {
+  if (page.value !== sPage) {
     pageLock.value = true
     page.value = sPage
   }
 }
 
 const handleSearchId = async () => {
-  if (searchId.value.length != 24) {
+  if (searchId.value.length !== 24) {
     $msg('请输入正确的请求ID', 'warning')
     return false
   }
@@ -240,35 +201,20 @@ const handleSearchId = async () => {
   if (res.code !== 200) {
     $msg(res.msg, 'error')
     tableData.value = []
-    tableData.value = []
     return false
   }
 
-  res.data.key = 1
-  res.data.timestamp = new Date(res.data.timestamp).toLocaleString()
-  // 提取URL中的信息
-  const parts = res.data.url.split(' ')
-  res.data.method = parts[0]
-
-  const pathAndParams = parts[1].split('clientIP=')
-  // 移除右侧字符串
-  res.data.path = pathAndParams[0].slice(0, -1)
-
-  // 直接使用API返回的ua字段，不再从URL中解析
-  // const uaArr = res.data.url.split('=')
-  // res.data.ua = uaArr[uaArr.length - 1]
-
   pageLock.value = true
-  tableData.value = [res.data]
+  tableData.value = formatLogs([res.data])
   maxPage.value = 1
   page.value = 1
 }
 
-const handleSearch = async (page) => {
-  if (searchId.value == '') {
-    handleSearchTime(page)
+const handleSearch = async (currentPage) => {
+  if (searchId.value === '') {
+    await handleSearchTime(currentPage)
   } else {
-    handleSearchId()
+    await handleSearchId()
   }
 }
 
@@ -285,6 +231,10 @@ const searchStatusCode = ref('')
 const searchUser = ref('')
 const searchUserId = ref('')
 const searchInputUserId = ref('')
+const isUsernameSearchDisabled = computed(() => !!searchInputUserId.value.trim())
+const isUserIdSearchDisabled = computed(
+  () => !!searchUser.value || !!searchUserId.value,
+)
 
 // 接口搜索相关变量
 const searchApiData = ref([])
@@ -319,12 +269,10 @@ const querySearchAsync = async (queryString, cb) => {
   }
 
   // 遍历数据，显示name，但保存alias用于搜索
-  const formattedData = res.data.map((item) => {
-    return {
-      value: item.name, // 显示名称
-      alias: item.alias, // 保存真实的alias值用于搜索
-    }
-  })
+  const formattedData = res.data.map((item) => ({
+    value: item.name,
+    alias: item.alias,
+  }))
 
   searchApiOldValue.value = queryString
   searchApiData.value = formattedData
@@ -333,7 +281,7 @@ const querySearchAsync = async (queryString, cb) => {
 
 // 处理接口名称选择
 const handleSearchSelect = (item) => {
-  searchAliasValue.value = item.alias // 保存选中项的alias值用于搜索
+  searchAliasValue.value = item.alias
 }
 
 watch(searchAlias, (newValue) => {
@@ -353,7 +301,7 @@ watch(searchAlias, (newValue) => {
 const queryUserSearchAsync = async (queryString, cb) => {
   const keyword = queryString.trim()
 
-  if (!isAdmin.value || keyword === '') {
+  if (!isAdmin.value || keyword === '' || isUsernameSearchDisabled.value) {
     searchUser.value = ''
     searchUserId.value = ''
     cb([])
@@ -391,6 +339,7 @@ const queryUserSearchAsync = async (queryString, cb) => {
 }
 
 const handleUserSearchSelect = (item) => {
+  searchInputUserId.value = ''
   searchUser.value = item.value
   searchUserId.value = item.id
 }
@@ -409,6 +358,23 @@ watch(searchUser, (newValue) => {
   }
 })
 
+watch(searchInputUserId, (newValue) => {
+  const digitsOnly = String(newValue || '').replace(/\D+/g, '')
+  if (digitsOnly !== newValue) {
+    searchInputUserId.value = digitsOnly
+    return
+  }
+
+  if (!newValue.trim()) {
+    return
+  }
+
+  searchUser.value = ''
+  searchUserId.value = ''
+  searchUserOldValue.value = ''
+  searchUserData.value = []
+})
+
 const handleReset = () => {
   searchTime.value = undefined
   searchId.value = ''
@@ -423,8 +389,11 @@ const handleReset = () => {
   searchApiData.value = []
   searchUserOldValue.value = ''
   searchUserData.value = []
+  pageLock.value = true
+  page.value = 1
   getData()
 }
+
 useHead({
   title: '接口日志',
   viewport:
@@ -434,188 +403,179 @@ useHead({
 </script>
 
 <template>
-  <div class="apilogs-container" v-loading="loading">
-    <div class="logs-card">
-      <!-- 搜索区域 -->
-      <div class="card-header">
-        <div class="header-left">
-          <el-icon class="icon">
-            <Document />
-          </el-icon>
-          <span class="title">接口日志</span>
+  <div class="apilogs-page" v-loading="loading">
+    <section class="overview-panel">
+      <div class="panel-heading compact">
+        <div class="panel-title">概览</div>
+      </div>
+
+      <div class="stats-grid">
+        <div class="stat-card">
+          <div class="stat-card-label">近1天调用</div>
+          <div class="stat-card-value">{{ callStats.day1 }}</div>
         </div>
-        <div class="header-right">
-          <el-pagination
-            v-model:current-page="page"
-            :page-count="maxPage"
-            :disabled="pageLoading"
-            :pager-count="5"
-            size="small"
-            background
-            layout="prev, pager, next"
-            @current-change="getData"
+        <div class="stat-card">
+          <div class="stat-card-label">近3天调用</div>
+          <div class="stat-card-value">{{ callStats.day3 }}</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-card-label">近7天调用</div>
+          <div class="stat-card-value">{{ callStats.day7 }}</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-card-label">近30天调用</div>
+          <div class="stat-card-value">{{ callStats.month1 }}</div>
+        </div>
+      </div>
+
+      <div v-if="topApis.length > 0" class="top-api-panel">
+        <div class="top-api-title">前五接口</div>
+        <div class="top-api-list">
+          <div v-for="(api, index) in topApis" :key="index" class="top-api-item">
+            <span class="top-api-rank">{{ index + 1 }}</span>
+            <div class="top-api-content">
+              <div class="top-api-name">{{ api.name }}</div>
+              <div class="top-api-count">{{ api.count }} 次</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="filter-panel">
+      <div class="panel-heading">
+        <div class="panel-title">筛选条件</div>
+      </div>
+
+      <div class="search-id-row">
+        <div class="search-id-main">
+          <div class="filter-label">请求ID</div>
+          <el-input v-model="searchId" placeholder="请输入请求ID" clearable>
+            <template #prefix>
+              <el-icon>
+                <Search />
+              </el-icon>
+            </template>
+          </el-input>
+        </div>
+        <div class="search-id-actions">
+          <div class="filter-label filter-label--ghost">操作</div>
+          <el-button type="primary" @click="handleSearchId">查询ID</el-button>
+        </div>
+      </div>
+
+      <div class="filter-grid">
+        <div class="filter-item filter-item--time">
+          <div class="filter-label">时间范围</div>
+          <el-date-picker
+            v-model="searchTime"
+            type="datetimerange"
+            range-separator="至"
+            start-placeholder="起始时间"
+            end-placeholder="结束时间"
+            :disabled-date="disabledDate"
+            value-format="x"
           />
         </div>
-      </div>
 
-      <!-- 统计区域 -->
-      <div class="stats-overview">
-        <el-row :gutter="20">
-          <el-col :span="6">
-            <div class="stat-item">
-              <div class="stat-label">近1天调用</div>
-              <div class="stat-value">{{ callStats.day1 }}</div>
-            </div>
-          </el-col>
-          <el-col :span="6">
-            <div class="stat-item">
-              <div class="stat-label">近3天调用</div>
-              <div class="stat-value">{{ callStats.day3 }}</div>
-            </div>
-          </el-col>
-          <el-col :span="6">
-            <div class="stat-item">
-              <div class="stat-label">近7天调用</div>
-              <div class="stat-value">{{ callStats.day7 }}</div>
-            </div>
-          </el-col>
-          <el-col :span="6">
-            <div class="stat-item">
-              <div class="stat-label">近30天调用</div>
-              <div class="stat-value">{{ callStats.month1 }}</div>
-            </div>
-          </el-col>
-        </el-row>
-
-        <!-- 接口调用排行 -->
-        <div class="top-apis-section" v-if="topApis.length > 0">
-          <div class="section-title">常用接口 Top 5</div>
-          <div class="top-api-list">
-            <div
-              v-for="(api, index) in topApis"
-              :key="index"
-              class="top-api-item"
-            >
-              <div class="api-info">
-                <span class="api-name">{{ api.name }}</span>
-                <span class="api-count">{{ api.count }}次</span>
-              </div>
-              <el-progress
-                :percentage="api.percentage"
-                :show-text="false"
-                :stroke-width="8"
-                :color="
-                  index === 0 ? '#f56c6c' : index === 1 ? '#e6a23c' : '#409eff'
-                "
-              />
-            </div>
-          </div>
+        <div class="filter-item">
+          <div class="filter-label">客户端IP</div>
+          <el-input v-model="searchIp" placeholder="请输入IP地址" clearable>
+            <template #prefix>
+              <el-icon>
+                <Search />
+              </el-icon>
+            </template>
+          </el-input>
         </div>
-      </div>
 
-      <!-- 搜索工具栏 -->
-      <div class="search-toolbar">
-        <div class="search-row">
-          <div class="search-input id-search">
-            <span class="label">请求ID：</span>
-            <el-input v-model="searchId" placeholder="请输入请求ID" clearable>
-              <template #prefix>
-                <el-icon>
-                  <Search />
-                </el-icon>
-              </template>
-            </el-input>
-          </div>
+        <div class="filter-item">
+          <div class="filter-label">接口名称</div>
+          <el-autocomplete
+            v-model="searchAlias"
+            :fetch-suggestions="querySearchAsync"
+            placeholder="请输入接口名称"
+            clearable
+            @select="handleSearchSelect"
+          >
+            <template #prefix>
+              <el-icon>
+                <Search />
+              </el-icon>
+            </template>
+          </el-autocomplete>
         </div>
-        <div class="search-items">
-          <div class="date-picker">
-            <span class="label">选择时间：</span>
-            <el-date-picker
-              v-model="searchTime"
-              type="datetimerange"
-              range-separator="至"
-              start-placeholder="起始时间"
-              end-placeholder="结束时间"
-              :disabled-date="disabledDate"
-              value-format="x"
-            />
-          </div>
-          <div class="search-input">
-            <el-input v-model="searchIp" placeholder="请输入IP地址" clearable>
-              <template #prefix>
-                <el-icon>
-                  <Search />
-                </el-icon>
-              </template>
-            </el-input>
-          </div>
-          <div class="search-input">
-            <el-autocomplete
-              v-model="searchAlias"
-              :fetch-suggestions="querySearchAsync"
-              placeholder="请输入接口名称"
-              clearable
-              class="full-width"
-              @select="handleSearchSelect"
-            >
-              <template #prefix>
-                <el-icon>
-                  <Search />
-                </el-icon>
-              </template>
-            </el-autocomplete>
-          </div>
-          <div v-if="isAdmin" class="search-input">
-            <el-autocomplete
-              v-model="searchUser"
-              :fetch-suggestions="queryUserSearchAsync"
-              placeholder="请输入用户名"
-              clearable
-              class="full-width"
-              @select="handleUserSearchSelect"
-            >
-              <template #prefix>
-                <el-icon>
-                  <Search />
-                </el-icon>
-              </template>
-            </el-autocomplete>
-          </div>
-          <div v-if="isAdmin" class="search-input">
-            <el-input
-              v-model="searchInputUserId"
-              placeholder="请输入用户ID"
-              clearable
-            >
-              <template #prefix>
-                <el-icon>
-                  <Search />
-                </el-icon>
-              </template>
-            </el-input>
-          </div>
-          <div class="search-input">
-            <el-input
-              v-model="searchStatusCode"
-              placeholder="请输入状态码"
-              clearable
-            >
-              <template #prefix>
-                <el-icon>
-                  <Search />
-                </el-icon>
-              </template>
-            </el-input>
-          </div>
-          <div class="search-buttons">
+
+        <div v-if="isAdmin" class="filter-item">
+          <div class="filter-label">用户名</div>
+          <el-autocomplete
+            v-model="searchUser"
+            :fetch-suggestions="queryUserSearchAsync"
+            placeholder="请输入用户名"
+            clearable
+            :disabled="isUsernameSearchDisabled"
+            @select="handleUserSearchSelect"
+          >
+            <template #prefix>
+              <el-icon>
+                <Search />
+              </el-icon>
+            </template>
+          </el-autocomplete>
+        </div>
+
+        <div v-if="isAdmin" class="filter-item">
+          <div class="filter-label">用户ID</div>
+          <el-input
+            v-model="searchInputUserId"
+            placeholder="请输入用户ID"
+            clearable
+            :disabled="isUserIdSearchDisabled"
+            inputmode="numeric"
+          >
+            <template #prefix>
+              <el-icon>
+                <Search />
+              </el-icon>
+            </template>
+          </el-input>
+        </div>
+
+        <div class="filter-item">
+          <div class="filter-label">状态码</div>
+          <el-input
+            v-model="searchStatusCode"
+            placeholder="请输入状态码"
+            clearable
+          >
+            <template #prefix>
+              <el-icon>
+                <Search />
+              </el-icon>
+            </template>
+          </el-input>
+        </div>
+
+        <div class="filter-item filter-item--actions">
+          <div class="filter-label filter-label--ghost">操作</div>
+          <div class="panel-actions">
             <el-button type="primary" @click="handleSearch(1)">查询</el-button>
             <el-button @click="handleReset">重置</el-button>
           </div>
         </div>
       </div>
+    </section>
 
-      <!-- 表格区域 -->
-      <div class="table-container">
+    <section class="table-panel">
+      <div class="panel-heading">
+        <div class="panel-title">日志明细</div>
+        <div class="table-toolbar">
+          <span class="toolbar-chip">本页 {{ tableData.length }} 条</span>
+          <span class="toolbar-chip">总页数 {{ maxPage }}</span>
+        </div>
+      </div>
+
+      <div class="table-wrapper">
         <client-only>
           <el-table
             :data="tableData"
@@ -703,306 +663,381 @@ useHead({
             />
           </el-table>
         </client-only>
-        <div class="pagination-container">
-          <el-pagination
-            v-model:page-size="pageSize"
-            :page-sizes="[100, 200, 300, 400]"
-            :pager-count="5"
-            :page-count="maxPage"
-            v-model:current-page="page"
-            :disabled="pageLoading"
-            size="small"
-            background
-            layout="sizes, prev, pager, next, jumper"
-            @size-change="getData"
-          />
-        </div>
       </div>
-    </div>
+
+      <div class="pagination-container">
+        <el-pagination
+          v-model:page-size="pageSize"
+          :page-sizes="[100, 200, 300, 400]"
+          :pager-count="5"
+          :page-count="maxPage"
+          v-model:current-page="page"
+          :disabled="pageLoading"
+          size="small"
+          background
+          layout="sizes, prev, pager, next, jumper"
+          @size-change="getData"
+        />
+      </div>
+    </section>
   </div>
 </template>
 
 <style lang="less" scoped>
-.apilogs-container {
-  position: relative;
+.apilogs-page {
   min-height: 100vh;
-  padding: 24px;
-  display: flex;
-  justify-content: center;
+  padding: 20px;
   background: #f5f7fa;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
 
-  .logs-card {
+.overview-panel,
+.filter-panel,
+.table-panel {
+  padding: 20px;
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+}
+
+.panel-heading {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.panel-heading.compact {
+  margin-bottom: 12px;
+}
+
+.panel-title {
+  font-size: 15px;
+  font-weight: 600;
+  color: #111827;
+  line-height: 1.4;
+}
+
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.stat-card {
+  min-width: 0;
+  padding: 16px;
+  border-radius: 8px;
+  border: 1px solid #edf1f5;
+  background: #fafbfc;
+}
+
+.stat-card-label {
+  margin-bottom: 8px;
+  font-size: 12px;
+  color: #6b7280;
+}
+
+.stat-card-value {
+  color: #111827;
+  font-size: 28px;
+  font-weight: 700;
+  line-height: 1.2;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+.panel-actions,
+.table-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.toolbar-chip {
+  display: inline-flex;
+  align-items: center;
+  min-height: 28px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: #f8fafc;
+  border: 1px solid #e5e7eb;
+  color: #4b5563;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.top-api-panel {
+  margin-top: 14px;
+  padding-top: 14px;
+  border-top: 1px solid #eef2f7;
+}
+
+.top-api-title {
+  margin-bottom: 10px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #374151;
+}
+
+.top-api-list {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.top-api-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+  padding: 12px;
+  border: 1px solid #edf1f5;
+  border-radius: 8px;
+  background: #fafbfc;
+}
+
+.top-api-rank {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  flex-shrink: 0;
+  border-radius: 999px;
+  background: #e5edf9;
+  color: #2563eb;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.top-api-content {
+  min-width: 0;
+}
+
+.top-api-name {
+  color: #111827;
+  font-size: 13px;
+  font-weight: 500;
+  line-height: 1.4;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.top-api-count {
+  margin-top: 2px;
+  color: #6b7280;
+  font-size: 12px;
+}
+
+.filter-grid {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: 10px 12px;
+}
+
+.search-id-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 12px;
+  margin-bottom: 14px;
+  padding-bottom: 14px;
+  border-bottom: 1px solid #eef2f7;
+}
+
+.search-id-main {
+  min-width: 0;
+}
+
+.search-id-actions {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+}
+
+.filter-item {
+  min-width: 0;
+  padding: 0;
+  border: none;
+  background: transparent;
+}
+
+.filter-item--time {
+  grid-column: span 2;
+}
+
+.filter-item--actions {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+}
+
+.filter-label {
+  margin-bottom: 6px;
+  color: #4b5563;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.filter-label--ghost {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.filter-item {
+  :deep(.el-input),
+  :deep(.el-autocomplete),
+  :deep(.el-date-editor) {
     width: 100%;
-    border-radius: 12px;
-    margin: 0 auto;
-
-    .card-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 20px 24px;
-      background: #fff;
-      border: 1px solid #eaecf0;
-      border-radius: 12px;
-      box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.03);
-      margin-bottom: 16px;
-      flex-wrap: wrap;
-      gap: 10px;
-
-      .header-left {
-        display: flex;
-        align-items: center;
-        gap: 12px;
-
-        .icon {
-          font-size: 20px;
-          color: #4b5563;
-        }
-
-        .title {
-          font-size: 16px;
-          font-weight: 600;
-          color: #1a1f36;
-        }
-      }
-    }
-
-    .search-toolbar {
-      background: #fff;
-      border: 1px solid #eaecf0;
-      border-radius: 12px;
-      box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.03);
-      padding: 20px 24px;
-      margin-bottom: 16px;
-
-      .search-row {
-        display: flex;
-        align-items: center;
-        gap: 16px;
-        flex-wrap: wrap;
-        margin-bottom: 16px;
-        padding-bottom: 16px;
-        border-bottom: 1px dashed #e2e8f0;
-
-        .id-search {
-          display: flex;
-          align-items: center;
-          width: 100%;
-
-          .label {
-            color: #374151;
-            font-size: 14px;
-            margin-right: 8px;
-            white-space: nowrap;
-          }
-
-          .el-input {
-            flex: 1;
-          }
-        }
-      }
-
-      .search-items {
-        display: flex;
-        align-items: center;
-        gap: 16px;
-        flex-wrap: wrap;
-
-        .date-picker {
-          display: flex;
-          align-items: center;
-          gap: 8px;
-
-          .label {
-            color: #374151;
-            font-size: 14px;
-          }
-        }
-
-        .search-input {
-          width: 220px;
-
-          :deep(.el-autocomplete) {
-            width: 100%;
-          }
-
-          .full-width {
-            width: 100%;
-          }
-        }
-
-        .search-buttons {
-          display: flex;
-          gap: 8px;
-        }
-      }
-    }
-
-    .table-container {
-      padding: 24px;
-      background: #fff;
-      border: 1px solid #eaecf0;
-      border-radius: 12px;
-      box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.03);
-
-      :deep(.el-table) {
-        border: none;
-
-        .el-table__header-wrapper {
-          th {
-            background: #f8fafc;
-            color: #1f2937;
-            font-weight: 600;
-          }
-        }
-      }
-
-      .pagination-container {
-        margin-top: 20px;
-        display: flex;
-        justify-content: flex-end;
-      }
-    }
   }
 }
 
-// 响应式设计
+.filter-panel {
+  :deep(.el-input__wrapper),
+  :deep(.el-textarea__inner),
+  :deep(.el-range-editor.el-input__wrapper) {
+    box-shadow: none;
+    border: 1px solid #e5e7eb;
+    background: #fff;
+  }
+
+  :deep(.el-input__wrapper:hover),
+  :deep(.el-range-editor.el-input__wrapper:hover) {
+    border-color: #d1d5db;
+  }
+}
+
+.filter-panel {
+  :deep(.el-input__wrapper) {
+    padding: 1px 11px;
+  }
+
+  :deep(.el-range-editor.el-input__wrapper) {
+    padding: 1px 11px;
+  }
+}
+
+.table-wrapper {
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  overflow: hidden;
+  background: #fff;
+}
+
+:deep(.el-table) {
+  --el-table-header-bg-color: #f8fafc;
+  --el-table-row-hover-bg-color: #f8fbff;
+  border: none;
+}
+
+:deep(.el-table__inner-wrapper::before) {
+  display: none;
+}
+
+:deep(.el-table th.el-table__cell) {
+  color: #374151;
+  font-weight: 600;
+}
+
+.pagination-container {
+  margin-top: 16px;
+  display: flex;
+  justify-content: flex-end;
+}
+
 @media screen and (max-width: 1200px) {
-  .apilogs-container {
+  .apilogs-page {
     padding: 16px;
+  }
 
-    .logs-card {
-      .card-header {
-        .header-right {
-          display: none;
-        }
-      }
+  .panel-heading {
+    flex-direction: column;
+    align-items: stretch;
+  }
 
-      .search-toolbar {
-        .search-items {
-          gap: 12px;
-        }
-      }
-    }
+  .stats-grid,
+  .filter-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+
+  .top-api-list {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .filter-item--time {
+    grid-column: span 2;
+  }
+
+  .filter-item--actions {
+    grid-column: span 4;
   }
 }
 
 @media screen and (max-width: 768px) {
-  .apilogs-container {
+  .apilogs-page {
     padding: 12px;
-
-    .logs-card {
-      .search-toolbar {
-        padding: 16px;
-
-        .search-items {
-          flex-direction: column;
-          align-items: stretch;
-          gap: 12px;
-
-          .date-picker {
-            flex-direction: column;
-            align-items: flex-start;
-
-            :deep(.el-date-editor) {
-              width: 100%;
-              box-sizing: border-box;
-            }
-          }
-
-          .search-input {
-            width: 100%;
-          }
-
-          .search-buttons {
-            justify-content: flex-end;
-          }
-        }
-      }
-
-      .table-container {
-        .pagination-container {
-          justify-content: center;
-
-          :deep(.el-pagination) {
-            flex-wrap: wrap;
-            justify-content: center;
-            row-gap: 10px;
-          }
-        }
-      }
-    }
   }
-}
 
-.stats-overview {
-  background: #fff;
-  border: 1px solid #eaecf0;
-  border-radius: 12px;
-  padding: 24px;
-  margin-bottom: 16px;
-  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.03);
-
-  .stat-item {
-    background: #f8fafc;
-    border-radius: 8px;
+  .overview-panel,
+  .filter-panel,
+  .table-panel {
     padding: 16px;
-    text-align: center;
-    border: 1px solid #eaecf0;
-    margin-bottom: 16px;
-
-    .stat-label {
-      color: #64748b;
-      font-size: 14px;
-      margin-bottom: 8px;
-    }
-
-    .stat-value {
-      color: #0f172a;
-      font-size: 24px;
-      font-weight: 600;
-    }
   }
 
-  .top-apis-section {
-    margin-top: 8px;
-    padding-top: 20px;
-    border-top: 1px solid #eaecf0;
+  .stats-grid,
+  .filter-grid {
+    grid-template-columns: 1fr;
+  }
 
-    .section-title {
-      font-size: 15px;
-      font-weight: 600;
-      color: #1e293b;
-      margin-bottom: 16px;
-    }
+  .top-api-list {
+    grid-template-columns: 1fr;
+  }
 
-    .top-api-list {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
-      gap: 16px;
+  .filter-item--time,
+  .filter-item--actions {
+    grid-column: span 1;
+  }
 
-      .top-api-item {
-        .api-info {
-          display: flex;
-          justify-content: space-between;
-          margin-bottom: 8px;
-          font-size: 13px;
+  .search-id-row {
+    grid-template-columns: 1fr;
+    gap: 10px;
+  }
 
-          .api-name {
-            color: #334155;
-            font-weight: 500;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            max-width: 70%;
-          }
+  .search-id-actions :deep(.el-button) {
+    width: 100%;
+  }
 
-          .api-count {
-            color: #64748b;
-          }
-        }
-      }
-    }
+  .stat-card-value {
+    font-size: clamp(20px, 6vw, 28px);
+  }
+
+  .panel-actions {
+    width: 100%;
+    justify-content: stretch;
+  }
+
+  .panel-actions :deep(.el-button) {
+    flex: 1;
+    margin-left: 0;
+  }
+
+  .table-toolbar {
+    width: 100%;
+  }
+
+  .pagination-container {
+    justify-content: center;
+  }
+
+  :deep(.el-pagination) {
+    flex-wrap: wrap;
+    justify-content: center;
+    row-gap: 10px;
   }
 }
 </style>
