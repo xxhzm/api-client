@@ -2229,6 +2229,7 @@ const generatedExamples = computed(() => {
           display: flex;
           align-items: center;
           justify-content: space-between;
+          gap: 12px;
           background: #f8fafc;
           padding: 16px;
           border: 1px solid #e2e8f0;
@@ -2245,10 +2246,15 @@ const generatedExamples = computed(() => {
             background: none;
             border: none;
             flex: 1;
+            min-width: 0;
+            white-space: normal;
+            overflow-wrap: anywhere;
+            word-break: break-all;
           }
 
           .copy-icon {
             color: #64748b;
+            flex-shrink: 0;
 
             &:hover {
               color: #409eff;
@@ -2975,11 +2981,11 @@ const generatedExamples = computed(() => {
         font-size: 13px;
         line-height: 1.4;
       }
+      }
     }
-  }
 
-  @media screen and (max-width: 768px) {
-    .apiinfo-container {
+    @media screen and (max-width: 768px) {
+      .apiinfo-container {
       width: 92%;
       padding: 20px 0;
 
@@ -3013,6 +3019,18 @@ const generatedExamples = computed(() => {
         h2 {
           font-size: 18px;
           margin-bottom: 20px;
+        }
+      }
+
+      .box .api-url-section {
+        .url-container {
+          align-items: flex-start;
+          padding: 14px 12px;
+        }
+
+        .api-url {
+          font-size: 13px;
+          line-height: 1.6;
         }
       }
     }
