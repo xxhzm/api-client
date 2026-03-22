@@ -365,9 +365,9 @@ const deleteConfig = async (channel, config) => {
   try {
     const res = await $myFetch('PaymentConfigDelete', {
       method: 'POST',
-      body: buildRequestBody({
+      params: {
         id: config.id,
-      }),
+      },
     })
 
     if (res.code !== 200) {
