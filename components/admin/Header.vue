@@ -11,6 +11,7 @@ const { onlyPhoneBind } = usePhoneBind()
 const routeNameMap = {
   '/admin': '控制台',
   '/admin/webset': '基本设置',
+  '/admin/pay-config': '支付配置',
   '/admin/ad': '广告位管理',
   '/admin/sitemap': '生成网站地图',
   '/admin/online-update': '在线更新',
@@ -68,6 +69,7 @@ const dynamicRouteMap = {
 const parentNameMap = {
   // 系统与安全
   '/admin/webset': '系统与安全',
+  '/admin/pay-config': '系统与安全',
   '/admin/sitemap': '系统与安全',
   '/admin/online-update': '系统与安全',
   '/admin/import': '系统与安全',

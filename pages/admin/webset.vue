@@ -17,10 +17,6 @@ const loadedData = ref({
   mail: false,
   topApi: false,
   partners: false,
-  alipay: false,
-  wechatpay: false,
-  mpay: false,
-  hupi: false,
   ai: false,
   about: false,
   advanced: false,
@@ -64,40 +60,6 @@ const mailInfo = ref({
   port: '',
   name: '',
   template: '',
-})
-
-// 支付宝配置相关
-const alipayInfo = ref({
-  Appid: '',
-  PrivateKey: '',
-  PublicKey: '',
-})
-
-// 新增：微信支付配置相关
-const wechatPayInfo = ref({
-  apiV3Key: '',
-  appid: '',
-  mchid: '',
-  privateKey: '',
-  serialNo: '',
-  wxPublicKeyContent: '',
-  wxPublicKeyID: '',
-})
-
-// 新增：易支付配置相关
-const mpayInfo = ref({
-  key: '',
-  pid: '',
-  type: '',
-  url: '',
-})
-
-// 新增：虎皮椒支付配置相关
-const hupiInfo = ref({
-  app_id: '',
-  app_secret: '',
-  host: '',
-  method: '',
 })
 
 // AI配置相关
@@ -250,44 +212,6 @@ const getMailInfo = async () => {
       console.error('模板解码失败:', e)
       mailInfo.value.template = ''
     }
-  }
-}
-
-// 获取支付宝配置
-const getAlipayInfo = async () => {
-  const res = await $myFetch('AlipayInfo')
-  if (res.code === 200) {
-    alipayInfo.value = res.data
-  }
-}
-
-// 新增：获取微信支付配置
-const getWechatPayInfo = async () => {
-  const res = await $myFetch('WechatPayInfo')
-  if (res.code === 200) {
-    wechatPayInfo.value.apiV3Key = res.data.api_v_3_key
-    wechatPayInfo.value.appid = res.data.appid
-    wechatPayInfo.value.mchid = res.data.mchid
-    wechatPayInfo.value.privateKey = res.data.private_key
-    wechatPayInfo.value.serialNo = res.data.serial_no
-    wechatPayInfo.value.wxPublicKeyContent = res.data.wx_public_key_content
-    wechatPayInfo.value.wxPublicKeyID = res.data.wx_public_key_id
-  }
-}
-
-// 新增：获取易支付配置
-const getMPayInfo = async () => {
-  const res = await $myFetch('MPayInfo')
-  if (res.code === 200) {
-    mpayInfo.value = res.data
-  }
-}
-
-// 新增：获取虎皮椒支付配置
-const getHupiInfo = async () => {
-  const res = await $myFetch('HuPiInfo')
-  if (res.code === 200) {
-    hupiInfo.value = res.data
   }
 }
 
@@ -654,95 +578,6 @@ const mailInfoSubmit = async () => {
   if (res.code === 200) {
     $msg(res.msg, 'success')
     getMailInfo()
-  }
-}
-
-// 提交支付宝配置
-const alipayInfoSubmit = async () => {
-  const bodyValue = new URLSearchParams()
-  bodyValue.append('appid', alipayInfo.value.Appid || '')
-  bodyValue.append('privateKey', alipayInfo.value.PrivateKey || '')
-  bodyValue.append('publicKey', alipayInfo.value.PublicKey || '')
-
-  const res = await $myFetch('AlipayOptionUpdate', {
-    method: 'POST',
-    body: bodyValue,
-  })
-
-  if (res.code === 200) {
-    $msg(res.msg, 'success')
-    getAlipayInfo()
-  } else {
-    $msg(res.msg, 'error')
-  }
-}
-
-// 新增：提交微信支付配置
-const wechatPayInfoSubmit = async () => {
-  const bodyValue = new URLSearchParams()
-  bodyValue.append('apiV3Key', wechatPayInfo.value.apiV3Key || '')
-  bodyValue.append('appid', wechatPayInfo.value.appid || '')
-  bodyValue.append('mchid', wechatPayInfo.value.mchid || '')
-  bodyValue.append('privateKey', wechatPayInfo.value.privateKey || '')
-  bodyValue.append('serialNo', wechatPayInfo.value.serialNo || '')
-  bodyValue.append(
-    'wxPublicKeyContent',
-    wechatPayInfo.value.wxPublicKeyContent || '',
-  )
-  bodyValue.append('wxPublicKeyID', wechatPayInfo.value.wxPublicKeyID || '')
-
-  const res = await $myFetch('WechatPayOptionUpdate', {
-    method: 'POST',
-    body: bodyValue,
-  })
-
-  if (res.code === 200) {
-    $msg(res.msg, 'success')
-    getWechatPayInfo()
-  } else {
-    $msg(res.msg, 'error')
-  }
-}
-
-// 新增：提交易支付配置
-const mpayInfoSubmit = async () => {
-  const bodyValue = new URLSearchParams()
-  bodyValue.append('key', mpayInfo.value.key || '')
-  bodyValue.append('pid', mpayInfo.value.pid || '')
-  bodyValue.append('type', mpayInfo.value.type || '')
-  bodyValue.append('url', mpayInfo.value.url || '')
-
-  const res = await $myFetch('MPayOptionUpdate', {
-    method: 'POST',
-    body: bodyValue,
-  })
-
-  if (res.code === 200) {
-    $msg(res.msg, 'success')
-    getMPayInfo()
-  } else {
-    $msg(res.msg, 'error')
-  }
-}
-
-// 新增：提交虎皮椒支付配置
-const hupiInfoSubmit = async () => {
-  const bodyValue = new URLSearchParams()
-  bodyValue.append('appId', hupiInfo.value.app_id || '')
-  bodyValue.append('appSecret', hupiInfo.value.app_secret || '')
-  bodyValue.append('host', hupiInfo.value.host || '')
-  bodyValue.append('method', hupiInfo.value.method || '')
-
-  const res = await $myFetch('HuPiOptionUpdate', {
-    method: 'POST',
-    body: bodyValue,
-  })
-
-  if (res.code === 200) {
-    $msg(res.msg, 'success')
-    getHupiInfo()
-  } else {
-    $msg(res.msg, 'error')
   }
 }
 
@@ -1363,8 +1198,6 @@ const handleGlobalDeleteResponseParam = async (row) => {
 watch(activeTab, (newTab) => {
   if (newTab === 'basic') {
     activeSubTab.value = 'website'
-  } else if (newTab === 'payment') {
-    activeSubTab.value = 'alipay'
   } else if (newTab === 'system') {
     activeSubTab.value = 'ai'
   }
@@ -1387,20 +1220,6 @@ watch(
     } else if (newSubTab === 'partners' && !loadedData.value.partners) {
       await getPartners()
       loadedData.value.partners = true
-    }
-    // 支付设置相关
-    else if (newSubTab === 'alipay' && !loadedData.value.alipay) {
-      await getAlipayInfo()
-      loadedData.value.alipay = true
-    } else if (newSubTab === 'wechatpay' && !loadedData.value.wechatpay) {
-      await getWechatPayInfo()
-      loadedData.value.wechatpay = true
-    } else if (newSubTab === 'mpay' && !loadedData.value.mpay) {
-      await getMPayInfo()
-      loadedData.value.mpay = true
-    } else if (newSubTab === 'hupi' && !loadedData.value.hupi) {
-      await getHupiInfo()
-      loadedData.value.hupi = true
     }
     // 高级设置相关
     else if (newSubTab === 'ai' && !loadedData.value.ai) {
@@ -3186,213 +3005,6 @@ useHead({
                     <el-button type="primary" @click="captchaInfoSubmit">
                       提交
                     </el-button>
-                  </el-form-item>
-                </el-form>
-              </div>
-            </el-tab-pane>
-          </el-tabs>
-        </el-tab-pane>
-
-        <!-- 支付设置 -->
-        <el-tab-pane label="支付设置" name="payment">
-          <el-tabs v-model="activeSubTab" class="sub-tabs">
-            <el-tab-pane label="支付宝配置" name="alipay">
-              <div class="form">
-                <el-form
-                  :model="alipayInfo"
-                  label-position="top"
-                  label-width="120px"
-                >
-                  <el-form-item label="支付宝Appid">
-                    <el-input
-                      v-model="alipayInfo.Appid"
-                      placeholder="请输入支付宝Appid"
-                    />
-                  </el-form-item>
-                  <el-form-item label="应用私钥">
-                    <el-input
-                      v-model="alipayInfo.PrivateKey"
-                      type="textarea"
-                      :rows="5"
-                      placeholder="请输入支付宝私钥"
-                    />
-                  </el-form-item>
-                  <el-form-item label="支付宝公钥">
-                    <el-input
-                      v-model="alipayInfo.PublicKey"
-                      type="textarea"
-                      :rows="5"
-                      placeholder="请输入支付宝公钥"
-                    />
-                  </el-form-item>
-                  <el-form-item>
-                    <el-button type="primary" @click="alipayInfoSubmit"
-                      >提交</el-button
-                    >
-                  </el-form-item>
-                </el-form>
-              </div>
-            </el-tab-pane>
-
-            <el-tab-pane label="微信支付配置" name="wechatpay">
-              <div class="form">
-                <el-form
-                  :model="wechatPayInfo"
-                  label-position="top"
-                  label-width="120px"
-                >
-                  <el-form-item label="API V3密钥">
-                    <el-input
-                      v-model="wechatPayInfo.apiV3Key"
-                      placeholder="请输入微信支付API V3密钥"
-                    />
-                  </el-form-item>
-                  <el-form-item label="应用ID(AppId)">
-                    <el-input
-                      v-model="wechatPayInfo.appid"
-                      placeholder="请输入微信小程序/公众号AppId"
-                    />
-                  </el-form-item>
-                  <el-form-item label="商户号(MchId)">
-                    <el-input
-                      v-model="wechatPayInfo.mchid"
-                      placeholder="请输入微信支付商户号"
-                    />
-                  </el-form-item>
-                  <el-form-item label="商户私钥">
-                    <el-input
-                      v-model="wechatPayInfo.privateKey"
-                      type="textarea"
-                      :rows="8"
-                      placeholder="请输入商户API证书私钥（完整的PEM格式）"
-                    />
-                  </el-form-item>
-                  <el-form-item label="证书序列号">
-                    <el-input
-                      v-model="wechatPayInfo.serialNo"
-                      placeholder="请输入商户API证书序列号"
-                    />
-                  </el-form-item>
-                  <el-form-item label="微信公钥内容">
-                    <el-input
-                      v-model="wechatPayInfo.wxPublicKeyContent"
-                      type="textarea"
-                      :rows="8"
-                      placeholder="请输入微信支付平台公钥内容（完整的PEM格式）"
-                    />
-                  </el-form-item>
-                  <el-form-item label="微信公钥ID">
-                    <el-input
-                      v-model="wechatPayInfo.wxPublicKeyID"
-                      placeholder="请输入微信支付平台公钥ID"
-                    />
-                  </el-form-item>
-                  <el-form-item>
-                    <el-button type="primary" @click="wechatPayInfoSubmit"
-                      >提交</el-button
-                    >
-                  </el-form-item>
-                </el-form>
-              </div>
-            </el-tab-pane>
-
-            <el-tab-pane label="易支付v1配置" name="mpay">
-              <div class="form">
-                <el-form
-                  :model="mpayInfo"
-                  label-position="top"
-                  label-width="120px"
-                >
-                  <el-form-item label="密钥(Key)">
-                    <el-input
-                      v-model="mpayInfo.key"
-                      type="password"
-                      show-password
-                      placeholder="请输入易支付密钥"
-                    />
-                    <div class="form-help">
-                      易支付平台提供的API密钥，用于接口调用验证
-                    </div>
-                  </el-form-item>
-                  <el-form-item label="商户ID(PID)">
-                    <el-input
-                      v-model="mpayInfo.pid"
-                      placeholder="请输入易支付商户ID"
-                    />
-                    <div class="form-help">易支付平台分配的唯一商户标识符</div>
-                  </el-form-item>
-                  <el-form-item label="支付类型(Type)">
-                    <el-select
-                      v-model="mpayInfo.type"
-                      placeholder="请选择支付类型"
-                      style="width: 100%"
-                    >
-                      <el-option label="微信支付" value="wxpay"></el-option>
-                      <el-option label="支付宝支付" value="alipay"></el-option>
-                    </el-select>
-                    <div class="form-help">
-                      选择易支付平台支持的支付方式，只能选择其中一种
-                    </div>
-                  </el-form-item>
-                  <el-form-item label="API地址(URL)">
-                    <el-input
-                      v-model="mpayInfo.url"
-                      placeholder="请输入易支付API地址"
-                    />
-                    <div class="form-help">
-                      易支付平台的API接口地址，通常以https://开头，mapi.php结尾
-                    </div>
-                  </el-form-item>
-                  <el-form-item>
-                    <el-button type="primary" @click="mpayInfoSubmit"
-                      >提交</el-button
-                    >
-                  </el-form-item>
-                </el-form>
-              </div>
-            </el-tab-pane>
-
-            <el-tab-pane label="虎皮椒支付配置" name="hupi">
-              <div class="form">
-                <el-form
-                  :model="hupiInfo"
-                  label-position="top"
-                  label-width="120px"
-                >
-                  <el-form-item label="支付方式(Method)">
-                    <el-select
-                      v-model="hupiInfo.method"
-                      placeholder="请选择支付方式"
-                      style="width: 100%"
-                    >
-                      <el-option label="微信支付(wechat)" value="wechat" />
-                      <el-option label="支付宝(alipay)" value="alipay" />
-                    </el-select>
-                  </el-form-item>
-                  <el-form-item label="应用ID(AppId)">
-                    <el-input
-                      v-model="hupiInfo.app_id"
-                      placeholder="请输入虎皮椒应用ID"
-                    />
-                  </el-form-item>
-                  <el-form-item label="应用密钥(AppSecret)">
-                    <el-input
-                      v-model="hupiInfo.app_secret"
-                      type="password"
-                      show-password
-                      placeholder="请输入虎皮椒应用密钥"
-                    />
-                  </el-form-item>
-                  <el-form-item label="支付网关(Host)">
-                    <el-input
-                      v-model="hupiInfo.host"
-                      placeholder="请输入虎皮椒支付网关地址"
-                    />
-                  </el-form-item>
-                  <el-form-item>
-                    <el-button type="primary" @click="hupiInfoSubmit"
-                      >提交</el-button
-                    >
                   </el-form-item>
                 </el-form>
               </div>

@@ -81,6 +81,7 @@ const pathMap = {
 
   // 2: System & Security (Moved from 6)
   webset: '2',
+  'pay-config': '2',
   sitemap: '2',
   'online-update': '2',
   import: '2',
@@ -155,12 +156,13 @@ const pathIndexMap = {
 
   // System & Security (2)
   '/admin/webset': '2-1',
-  '/admin/sitemap': '2-2',
-  '/admin/online-update': '2-3',
-  '/admin/import': '2-4',
-  '/admin/ip-ban': '2-5',
-  '/admin/api-rate-limit': '2-6',
-  '/admin/logs': '2-7',
+  '/admin/pay-config': '2-2',
+  '/admin/sitemap': '2-3',
+  '/admin/online-update': '2-4',
+  '/admin/import': '2-5',
+  '/admin/ip-ban': '2-6',
+  '/admin/api-rate-limit': '2-7',
+  '/admin/logs': '2-8',
 
   // API Management (3)
   '/admin/apilist': '3-1',
@@ -258,6 +260,7 @@ watch(
           v-if="
             routeShowArr([
               '/admin/webset',
+              '/admin/pay-config',
               '/admin/sitemap',
               '/admin/online-update',
               '/admin/import',
@@ -282,38 +285,44 @@ watch(
             >
             <el-menu-item
               index="2-2"
+              @click="navigateTo('/admin/pay-config')"
+              v-if="routeShow('/admin/pay-config')"
+              >支付配置</el-menu-item
+            >
+            <el-menu-item
+              index="2-3"
               @click="sitemap()"
               v-if="routeShow('/admin/sitemap')"
               >生成网站地图
             </el-menu-item>
             <el-menu-item
-              index="2-3"
+              index="2-4"
               @click="navigateTo('/admin/online-update')"
               v-if="routeShow('/admin/online-update')"
             >
               在线更新
             </el-menu-item>
             <el-menu-item
-              index="2-4"
+              index="2-5"
               @click="navigateTo('/admin/import')"
               v-if="routeShow('/admin/import')"
             >
               一键对接
             </el-menu-item>
             <el-menu-item
-              index="2-5"
+              index="2-6"
               @click="navigateTo('/admin/ip-ban')"
               v-if="routeShow('/admin/ip-ban')"
               >IP封禁</el-menu-item
             >
             <el-menu-item
-              index="2-6"
+              index="2-7"
               @click="navigateTo('/admin/api-rate-limit')"
               v-if="routeShow('/admin/api-rate-limit')"
               >接口限频</el-menu-item
             >
             <el-menu-item
-              index="2-7"
+              index="2-8"
               @click="navigateTo('/admin/logs')"
               v-if="routeShow('/admin/logs')"
               >综合日志</el-menu-item

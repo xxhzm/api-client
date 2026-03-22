@@ -15,37 +15,26 @@ const username = useCookie('username')
 // 账户余额
 const balance = ref(0)
 
-// 新增：支付通道配置
-const payChannels = ref({
-  alipay: false,
-  weixin: false,
-  mpay: '', // 改为字符串类型：空字符串代表未配置，'alipay'代表支付宝，'wxpay'代表微信支付
-})
+// 支付通道配置列表
+const payChannels = ref([])
 
 // 表单数据
 const form = ref({
   amount: 10,
   customAmount: null,
-  payMethod: 'alipay',
+  payMethod: '',
 })
 
 // 支付状态弹窗
 const payStatusDialogVisible = ref(false)
 
-// 新增：微信支付二维码弹窗
-const wechatPayDialogVisible = ref(false)
-const wechatQrCode = ref('')
+// 二维码支付弹窗
+const qrPayDialogVisible = ref(false)
+const qrCodeUrl = ref('')
+const qrPayAmount = ref('')
+const qrPaySoftware = ref('')
 const currentOrderId = ref('')
 
-// 新增：易支付二维码弹窗
-const mpayDialogVisible = ref(false)
-const mpayQrCode = ref('')
-const mpayMethod = ref('') // 新增：存储易支付的扫码方式
-const mpayAmount = ref('') // 新增：存储易支付的实际支付金额
-
-const hupiQrCode = ref('')
-const hupiDialogVisible = ref(false)
-const hupiImgLoading = ref(false)
 // 处理自定义金额输入
 const handleCustomAmount = (val) => {
   if (val) {
@@ -100,30 +89,21 @@ const getPayChannels = async () => {
   try {
     const res = await $myFetch('GetPayChannels')
     if (res.code === 200) {
-      payChannels.value = res.data
+      const configs = Array.isArray(res.data?.configs)
+        ? res.data.configs.map((config) => ({
+            ...config,
+            id: String(config.id),
+          }))
+        : []
 
-      // 如果当前选择的支付方式不可用，自动切换到可用的支付方式
-      if (form.value.payMethod === 'alipay' && !payChannels.value.alipay) {
-        if (payChannels.value.weixin) {
-          form.value.payMethod = 'wechat'
-        } else if (payChannels.value.mpay) {
-          form.value.payMethod = 'mpay'
-        }
-      } else if (
-        form.value.payMethod === 'wechat' &&
-        !payChannels.value.weixin
-      ) {
-        if (payChannels.value.alipay) {
-          form.value.payMethod = 'alipay'
-        } else if (payChannels.value.mpay) {
-          form.value.payMethod = 'mpay'
-        }
-      } else if (form.value.payMethod === 'mpay' && !payChannels.value.mpay) {
-        if (payChannels.value.alipay) {
-          form.value.payMethod = 'alipay'
-        } else if (payChannels.value.weixin) {
-          form.value.payMethod = 'wechat'
-        }
+      payChannels.value = configs
+
+      const hasCurrentChannel = configs.some(
+        (config) => config.id === String(form.value.payMethod),
+      )
+
+      if (!hasCurrentChannel) {
+        form.value.payMethod = configs[0]?.id || ''
       }
     }
   } catch (error) {
@@ -139,6 +119,42 @@ const refreshBalance = () => {
 // 查询是否支付定时器
 let timer = null
 
+const getSelectedChannelConfig = () => {
+  return (
+    payChannels.value.find(
+      (item) => String(item.id) === String(form.value.payMethod),
+    ) || null
+  )
+}
+
+const getPaySoftwareLabel = (channel) => {
+  console.log(channel)
+  if (channel === 'alipay') {
+    return '支付宝'
+  }
+
+  if (channel === 'wechat') {
+    return '微信'
+  }
+
+  return '支付应用'
+}
+
+const getSelectedChannelLabel = () => {
+  return getSelectedChannelConfig()?.name || '未知支付方式'
+}
+
+const getQrDialogTitle = () => {
+  return `${qrPaySoftware.value}二维码`
+}
+
+const closeQrPayDialog = () => {
+  clearInterval(timer)
+  qrPayDialogVisible.value = false
+  qrCodeUrl.value = ''
+  $msg('如遇支付问题，请联系客服处理', 'warning')
+}
+
 // 提交充值表单
 const submitForm = async () => {
   if (form.value.amount < 0.01) {
@@ -150,28 +166,14 @@ const submitForm = async () => {
     return
   }
 
-  // 检查支付方式是否可用
-  if (
-    !payChannels.value.alipay &&
-    !payChannels.value.weixin &&
-    !payChannels.value.mpay
-  ) {
+  if (!payChannels.value.length) {
     $msg('暂无可用的支付方式，请联系客服', 'error')
     return
   }
 
-  if (form.value.payMethod === 'alipay' && !payChannels.value.alipay) {
-    $msg('支付宝支付暂不可用，请选择其他支付方式', 'error')
-    return
-  }
-
-  if (form.value.payMethod === 'wechat' && !payChannels.value.weixin) {
-    $msg('微信支付暂不可用，请选择其他支付方式', 'error')
-    return
-  }
-
-  if (form.value.payMethod === 'mpay' && !payChannels.value.mpay) {
-    $msg('易支付暂不可用，请选择其他支付方式', 'error')
+  const selectedChannel = getSelectedChannelConfig()
+  if (!selectedChannel?.id) {
+    $msg('支付通道配置异常，请联系客服', 'error')
     return
   }
 
@@ -179,20 +181,9 @@ const submitForm = async () => {
   try {
     const body = new URLSearchParams()
     body.append('amount', form.value.amount)
+    body.append('channelId', selectedChannel.id)
 
-    // 根据支付方式选择不同的接口
-    let apiEndpoint
-    if (form.value.payMethod === 'wechat') {
-      apiEndpoint = 'WeixinWebPayment'
-    } else if (form.value.payMethod === 'mpay') {
-      apiEndpoint = 'MPayment'
-    } else if (form.value.payMethod === 'hupi') {
-      apiEndpoint = 'HuPiWebPayment'
-    } else {
-      apiEndpoint = 'AlipayWebPayment'
-    }
-
-    const res = await $myFetch(apiEndpoint, {
+    const res = await $myFetch('WebPayment', {
       method: 'POST',
       body,
       params: {
@@ -203,42 +194,39 @@ const submitForm = async () => {
     if (res.code === 200) {
       $msg('订单创建成功', 'success')
       currentOrderId.value = res.data.id
+      const responseChannel = res.data.channel || selectedChannel.channel
+      const imageUrl = (res.data.image_url || '').trim()
+      const paymentUrl = (res.data.url || '').trim()
 
-      if (form.value.payMethod === 'wechat') {
-        // 微信支付：显示二维码
-        wechatQrCode.value = res.data.image_url
-        wechatPayDialogVisible.value = true
-      } else if (form.value.payMethod === 'mpay') {
-        // 易支付：显示二维码
-        mpayQrCode.value = res.data.image_url
-        mpayMethod.value = res.data.method // 保存扫码方式
-        mpayAmount.value = res.data.amount || form.value.amount // 保存实际支付金额
-        mpayDialogVisible.value = true
-      } else if (form.value.payMethod === 'hupi') {
-        // 虎皮支付：显示二维码
-        hupiQrCode.value = (res.data.image_url || '').trim()
-        hupiImgLoading.value = true
-        hupiDialogVisible.value = true
-      } else {
-        // 支付宝支付：跳转页面
-        // 先立即打开一个空白窗口（在用户点击事件中）-防止safari浏览器拦截
+      if (imageUrl) {
+        qrCodeUrl.value = imageUrl
+        qrPayAmount.value = res.data.amount || form.value.amount
+        qrPaySoftware.value = getPaySoftwareLabel(responseChannel)
+        qrPayDialogVisible.value = true
+      } else if (paymentUrl) {
         const newWin = window.open('', '_blank')
-        newWin.location = res.data.url
-        newWin.focus()
+        if (newWin) {
+          newWin.location = paymentUrl
+          newWin.focus()
+        } else {
+          window.location.href = paymentUrl
+        }
 
-        // 显示支付状态确认弹窗
         payStatusDialogVisible.value = true
+      } else {
+        $msg('支付信息获取失败，请稍后重试', 'error')
+        return
       }
 
-      // 开始查询支付状态
       startPaymentQuery(res.data.id)
     } else {
       $msg(res.msg, 'error')
     }
   } catch (error) {
     $msg(error.message, 'error')
+  } finally {
+    loading.value = false
   }
-  loading.value = false
 }
 
 // 新增：开始支付状态查询
@@ -257,9 +245,7 @@ const startPaymentQuery = (orderId) => {
       getBalance(false)
       // 关闭所有弹窗
       payStatusDialogVisible.value = false
-      wechatPayDialogVisible.value = false
-      mpayDialogVisible.value = false
-      hupiDialogVisible.value = false
+      qrPayDialogVisible.value = false
       clearInterval(timer)
     }
   }, 2000)
@@ -269,9 +255,7 @@ const startPaymentQuery = (orderId) => {
     () => {
       clearInterval(timer)
       payStatusDialogVisible.value = false
-      wechatPayDialogVisible.value = false
-      mpayDialogVisible.value = false
-      hupiDialogVisible.value = false
+      qrPayDialogVisible.value = false
       getBalance(false)
     },
     5 * 60 * 1000,
@@ -293,98 +277,8 @@ const handlmPayStatus = (isSuccess) => {
   payStatusDialogVisible.value = false
 }
 
-// 新增：关闭微信支付弹窗
-const closeWechatPayDialog = () => {
-  clearInterval(timer)
-  wechatPayDialogVisible.value = false
-  $msg('如遇支付问题，请联系客服处理', 'warning')
-}
-
-// 新增：关闭虎皮支付弹窗
-const closeHupiDialog = () => {
-  clearInterval(timer)
-  hupiDialogVisible.value = false
-  hupiQrCode.value = ''
-  $msg('如遇支付问题，请联系客服处理', 'warning')
-}
-
-// 新增：关闭易支付弹窗
-const closeEpayDialog = () => {
-  clearInterval(timer)
-  mpayDialogVisible.value = false
-  $msg('如遇支付问题，请联系客服处理', 'warning')
-}
-
-// 新增：获取易支付弹窗标题
-const getPaymentTitle = () => {
-  if (mpayMethod.value === 'alipay') {
-    return '支付宝扫易支付'
-  } else if (mpayMethod.value === 'wechat' || mpayMethod.value === 'wxpay') {
-    return '微信扫易支付'
-  }
-  return '易支付二维码'
-}
-
-// 新增：获取易支付提示文字
-const getPaymentTips = () => {
-  if (mpayMethod.value === 'alipay') {
-    return '请使用支付宝扫描二维码进行支付'
-  } else if (mpayMethod.value === 'wechat' || mpayMethod.value === 'wxpay') {
-    return '请使用微信扫描二维码进行支付'
-  }
-  return '请使用手机扫描二维码进行支付'
-}
-
-// 新增：获取易支付使用说明
-const getPaymentInstructions = () => {
-  if (mpayMethod.value === 'alipay') {
-    return '打开支付宝，使用"扫一扫"功能扫描二维码'
-  } else if (mpayMethod.value === 'wechat' || mpayMethod.value === 'wxpay') {
-    return '打开微信，使用"扫一扫"功能扫描二维码'
-  }
-  return '使用手机扫描上方二维码'
-}
-
-// 新增：获取虎皮椒显示名称
-const getHupiLabel = () => {
-  const type = payChannels.value.hupi
-  if (!type) return '虎皮椒'
-
-  const isAlipay = type === 'alipay'
-  const nativeExists = isAlipay
-    ? payChannels.value.alipay
-    : payChannels.value.weixin
-  const baseName = isAlipay ? '支付宝' : '微信支付'
-
-  return nativeExists ? baseName + '2' : baseName
-}
-
-// 新增：获取易支付显示名称
-const getMpayLabel = () => {
-  const type = payChannels.value.mpay
-  if (!type) return '易支付'
-
-  const isAlipay = type === 'alipay'
-  const nativeExists = isAlipay
-    ? payChannels.value.alipay
-    : payChannels.value.weixin
-  const baseName = isAlipay ? '支付宝' : '微信支付'
-
-  // 检查是否与虎皮椒冲突
-  const hupiType = payChannels.value.hupi
-  const hupiSameType =
-    hupiType === type ||
-    (isAlipay && hupiType === 'alipay') ||
-    (!isAlipay && (hupiType === 'wechat' || hupiType === 'wxpay'))
-
-  let suffix = ''
-  if (nativeExists) {
-    suffix = hupiSameType ? '3' : '2'
-  } else {
-    suffix = hupiSameType ? '2' : ''
-  }
-
-  return baseName + suffix
+const getChannelIconType = (channel) => {
+  return channel === 'alipay' ? 'alipay' : channel === 'wechat' ? 'wechat' : ''
 }
 
 // 页面加载时获取数据
@@ -500,44 +394,16 @@ useHead({
                 <div class="label">支付方式</div>
                 <div class="methods">
                   <el-radio-group v-model="form.payMethod">
-                    <el-radio value="alipay" v-if="payChannels.alipay">
+                    <el-radio
+                      v-for="channel in payChannels"
+                      :key="channel.id"
+                      :value="channel.id"
+                    >
                       <div class="pay-item">
                         <svg
-                          class="pay-icon"
-                          viewBox="0 0 1024 1024"
-                          xmlns="http://www.w3.org/2000/svg"
-                          width="24"
-                          height="24"
-                        >
-                          <path
-                            d="M1024.0512 701.0304V196.864A196.9664 196.9664 0 0 0 827.136 0H196.864A196.9664 196.9664 0 0 0 0 196.864v630.272A196.9152 196.9152 0 0 0 196.864 1024h630.272a197.12 197.12 0 0 0 193.8432-162.0992c-52.224-22.6304-278.528-120.32-396.4416-176.64-89.7024 108.6976-183.7056 173.9264-325.3248 173.9264s-236.1856-87.2448-224.8192-194.048c7.4752-70.0416 55.552-184.576 264.2944-164.9664 110.08 10.3424 160.4096 30.8736 250.1632 60.5184 23.1936-42.5984 42.496-89.4464 57.1392-139.264H248.064v-39.424h196.9152V311.1424H204.8V267.776h240.128V165.632s2.1504-15.9744 19.8144-15.9744h98.4576V267.776h256v43.4176h-256V381.952h208.8448a805.9904 805.9904 0 0 1-84.8384 212.6848c60.672 22.016 336.7936 106.3936 336.7936 106.3936zM283.5456 791.6032c-149.6576 0-173.312-94.464-165.376-133.9392 7.8336-39.3216 51.2-90.624 134.4-90.624 95.5904 0 181.248 24.4736 284.0576 74.5472-72.192 94.0032-160.9216 150.016-253.0816 150.016z"
-                            fill="#009FE8"
-                          ></path>
-                        </svg>
-                        <span>支付宝</span>
-                      </div>
-                    </el-radio>
-                    <el-radio value="wechat" v-if="payChannels.weixin">
-                      <div class="pay-item">
-                        <svg
-                          class="pay-icon"
-                          viewBox="0 0 1024 1024"
-                          xmlns="http://www.w3.org/2000/svg"
-                          width="24"
-                          height="24"
-                        >
-                          <path
-                            d="M910.1 317.5l-516 298-3.1 2.1c-4.1 2.1-8.3 3.1-13.5 3.1-11.4 0-20.8-6.2-26-15.6l-2.1-4.1-82-178.7c-1-2.1-1-4.1-1-6.2 0-8.3 6.2-14.6 14.6-14.6 3.1 0 6.2 1 9.3 3.1l96.6 68.6c7.2 4.1 15.6 7.2 24.9 7.2 5.2 0 10.3-1 15.6-3.1l452.8-201.5C799.2 180.4 665.3 118 513.6 118 266.5 118 65 285.3 65 491.9c0 112.1 60.2 213.9 154.7 282.5 7.2 5.2 12.4 14.6 12.4 23.9 0 3.1-1 6.2-2.1 9.3-7.2 28-19.8 73.8-19.8 75.8-1 3.1-2.1 7.2-2.1 11.4 0 8.3 6.2 14.6 14.6 14.6 3.1 0 6.2-1 8.3-3.1l97.6-57.1c7.2-4.1 15.6-7.2 23.9-7.2 4.1 0 9.3 1 13.5 2.1 45.7 13.5 95.6 20.8 146.5 20.8C759.5 864.8 961 697.5 961 491c0-62.4-18.7-121.5-50.9-173.5z"
-                            fill="#09BB07"
-                          ></path>
-                        </svg>
-                        <span>微信支付</span>
-                      </div>
-                    </el-radio>
-                    <el-radio value="hupi" v-if="payChannels.hupi">
-                      <div class="pay-item">
-                        <svg
-                          v-if="payChannels.hupi === 'alipay'"
+                          v-if="
+                            getChannelIconType(channel.channel) === 'alipay'
+                          "
                           class="pay-icon"
                           viewBox="0 0 1024 1024"
                           xmlns="http://www.w3.org/2000/svg"
@@ -550,7 +416,9 @@ useHead({
                           ></path>
                         </svg>
                         <svg
-                          v-else
+                          v-else-if="
+                            getChannelIconType(channel.channel) === 'wechat'
+                          "
                           class="pay-icon"
                           viewBox="0 0 1024 1024"
                           xmlns="http://www.w3.org/2000/svg"
@@ -562,50 +430,14 @@ useHead({
                             fill="#09BB07"
                           ></path>
                         </svg>
-                        <span>{{ getHupiLabel() }}</span>
-                      </div>
-                    </el-radio>
-                    <el-radio value="mpay" v-if="payChannels.mpay">
-                      <div class="pay-item">
-                        <svg
-                          v-if="payChannels.mpay === 'alipay'"
-                          class="pay-icon"
-                          viewBox="0 0 1024 1024"
-                          xmlns="http://www.w3.org/2000/svg"
-                          width="24"
-                          height="24"
-                        >
-                          <path
-                            d="M1024.0512 701.0304V196.864A196.9664 196.9664 0 0 0 827.136 0H196.864A196.9664 196.9664 0 0 0 0 196.864v630.272A196.9152 196.9152 0 0 0 196.864 1024h630.272a197.12 197.12 0 0 0 193.8432-162.0992c-52.224-22.6304-278.528-120.32-396.4416-176.64-89.7024 108.6976-183.7056 173.9264-325.3248 173.9264s-236.1856-87.2448-224.8192-194.048c7.4752-70.0416 55.552-184.576 264.2944-164.9664 110.08 10.3424 160.4096 30.8736 250.1632 60.5184 23.1936-42.5984 42.496-89.4464 57.1392-139.264H248.064v-39.424h196.9152V311.1424H204.8V267.776h240.128V165.632s2.1504-15.9744 19.8144-15.9744h98.4576V267.776h256v43.4176h-256V381.952h208.8448a805.9904 805.9904 0 0 1-84.8384 212.6848c60.672 22.016 336.7936 106.3936 336.7936 106.3936zM283.5456 791.6032c-149.6576 0-173.312-94.464-165.376-133.9392 7.8336-39.3216 51.2-90.624 134.4-90.624 95.5904 0 181.248 24.4736 284.0576 74.5472-72.192 94.0032-160.9216 150.016-253.0816 150.016z"
-                            fill="#009FE8"
-                          ></path>
-                        </svg>
-                        <svg
-                          v-else
-                          class="pay-icon"
-                          viewBox="0 0 1024 1024"
-                          xmlns="http://www.w3.org/2000/svg"
-                          width="24"
-                          height="24"
-                        >
-                          <path
-                            d="M910.1 317.5l-516 298-3.1 2.1c-4.1 2.1-8.3 3.1-13.5 3.1-11.4 0-20.8-6.2-26-15.6l-2.1-4.1-82-178.7c-1-2.1-1-4.1-1-6.2 0-8.3 6.2-14.6 14.6-14.6 3.1 0 6.2 1 9.3 3.1l96.6 68.6c7.2 4.1 15.6 7.2 24.9 7.2 5.2 0 10.3-1 15.6-3.1l452.8-201.5C799.2 180.4 665.3 118 513.6 118 266.5 118 65 285.3 65 491.9c0 112.1 60.2 213.9 154.7 282.5 7.2 5.2 12.4 14.6 12.4 23.9 0 3.1-1 6.2-2.1 9.3-7.2 28-19.8 73.8-19.8 75.8-1 3.1-2.1 7.2-2.1 11.4 0 8.3 6.2 14.6 14.6 14.6 3.1 0 6.2-1 8.3-3.1l97.6-57.1c7.2-4.1 15.6-7.2 23.9-7.2 4.1 0 9.3 1 13.5 2.1 45.7 13.5 95.6 20.8 146.5 20.8C759.5 864.8 961 697.5 961 491c0-62.4-18.7-121.5-50.9-173.5z"
-                            fill="#09BB07"
-                          ></path>
-                        </svg>
-                        <span>{{ getMpayLabel() }}</span>
+                        <el-icon v-else class="pay-icon">
+                          <Wallet />
+                        </el-icon>
+                        <span>{{ channel.name }}</span>
                       </div>
                     </el-radio>
                   </el-radio-group>
-                  <!-- 无可用支付方式时的提示 -->
-                  <div
-                    v-if="
-                      !payChannels.alipay &&
-                      !payChannels.weixin &&
-                      !payChannels.mpay
-                    "
-                    class="no-payment-tips"
-                  >
+                  <div v-if="!payChannels.length" class="no-payment-tips">
                     <el-alert
                       title="暂无可用的支付方式"
                       type="warning"
@@ -628,29 +460,14 @@ useHead({
                 </div>
                 <div class="preview-method">
                   <span class="label">支付方式：</span>
-                  <span class="value">{{
-                    form.payMethod === 'alipay'
-                      ? '支付宝支付'
-                      : form.payMethod === 'wechat'
-                        ? '微信支付'
-                        : form.payMethod === 'hupi'
-                          ? getHupiLabel()
-                          : form.payMethod === 'mpay'
-                            ? getMpayLabel()
-                            : '未知支付方式'
-                  }}</span>
+                  <span class="value">{{ getSelectedChannelLabel() }}</span>
                 </div>
               </div>
               <el-button
                 type="primary"
                 @click="submitForm"
                 :loading="loading"
-                :disabled="
-                  !payChannels.alipay &&
-                  !payChannels.weixin &&
-                  !payChannels.hupi &&
-                  !payChannels.mpay
-                "
+                :disabled="!payChannels.length"
                 class="submit-btn"
               >
                 确认支付
@@ -681,139 +498,37 @@ useHead({
         </div>
       </div>
     </el-dialog>
-    <!-- 微信支付二维码弹窗 -->
+    <!-- 二维码支付弹窗 -->
     <el-dialog
-      v-model="wechatPayDialogVisible"
-      title="微信支付二维码"
+      v-model="qrPayDialogVisible"
+      :title="getQrDialogTitle()"
       width="400px"
       :close-on-click-modal="false"
       :show-close="false"
       class="wechat-pay-dialog"
     >
       <div class="wechat-pay-content">
-        <p class="qr-code-tips">请使用微信扫描二维码进行支付</p>
-        <div class="qr-code">
-          <img :src="wechatQrCode" alt="微信支付二维码" />
-        </div>
-        <div class="qr-tips">
-          <p>使用说明：</p>
-          <p>1. 打开微信，使用"扫一扫"功能扫描二维码</p>
-          <p>2. 确认支付金额，点击"确认"完成支付</p>
-          <p>3. 支付成功后系统将自动检测并更新余额</p>
-        </div>
-        <el-button
-          type="primary"
-          @click="closeWechatPayDialog"
-          class="close-btn"
-        >
-          关闭
-        </el-button>
-      </div>
-    </el-dialog>
-    <!-- 易支付二维码弹窗 -->
-    <el-dialog
-      v-model="mpayDialogVisible"
-      :title="getPaymentTitle()"
-      width="400px"
-      :close-on-click-modal="false"
-      :show-close="false"
-      class="mpay-dialog"
-    >
-      <div class="mpay-content">
-        <p class="qr-code-tips">{{ getPaymentTips() }}</p>
-
-        <!-- 实际支付金额显示 -->
+        <p class="qr-code-tips">请使用{{ qrPaySoftware }}扫码支付</p>
         <div class="payment-amount-section">
           <div class="amount-display">
             <span class="amount-label">实际支付金额：</span>
-            <span class="amount-value">{{ mpayAmount }}</span>
+            <span class="amount-value">{{ qrPayAmount }}</span>
             <span class="amount-unit">元</span>
           </div>
-          <div class="amount-warning">
-            <el-alert
-              title="请按照上方显示的金额进行支付，不要多付或少付"
-              type="warning"
-              :closable="false"
-              show-icon
-            />
-          </div>
         </div>
-
         <div class="qr-code">
-          <img :src="mpayQrCode" :alt="getPaymentTitle()" />
+          <img :src="qrCodeUrl" :alt="getQrDialogTitle()" />
         </div>
         <div class="qr-tips">
           <p>使用说明：</p>
-          <p>1. {{ getPaymentInstructions() }}</p>
+          <p>1. 打开{{ qrPaySoftware }}，使用"扫一扫"功能扫描二维码</p>
           <p>
             2. 确认支付金额为
-            <strong>{{ mpayAmount }}元</strong>，点击"确认"完成支付
+            <strong>{{ qrPayAmount }}元</strong>，点击"确认"完成支付
           </p>
           <p>3. 支付成功后系统将自动检测并更新余额</p>
         </div>
-        <el-button type="primary" @click="closeEpayDialog" class="close-btn">
-          关闭
-        </el-button>
-      </div>
-    </el-dialog>
-
-    <!-- 虎皮椒支付二维码弹窗 -->
-    <el-dialog
-      v-model="hupiDialogVisible"
-      :title="
-        payChannels.hupi === 'alipay' ? '支付宝支付二维码' : '微信支付二维码'
-      "
-      width="400px"
-      :close-on-click-modal="false"
-      :show-close="false"
-      class="wechat-pay-dialog"
-    >
-      <div class="wechat-pay-content">
-        <p class="qr-code-tips">
-          请使用{{
-            payChannels.hupi === 'alipay' ? '支付宝' : '微信'
-          }}扫描二维码进行支付
-        </p>
-        <div class="qr-code" v-loading="hupiImgLoading">
-          <img
-            :src="hupiQrCode"
-            alt="支付二维码"
-            @load="hupiImgLoading = false"
-            @error="hupiImgLoading = false"
-          />
-        </div>
-        <div class="qr-tips">
-          <p
-            style="
-              text-align: center;
-              color: #e6a23c;
-              font-size: 12px;
-              margin-bottom: 10px;
-            "
-          >
-            <svg
-              viewBox="0 0 1024 1024"
-              width="12"
-              height="12"
-              style="vertical-align: -1px; margin-right: 2px"
-            >
-              <path
-                d="M512 64C264.6 64 64 264.6 64 512s200.6 448 448 448 448-200.6 448-448S759.4 64 512 64zm-32 224c0-17.7 14.3-32 32-32s32 14.3 32 32v224c0 17.7-14.3 32-32 32s-32-14.3-32-32V288zm32 496c-22.1 0-40-17.9-40-40s17.9-40 40-40 40 17.9 40 40-17.9 40-40 40z"
-                fill="#E6A23C"
-              />
-            </svg>
-            二维码生成可能较慢，请耐心等待加载
-          </p>
-          <p>使用说明：</p>
-          <p>
-            1. 打开{{
-              payChannels.hupi === 'alipay' ? '支付宝' : '微信'
-            }}，使用"扫一扫"功能扫描二维码
-          </p>
-          <p>2. 确认支付金额，点击"确认"完成支付</p>
-          <p>3. 支付成功后系统将自动检测并更新余额</p>
-        </div>
-        <el-button type="primary" @click="closeHupiDialog" class="close-btn">
+        <el-button type="primary" @click="closeQrPayDialog" class="close-btn">
           关闭
         </el-button>
       </div>
