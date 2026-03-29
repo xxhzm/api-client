@@ -272,6 +272,13 @@ const responseExampleLines = computed(() => {
 
 const getCodeLines = (code) => String(code || '').split('\n')
 
+const getExampleParamName = (param) => String(param?.name || '')
+const getExampleParamValue = (param) => String(param?.param || '')
+const buildExampleQueryString = (params) =>
+  params
+    .map((p) => `${getExampleParamName(p)}=${getExampleParamValue(p)}`)
+    .join('&')
+
 const jsonBodyParam = computed(() => {
   if (!apiInfo.value.params) return null
   return apiInfo.value.params.find(
@@ -394,7 +401,7 @@ const generateExamples = () => {
       code += `const data = new URLSearchParams();\n`
       const targetParams = bodyParams.length > 0 ? bodyParams : queryParams
       targetParams.forEach((p) => {
-        code += `data.append('${p.param}', '${p.docs || ''}');\n`
+        code += `data.append('${getExampleParamName(p)}', '${getExampleParamValue(p)}');\n`
       })
       code += `\n`
     }
@@ -410,9 +417,7 @@ const generateExamples = () => {
       const qParams =
         method === 'GET' ? [...queryParams, ...bodyParams] : queryParams
       if (qParams.length > 0) {
-        const queryStr = qParams
-          .map((p) => `${p.name}=\${${p.param}}`)
-          .join('&')
+        const queryStr = buildExampleQueryString(qParams)
         finalUrl += (url.includes('?') ? '&' : '?') + queryStr
       }
     }
@@ -424,7 +429,7 @@ const generateExamples = () => {
         code += `    'Authorization': 'Bearer YOUR_API_KEY',\n`
       }
       headerParams.forEach((p) => {
-        code += `    '${p.name}': '${p.docs || ''}',\n`
+        code += `    '${getExampleParamName(p)}': '${getExampleParamValue(p)}',\n`
       })
       code += `  },\n`
     }
@@ -457,9 +462,7 @@ const generateExamples = () => {
       const qParams =
         method === 'GET' ? [...queryParams, ...bodyParams] : queryParams
       if (qParams.length > 0) {
-        const queryStr = qParams
-          .map((p) => `${p.name}=\${${p.param}}`)
-          .join('&')
+        const queryStr = buildExampleQueryString(qParams)
         finalUrl += (url.includes('?') ? '&' : '?') + queryStr
       }
     }
@@ -471,7 +474,7 @@ const generateExamples = () => {
         code += `    'Authorization': 'Bearer YOUR_API_KEY',\n`
       }
       headerParams.forEach((p) => {
-        code += `    '${p.name}': '${p.docs || ''}',\n`
+        code += `    '${getExampleParamName(p)}': '${getExampleParamValue(p)}',\n`
       })
       code += `  },\n`
     }
@@ -480,7 +483,7 @@ const generateExamples = () => {
       code += `  data: {\n`
       const targetParams = bodyParams.length > 0 ? bodyParams : queryParams
       targetParams.forEach((p, i) => {
-        code += `    '${p.param}': '${p.docs || ''}'${i < targetParams.length - 1 ? ',' : ''}\n`
+        code += `    '${getExampleParamName(p)}': '${getExampleParamValue(p)}'${i < targetParams.length - 1 ? ',' : ''}\n`
       })
       code += `  },\n`
     }
@@ -508,9 +511,7 @@ const generateExamples = () => {
       const qParams =
         method === 'GET' ? [...queryParams, ...bodyParams] : queryParams
       if (qParams.length > 0) {
-        const queryStr = qParams
-          .map((p) => `${p.name}=\${${p.param}}`)
-          .join('&')
+        const queryStr = buildExampleQueryString(qParams)
         finalUrl += (url.includes('?') ? '&' : '?') + queryStr
       }
     }
@@ -519,7 +520,7 @@ const generateExamples = () => {
       code += `const formData = new URLSearchParams();\n`
       const targetParams = bodyParams.length > 0 ? bodyParams : queryParams
       targetParams.forEach((p) => {
-        code += `formData.append('${p.param}', '${p.docs || ''}');\n`
+        code += `formData.append('${getExampleParamName(p)}', '${getExampleParamValue(p)}');\n`
       })
       code += `\n`
     }
@@ -533,7 +534,7 @@ const generateExamples = () => {
         code += `    'Authorization': 'Bearer YOUR_API_KEY',\n`
       }
       headerParams.forEach((p) => {
-        code += `    '${p.name}': '${p.docs || ''}',\n`
+        code += `    '${getExampleParamName(p)}': '${getExampleParamValue(p)}',\n`
       })
       code += `  },\n`
     }
@@ -566,9 +567,7 @@ const generateExamples = () => {
       const qParams =
         method === 'GET' ? [...queryParams, ...bodyParams] : queryParams
       if (qParams.length > 0) {
-        const queryStr = qParams
-          .map((p) => `${p.name}=\${${p.param}}`)
-          .join('&')
+        const queryStr = buildExampleQueryString(qParams)
         finalUrl += (url.includes('?') ? '&' : '?') + queryStr
       }
     }
@@ -579,7 +578,7 @@ const generateExamples = () => {
       code += `xhr.setRequestHeader('Authorization', 'Bearer YOUR_API_KEY');\n`
     }
     headerParams.forEach((p) => {
-      code += `xhr.setRequestHeader('${p.name}', '${p.docs || ''}');\n`
+      code += `xhr.setRequestHeader('${getExampleParamName(p)}', '${getExampleParamValue(p)}');\n`
     })
 
     if (method === 'POST') {
@@ -598,7 +597,7 @@ const generateExamples = () => {
       code += `const data = new URLSearchParams();\n`
       const targetParams = bodyParams.length > 0 ? bodyParams : queryParams
       targetParams.forEach((p) => {
-        code += `data.append('${p.param}', '${p.docs || ''}');\n`
+        code += `data.append('${getExampleParamName(p)}', '${getExampleParamValue(p)}');\n`
       })
       code += `\nxhr.send(data);`
     } else {
@@ -620,9 +619,7 @@ const generateExamples = () => {
       const qParams =
         method === 'GET' ? [...queryParams, ...bodyParams] : queryParams
       if (qParams.length > 0) {
-        const queryStr = qParams
-          .map((p) => `${p.name}=\${${p.param}}`)
-          .join('&')
+        const queryStr = buildExampleQueryString(qParams)
         finalUrl += (url.includes('?') ? '&' : '?') + queryStr
       }
     }
@@ -633,7 +630,7 @@ const generateExamples = () => {
       code += `$data = array(\n`
       const targetParams = bodyParams.length > 0 ? bodyParams : queryParams
       targetParams.forEach((p, i) => {
-        code += `    '${p.param}' => '${p.docs || ''}'${i < targetParams.length - 1 ? ',' : ''}\n`
+        code += `    '${getExampleParamName(p)}' => '${getExampleParamValue(p)}'${i < targetParams.length - 1 ? ',' : ''}\n`
       })
       code += `);\n\n`
     }
@@ -649,7 +646,9 @@ const generateExamples = () => {
         headers.push(`"Authorization: Bearer YOUR_API_KEY"`)
       }
       headerParams.forEach((p) => {
-        headers.push(`"${p.name}: ${p.docs || ''}"`)
+        headers.push(
+          `"${getExampleParamName(p)}: ${getExampleParamValue(p)}"`,
+        )
       })
       if (method === 'POST') {
         headers.push(`"Content-Type: application/x-www-form-urlencoded"`)
@@ -687,9 +686,7 @@ const generateExamples = () => {
       const qParams =
         method === 'GET' ? [...queryParams, ...bodyParams] : queryParams
       if (qParams.length > 0) {
-        const queryStr = qParams
-          .map((p) => `${p.name}=\${${p.param}}`)
-          .join('&')
+        const queryStr = buildExampleQueryString(qParams)
         finalUrl += (url.includes('?') ? '&' : '?') + queryStr
       }
     }
@@ -702,7 +699,7 @@ const generateExamples = () => {
         code += `    'Authorization': 'Bearer YOUR_API_KEY',\n`
       }
       headerParams.forEach((p) => {
-        code += `    '${p.name}': '${p.docs || ''}',\n`
+        code += `    '${getExampleParamName(p)}': '${getExampleParamValue(p)}',\n`
       })
       code += `}\n\n`
     }
@@ -711,7 +708,7 @@ const generateExamples = () => {
       code += `data = {\n`
       const targetParams = bodyParams.length > 0 ? bodyParams : queryParams
       targetParams.forEach((p, i) => {
-        code += `    '${p.param}': '${p.docs || ''}'${i < targetParams.length - 1 ? ',' : ''}\n`
+        code += `    '${getExampleParamName(p)}': '${getExampleParamValue(p)}'${i < targetParams.length - 1 ? ',' : ''}\n`
       })
       code += `}\n\n`
     }
@@ -750,9 +747,7 @@ const generateExamples = () => {
       const qParams =
         method === 'GET' ? [...queryParams, ...bodyParams] : queryParams
       if (qParams.length > 0) {
-        const queryStr = qParams
-          .map((p) => `${p.name}=\${${p.param}}`)
-          .join('&')
+        const queryStr = buildExampleQueryString(qParams)
         finalUrl += (url.includes('?') ? '&' : '?') + queryStr
       }
     }
@@ -763,13 +758,13 @@ const generateExamples = () => {
       code += ` \\\n  -H 'Authorization: Bearer YOUR_API_KEY'`
     }
     headerParams.forEach((p) => {
-      code += ` \\\n  -H '${p.name}: ${p.docs || ''}'`
+      code += ` \\\n  -H '${getExampleParamName(p)}: ${getExampleParamValue(p)}'`
     })
 
     if (method === 'POST') {
       const targetParams = bodyParams.length > 0 ? bodyParams : queryParams
       targetParams.forEach((p) => {
-        code += ` \\\n  -d '${p.param}=${p.docs || ''}'`
+        code += ` \\\n  -d '${getExampleParamName(p)}=${getExampleParamValue(p)}'`
       })
     }
 
@@ -788,9 +783,7 @@ const generateExamples = () => {
       const qParams =
         method === 'GET' ? [...queryParams, ...bodyParams] : queryParams
       if (qParams.length > 0) {
-        const queryStr = qParams
-          .map((p) => `${p.name}=\${${p.param}}`)
-          .join('&')
+        const queryStr = buildExampleQueryString(qParams)
         finalUrl += (url.includes('?') ? '&' : '?') + queryStr
       }
     }
@@ -803,13 +796,13 @@ const generateExamples = () => {
       code += `    .header("Authorization", "Bearer YOUR_API_KEY")\n`
     }
     headerParams.forEach((p) => {
-      code += `    .header("${p.name}", "${p.docs || ''}")\n`
+      code += `    .header("${getExampleParamName(p)}", "${getExampleParamValue(p)}")\n`
     })
 
     if (method === 'POST') {
       const targetParams = bodyParams.length > 0 ? bodyParams : queryParams
       const formData = targetParams
-        .map((p) => `"${p.param}=" + "${p.docs || ''}"`)
+        .map((p) => `"${getExampleParamName(p)}=" + "${getExampleParamValue(p)}"`)
         .join(' + "&" + ')
       code += `    .header("Content-Type", "application/x-www-form-urlencoded")\n`
       code += `    .POST(HttpRequest.BodyPublishers.ofString(${formData}));\n\n`
@@ -847,9 +840,7 @@ const generateExamples = () => {
       const qParams =
         method === 'GET' ? [...queryParams, ...bodyParams] : queryParams
       if (qParams.length > 0) {
-        const queryStr = qParams
-          .map((p) => `${p.name}=\${${p.param}}`)
-          .join('&')
+        const queryStr = buildExampleQueryString(qParams)
         finalUrl += (url.includes('?') ? '&' : '?') + queryStr
       }
     }
@@ -860,7 +851,7 @@ const generateExamples = () => {
       code += `    data := url.Values{}\n`
       const targetParams = bodyParams.length > 0 ? bodyParams : queryParams
       targetParams.forEach((p) => {
-        code += `    data.Set("${p.param}", "${p.docs || ''}")\n`
+        code += `    data.Set("${getExampleParamName(p)}", "${getExampleParamValue(p)}")\n`
       })
       code += `\n    req, _ := http.NewRequest("POST", url, strings.NewReader(data.Encode()))\n`
       code += `    req.Header.Set("Content-Type", "application/x-www-form-urlencoded")\n`
@@ -872,7 +863,7 @@ const generateExamples = () => {
       code += `    req.Header.Set("Authorization", "Bearer YOUR_API_KEY")\n`
     }
     headerParams.forEach((p) => {
-      code += `    req.Header.Set("${p.name}", "${p.docs || ''}")\n`
+      code += `    req.Header.Set("${getExampleParamName(p)}", "${getExampleParamValue(p)}")\n`
     })
 
     code += `\n    client := &http.Client{}\n`
@@ -903,9 +894,7 @@ const generateExamples = () => {
       const qParams =
         method === 'GET' ? [...queryParams, ...bodyParams] : queryParams
       if (qParams.length > 0) {
-        const queryStr = qParams
-          .map((p) => `${p.name}=\${${p.param}}`)
-          .join('&')
+        const queryStr = buildExampleQueryString(qParams)
         finalUrl += (url.includes('?') ? '&' : '?') + queryStr
       }
     }
@@ -916,14 +905,14 @@ const generateExamples = () => {
       code += `        client.DefaultRequestHeaders.Add("Authorization", "Bearer YOUR_API_KEY");\n`
     }
     headerParams.forEach((p) => {
-      code += `        client.DefaultRequestHeaders.Add("${p.name}", "${p.docs || ''}");\n`
+      code += `        client.DefaultRequestHeaders.Add("${getExampleParamName(p)}", "${getExampleParamValue(p)}");\n`
     })
 
     if (method === 'POST') {
       code += `\n        var data = new Dictionary<string, string>\n        {\n`
       const targetParams = bodyParams.length > 0 ? bodyParams : queryParams
       targetParams.forEach((p, i) => {
-        code += `            { "${p.param}", "${p.docs || ''}" }${i < targetParams.length - 1 ? ',' : ''}\n`
+        code += `            { "${getExampleParamName(p)}", "${getExampleParamValue(p)}" }${i < targetParams.length - 1 ? ',' : ''}\n`
       })
       code += `        };\n\n`
       code += `        var content = new FormUrlEncodedContent(data);\n`
@@ -952,9 +941,7 @@ const generateExamples = () => {
       const qParams =
         method === 'GET' ? [...queryParams, ...bodyParams] : queryParams
       if (qParams.length > 0) {
-        const queryStr = qParams
-          .map((p) => `${p.name}=\${${p.param}}`)
-          .join('&')
+        const queryStr = buildExampleQueryString(qParams)
         finalUrl += (url.includes('?') ? '&' : '?') + queryStr
       }
     }
@@ -977,13 +964,13 @@ const generateExamples = () => {
       code += `request['Authorization'] = 'Bearer YOUR_API_KEY'\n`
     }
     headerParams.forEach((p) => {
-      code += `request['${p.name}'] = '${p.docs || ''}'\n`
+      code += `request['${getExampleParamName(p)}'] = '${getExampleParamValue(p)}'\n`
     })
 
     if (method === 'POST') {
       const targetParams = bodyParams.length > 0 ? bodyParams : queryParams
       const formData = targetParams
-        .map((p) => `'${p.param}' => '${p.docs || ''}'`)
+        .map((p) => `'${getExampleParamName(p)}' => '${getExampleParamValue(p)}'`)
         .join(', ')
       code += `\nrequest.set_form_data({ ${formData} })\n`
     }
@@ -1006,9 +993,7 @@ const generateExamples = () => {
       const qParams =
         method === 'GET' ? [...queryParams, ...bodyParams] : queryParams
       if (qParams.length > 0) {
-        const queryStr = qParams
-          .map((p) => `${p.name}=\${${p.param}}`)
-          .join('&')
+        const queryStr = buildExampleQueryString(qParams)
         finalUrl += (url.includes('?') ? '&' : '?') + queryStr
       }
     }
@@ -1017,7 +1002,7 @@ const generateExamples = () => {
       code += `const postData = querystring.stringify({\n`
       const targetParams = bodyParams.length > 0 ? bodyParams : queryParams
       targetParams.forEach((p, i) => {
-        code += `  '${p.param}': '${p.docs || ''}'${i < targetParams.length - 1 ? ',' : ''}\n`
+        code += `  '${getExampleParamName(p)}': '${getExampleParamValue(p)}'${i < targetParams.length - 1 ? ',' : ''}\n`
       })
       code += `});\n\n`
     }
@@ -1030,7 +1015,7 @@ const generateExamples = () => {
       code += `    'Authorization': 'Bearer YOUR_API_KEY',\n`
     }
     headerParams.forEach((p) => {
-      code += `    '${p.name}': '${p.docs || ''}',\n`
+      code += `    '${getExampleParamName(p)}': '${getExampleParamValue(p)}',\n`
     })
 
     if (method === 'POST') {
