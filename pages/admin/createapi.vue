@@ -397,7 +397,6 @@ useHead({
             <el-form-item label="接口名称" required>
               <el-input
                 v-model="createapiInfo.name"
-                maxlength="32"
                 show-word-limit
                 placeholder="接口名称"
               /> </el-form-item
@@ -425,7 +424,6 @@ useHead({
             <el-form-item label="接口关键词" required>
               <el-input
                 v-model="createapiInfo.keywords"
-                maxlength="128"
                 show-word-limit
                 placeholder="接口关键词英文逗号隔开"
               /> </el-form-item

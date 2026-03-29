@@ -1407,10 +1407,7 @@ useHead({
               <el-row :gutter="12">
                 <el-col :xs="24" :sm="24" :md="24" :lg="24" :xl="24">
                   <el-form-item label="接口名称" :label-width="90" required
-                    ><el-input
-                      v-model="apiSetInfo.name"
-                      maxlength="25"
-                      show-word-limit
+                    ><el-input v-model="apiSetInfo.name" show-word-limit
                   /></el-form-item>
                 </el-col>
 
