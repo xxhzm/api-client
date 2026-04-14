@@ -666,7 +666,7 @@ useHead({
               <el-form-item label="支付地址" required>
                 <el-input
                   v-model="paymentForms.epay.url"
-                  placeholder="请输入易支付地址"
+                  placeholder="请输入易支付地址，mapi.php结尾"
                 />
               </el-form-item>
             </template>
