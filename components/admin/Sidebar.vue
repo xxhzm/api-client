@@ -174,16 +174,16 @@ const pathIndexMap = {
   '/admin/statistics': '3-7',
 
   // Finance Management (4)
-  '/admin/package': '4-1',
-  '/admin/userPackageManagement': '4-2',
-  '/admin/rechargerecord': '4-3',
-  '/admin/buypackagerecord': '4-4',
-  '/admin/createRechargeCard': '4-5',
-  '/admin/rechargeCardHistory': '4-6',
-  '/admin/pay': '4-7',
-  '/admin/buy': '4-8',
-  '/admin/mypackage': '4-9',
-  '/admin/useRechargeCard': '4-10',
+  '/admin/pay': '4-1',
+  '/admin/buy': '4-2',
+  '/admin/mypackage': '4-3',
+  '/admin/useRechargeCard': '4-4',
+  '/admin/rechargerecord': '4-5',
+  '/admin/buypackagerecord': '4-6',
+  '/admin/package': '4-7',
+  '/admin/userPackageManagement': '4-8',
+  '/admin/createRechargeCard': '4-9',
+  '/admin/rechargeCardHistory': '4-10',
 
   // User & Merchant (5)
   '/admin/userlist': '5-1',
@@ -424,63 +424,63 @@ watch(
           <el-menu-item-group title="财务管理">
             <el-menu-item
               index="4-1"
-              @click="navigateTo('/admin/package')"
-              v-if="routeShow('/admin/package')"
-              >套餐管理</el-menu-item
-            >
-            <el-menu-item
-              index="4-2"
-              @click="navigateTo('/admin/userPackageManagement')"
-              v-if="routeShow('/admin/userPackageManagement')"
-              >用户套餐</el-menu-item
-            >
-            <el-menu-item
-              index="4-3"
-              @click="navigateTo('/admin/rechargerecord')"
-              v-if="routeShow('/admin/rechargerecord')"
-              >充值记录</el-menu-item
-            >
-            <el-menu-item
-              index="4-4"
-              @click="navigateTo('/admin/buypackagerecord')"
-              v-if="routeShow('/admin/buypackagerecord')"
-              >购买记录</el-menu-item
-            >
-            <el-menu-item
-              index="4-5"
-              @click="navigateTo('/admin/createRechargeCard')"
-              v-if="routeShow('/admin/createRechargeCard')"
-              >生成充值卡</el-menu-item
-            >
-            <el-menu-item
-              index="4-6"
-              @click="navigateTo('/admin/rechargeCardHistory')"
-              v-if="routeShow('/admin/rechargeCardHistory')"
-              >充值卡记录</el-menu-item
-            >
-            <el-menu-item
-              index="4-7"
               @click="navigateTo('/admin/pay')"
               v-if="routeShow('/admin/pay')"
               >账户充值</el-menu-item
             >
             <el-menu-item
-              index="4-8"
+              index="4-2"
               @click="navigateTo('/admin/buy')"
               v-if="routeShow('/admin/buy')"
               >购买套餐</el-menu-item
             >
             <el-menu-item
-              index="4-9"
+              index="4-3"
               @click="navigateTo('/admin/mypackage')"
               v-if="routeShow('/admin/mypackage')"
               >我的套餐</el-menu-item
             >
             <el-menu-item
-              index="4-10"
+              index="4-4"
               @click="navigateTo('/admin/useRechargeCard')"
               v-if="routeShow('/admin/useRechargeCard')"
               >使用充值卡</el-menu-item
+            >
+            <el-menu-item
+              index="4-5"
+              @click="navigateTo('/admin/rechargerecord')"
+              v-if="routeShow('/admin/rechargerecord')"
+              >充值记录</el-menu-item
+            >
+            <el-menu-item
+              index="4-6"
+              @click="navigateTo('/admin/buypackagerecord')"
+              v-if="routeShow('/admin/buypackagerecord')"
+              >购买记录</el-menu-item
+            >
+            <el-menu-item
+              index="4-7"
+              @click="navigateTo('/admin/package')"
+              v-if="routeShow('/admin/package')"
+              >套餐管理</el-menu-item
+            >
+            <el-menu-item
+              index="4-8"
+              @click="navigateTo('/admin/userPackageManagement')"
+              v-if="routeShow('/admin/userPackageManagement')"
+              >用户套餐</el-menu-item
+            >
+            <el-menu-item
+              index="4-9"
+              @click="navigateTo('/admin/createRechargeCard')"
+              v-if="routeShow('/admin/createRechargeCard')"
+              >生成充值卡</el-menu-item
+            >
+            <el-menu-item
+              index="4-10"
+              @click="navigateTo('/admin/rechargeCardHistory')"
+              v-if="routeShow('/admin/rechargeCardHistory')"
+              >充值卡记录</el-menu-item
             >
           </el-menu-item-group>
         </el-sub-menu>
