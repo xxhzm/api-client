@@ -140,4 +140,45 @@ watch(
     }
   }
 }
+
+@media screen and (max-width: 768px) {
+  .container {
+    overflow-x: hidden;
+
+    .right {
+      .overlay {
+        position: fixed;
+        inset: 0;
+        width: 100vw;
+        height: 100dvh;
+      }
+
+      .control-sidebar {
+        position: fixed;
+      }
+    }
+
+    :deep(.sidebar-container) {
+      position: fixed;
+      top: 0;
+      left: 0;
+      z-index: 1000;
+      width: min(280px, 86vw);
+      max-width: 86vw;
+      height: 100dvh;
+      overflow-x: hidden;
+      overflow-y: auto;
+      overscroll-behavior: contain;
+      background: #ffffff;
+      box-shadow: 8px 0 24px rgba(15, 23, 42, 0.14);
+      -webkit-overflow-scrolling: touch;
+    }
+
+    :deep(.sidebar-container .sidebar-menu) {
+      width: 100% !important;
+      min-height: 100dvh;
+      height: auto;
+    }
+  }
+}
 </style>

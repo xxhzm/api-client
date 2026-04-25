@@ -239,16 +239,20 @@ watch(
       :default-openeds="defaultOpeneds"
       :default-active="defaultActive"
     >
-      <el-menu-item index="logo" @click="navigateTo('/admin')">
+      <button
+        class="logo-menu-item"
+        type="button"
+        @click="navigateTo('/admin')"
+      >
         <img :src="options.logo" alt="logo" class="logo" style="width: 120px" />
-      </el-menu-item>
+      </button>
       <div>
         <!-- 1. 控制台 -->
         <el-menu-item
           index="1"
           @click="navigateTo('/admin')"
           v-if="routeShow('/admin')"
-          style="margin-top: 10px"
+          style="margin-top: 18px"
         >
           <el-icon>
             <Odometer />
@@ -727,7 +731,25 @@ watch(
   }
 
   .sidebar-menu:not(.el-menu--collapse) {
-    width: 200px;
+    width: 220px;
+  }
+
+  .logo-menu-item {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: calc(100% - 24px);
+    height: 44px;
+    margin: 6px 12px;
+    padding: 0;
+    border: 0;
+    border-radius: 10px;
+    background: transparent;
+    cursor: pointer;
+  }
+
+  .logo-menu-item:hover {
+    background: #f0f6ff;
   }
 }
 
