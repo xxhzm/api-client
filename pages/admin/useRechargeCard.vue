@@ -1,13 +1,17 @@
 <script setup>
-import { Wallet, Check } from '@element-plus/icons-vue'
+import {
+  Wallet,
+  Check,
+  InfoFilled,
+  Tickets,
+  CircleCheckFilled,
+} from '@element-plus/icons-vue'
+
 definePageMeta({
   layout: 'admin',
 })
-const { $msg, $myFetch } = useNuxtApp()
 
-onMounted(() => {
-  //
-})
+const { $msg, $myFetch } = useNuxtApp()
 
 const loading = ref(false)
 const cardCode = ref('')
@@ -67,211 +71,330 @@ useHead({
 </script>
 
 <template>
-  <div class="use-rechargecard-container" v-loading="loading">
-    <div class="card">
-      <!-- 标题区域 -->
-      <div class="card-header">
-        <div class="header-left">
-          <span class="title">使用充值卡</span>
+  <div class="use-rechargecard-page" v-loading="loading">
+    <div class="page-shell">
+      <el-card class="page-title-card" shadow="never">
+        <div class="page-title-row">
+          <div class="page-title">使用充值卡</div>
         </div>
-      </div>
+      </el-card>
 
-      <!-- 充值卡使用区域 -->
-      <div class="card-content">
-        <div class="form-container">
-          <div class="card-illustration">
-            <div class="icon-placeholder">
-              <el-icon :size="50" color="#409EFF"><Wallet /></el-icon>
+      <el-card class="tips-card" shadow="never">
+        <div class="tips-info">
+          <ul>
+            <li>充值卡号区分大小写，建议直接粘贴完整卡号后提交。</li>
+            <li>系统核销成功后将立即把金额计入当前账户，无需额外确认。</li>
+            <li>充值卡通常仅可使用一次，如提示异常请联系管理员核查状态。</li>
+          </ul>
+        </div>
+      </el-card>
+
+      <div class="content-grid">
+        <el-card class="main-card" shadow="never">
+          <div class="section-title">
+            <el-icon><Wallet /></el-icon>
+            充值卡核销
+          </div>
+          <div class="section-subtitle">
+            请确认当前操作账户及卡号信息，提交后系统将直接执行充值。
+          </div>
+
+          <div class="recharge-content">
+            <div class="recharge-form">
+              <div class="hero-panel">
+                <div class="hero-icon">
+                  <el-icon><Tickets /></el-icon>
+                </div>
+                <div class="hero-copy">
+                  <h3>输入充值卡号，快速完成资金入账</h3>
+                  <p>请确认卡号有效且未被使用，提交后系统将立即完成核销。</p>
+                </div>
+              </div>
+
+              <el-form label-position="top">
+                <el-form-item label="充值卡号">
+                  <el-input
+                    v-model="cardCode"
+                    placeholder="请输入充值卡号，例如：XXXX-XXXX-XXXX-XXXX-XXXX"
+                    clearable
+                    @keyup.enter="useRechargeCard"
+                    size="large"
+                  >
+                    <template #prefix>
+                      <el-icon><Wallet /></el-icon>
+                    </template>
+                  </el-input>
+                </el-form-item>
+
+                <el-alert
+                  title="卡号提交后将立即核销，请确认卡片尚未使用。"
+                  type="info"
+                  :closable="false"
+                  show-icon
+                  class="form-alert"
+                />
+
+                <el-form-item>
+                  <el-button
+                    type="primary"
+                    @click="useRechargeCard"
+                    :loading="loading"
+                    :disabled="!cardCode.trim()"
+                    size="large"
+                    class="submit-button"
+                  >
+                    <el-icon class="icon"><Check /></el-icon>
+                    立即充值
+                  </el-button>
+                </el-form-item>
+              </el-form>
             </div>
-            <h2>使用充值卡</h2>
-            <p>输入您的充值卡号，立即为账户充值</p>
+
+            <div class="side-panel">
+              <el-card class="info-card" shadow="never">
+                <div class="info-card-title">
+                  <el-icon><InfoFilled /></el-icon>
+                  使用说明
+                </div>
+                <ul class="instruction-list">
+                  <li>
+                    <el-icon><CircleCheckFilled /></el-icon>
+                    <span>输入您收到的充值卡号，建议保持原始格式完整提交。</span>
+                  </li>
+                  <li>
+                    <el-icon><CircleCheckFilled /></el-icon>
+                    <span>点击“立即充值”后系统会实时校验并完成金额入账。</span>
+                  </li>
+                  <li>
+                    <el-icon><CircleCheckFilled /></el-icon>
+                    <span>每张充值卡通常仅可使用一次，过期或已使用卡将无法重复核销。</span>
+                  </li>
+                  <li>
+                    <el-icon><CircleCheckFilled /></el-icon>
+                    <span>若充值异常，请保留卡号并联系管理员进一步排查。</span>
+                  </li>
+                </ul>
+              </el-card>
+            </div>
           </div>
-
-          <el-form label-position="top">
-            <el-form-item label="充值卡号">
-              <el-input
-                v-model="cardCode"
-                placeholder="请输入充值卡号，例如：XXXX-XXXX-XXXX-XXXX-XXXX"
-                clearable
-                @keyup.enter="useRechargeCard"
-                size="large"
-              >
-                <template #prefix>
-                  <el-icon><Wallet /></el-icon>
-                </template>
-              </el-input>
-            </el-form-item>
-
-            <el-form-item>
-              <el-button
-                type="primary"
-                @click="useRechargeCard"
-                :loading="loading"
-                :disabled="!cardCode.trim()"
-                size="large"
-                class="submit-button"
-              >
-                <el-icon class="icon"><Check /></el-icon>
-                立即充值
-              </el-button>
-            </el-form-item>
-          </el-form>
-
-          <!-- 使用说明 -->
-          <div class="instruction-box">
-            <h3>使用说明</h3>
-            <ul class="feature-list">
-              <li>
-                <div class="feature-icon">1</div>
-                <div class="feature-text">
-                  输入您收到的充值卡号（区分大小写）
-                </div>
-              </li>
-              <li>
-                <div class="feature-icon">2</div>
-                <div class="feature-text">点击"立即充值"按钮</div>
-              </li>
-              <li>
-                <div class="feature-icon">3</div>
-                <div class="feature-text">
-                  充值成功后，金额将自动添加到您的账户余额中
-                </div>
-              </li>
-              <li>
-                <div class="feature-icon">4</div>
-                <div class="feature-text">
-                  每张充值卡只能使用一次，充值卡可能有有效期限制，请及时使用
-                </div>
-              </li>
-            </ul>
-          </div>
-        </div>
+        </el-card>
       </div>
     </div>
   </div>
 </template>
 
 <style lang="less" scoped>
-.use-rechargecard-container {
+.use-rechargecard-page {
   position: relative;
+  width: 100%;
   min-height: 100vh;
   padding: 20px;
   background: #f5f7fa;
 
-  .card {
+  .page-shell {
     width: 100%;
-    padding: 16px 20px;
-    background: #fff;
-    border: 1px solid #ebeef5;
-    border-radius: 8px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
 
-    .card-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: flex-start;
-      margin-bottom: 16px;
+    :deep(.el-card) {
+      border: 1px solid #ebeef5;
+      border-radius: 8px;
+      box-shadow: none;
 
-      .header-left {
+      .el-card__body {
+        padding: 16px 20px;
+      }
+    }
+
+    .page-title-card {
+      .page-title-row {
         display: flex;
         align-items: flex-start;
+        gap: 16px;
+      }
 
-        .title {
-          font-size: 14px;
-          font-weight: 600;
-          color: #303133;
-          line-height: 1.3;
+      .page-title {
+        font-size: 14px;
+        font-weight: 600;
+        color: #303133;
+        line-height: 1.3;
+      }
+
+    }
+
+    .tips-card {
+      .tips-info {
+        ul {
+          margin: 0;
+          padding-left: 20px;
+
+          li {
+            color: #606266;
+            line-height: 1.8;
+            font-size: 13px;
+          }
         }
       }
     }
 
-    .card-content {
-      padding: 24px 0 0;
+    .content-grid {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr);
+    }
 
-      .form-container {
-        max-width: 600px;
-        margin: 0 auto;
+    .main-card {
+      .section-title {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding-bottom: 15px;
+        margin-bottom: 10px;
+        border-bottom: 1px solid #ebeef5;
+        font-size: 14px;
+        font-weight: 600;
+        color: #303133;
 
-        .card-illustration {
-          text-align: center;
-          margin-bottom: 30px;
+        .el-icon {
+          color: #409eff;
+          font-size: 18px;
+        }
+      }
 
-          .icon-placeholder {
-            width: 100px;
-            height: 100px;
-            border-radius: 50%;
-            background-color: #ecf5ff;
+      .section-subtitle {
+        margin-bottom: 24px;
+        color: #909399;
+        font-size: 13px;
+        line-height: 1.7;
+      }
+
+      .recharge-content {
+        display: grid;
+        grid-template-columns: minmax(0, 1.4fr) minmax(280px, 0.9fr);
+        gap: 20px;
+        align-items: start;
+      }
+
+      .recharge-form {
+        padding-right: 20px;
+        border-right: 1px solid #ebeef5;
+
+        .hero-panel {
+          display: flex;
+          align-items: center;
+          gap: 16px;
+          margin-bottom: 24px;
+          padding: 20px;
+          border-radius: 12px;
+          background: linear-gradient(135deg, #f4f8ff 0%, #eef5ff 100%);
+          border: 1px solid #d9ecff;
+
+          .hero-icon {
+            width: 56px;
+            height: 56px;
+            border-radius: 14px;
+            background: #409eff;
+            color: #fff;
             display: flex;
             align-items: center;
             justify-content: center;
-            margin: 0 auto 20px;
+            flex-shrink: 0;
+
+            .el-icon {
+              font-size: 28px;
+            }
           }
 
-          h2 {
-            font-size: 24px;
-            font-weight: 600;
-            color: #303133;
-            margin: 0 0 10px;
-          }
+          .hero-copy {
+            h3 {
+              margin: 0 0 8px;
+              font-size: 18px;
+              font-weight: 600;
+              color: #303133;
+            }
 
-          p {
-            color: #606266;
-            margin: 0;
+            p {
+              margin: 0;
+              color: #606266;
+              line-height: 1.7;
+              font-size: 13px;
+
+              span {
+                color: #303133;
+                font-weight: 600;
+              }
+            }
           }
+        }
+
+        :deep(.el-form-item__label) {
+          font-weight: 500;
+          color: #303133;
+        }
+
+        :deep(.el-input__wrapper) {
+          min-height: 44px;
+        }
+
+        .form-alert {
+          margin-bottom: 22px;
         }
 
         .submit-button {
           width: 100%;
-          padding: 12px 0;
-          margin-top: 10px;
-          font-size: 16px;
+          height: 44px;
+          font-size: 15px;
+          font-weight: 600;
+        }
+      }
+
+      .side-panel {
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+
+        .info-card {
+          :deep(.el-card__body) {
+            padding: 18px 20px;
+          }
         }
 
-        .instruction-box {
-          margin-top: 40px;
-          padding: 25px;
-          background-color: #f8f9fa;
-          border-radius: 12px;
-          border-left: 4px solid #409eff;
+        .info-card-title {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          margin-bottom: 16px;
+          font-size: 14px;
+          font-weight: 600;
+          color: #303133;
 
-          h3 {
-            margin-top: 0;
-            margin-bottom: 20px;
-            color: #303133;
+          .el-icon {
+            color: #409eff;
             font-size: 18px;
           }
+        }
 
-          .feature-list {
-            list-style: none;
-            padding: 0;
-            margin: 0;
+        .instruction-list {
+          list-style: none;
+          padding: 0;
+          margin: 0;
+          display: flex;
+          flex-direction: column;
+          gap: 14px;
 
-            li {
-              display: flex;
-              align-items: flex-start;
-              margin-bottom: 16px;
+          li {
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+            color: #606266;
+            line-height: 1.7;
+            font-size: 13px;
 
-              &:last-child {
-                margin-bottom: 0;
-              }
-
-              .feature-icon {
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                width: 28px;
-                height: 28px;
-                background-color: #409eff;
-                color: white;
-                border-radius: 50%;
-                font-weight: bold;
-                margin-right: 12px;
-                flex-shrink: 0;
-              }
-
-              .feature-text {
-                color: #606266;
-                line-height: 1.6;
-              }
+            .el-icon {
+              margin-top: 2px;
+              color: #67c23a;
+              font-size: 16px;
+              flex-shrink: 0;
             }
           }
         }
@@ -281,20 +404,50 @@ useHead({
 }
 
 @media screen and (max-width: 1200px) {
-  .use-rechargecard-container {
-    padding: 20px;
+  .use-rechargecard-page {
+    .page-shell {
+      .main-card {
+        .recharge-content {
+          grid-template-columns: 1fr;
+        }
+
+        .recharge-form {
+          padding-right: 0;
+          padding-bottom: 8px;
+          border-right: 0;
+          border-bottom: 1px solid #ebeef5;
+        }
+
+        .side-panel {
+          padding-top: 12px;
+        }
+      }
+    }
   }
 }
 
 @media screen and (max-width: 768px) {
-  .use-rechargecard-container {
+  .use-rechargecard-page {
     padding: 12px;
 
-    .card {
-      padding: 14px;
+    .page-shell {
+      :deep(.el-card .el-card__body) {
+        padding: 14px;
+      }
 
-      .card-content {
-        padding: 16px 0 0;
+      .page-title-card {
+        .page-title-row {
+          flex-direction: column;
+        }
+      }
+
+      .main-card {
+        .recharge-form {
+          .hero-panel {
+            flex-direction: column;
+            align-items: flex-start;
+          }
+        }
       }
     }
   }
