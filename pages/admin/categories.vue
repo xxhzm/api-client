@@ -1,4 +1,6 @@
 <script setup>
+import { Plus } from '@element-plus/icons-vue'
+
 const { $msg, $myFetch } = useNuxtApp()
 const msg = $msg
 
@@ -9,6 +11,11 @@ definePageMeta({
 const loading = ref(false)
 const tableData = ref([])
 const search = ref('')
+const isMobile = ref(false)
+
+const updateIsMobile = () => {
+  isMobile.value = window.innerWidth <= 768
+}
 
 const getData = async () => {
   const res = await $myFetch('CategoryList')
@@ -33,7 +40,13 @@ const getData = async () => {
 }
 
 onMounted(() => {
+  updateIsMobile()
+  window.addEventListener('resize', updateIsMobile)
   getData()
+})
+
+onBeforeUnmount(() => {
+  window.removeEventListener('resize', updateIsMobile)
 })
 
 const filterTableData = computed(() =>
@@ -43,6 +56,23 @@ const filterTableData = computed(() =>
       data.name.toLowerCase().includes(search.value.toLowerCase()),
   ),
 )
+
+const viewApiTableData = computed(() => {
+  if (isMobile.value) {
+    return viewApiList.value
+  }
+
+  const rows = []
+
+  for (let i = 0; i < viewApiList.value.length; i += 2) {
+    rows.push({
+      left: viewApiList.value[i] || null,
+      right: viewApiList.value[i + 1] || null,
+    })
+  }
+
+  return rows
+})
 
 const handleDelete = async (index, row) => {
   loading.value = true
@@ -98,6 +128,14 @@ const addcategoryInfo = reactive({
   alias: '',
 })
 
+const createDialogVisible = ref(false)
+
+const openCreateDialog = () => {
+  addcategoryInfo.name = ''
+  addcategoryInfo.alias = ''
+  createDialogVisible.value = true
+}
+
 const onSubmit = async () => {
   if (!addcategoryInfo.name || !addcategoryInfo.alias) {
     msg('请填写内容', 'error')
@@ -117,9 +155,12 @@ const onSubmit = async () => {
     msg(res.msg, 'error')
   } else {
     msg(res.msg, 'success')
+    createDialogVisible.value = false
+    addcategoryInfo.name = ''
+    addcategoryInfo.alias = ''
   }
 
-  getData()
+  await getData()
 }
 
 useHead({
@@ -141,6 +182,14 @@ const viewApiList = ref([])
       <div class="card-header">
         <div class="header-left">
           <span class="title">分类管理</span>
+        </div>
+        <div class="header-right">
+          <el-button type="primary" @click="openCreateDialog">
+            <el-icon>
+              <Plus />
+            </el-icon>
+            <span>新增分类</span>
+          </el-button>
         </div>
       </div>
 
@@ -204,21 +253,36 @@ const viewApiList = ref([])
       <el-dialog
         v-model="viewApiDialogVisible"
         title="分类接口列表"
-        width="600px"
+        :width="isMobile ? '92%' : '760px'"
       >
         <client-only>
-          <el-table :data="viewApiList" style="width: 100%">
-            <el-table-column prop="id" label="ID" width="100" />
-            <el-table-column prop="name" label="接口名称" />
+          <el-table :data="viewApiTableData" style="width: 100%">
+            <el-table-column v-if="isMobile" label="接口名称">
+              <template #default="scope">
+                <span>
+                  {{ scope.row.id }}. {{ scope.row.name }}
+                </span>
+              </template>
+            </el-table-column>
+            <el-table-column v-else label="接口 1">
+              <template #default="scope">
+                <span v-if="scope.row.left">
+                  {{ scope.row.left.id }}. {{ scope.row.left.name }}
+                </span>
+              </template>
+            </el-table-column>
+            <el-table-column v-if="!isMobile" label="接口 2">
+              <template #default="scope">
+                <span v-if="scope.row.right">
+                  {{ scope.row.right.id }}. {{ scope.row.right.name }}
+                </span>
+              </template>
+            </el-table-column>
           </el-table>
         </client-only>
       </el-dialog>
 
-      <!-- 新增分类表单 -->
-      <div class="form-container">
-        <div class="form-header">
-          <span class="title">新增分类</span>
-        </div>
+      <el-dialog v-model="createDialogVisible" title="新增分类" width="520px">
         <div class="form-content">
           <el-form :model="addcategoryInfo" label-width="90px">
             <el-form-item label="分类名称" required>
@@ -237,12 +301,13 @@ const viewApiList = ref([])
                 placeholder="请输入分类别名"
               />
             </el-form-item>
-            <el-form-item>
-              <el-button type="primary" @click="onSubmit">创建分类</el-button>
-            </el-form-item>
           </el-form>
         </div>
-      </div>
+        <template #footer>
+          <el-button @click="createDialogVisible = false">取消</el-button>
+          <el-button type="primary" @click="onSubmit">创建分类</el-button>
+        </template>
+      </el-dialog>
     </div>
   </div>
 </template>
@@ -277,11 +342,18 @@ const viewApiList = ref([])
           color: #303133;
         }
       }
+
+      .header-right {
+        .el-button {
+          display: flex;
+          align-items: center;
+          gap: 6px;
+        }
+      }
     }
 
     .table-container {
       padding: 8px 0 0;
-      margin-bottom: 24px;
 
       :deep(.el-table) {
         border: none;
@@ -313,49 +385,27 @@ const viewApiList = ref([])
         padding: 0;
       }
     }
+  }
+}
 
-    .form-container {
-      padding: 24px 0 0;
-      border-top: 1px solid #ebeef5;
+.form-content {
+  :deep(.el-form-item__label) {
+    font-weight: 500;
+    color: #374151;
+  }
 
-      .form-header {
-        margin-bottom: 16px;
+  :deep(.el-input__wrapper) {
+    box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+    border: 1px solid #d1d5db;
+    border-radius: 6px;
 
-        .title {
-          font-size: 14px;
-          font-weight: 600;
-          color: #303133;
-        }
-      }
+    &:hover {
+      border-color: #9ca3af;
+    }
 
-      .form-content {
-        max-width: 600px;
-
-        :deep(.el-form-item__label) {
-          font-weight: 500;
-          color: #374151;
-        }
-
-        :deep(.el-input__wrapper) {
-          box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
-          border: 1px solid #d1d5db;
-          border-radius: 6px;
-
-          &:hover {
-            border-color: #9ca3af;
-          }
-
-          &.is-focus {
-            border-color: #3b82f6;
-            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
-          }
-        }
-
-        .el-button {
-          padding: 8px 16px;
-          font-weight: 500;
-        }
-      }
+    &.is-focus {
+      border-color: #3b82f6;
+      box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
     }
   }
 }
