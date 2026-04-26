@@ -1,6 +1,4 @@
 <script setup>
-import { InfoFilled } from '@element-plus/icons-vue'
-
 definePageMeta({
   layout: 'admin',
 })
@@ -165,22 +163,12 @@ useHead({
         </el-row>
       </el-form>
     </div>
-    <div class="createArticle-footer">
-      <div class="footer-content">
-        <div class="left-info">
-          <el-icon><InfoFilled /></el-icon>
-          <span>请仔细检查信息后再提交</span>
-        </div>
-        <div class="right-buttons">
-          <el-button size="large" type="primary" @click="submit"
-            >提交</el-button
-          >
-          <el-button size="large" plain @click="navigateTo('/admin')"
-            >取消</el-button
-          >
-        </div>
-      </div>
-    </div>
+    <AdminSubmitFooter>
+      <el-button size="large" type="primary" @click="submit">提交</el-button>
+      <el-button size="large" plain @click="navigateTo('/admin')">
+        取消
+      </el-button>
+    </AdminSubmitFooter>
   </div>
 </template>
 
@@ -223,55 +211,42 @@ useHead({
       padding: 8px 0 0;
     }
 
+    :deep(.el-form-item) {
+      margin-bottom: 24px;
+    }
+
+    :deep(.el-form-item__label) {
+      font-weight: 500;
+      color: #374151;
+      padding-bottom: 8px;
+    }
+
+    :deep(.el-input__wrapper),
+    :deep(.el-select__wrapper),
+    :deep(.el-textarea__inner) {
+      box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+      border: 1px solid #d1d5db;
+      border-radius: 6px;
+
+      &:hover {
+        border-color: #9ca3af;
+      }
+
+      &.is-focus {
+        border-color: #3b82f6;
+        box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+      }
+    }
+
+    :deep(.el-select) {
+      width: 100%;
+    }
+
     .editor-container {
       // TinyMCE 编辑器组件自带样式，这里不需要额外样式
     }
   }
 
-  .createArticle-footer {
-    position: fixed;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    display: flex;
-    justify-content: center;
-    padding: 0 20px 20px;
-    background: transparent;
-    z-index: 999;
-    pointer-events: none;
-
-    .footer-content {
-      width: 100%;
-      max-width: 1200px;
-      background: #fff;
-      border: 1px solid #ebeef5;
-      border-radius: 8px;
-      padding: 14px 16px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      pointer-events: auto;
-
-      .left-info {
-        display: flex;
-        align-items: center;
-        gap: 8px;
-        color: var(--el-text-color-secondary);
-        font-size: 14px;
-        .el-icon {
-          color: var(--el-color-warning);
-        }
-      }
-
-      .right-buttons {
-        display: flex;
-        gap: 12px;
-        .el-button {
-          min-width: 96px;
-        }
-      }
-    }
-  }
 }
 
 @media screen and (max-width: 768px) {
@@ -289,22 +264,5 @@ useHead({
     }
   }
 
-  .createArticle-footer {
-    padding: 0 12px 12px;
-
-    .footer-content {
-      flex-direction: column;
-      align-items: stretch;
-      gap: 12px;
-
-      .right-buttons {
-        flex-direction: column;
-
-        .el-button {
-          width: 100%;
-        }
-      }
-    }
-  }
 }
 </style>

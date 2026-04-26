@@ -1,5 +1,4 @@
 <script setup>
-import { InfoFilled } from '@element-plus/icons-vue'
 const { $msg, $myFetch } = useNuxtApp()
 const msg = $msg
 
@@ -295,25 +294,12 @@ useHead({
       </div>
     </div>
 
-    <!-- 底部操作栏 -->
-    <div class="param-footer">
-      <div class="footer-content">
-        <div class="left-info">
-          <el-icon>
-            <InfoFilled />
-          </el-icon>
-          <span>请仔细检查信息后再提交</span>
-        </div>
-        <div class="right-buttons">
-          <el-button type="primary" size="large" @click="onSubmit"
-            >提交</el-button
-          >
-          <el-button plain size="large" @click="navigateTo('/admin/apilist')"
-            >取消</el-button
-          >
-        </div>
-      </div>
-    </div>
+    <AdminSubmitFooter>
+      <el-button type="primary" size="large" @click="onSubmit">提交</el-button>
+      <el-button plain size="large" @click="navigateTo('/admin/apilist')">
+        取消
+      </el-button>
+    </AdminSubmitFooter>
   </div>
 </template>
 
@@ -322,14 +308,16 @@ useHead({
   position: relative;
   min-height: 100vh;
   padding: 20px;
-  padding-bottom: 80px;
+  padding-bottom: 100px;
   background: #f5f7fa;
 
   .param-card {
+    width: 100%;
     background: #fff;
     border-radius: 8px;
     border: 1px solid #ebeef5;
     padding: 16px 20px;
+    margin: 0 auto;
 
     .card-header {
       display: flex;
@@ -345,12 +333,13 @@ useHead({
           font-size: 14px;
           font-weight: 600;
           color: #303133;
+          line-height: 1.3;
         }
       }
     }
 
     .form {
-      width: 60%;
+      width: 100%;
       padding: 8px 0 0;
 
       :deep(.el-form-item) {
@@ -367,6 +356,7 @@ useHead({
         }
 
         .el-input__wrapper,
+        .el-select__wrapper,
         .el-textarea__inner {
           box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
           border: 1px solid #d1d5db;
@@ -388,80 +378,19 @@ useHead({
       }
     }
   }
-
-  .param-footer {
-    position: fixed;
-    bottom: 20px;
-    right: 20px;
-    width: calc(100% - 240px);
-    background: #fff;
-    border: 1px solid #eaecf0;
-    border-radius: 8px;
-    padding: 16px 32px;
-    z-index: 10;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-
-    .footer-content {
-      display: flex;
-      justify-content: flex-end;
-      align-items: center;
-      gap: 24px;
-
-      .left-info {
-        display: flex;
-        align-items: center;
-        gap: 8px;
-        color: #6b7280;
-        font-size: 14px;
-        margin-right: auto;
-
-        .el-icon {
-          color: #9ca3af;
-        }
-      }
-
-      .right-buttons {
-        display: flex;
-        gap: 12px;
-
-        .el-button {
-          padding: 12px 24px;
-          font-weight: 500;
-          font-size: 14px;
-          min-width: 88px;
-
-          &.el-button--primary {
-            background: #3b82f6;
-            border: none;
-
-            &:hover {
-              background: #2563eb;
-            }
-          }
-
-          &.el-button--default {
-            min-width: 88px;
-          }
-        }
-      }
-    }
-  }
 }
 
 @media screen and (max-width: 1200px) {
   .addparam_container {
     padding: 20px;
-
-    .param-card .form {
-      width: 100%;
-    }
+    padding-bottom: 100px;
   }
 }
 
 @media screen and (max-width: 768px) {
   .addparam_container {
     padding: 12px;
-    padding-bottom: 80px;
+    padding-bottom: 100px;
 
     .param-card {
       padding: 14px;
@@ -471,13 +400,6 @@ useHead({
         gap: 12px;
       }
     }
-  }
-  .addparam_container .param-footer {
-    bottom: 10px;
-    right: 10px;
-    left: 10px;
-    width: auto;
-    padding: 12px 16px;
   }
 }
 </style>

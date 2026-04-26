@@ -2897,43 +2897,34 @@ useHead({
             </div>
           </el-tab-pane>
         </el-tabs>
-        <div class="apiset-footer">
-          <div class="footer-content">
-            <div class="left-info">
-              <el-icon>
-                <InfoFilled />
-              </el-icon>
-              <span>请仔细检查信息后再提交</span>
-            </div>
-            <div class="right-buttons">
-              <el-button
-                size="large"
-                type="primary"
-                :loading="buttonStatus"
-                @click="updateApiInfo"
-                >提交</el-button
-              >
-
-              <el-button
-                size="large"
-                @click="
-                  navigateTo({
-                    path: '/admin/apilist',
-                    query: {
-                      page: Array.isArray(route.query.page)
-                        ? route.query.page[0]
-                        : route.query.page,
-                      limit: Array.isArray(route.query.limit)
-                        ? route.query.limit[0]
-                        : route.query.limit,
-                    },
-                  })
-                "
-                >返回</el-button
-              >
-            </div>
-          </div>
-        </div>
+        <AdminSubmitFooter>
+          <el-button
+            size="large"
+            type="primary"
+            :loading="buttonStatus"
+            @click="updateApiInfo"
+          >
+            提交
+          </el-button>
+          <el-button
+            size="large"
+            @click="
+              navigateTo({
+                path: '/admin/apilist',
+                query: {
+                  page: Array.isArray(route.query.page)
+                    ? route.query.page[0]
+                    : route.query.page,
+                  limit: Array.isArray(route.query.limit)
+                    ? route.query.limit[0]
+                    : route.query.limit,
+                },
+              })
+            "
+          >
+            返回
+          </el-button>
+        </AdminSubmitFooter>
       </ClientOnly>
     </div>
   </div>
@@ -2957,22 +2948,32 @@ useHead({
 
     // 与 webset.vue 保持一致的表单样式
     .form {
-      width: 60%;
+      width: 100%;
 
       :deep(.el-form-item__label) {
         font-weight: 500;
+        color: #374151;
         padding-bottom: 8px;
       }
 
-      :deep(.el-input__wrapper) {
-        box-shadow: 0 0 0 1px #dcdfe6 inset;
+      :deep(.el-form-item) {
+        margin-bottom: 24px;
+      }
+
+      :deep(.el-input__wrapper),
+      :deep(.el-select__wrapper),
+      :deep(.el-textarea__inner) {
+        box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+        border: 1px solid #d1d5db;
+        border-radius: 6px;
 
         &:hover {
-          box-shadow: 0 0 0 1px #c0c4cc inset;
+          border-color: #9ca3af;
         }
 
         &.is-focus {
-          box-shadow: 0 0 0 1px #409eff inset;
+          border-color: #3b82f6;
+          box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
         }
       }
 
@@ -3022,43 +3023,6 @@ useHead({
     }
   }
 
-  .apiset-footer {
-    position: fixed;
-    bottom: 20px;
-    right: 20px;
-    width: calc(100% - 240px);
-    background: #fff;
-    border: 1px solid #ebeef5;
-    border-radius: 8px;
-    padding: 16px 32px;
-    z-index: 10;
-
-    .footer-content {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-
-      .left-info {
-        display: flex;
-        align-items: center;
-        color: #606266;
-        font-size: 14px;
-
-        :deep(.el-icon) {
-          margin-right: 8px;
-        }
-      }
-
-      .right-buttons {
-        display: flex;
-        gap: 12px;
-
-        :deep(.el-button) {
-          min-width: 100px;
-        }
-      }
-    }
-  }
 }
 
 // 高级设置二级标签页样式
@@ -3092,7 +3056,7 @@ useHead({
   }
 
   .form {
-    width: 60%;
+    width: 100%;
   }
 }
 
@@ -3100,12 +3064,6 @@ useHead({
   .apiset-container {
     padding: 20px;
     padding-bottom: 100px;
-
-    .apiset-cont {
-      .form {
-        width: 100%;
-      }
-    }
   }
 }
 
@@ -3123,28 +3081,6 @@ useHead({
       }
     }
 
-    .apiset-footer {
-      bottom: 10px;
-      right: 10px;
-      left: 10px;
-      width: auto;
-      padding: 12px 16px;
-
-      .footer-content {
-        flex-direction: column;
-        gap: 12px;
-
-        .right-buttons {
-          width: 100%;
-          display: flex;
-          gap: 10px;
-
-          :deep(.el-button) {
-            flex: 1;
-          }
-        }
-      }
-    }
   }
 }
 

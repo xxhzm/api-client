@@ -1,5 +1,5 @@
 <script setup>
-import { InfoFilled, Plus } from '@element-plus/icons-vue'
+import { Plus } from '@element-plus/icons-vue'
 
 const { $msg, $myFetch } = useNuxtApp()
 const msg = $msg
@@ -716,25 +716,12 @@ useHead({
       </div>
     </div>
 
-    <!-- 底部操作栏 -->
-    <div class="createapi-footer">
-      <div class="footer-content">
-        <div class="left-info">
-          <el-icon>
-            <InfoFilled />
-          </el-icon>
-          <span>请仔细检查信息后再提交</span>
-        </div>
-        <div class="right-buttons">
-          <el-button type="primary" size="large" @click="create"
-            >提交</el-button
-          >
-          <el-button plain size="large" @click="navigateTo('/admin')"
-            >取消</el-button
-          >
-        </div>
-      </div>
-    </div>
+    <AdminSubmitFooter>
+      <el-button type="primary" size="large" @click="create">提交</el-button>
+      <el-button plain size="large" @click="navigateTo('/admin')">
+        取消
+      </el-button>
+    </AdminSubmitFooter>
   </div>
 </template>
 
@@ -743,14 +730,16 @@ useHead({
   position: relative;
   min-height: 100vh;
   padding: 20px;
+  padding-bottom: 100px;
   background: #f5f7fa;
 
   .createapi-cont {
+    width: 100%;
     background: #fff;
     border-radius: 8px;
-    margin-bottom: 16px;
     border: 1px solid #ebeef5;
     padding: 16px 20px;
+    margin: 0 auto;
 
     .card-header {
       display: flex;
@@ -766,6 +755,7 @@ useHead({
           font-size: 14px;
           font-weight: 600;
           color: #303133;
+          line-height: 1.3;
         }
       }
     }
@@ -780,9 +770,12 @@ useHead({
         .el-form-item__label {
           font-weight: 500;
           color: #374151;
+          padding-bottom: 8px;
         }
 
-        .el-input__wrapper {
+        .el-input__wrapper,
+        .el-select__wrapper,
+        .el-textarea__inner {
           box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
           border: 1px solid #d1d5db;
           border-radius: 6px;
@@ -901,7 +894,7 @@ useHead({
                 .el-input__wrapper,
                 .el-select__wrapper {
                   box-shadow: 0 0 0 1px #dcdfe6 inset;
-                  border-radius: 4px;
+                  border-radius: 6px;
 
                   &:hover {
                     box-shadow: 0 0 0 1px #c0c4cc inset;
@@ -913,15 +906,18 @@ useHead({
                 }
 
                 .el-textarea__inner {
+                  box-shadow: 0 0 0 1px #dcdfe6 inset;
                   border: 1px solid #dcdfe6;
-                  border-radius: 4px;
+                  border-radius: 6px;
 
                   &:hover {
                     border-color: #c0c4cc;
+                    box-shadow: 0 0 0 1px #c0c4cc inset;
                   }
 
                   &:focus {
                     border-color: #409eff;
+                    box-shadow: 0 0 0 1px #409eff inset;
                   }
                 }
 
@@ -984,88 +980,25 @@ useHead({
     }
   }
 
-  .createapi-footer {
-    position: fixed;
-    bottom: 20px;
-    right: 20px;
-    width: calc(100% - 240px);
-    background: #fff;
-    border: 1px solid #eaecf0;
-    border-radius: 8px;
-    padding: 16px 32px;
-    z-index: 10;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-
-    .footer-content {
-      display: flex;
-      justify-content: flex-end;
-      align-items: center;
-      gap: 24px;
-
-      .left-info {
-        display: flex;
-        align-items: center;
-        gap: 8px;
-        color: #6b7280;
-        font-size: 14px;
-        margin-right: auto;
-
-        .el-icon {
-          color: #9ca3af;
-        }
-      }
-
-      .right-buttons {
-        display: flex;
-        gap: 12px;
-
-        .el-button {
-          padding: 12px 24px;
-          font-weight: 500;
-          font-size: 14px;
-
-          &.el-button--primary {
-            background: #3b82f6;
-            border: none;
-            min-width: 88px;
-
-            &:hover {
-              background: #2563eb;
-            }
-          }
-
-          &.el-button--default {
-            min-width: 88px;
-          }
-        }
-      }
-    }
-  }
 }
 
 // 响应式设计
 @media screen and (max-width: 1200px) {
   .createapi-container {
     padding: 20px;
+    padding-bottom: 100px;
   }
 }
 
 @media screen and (max-width: 768px) {
   .createapi-container {
     padding: 12px;
+    padding-bottom: 100px;
 
     .card-header {
       flex-direction: column;
       align-items: flex-start;
       gap: 12px;
-    }
-
-    .createapi-footer {
-      bottom: 10px;
-      right: 10px;
-      left: 10px;
-      width: auto;
-      padding: 12px 16px;
     }
 
     .createapi-cont {
