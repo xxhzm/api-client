@@ -1,5 +1,5 @@
 <script setup>
-import { Key, Search } from '@element-plus/icons-vue'
+import { Search } from '@element-plus/icons-vue'
 const { $msg, $myFetch } = useNuxtApp()
 
 definePageMeta({
@@ -132,9 +132,6 @@ useHead({
     <div class="cont">
       <div class="card-header">
         <div class="header-left">
-          <el-icon class="icon">
-            <Key />
-          </el-icon>
           <span class="title">秘钥历史记录</span>
         </div>
         <div class="header-right">
@@ -210,32 +207,25 @@ useHead({
 
   .cont {
     background: #fff;
+    border: 1px solid #ebeef5;
     border-radius: 8px;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
-    padding: 20px;
+    padding: 16px 20px;
 
     .card-header {
       display: flex;
       justify-content: space-between;
-      align-items: center;
-      margin-bottom: 20px;
-      padding-bottom: 20px;
-      border-bottom: 1px solid #edf1f7;
+      align-items: flex-start;
+      margin-bottom: 16px;
 
       .header-left {
         display: flex;
-        align-items: center;
-        gap: 12px;
-
-        .icon {
-          font-size: 20px;
-          color: #4096ff;
-        }
+        align-items: flex-start;
 
         .title {
-          font-size: 16px;
+          font-size: 14px;
           font-weight: 600;
-          color: #2e3033;
+          color: #303133;
+          line-height: 1.3;
         }
       }
 
@@ -247,6 +237,8 @@ useHead({
     }
 
     .table-container {
+      padding: 8px 0 0;
+
       .pagination {
         margin-top: 20px;
         display: flex;
@@ -258,18 +250,18 @@ useHead({
 
 @media screen and (max-width: 768px) {
   .keylog-container {
-    padding: 10px;
+    padding: 12px;
 
     .cont {
-      padding: 15px;
+      padding: 14px;
 
       .card-header {
         flex-direction: column;
-        align-items: flex-start;
-        gap: 15px;
+        gap: 12px;
 
         .header-right {
           width: 100%;
+
           .search-input {
             width: 100%;
           }

@@ -3019,16 +3019,15 @@ useHead({
 <style lang="less" scoped>
 .webset_container {
   min-height: 100vh;
-  padding: 10px;
-  background-color: #f7f7f7;
+  padding: 20px;
+  background-color: #f5f7fa;
 
   .cont {
     width: 100%;
-    height: 100%;
-    padding: 20px;
+    padding: 16px 20px;
     background: #fff;
-    box-shadow: 0 2px 2px rgb(0 0 0 / 10%);
     border-radius: 8px;
+    border: 1px solid #ebeef5;
 
     .setting-tabs {
       &.main-tabs {
@@ -3281,6 +3280,16 @@ useHead({
       .form {
         width: 100%;
       }
+    }
+  }
+}
+
+@media screen and (max-width: 768px) {
+  .webset_container {
+    padding: 12px;
+
+    .cont {
+      padding: 14px;
     }
   }
 }

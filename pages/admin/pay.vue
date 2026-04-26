@@ -299,6 +299,10 @@ useHead({
   <div class="pay_container">
     <div class="cont">
       <div class="form">
+        <el-card class="page-title-card">
+          <div class="page-title">账户充值</div>
+        </el-card>
+
         <!-- 提示信息卡片 -->
         <el-card class="tips-card">
           <div class="tips-info">
@@ -541,8 +545,8 @@ useHead({
   position: relative;
   width: 100%;
   min-height: 100vh;
-  padding: 10px;
-  background-color: #f7f7f7;
+  padding: 20px;
+  background-color: #f5f7fa;
 
   .cont {
     width: 100%;
@@ -550,10 +554,28 @@ useHead({
     .form {
       display: flex;
       flex-direction: column;
-      gap: 20px;
-      .tips-card {
-        margin-bottom: 20px;
+      gap: 16px;
 
+      :deep(.el-card) {
+        border: 1px solid #ebeef5;
+        border-radius: 8px;
+        box-shadow: none;
+
+        .el-card__body {
+          padding: 16px 20px;
+        }
+      }
+
+      .page-title-card {
+        .page-title {
+          font-size: 14px;
+          font-weight: 600;
+          color: #303133;
+          line-height: 1.3;
+        }
+      }
+
+      .tips-card {
         .tips-info {
           ul {
             margin: 0;
@@ -569,12 +591,11 @@ useHead({
       }
 
       .balance-card {
-        margin-bottom: 20px;
-
         .section-title {
-          font-size: 16px;
-          font-weight: 500;
-          margin-bottom: 20px;
+          font-size: 14px;
+          font-weight: 600;
+          color: #303133;
+          margin-bottom: 16px;
           display: flex;
           align-items: center;
 
@@ -606,9 +627,10 @@ useHead({
 
       .recharge-card {
         .section-title {
-          font-size: 16px;
-          font-weight: 500;
-          margin-bottom: 30px;
+          font-size: 14px;
+          font-weight: 600;
+          color: #303133;
+          margin-bottom: 24px;
           display: flex;
           align-items: center;
           border-bottom: 1px solid #ebeef5;
@@ -884,6 +906,18 @@ useHead({
 }
 
 @media screen and (max-width: 768px) {
+  .pay_container {
+    padding: 12px;
+
+    .cont {
+      .form {
+        :deep(.el-card .el-card__body) {
+          padding: 14px;
+        }
+      }
+    }
+  }
+
   .payment-method {
     .methods {
       :deep(.el-radio-group) {

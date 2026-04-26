@@ -1,6 +1,5 @@
 <script setup>
 import {
-  Tickets,
   InfoFilled,
   SuccessFilled,
   WarningFilled,
@@ -2639,9 +2638,6 @@ useHead({
             <div class="table-container">
               <div class="card-header">
                 <div class="header-left">
-                  <el-icon class="icon">
-                    <Tickets />
-                  </el-icon>
                   <span class="title">套餐管理</span>
                 </div>
                 <div class="header-right">
@@ -2947,16 +2943,17 @@ useHead({
 .apiset-container {
   position: relative;
   width: 100%;
-  height: 100%;
-  padding: 10px;
+  min-height: 100vh;
+  padding: 20px;
+  padding-bottom: 100px;
+  background: #f5f7fa;
 
   .apiset-cont {
     width: 100%;
-    padding: 20px 20px;
+    padding: 16px 20px;
     background: #fff;
-    box-shadow: 0 2px 2px rgb(0 0 0 / 10%);
-    margin-top: 20px;
-    padding-bottom: 100px;
+    border: 1px solid #ebeef5;
+    border-radius: 8px;
 
     // 与 webset.vue 保持一致的表单样式
     .form {
@@ -3031,11 +3028,10 @@ useHead({
     right: 20px;
     width: calc(100% - 240px);
     background: #fff;
-    border: 1px solid #eaecf0;
+    border: 1px solid #ebeef5;
     border-radius: 8px;
     padding: 16px 32px;
     z-index: 10;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 
     .footer-content {
       display: flex;
@@ -3101,43 +3097,50 @@ useHead({
 }
 
 @media screen and (max-width: 1200px) {
-  .container {
-    .right {
-      .apiset-container {
-        .apiset-cont {
-          .form {
-            width: 100%;
-          }
-        }
+  .apiset-container {
+    padding: 20px;
+    padding-bottom: 100px;
+
+    .apiset-cont {
+      .form {
+        width: 100%;
       }
     }
   }
 }
 
 @media screen and (max-width: 768px) {
-  .container {
-    .right {
-      .apiset-container {
-        .apiset-footer {
-          bottom: 10px;
-          right: 10px;
-          left: 10px;
-          width: auto;
-          padding: 12px 16px;
+  .apiset-container {
+    padding: 12px;
+    padding-bottom: 100px;
 
-          .footer-content {
-            flex-direction: column;
-            gap: 12px;
+    .apiset-cont {
+      padding: 14px;
 
-            .right-buttons {
-              width: 100%;
-              display: flex;
-              gap: 10px;
+      .card-header {
+        flex-direction: column;
+        gap: 12px;
+      }
+    }
 
-              :deep(.el-button) {
-                flex: 1;
-              }
-            }
+    .apiset-footer {
+      bottom: 10px;
+      right: 10px;
+      left: 10px;
+      width: auto;
+      padding: 12px 16px;
+
+      .footer-content {
+        flex-direction: column;
+        gap: 12px;
+
+        .right-buttons {
+          width: 100%;
+          display: flex;
+          gap: 10px;
+
+          :deep(.el-button) {
+            flex: 1;
           }
         }
       }
@@ -3263,11 +3266,9 @@ useHead({
 
 // 表格样式
 .table-container {
-  padding: 24px;
+  padding: 16px 0 0;
   background: #fff;
-  border: 1px solid #eaecf0;
-  border-radius: 12px;
-  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.03);
+  border-top: 1px solid #ebeef5;
 
   :deep(.el-table) {
     border: none;
@@ -3331,24 +3332,18 @@ useHead({
 .card-header {
   display: flex;
   justify-content: space-between;
-  align-items: center;
-  padding: 20px 24px;
+  align-items: flex-start;
   margin-bottom: 16px;
 
   .header-left {
     display: flex;
-    align-items: center;
-    gap: 12px;
-
-    .icon {
-      font-size: 20px;
-      color: #4b5563;
-    }
+    align-items: flex-start;
 
     .title {
-      font-size: 16px;
+      font-size: 14px;
       font-weight: 600;
-      color: #1a1f36;
+      color: #303133;
+      line-height: 1.3;
     }
   }
 

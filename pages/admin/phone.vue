@@ -18,6 +18,14 @@ useHead({
 
 <style lang="less" scoped>
 .phone-page {
-  padding: 0;
+  min-height: 100vh;
+  padding: 20px;
+  background: #f5f7fa;
+}
+
+@media screen and (max-width: 768px) {
+  .phone-page {
+    padding: 12px;
+  }
 }
 </style>

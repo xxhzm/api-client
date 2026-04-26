@@ -1,5 +1,5 @@
 <script setup>
-import { Document, Search, Plus, Edit, Delete } from '@element-plus/icons-vue'
+import { Search, Plus, Edit, Delete } from '@element-plus/icons-vue'
 
 definePageMeta({
   layout: 'admin',
@@ -174,9 +174,6 @@ useHead({
       <!-- 标题区域 -->
       <div class="card-header">
         <div class="header-left">
-          <el-icon class="icon">
-            <Document />
-          </el-icon>
           <span class="title">发票管理</span>
         </div>
         <span class="header-meta">开票金额需满 100 元</span>
@@ -203,7 +200,9 @@ useHead({
               <div class="action-bar">
                 <div class="action-left">
                   <span class="selected-info">
-                    已选金额：<span class="amount">¥{{ totalApplyAmount }}</span>
+                    已选金额：<span class="amount"
+                      >¥{{ totalApplyAmount }}</span
+                    >
                   </span>
                   <el-button
                     type="primary"
@@ -377,7 +376,9 @@ useHead({
                 <el-table-column label="操作" width="150" fixed="right">
                   <template #default>
                     <el-button type="primary" link :icon="Edit">编辑</el-button>
-                    <el-button type="danger" link :icon="Delete">删除</el-button>
+                    <el-button type="danger" link :icon="Delete"
+                      >删除</el-button
+                    >
                   </template>
                 </el-table-column>
               </el-table>
@@ -465,31 +466,28 @@ useHead({
 }
 
 .card-header {
+  position: relative;
   display: flex;
   justify-content: space-between;
-  align-items: center;
-  gap: 12px;
+  align-items: flex-start;
   margin-bottom: 16px;
 }
 
 .header-left {
   display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.header-left .icon {
-  font-size: 18px;
-  color: #409eff;
+  align-items: flex-start;
 }
 
 .header-left .title {
-  font-size: 16px;
+  font-size: 14px;
   font-weight: 600;
   color: #303133;
 }
 
 .header-meta {
+  position: absolute;
+  top: 0;
+  right: 0;
   padding: 3px 8px;
   background: #fdf6ec;
   border: 1px solid #faecd8;
@@ -652,11 +650,14 @@ useHead({
   }
 
   .card-header {
+    position: static;
     align-items: flex-start;
     flex-direction: column;
+    gap: 12px;
   }
 
   .header-meta {
+    position: static;
     white-space: normal;
   }
 

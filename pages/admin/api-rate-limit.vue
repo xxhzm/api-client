@@ -1,5 +1,5 @@
 <script setup>
-import { Warning, Clock, Remove, Timer } from '@element-plus/icons-vue'
+import { Warning, Clock, Remove } from '@element-plus/icons-vue'
 const { $msg, $myFetch } = useNuxtApp()
 
 definePageMeta({
@@ -113,7 +113,6 @@ useHead({
     <div class="cont">
       <div class="card-header">
         <div class="header-left">
-          <el-icon class="icon"><Timer /></el-icon>
           <span class="title">接口限频设置</span>
         </div>
       </div>
@@ -233,39 +232,30 @@ useHead({
 <style lang="less" scoped>
 .ratelimit_container {
   min-height: 100vh;
-  padding: 10px;
-  background-color: #f7f7f7;
+  padding: 20px;
+  background-color: #f5f7fa;
 
   .cont {
     width: 100%;
-    height: 100%;
-    padding: 20px;
+    padding: 16px 20px;
     background: #fff;
-    box-shadow: 0 2px 2px rgb(0 0 0 / 10%);
     border-radius: 8px;
+    border: 1px solid #ebeef5;
 
     .card-header {
       display: flex;
       justify-content: space-between;
-      align-items: center;
-      margin-bottom: 20px;
-      padding-bottom: 20px;
-      border-bottom: 1px solid #edf1f7;
+      align-items: flex-start;
+      margin-bottom: 16px;
 
       .header-left {
         display: flex;
-        align-items: center;
-        gap: 12px;
-
-        .icon {
-          font-size: 20px;
-          color: #4096ff;
-        }
+        align-items: flex-start;
 
         .title {
-          font-size: 16px;
+          font-size: 14px;
           font-weight: 600;
-          color: #2e3033;
+          color: #303133;
         }
       }
     }
@@ -365,6 +355,16 @@ useHead({
       :deep(.el-form) {
         width: 100%;
       }
+    }
+  }
+}
+
+@media screen and (max-width: 768px) {
+  .ratelimit_container {
+    padding: 12px;
+
+    .cont {
+      padding: 14px;
     }
   }
 }

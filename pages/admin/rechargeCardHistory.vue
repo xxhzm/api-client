@@ -1,5 +1,4 @@
 <script setup>
-import { Calendar } from '@element-plus/icons-vue'
 definePageMeta({
   layout: 'admin',
 })
@@ -98,9 +97,6 @@ useHead({
       <!-- 标题区域 -->
       <div class="card-header">
         <div class="header-left">
-          <el-icon class="icon">
-            <Calendar />
-          </el-icon>
           <span class="title">充值卡使用记录</span>
         </div>
       </div>
@@ -110,7 +106,7 @@ useHead({
         <client-only>
           <el-table
             :data="tableData"
-            style="width: 100%; margin-top: 15px"
+            style="width: 100%"
             v-loading="pageLoading"
             border
           >
@@ -185,41 +181,32 @@ useHead({
 .history-container {
   position: relative;
   min-height: 100vh;
-  padding: 24px;
-  display: flex;
-  justify-content: center;
+  padding: 20px;
   background: #f5f7fa;
 
   .card {
     width: 100%;
-    border-radius: 12px;
+    padding: 16px 20px;
+    background: #fff;
+    border: 1px solid #ebeef5;
+    border-radius: 8px;
     margin: 0 auto;
 
     .card-header {
       display: flex;
       justify-content: space-between;
-      align-items: center;
-      padding: 20px 24px;
-      background: #fff;
-      border: 1px solid #eaecf0;
-      border-radius: 12px;
-      box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.03);
+      align-items: flex-start;
       margin-bottom: 16px;
 
       .header-left {
         display: flex;
-        align-items: center;
-        gap: 12px;
-
-        .icon {
-          font-size: 20px;
-          color: #4b5563;
-        }
+        align-items: flex-start;
 
         .title {
-          font-size: 16px;
+          font-size: 14px;
           font-weight: 600;
-          color: #1a1f36;
+          color: #303133;
+          line-height: 1.3;
         }
       }
 
@@ -233,11 +220,7 @@ useHead({
     }
 
     .card-content {
-      padding: 24px;
-      background: #fff;
-      border: 1px solid #eaecf0;
-      border-radius: 12px;
-      box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.03);
+      padding: 8px 0 0;
 
       .filter-container {
         margin-bottom: 15px;
@@ -264,22 +247,21 @@ useHead({
 }
 
 @media screen and (max-width: 1200px) {
-  .container .right .history-container {
-    padding: 16px;
+  .history-container {
+    padding: 20px;
   }
 }
 
 @media screen and (max-width: 768px) {
-  .container .right .history-container {
+  .history-container {
     padding: 12px;
 
-    .card .card-content {
-      padding: 16px;
+    .card {
+      padding: 14px;
 
-      .filter-container {
-        .el-button {
-          margin-top: 10px;
-        }
+      .card-header {
+        flex-direction: column;
+        gap: 12px;
       }
     }
   }

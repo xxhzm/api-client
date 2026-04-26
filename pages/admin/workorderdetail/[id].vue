@@ -1,5 +1,5 @@
 <script setup>
-import { Service, Clock } from '@element-plus/icons-vue'
+import { Clock } from '@element-plus/icons-vue'
 const { $msg, $myFetch } = useNuxtApp()
 
 definePageMeta({
@@ -238,7 +238,6 @@ useHead({
       <!-- 沟通记录 -->
       <div class="chat-card">
         <div class="chat-card-header">
-          <el-icon><Service /></el-icon>
           <span>沟通记录</span>
           <span class="msg-count">{{ orderMessages.length }} 条</span>
         </div>
@@ -324,24 +323,24 @@ useHead({
 
 <style lang="less" scoped>
 .detail-page {
-  padding: 20px 24px;
-  background: #f0f2f5;
   min-height: 100vh;
+  padding: 20px;
+  background: #f5f7fa;
 }
 
 /* 工单信息卡片 */
 .info-card {
   background: #fff;
-  border-radius: 2px;
-  border: 1px solid #dcdfe6;
-  padding: 20px 24px;
-  margin-bottom: 12px;
+  border: 1px solid #ebeef5;
+  border-radius: 8px;
+  padding: 16px 20px;
+  margin-bottom: 16px;
 
   .info-card-header {
     display: flex;
     justify-content: space-between;
     align-items: flex-start;
-    margin-bottom: 20px;
+    margin-bottom: 16px;
 
     .title-section {
       display: flex;
@@ -350,11 +349,11 @@ useHead({
       flex: 1;
 
       .order-title {
-        font-size: 18px;
+        font-size: 14px;
         font-weight: 600;
-        color: #262626;
+        color: #303133;
         margin: 0;
-        line-height: 1.4;
+        line-height: 1.3;
       }
     }
   }
@@ -364,7 +363,7 @@ useHead({
     grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
     gap: 14px 40px;
     padding-top: 16px;
-    border-top: 1px solid #e8e8e8;
+    border-top: 1px solid #ebeef5;
 
     .info-item {
       display: flex;
@@ -384,7 +383,7 @@ useHead({
 
       .info-value {
         font-size: 13px;
-        color: #262626;
+        color: #303133;
       }
     }
   }
@@ -393,25 +392,20 @@ useHead({
 /* 沟通记录卡片 */
 .chat-card {
   background: #fff;
-  border-radius: 2px;
-  border: 1px solid #dcdfe6;
-  margin-bottom: 12px;
+  border: 1px solid #ebeef5;
+  border-radius: 8px;
+  padding: 16px 20px;
+  margin-bottom: 16px;
 
   .chat-card-header {
     display: flex;
-    align-items: center;
+    align-items: flex-start;
     gap: 8px;
-    padding: 14px 24px;
-    border-bottom: 1px solid #e8e8e8;
     font-size: 14px;
     font-weight: 600;
-    color: #262626;
-    background: #fafafa;
-
-    .el-icon {
-      font-size: 16px;
-      color: #409eff;
-    }
+    color: #303133;
+    line-height: 1.3;
+    margin-bottom: 16px;
 
     .msg-count {
       font-size: 12px;
@@ -423,7 +417,7 @@ useHead({
 }
 
 .timeline-container {
-  padding: 20px 24px;
+  padding: 0;
 
   .empty-msg {
     text-align: center;
@@ -450,7 +444,7 @@ useHead({
       color: #8c8c8c;
       font-size: 12px;
       padding: 2px 12px;
-      border-radius: 2px;
+      border-radius: 4px;
     }
   }
 }
@@ -471,7 +465,7 @@ useHead({
     .avatar {
       width: 32px;
       height: 32px;
-      border-radius: 2px;
+      border-radius: 8px;
       display: flex;
       align-items: center;
       justify-content: center;
@@ -494,7 +488,7 @@ useHead({
       .msg-sender {
         font-size: 13px;
         font-weight: 600;
-        color: #262626;
+        color: #303133;
       }
 
       .msg-role-tag {
@@ -535,25 +529,25 @@ useHead({
 /* 回复区域 */
 .reply-card {
   background: #fff;
-  border-radius: 2px;
-  border: 1px solid #dcdfe6;
+  border: 1px solid #ebeef5;
+  border-radius: 8px;
+  padding: 16px 20px;
 
   .reply-card-header {
-    padding: 14px 24px;
-    border-bottom: 1px solid #e8e8e8;
     font-size: 14px;
     font-weight: 600;
-    color: #262626;
-    background: #fafafa;
+    color: #303133;
+    line-height: 1.3;
+    margin-bottom: 16px;
   }
 
   .reply-body {
-    padding: 16px 24px;
+    padding: 0;
 
     :deep(.el-textarea__inner) {
       font-size: 13px;
       line-height: 1.6;
-      border-radius: 2px;
+      border-radius: 6px;
     }
   }
 
@@ -570,10 +564,10 @@ useHead({
   align-items: center;
   justify-content: center;
   gap: 8px;
-  background: #fafafa;
-  border: 1px solid #dcdfe6;
-  border-radius: 2px;
-  padding: 14px;
+  background: #fff;
+  border: 1px solid #ebeef5;
+  border-radius: 8px;
+  padding: 16px 20px;
   color: #909399;
   font-size: 13px;
 
@@ -589,7 +583,7 @@ useHead({
   }
 
   .info-card {
-    padding: 16px;
+    padding: 14px;
 
     .info-card-header {
       flex-direction: column;
@@ -597,13 +591,15 @@ useHead({
     }
 
     .info-grid {
-      grid-template-columns: 1fr 1fr;
+      grid-template-columns: 1fr;
       gap: 10px;
     }
   }
 
-  .timeline-container {
-    padding: 16px;
+  .chat-card,
+  .reply-card,
+  .closed-banner {
+    padding: 14px;
   }
 }
 </style>

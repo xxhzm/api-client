@@ -79,9 +79,6 @@ const resetForm = () => {
       <!-- 标题区域 -->
       <div class="card-header">
         <div class="header-left">
-          <el-icon class="icon">
-            <Lock />
-          </el-icon>
           <span class="title">修改密码</span>
         </div>
       </div>
@@ -155,45 +152,39 @@ const resetForm = () => {
 <style lang="less" scoped>
 .password-container {
   min-height: 100vh;
-  padding: 10px;
-  background-color: #f8fafc;
+  padding: 20px;
+  background-color: #f5f7fa;
 
   .cont {
     width: 100%;
     height: 100%;
-    padding: 20px;
+    padding: 16px 20px;
     background: #fff;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+    border: 1px solid #ebeef5;
     border-radius: 8px;
 
     .card-header {
       display: flex;
       justify-content: space-between;
-      align-items: center;
-      margin-bottom: 20px;
-      padding-bottom: 20px;
-      border-bottom: 1px solid #edf1f7;
+      align-items: flex-start;
+      margin-bottom: 16px;
 
       .header-left {
         display: flex;
-        align-items: center;
-        gap: 12px;
-
-        .icon {
-          font-size: 20px;
-          color: #4096ff;
-        }
+        align-items: flex-start;
 
         .title {
-          font-size: 16px;
+          font-size: 14px;
           font-weight: 600;
-          color: #2e3033;
+          color: #303133;
+          line-height: 1.3;
         }
       }
     }
 
     .form-container {
       max-width: 600px;
+      padding: 8px 0 0;
 
       :deep(.el-form-item__label) {
         font-weight: 500;
@@ -203,7 +194,7 @@ const resetForm = () => {
 
       :deep(.el-input__wrapper) {
         background-color: #fafbfc;
-        border: 1px solid #edf1f7;
+        border: 1px solid #ebeef5;
         box-shadow: none;
 
         &:hover {
@@ -244,7 +235,7 @@ const resetForm = () => {
       margin-top: 30px;
       padding: 16px 20px;
       background: #fafbfc;
-      border: 1px solid #edf1f7;
+      border: 1px solid #ebeef5;
       border-radius: 6px;
 
       h4 {
@@ -275,18 +266,14 @@ const resetForm = () => {
 
 @media screen and (max-width: 768px) {
   .password-container {
+    padding: 12px;
+
     .cont {
-      padding: 15px;
+      padding: 14px;
 
       .card-header {
-        padding-bottom: 15px;
-        margin-bottom: 15px;
-
-        .header-left {
-          .title {
-            font-size: 15px;
-          }
-        }
+        flex-direction: column;
+        gap: 12px;
       }
     }
   }

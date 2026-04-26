@@ -206,7 +206,6 @@ useHead({
       <!-- 标题区域 -->
       <div class="card-header">
         <div class="header-left">
-          <el-icon class="icon"><Tickets /></el-icon>
           <span class="title">我的套餐</span>
         </div>
         <div class="header-right">
@@ -444,38 +443,31 @@ useHead({
 .package_container {
   min-height: 100vh;
   padding: 20px;
-  background-color: #f7f7f7;
+  background-color: #f5f7fa;
 
   .cont {
     width: 100%;
     height: 100%;
-    padding: 24px;
+    padding: 16px 20px;
     background: #fff;
-    box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.03);
-    border-radius: 12px;
+    border: 1px solid #ebeef5;
+    border-radius: 8px;
 
     .card-header {
       display: flex;
       justify-content: space-between;
-      align-items: center;
-      margin-bottom: 32px;
-      padding-bottom: 16px;
-      border-bottom: 1px solid #f0f0f0;
+      align-items: flex-start;
+      margin-bottom: 24px;
 
       .header-left {
         display: flex;
-        align-items: center;
-        gap: 12px;
-
-        .icon {
-          font-size: 24px;
-          color: #3b82f6;
-        }
+        align-items: flex-start;
 
         .title {
-          font-size: 18px;
+          font-size: 14px;
           font-weight: 600;
-          color: #1f2937;
+          color: #303133;
+          line-height: 1.3;
         }
       }
 
@@ -653,10 +645,10 @@ useHead({
 
 @media screen and (max-width: 768px) {
   .package_container {
-    padding: 16px;
+    padding: 12px;
 
     .cont {
-      padding: 20px;
+      padding: 14px;
 
       .card-header {
         flex-direction: column;

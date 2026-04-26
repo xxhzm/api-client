@@ -5,7 +5,6 @@ import {
   SuccessFilled,
   Warning,
   Monitor,
-  Document,
 } from '@element-plus/icons-vue'
 
 definePageMeta({
@@ -216,9 +215,6 @@ useHead({
       <!-- 标题区域 -->
       <div class="card-header">
         <div class="header-left">
-          <el-icon class="icon">
-            <Refresh />
-          </el-icon>
           <span class="title">在线更新</span>
         </div>
         <div class="header-right">
@@ -379,34 +375,27 @@ useHead({
 <style lang="less" scoped>
 .update-container {
   padding: 20px;
-  background-color: #f5f5f5;
-  min-height: calc(100vh - 60px);
+  background-color: #f5f7fa;
+  min-height: 100vh;
 
   .update-card {
     background: white;
     border-radius: 8px;
-    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.1);
-    margin-bottom: 20px;
+    border: 1px solid #ebeef5;
+    padding: 16px 20px;
 
     .card-header {
       display: flex;
       justify-content: space-between;
-      align-items: center;
-      padding: 20px 24px;
-      border-bottom: 1px solid #f0f0f0;
+      align-items: flex-start;
+      margin-bottom: 16px;
 
       .header-left {
         display: flex;
-        align-items: center;
-
-        .icon {
-          font-size: 20px;
-          color: #409eff;
-          margin-right: 8px;
-        }
+        align-items: flex-start;
 
         .title {
-          font-size: 18px;
+          font-size: 14px;
           font-weight: 600;
           color: #303133;
         }
@@ -415,7 +404,7 @@ useHead({
   }
 
   .version-info {
-    padding: 24px;
+    padding: 8px 0 24px;
 
     .info-card {
       background: #fafafa;
@@ -472,7 +461,7 @@ useHead({
   }
 
   .update-actions {
-    padding: 0 24px 24px;
+    padding: 0 0 24px;
 
     .el-alert {
       margin-bottom: 16px;
@@ -489,7 +478,7 @@ useHead({
   }
 
   .changelog-section {
-    margin: 0 24px 24px;
+    margin: 0 0 24px;
     background: #fff;
     border-radius: 12px;
     box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.03);
@@ -590,14 +579,23 @@ useHead({
   }
 
   .check-info {
-    padding: 0 24px 24px;
+    padding: 0 0 8px;
     text-align: center;
   }
 }
 
 @media screen and (max-width: 768px) {
   .update-container {
-    padding: 10px;
+    padding: 12px;
+
+    .update-card {
+      padding: 14px;
+    }
+
+    .card-header {
+      flex-direction: column;
+      gap: 12px;
+    }
 
     .version-info {
       .el-col {

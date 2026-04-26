@@ -1,5 +1,5 @@
 <script setup>
-import { Search, InfoFilled, ShoppingCart, Menu } from '@element-plus/icons-vue'
+import { Search, ShoppingCart, Menu } from '@element-plus/icons-vue'
 
 const { $msg, $myFetch } = useNuxtApp()
 const route = useRoute()
@@ -306,18 +306,8 @@ useHead({
     <div class="cont">
       <div class="card-header">
         <div class="header-left">
-          <el-icon class="icon"><ShoppingCart /></el-icon>
           <div>
             <div class="title">购买套餐</div>
-            <div class="subtitle">
-              按接口查看和筛选套餐，更容易确认自己要购买的接口。
-              <el-tooltip
-                content="1点数通常等于1次请求，具体以接口规则为准"
-                placement="top"
-              >
-                <el-icon class="info-icon"><InfoFilled /></el-icon>
-              </el-tooltip>
-            </div>
           </div>
         </div>
 
@@ -605,16 +595,16 @@ useHead({
 .buy_container {
   min-height: 100vh;
   padding: 20px;
-  background-color: #f7f7f7;
+  background-color: #f5f7fa;
 }
 
 .cont {
   width: 100%;
   height: 100%;
-  padding: 24px;
+  padding: 16px 20px;
   background: #fff;
-  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.03);
-  border-radius: 12px;
+  border: 1px solid #ebeef5;
+  border-radius: 8px;
 }
 
 .card-header {
@@ -623,36 +613,18 @@ useHead({
   align-items: flex-start;
   gap: 16px;
   margin-bottom: 16px;
-  padding-bottom: 16px;
-  border-bottom: 1px solid #f0f0f0;
 }
 
 .header-left {
   display: flex;
-  gap: 12px;
   align-items: flex-start;
 }
 
-.icon {
-  margin-top: 2px;
-  font-size: 22px;
-  color: #3b82f6;
-}
-
 .title {
-  font-size: 18px;
+  font-size: 14px;
   font-weight: 600;
-  color: #1f2937;
-  margin-bottom: 6px;
-}
-
-.subtitle {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  font-size: 13px;
-  color: #6b7280;
-  line-height: 1.6;
+  color: #303133;
+  line-height: 1.3;
 }
 
 .header-right {
@@ -1028,19 +1000,13 @@ useHead({
   gap: 10px;
 }
 
-.info-icon {
-  font-size: 14px;
-  color: #909399;
-  cursor: help;
-}
-
 @media screen and (max-width: 768px) {
   .buy_container {
-    padding: 16px;
+    padding: 12px;
   }
 
   .cont {
-    padding: 20px;
+    padding: 14px;
   }
 
   .card-header,

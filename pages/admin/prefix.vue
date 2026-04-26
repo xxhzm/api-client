@@ -1,5 +1,5 @@
 <script setup>
-import { Connection, Bell } from '@element-plus/icons-vue'
+import { Bell } from '@element-plus/icons-vue'
 definePageMeta({
   layout: 'admin',
 })
@@ -170,6 +170,17 @@ useHead({
 <template>
   <div class="prefix_container">
     <div class="prefix-card">
+      <div class="card-header">
+        <div class="header-left">
+          <span class="title">前缀管理</span>
+        </div>
+        <div class="header-right">
+          <el-button type="primary" @click="createStatus = true">
+            <span>新增前缀</span>
+          </el-button>
+        </div>
+      </div>
+
       <ClientOnly>
         <el-alert
           title="php-fpm 的地址可设为 Unix 套接字（如 /tmp/php-cgi-82.sock）或 IP:端口（如 127.0.0.1:9000）。建议优先使用 Unix 套接字，因其并发性能更佳。如使用 IP:端口，必须设置 listen.allowed_clients 为本机 IP（如 127.0.0.1）以增强安全性。"
@@ -192,20 +203,6 @@ useHead({
           </template>
         </el-alert>
       </ClientOnly>
-
-      <div class="card-header">
-        <div class="header-left">
-          <el-icon class="icon">
-            <Connection />
-          </el-icon>
-          <span class="title">前缀管理</span>
-        </div>
-        <div class="header-right">
-          <el-button type="primary" @click="createStatus = true">
-            <span>新增前缀</span>
-          </el-button>
-        </div>
-      </div>
 
       <div class="table-container">
         <ClientOnly>
@@ -328,40 +325,30 @@ useHead({
 .prefix_container {
   position: relative;
   min-height: 100vh;
-  padding: 24px;
-  display: flex;
-  justify-content: center;
+  padding: 20px;
+  background: #f5f7fa;
 
   .prefix-card {
     width: 100%;
-    border-radius: 12px;
-    margin: 0 auto;
+    padding: 16px 20px;
+    background: #fff;
+    border: 1px solid #ebeef5;
+    border-radius: 8px;
 
     .card-header {
       display: flex;
       justify-content: space-between;
-      align-items: center;
-      padding: 20px 24px;
-      background: #fff;
-      border: 1px solid #eaecf0;
-      border-radius: 12px;
-      box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.03);
+      align-items: flex-start;
       margin-bottom: 16px;
 
       .header-left {
         display: flex;
-        align-items: center;
-        gap: 12px;
-
-        .icon {
-          font-size: 20px;
-          color: #4b5563;
-        }
+        align-items: flex-start;
 
         .title {
-          font-size: 16px;
+          font-size: 14px;
           font-weight: 600;
-          color: #1a1f36;
+          color: #303133;
         }
       }
 
@@ -375,12 +362,8 @@ useHead({
     }
 
     .table-container {
-      padding: 24px;
+      padding: 8px 0 0;
       overflow-x: auto;
-      background: #fff;
-      border: 1px solid #eaecf0;
-      border-radius: 12px;
-      box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.03);
 
       :deep(.el-table) {
         border: none;
@@ -483,14 +466,23 @@ useHead({
 }
 
 @media screen and (max-width: 1200px) {
-  .container .right .prefix_container {
-    padding: 16px;
+  .prefix_container {
+    padding: 20px;
   }
 }
 
 @media screen and (max-width: 768px) {
-  .container .right .prefix_container {
+  .prefix_container {
     padding: 12px;
+
+    .prefix-card {
+      padding: 14px;
+
+      .card-header {
+        flex-direction: column;
+        gap: 12px;
+      }
+    }
   }
 }
 </style>

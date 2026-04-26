@@ -1,5 +1,5 @@
 <script setup>
-import { Connection, Plus } from '@element-plus/icons-vue'
+import { Plus } from '@element-plus/icons-vue'
 import { ref, onMounted, reactive } from 'vue'
 
 const { $msg, $myFetch } = useNuxtApp()
@@ -164,9 +164,6 @@ useHead({
       <!-- 标题区域 -->
       <div class="card-header">
         <div class="header-left">
-          <el-icon class="icon">
-            <Connection />
-          </el-icon>
           <span class="title">一键对接</span>
         </div>
         <div class="header-right">
@@ -299,41 +296,30 @@ useHead({
 .import-container {
   position: relative;
   min-height: 100vh;
-  padding: 24px;
-  display: flex;
-  justify-content: center;
+  padding: 20px;
   background: #f5f7fa;
 
   .import-card {
     width: 100%;
-    border-radius: 12px;
-    margin: 0 auto;
+    padding: 16px 20px;
+    background: #fff;
+    border: 1px solid #ebeef5;
+    border-radius: 8px;
 
     .card-header {
       display: flex;
       justify-content: space-between;
-      align-items: center;
-      padding: 20px 24px;
-      background: #fff;
-      border: 1px solid #eaecf0;
-      border-radius: 12px;
-      box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.03);
+      align-items: flex-start;
       margin-bottom: 16px;
 
       .header-left {
         display: flex;
-        align-items: center;
-        gap: 12px;
-
-        .icon {
-          font-size: 20px;
-          color: #4b5563;
-        }
+        align-items: flex-start;
 
         .title {
-          font-size: 16px;
+          font-size: 14px;
           font-weight: 600;
-          color: #1a1f36;
+          color: #303133;
         }
       }
 
@@ -347,11 +333,7 @@ useHead({
     }
 
     .content-container {
-      padding: 24px;
-      background: #fff;
-      border: 1px solid #eaecf0;
-      border-radius: 12px;
-      box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.03);
+      padding: 8px 0 0;
 
       .system-info-section {
         padding: 30px;
@@ -570,7 +552,7 @@ useHead({
 
 @media screen and (max-width: 1200px) {
   .import-container {
-    padding: 16px;
+    padding: 20px;
   }
 }
 
@@ -579,6 +561,13 @@ useHead({
     padding: 12px;
 
     .import-card {
+      padding: 14px;
+
+      .card-header {
+        flex-direction: column;
+        gap: 12px;
+      }
+
       .content-container {
         .system-info-section {
           padding: 20px 15px;

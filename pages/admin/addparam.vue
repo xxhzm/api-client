@@ -1,5 +1,5 @@
 <script setup>
-import { Setting, InfoFilled } from '@element-plus/icons-vue'
+import { InfoFilled } from '@element-plus/icons-vue'
 const { $msg, $myFetch } = useNuxtApp()
 const msg = $msg
 
@@ -207,9 +207,6 @@ useHead({
     <div class="param-card">
       <div class="card-header">
         <div class="header-left">
-          <el-icon class="icon">
-            <Setting />
-          </el-icon>
           <span class="title">参数配置</span>
         </div>
         <div class="header-right">
@@ -324,44 +321,37 @@ useHead({
 .addparam_container {
   position: relative;
   min-height: 100vh;
-  padding: 24px 32px;
+  padding: 20px;
   padding-bottom: 80px;
   background: #f5f7fa;
 
   .param-card {
     background: #fff;
-    border-radius: 12px;
-    box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.03);
-    border: 1px solid #eaecf0;
+    border-radius: 8px;
+    border: 1px solid #ebeef5;
+    padding: 16px 20px;
 
     .card-header {
       display: flex;
       justify-content: space-between;
-      align-items: center;
-      padding: 20px 24px;
-      border-bottom: 1px solid #eaecf0;
+      align-items: flex-start;
+      margin-bottom: 16px;
 
       .header-left {
         display: flex;
-        align-items: center;
-        gap: 12px;
-
-        .icon {
-          font-size: 20px;
-          color: #4b5563;
-        }
+        align-items: flex-start;
 
         .title {
-          font-size: 16px;
+          font-size: 14px;
           font-weight: 600;
-          color: #1a1f36;
+          color: #303133;
         }
       }
     }
 
     .form {
       width: 60%;
-      padding: 24px;
+      padding: 8px 0 0;
 
       :deep(.el-form-item) {
         margin-bottom: 24px;
@@ -470,7 +460,17 @@ useHead({
 
 @media screen and (max-width: 768px) {
   .addparam_container {
-    padding: 16px;
+    padding: 12px;
+    padding-bottom: 80px;
+
+    .param-card {
+      padding: 14px;
+
+      .card-header {
+        flex-direction: column;
+        gap: 12px;
+      }
+    }
   }
   .addparam_container .param-footer {
     bottom: 10px;

@@ -1,5 +1,5 @@
 <script setup>
-import { Shop, Search, Filter } from '@element-plus/icons-vue'
+import { Search } from '@element-plus/icons-vue'
 const { $msg, $myFetch } = useNuxtApp()
 
 definePageMeta({
@@ -226,7 +226,6 @@ useHead({
       <!-- 标题区域 -->
       <div class="card-header">
         <div class="header-left">
-          <el-icon class="icon"><Shop /></el-icon>
           <span class="title">商户审核</span>
         </div>
         <div class="header-right">
@@ -234,7 +233,7 @@ useHead({
             v-model="search"
             placeholder="搜索商户/企业/联系人/电话/邮箱"
             clearable
-            style="width: 280px"
+            class="search-input"
           >
             <template #prefix>
               <el-icon><Search /></el-icon>
@@ -243,7 +242,7 @@ useHead({
           <el-select
             v-model="statusFilter"
             placeholder="状态筛选"
-            style="width: 120px"
+            class="status-select"
           >
             <el-option
               v-for="item in statusOptions"
@@ -408,41 +407,32 @@ useHead({
 .merchant-container {
   position: relative;
   min-height: 100vh;
-  padding: 24px;
-  display: flex;
-  justify-content: center;
+  padding: 20px;
   background: #f5f7fa;
 
   .merchant-card {
     width: 100%;
-    border-radius: 12px;
+    padding: 16px 20px;
+    background: #fff;
+    border: 1px solid #ebeef5;
+    border-radius: 8px;
     margin: 0 auto;
 
     .card-header {
       display: flex;
       justify-content: space-between;
-      align-items: center;
-      padding: 20px 24px;
-      background: #fff;
-      border: 1px solid #eaecf0;
-      border-radius: 12px;
-      box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.03);
+      align-items: flex-start;
       margin-bottom: 16px;
 
       .header-left {
         display: flex;
-        align-items: center;
-        gap: 12px;
-
-        .icon {
-          font-size: 20px;
-          color: #4b5563;
-        }
+        align-items: flex-start;
 
         .title {
-          font-size: 16px;
+          font-size: 14px;
           font-weight: 600;
-          color: #1a1f36;
+          color: #303133;
+          line-height: 1.3;
         }
       }
 
@@ -450,15 +440,19 @@ useHead({
         display: flex;
         align-items: center;
         gap: 12px;
+
+        .search-input {
+          width: 280px;
+        }
+
+        .status-select {
+          width: 120px;
+        }
       }
     }
 
     .table-container {
-      padding: 24px;
-      background: #fff;
-      border: 1px solid #eaecf0;
-      border-radius: 12px;
-      box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.03);
+      padding: 8px 0 0;
 
       :deep(.el-table) {
         border: none;
@@ -549,13 +543,33 @@ useHead({
 
 @media screen and (max-width: 1200px) {
   .merchant-container {
-    padding: 16px;
+    padding: 20px;
   }
 }
 
 @media screen and (max-width: 768px) {
   .merchant-container {
     padding: 12px;
+
+    .merchant-card {
+      padding: 14px;
+
+      .card-header {
+        flex-direction: column;
+        gap: 12px;
+      }
+
+      .header-right {
+        width: 100%;
+        flex-direction: column;
+        align-items: stretch;
+
+        .search-input,
+        .status-select {
+          width: 100%;
+        }
+      }
+    }
   }
 }
 </style>

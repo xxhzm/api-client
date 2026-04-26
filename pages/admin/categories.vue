@@ -251,45 +251,37 @@ const viewApiList = ref([])
 .categories-container {
   position: relative;
   min-height: 100vh;
-  padding: 24px;
-  display: flex;
-  justify-content: center;
+  padding: 20px;
+  background: #f5f7fa;
 
   .categories-card {
     width: 100%;
-    margin: 0 auto;
+    padding: 16px 20px;
+    background: #fff;
+    border: 1px solid #ebeef5;
+    border-radius: 8px;
 
     .card-header {
       display: flex;
       justify-content: space-between;
-      align-items: center;
-      padding: 20px 24px;
-      background: #fff;
-      border: 1px solid #eaecf0;
-      border-radius: 12px;
-      box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.03);
+      align-items: flex-start;
       margin-bottom: 16px;
 
       .header-left {
         display: flex;
-        align-items: center;
-        gap: 12px;
+        align-items: flex-start;
 
         .title {
-          font-size: 16px;
+          font-size: 14px;
           font-weight: 600;
-          color: #1a1f36;
+          color: #303133;
         }
       }
     }
 
     .table-container {
-      padding: 24px;
-      background: #fff;
-      border: 1px solid #eaecf0;
-      border-radius: 12px;
-      box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.03);
-      margin-bottom: 16px;
+      padding: 8px 0 0;
+      margin-bottom: 24px;
 
       :deep(.el-table) {
         border: none;
@@ -323,19 +315,16 @@ const viewApiList = ref([])
     }
 
     .form-container {
-      padding: 24px;
-      background: #fff;
-      border: 1px solid #eaecf0;
-      border-radius: 12px;
-      box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.03);
+      padding: 24px 0 0;
+      border-top: 1px solid #ebeef5;
 
       .form-header {
-        margin-bottom: 24px;
+        margin-bottom: 16px;
 
         .title {
-          font-size: 16px;
+          font-size: 14px;
           font-weight: 600;
-          color: #1a1f36;
+          color: #303133;
         }
       }
 
@@ -373,13 +362,17 @@ const viewApiList = ref([])
 
 @media screen and (max-width: 1200px) {
   .categories-container {
-    padding: 16px;
+    padding: 20px;
   }
 }
 
 @media screen and (max-width: 768px) {
   .categories-container {
     padding: 12px;
+
+    .categories-card {
+      padding: 14px;
+    }
   }
 }
 </style>

@@ -164,45 +164,39 @@ useHead({
 .createarticle-container {
   position: relative;
   min-height: 100vh;
-  padding: 24px;
+  padding: 20px;
   padding-bottom: 100px;
-  display: flex;
-  justify-content: center;
-  background-color: #f5f7fa; // Moved background color here
+  background-color: #f5f7fa;
 
   .article-card {
     width: 100%;
+    padding: 16px 20px;
+    background: #fff;
+    border: 1px solid #ebeef5;
+    border-radius: 8px;
     margin: 0 auto;
+
     .card-header {
       display: flex;
       justify-content: space-between;
-      align-items: center;
-      padding: 20px 24px;
-      background: #fff;
-      border: 1px solid #eaecf0;
-      border-radius: 12px;
-      box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.03);
+      align-items: flex-start;
       margin-bottom: 16px;
 
       .header-left {
         display: flex;
-        align-items: center;
-        gap: 12px;
+        align-items: flex-start;
 
         .title {
-          font-size: 16px;
+          font-size: 14px;
           font-weight: 600;
-          color: #1a1f36;
+          color: #303133;
+          line-height: 1.3;
         }
       }
     }
 
     .form-container {
-      padding: 24px;
-      background: #fff;
-      border: 1px solid #eaecf0;
-      border-radius: 12px;
-      box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.03);
+      padding: 8px 0 0;
 
       :deep(.el-form-item__label) {
         font-weight: 500;
@@ -247,9 +241,8 @@ useHead({
       width: 100%;
       max-width: 1200px;
       background: #fff;
-      border: 1px solid var(--el-border-color);
-      border-radius: 12px;
-      box-shadow: var(--el-box-shadow-light);
+      border: 1px solid #ebeef5;
+      border-radius: 8px;
       padding: 14px 16px;
       display: flex;
       justify-content: space-between;
@@ -281,7 +274,7 @@ useHead({
 
 @media screen and (max-width: 1200px) {
   .createarticle-container {
-    padding: 16px;
+    padding: 20px;
     padding-bottom: 100px;
   }
 }
@@ -290,15 +283,28 @@ useHead({
   .createarticle-container {
     padding: 12px;
     padding-bottom: 100px;
+
+    .article-card {
+      padding: 14px;
+
+      .card-header {
+        flex-direction: column;
+        gap: 12px;
+      }
+    }
   }
+
   .createarticle-footer {
     padding: 0 12px 12px;
+
     .footer-content {
       flex-direction: column;
       align-items: stretch;
       gap: 12px;
+
       .right-buttons {
         flex-direction: column;
+
         .el-button {
           width: 100%;
         }

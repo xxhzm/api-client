@@ -92,6 +92,12 @@ useHead({
 <template>
   <div class="createArticle-container">
     <div class="createArticle-cont">
+      <div class="card-header">
+        <div class="header-left">
+          <span class="title">编辑文章</span>
+        </div>
+      </div>
+
       <el-form :model="updateArticleInfo" label-width="100px">
         <el-row :gutter="12">
           <el-col :xs="24" :sm="24" :md="24" :lg="24" :xl="24">
@@ -183,14 +189,39 @@ useHead({
   position: relative;
   width: 100%;
   min-height: 100vh;
-  padding: 10px;
-  background-color: #f7f7f7;
+  padding: 20px;
+  padding-bottom: 100px;
+  background-color: #f5f7fa;
+
   .createArticle-cont {
     width: 100%;
-    padding: 20px 20px;
+    padding: 16px 20px;
     background: #fff;
-    box-shadow: 0 2px 2px rgb(0 0 0 / 10%);
-    margin-top: 20px;
+    border: 1px solid #ebeef5;
+    border-radius: 8px;
+
+    .card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 16px;
+
+      .header-left {
+        display: flex;
+        align-items: flex-start;
+
+        .title {
+          font-size: 14px;
+          font-weight: 600;
+          color: #303133;
+          line-height: 1.3;
+        }
+      }
+    }
+
+    :deep(.el-form) {
+      padding: 8px 0 0;
+    }
 
     .editor-container {
       // TinyMCE 编辑器组件自带样式，这里不需要额外样式
@@ -203,18 +234,18 @@ useHead({
     right: 0;
     bottom: 0;
     display: flex;
-    justify-content: right;
+    justify-content: center;
     padding: 0 20px 20px;
     background: transparent;
     z-index: 999;
     pointer-events: none;
 
     .footer-content {
-      width: calc(100% - 240px);
+      width: 100%;
+      max-width: 1200px;
       background: #fff;
-      border: 1px solid var(--el-border-color);
-      border-radius: 12px;
-      box-shadow: var(--el-box-shadow-light);
+      border: 1px solid #ebeef5;
+      border-radius: 8px;
       padding: 14px 16px;
       display: flex;
       justify-content: space-between;
@@ -244,14 +275,31 @@ useHead({
 }
 
 @media screen and (max-width: 768px) {
+  .createArticle-container {
+    padding: 12px;
+    padding-bottom: 100px;
+
+    .createArticle-cont {
+      padding: 14px;
+
+      .card-header {
+        flex-direction: column;
+        gap: 12px;
+      }
+    }
+  }
+
   .createArticle-footer {
     padding: 0 12px 12px;
+
     .footer-content {
       flex-direction: column;
       align-items: stretch;
       gap: 12px;
+
       .right-buttons {
         flex-direction: column;
+
         .el-button {
           width: 100%;
         }

@@ -1,5 +1,5 @@
 <script setup>
-import { Wallet, Search } from '@element-plus/icons-vue'
+import { Search } from '@element-plus/icons-vue'
 
 const { $myFetch, $msg } = useNuxtApp()
 
@@ -208,9 +208,6 @@ useHead({
       <!-- 标题区域 -->
       <div class="card-header">
         <div class="header-left">
-          <el-icon class="icon">
-            <Wallet />
-          </el-icon>
           <span class="title">购买记录</span>
         </div>
         <div class="header-right">
@@ -446,40 +443,34 @@ useHead({
   flex: 1;
   padding: 20px;
   overflow-y: auto;
-  background-color: #f0f2f5;
+  background-color: #f5f7fa;
   min-height: 100vh;
 }
 
 .record-card {
   background-color: #fff;
-  border-radius: 4px;
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
-  margin-bottom: 20px;
+  border: 1px solid #ebeef5;
+  border-radius: 8px;
+  padding: 16px 20px;
 }
 
 .card-header {
-  padding: 16px 20px;
   display: flex;
   justify-content: space-between;
-  align-items: center;
-  border-bottom: 1px solid #ebeef5;
+  align-items: flex-start;
+  margin-bottom: 16px;
 }
 
 .header-left {
   display: flex;
-  align-items: center;
-}
-
-.header-left .icon {
-  margin-right: 8px;
-  font-size: 18px;
-  color: #409eff;
+  align-items: flex-start;
 }
 
 .header-left .title {
-  font-size: 16px;
+  font-size: 14px;
   font-weight: 600;
   color: #303133;
+  line-height: 1.3;
 }
 
 .header-right {
@@ -488,8 +479,9 @@ useHead({
 }
 
 .filter-section {
-  padding: 16px 20px;
+  padding: 16px 0;
   background-color: #fafafa;
+  border-top: 1px solid #ebeef5;
   border-bottom: 1px solid #ebeef5;
 }
 
@@ -513,7 +505,7 @@ useHead({
 }
 
 .table-container {
-  padding: 20px;
+  padding: 16px 0 0;
 }
 
 .table-actions {

@@ -1,5 +1,5 @@
 <script setup>
-import { Search, Refresh, Document } from '@element-plus/icons-vue'
+import { Search, Refresh } from '@element-plus/icons-vue'
 
 definePageMeta({
   layout: 'admin',
@@ -130,9 +130,6 @@ useHead({
     <div class="logs-card">
       <div class="card-header">
         <div class="header-left">
-          <el-icon class="icon">
-            <Document />
-          </el-icon>
           <span class="title">综合日志</span>
         </div>
       </div>
@@ -245,49 +242,37 @@ useHead({
 <style lang="less" scoped>
 .logs-container {
   position: relative;
-  padding: 24px;
-  display: flex;
-  justify-content: center;
+  min-height: 100vh;
+  padding: 20px;
+  background: #f5f7fa;
 
   .logs-card {
     width: 100%;
-    border-radius: 12px;
-    margin: 0 auto;
+    padding: 16px 20px;
+    background: #fff;
+    border: 1px solid #ebeef5;
+    border-radius: 8px;
 
     .card-header {
       display: flex;
       justify-content: space-between;
-      align-items: center;
-      padding: 20px 24px;
-      background: #fff;
-      border: 1px solid #eaecf0;
-      border-radius: 12px 12px 0 0;
+      align-items: flex-start;
+      margin-bottom: 16px;
 
       .header-left {
         display: flex;
-        align-items: center;
-        gap: 8px;
-
-        .icon {
-          font-size: 18px;
-          color: #409eff;
-        }
+        align-items: flex-start;
 
         .title {
-          font-size: 16px;
+          font-size: 14px;
           font-weight: 600;
-          color: #101828;
+          color: #303133;
         }
       }
     }
 
     .card-body {
-      background: #fff;
-      padding: 24px;
-      border: 1px solid #eaecf0;
-      border-top: none;
-      border-radius: 0 0 12px 12px;
-      box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.03);
+      padding: 8px 0 0;
 
       .filter-container {
         margin: 20px 0;
@@ -298,6 +283,16 @@ useHead({
         display: flex;
         justify-content: flex-end;
       }
+    }
+  }
+}
+
+@media screen and (max-width: 768px) {
+  .logs-container {
+    padding: 12px;
+
+    .logs-card {
+      padding: 14px;
     }
   }
 }

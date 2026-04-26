@@ -726,16 +726,15 @@ useHead({
 <style lang="less" scoped>
 .pay-config-container {
   min-height: 100vh;
-  padding: 10px;
-  background: #f7f7f7;
+  padding: 20px;
+  background: #f5f7fa;
 
   .cont {
     width: 100%;
-    height: 100%;
-    padding: 20px;
+    padding: 16px 20px;
     background: #fff;
-    box-shadow: 0 2px 2px rgb(0 0 0 / 10%);
     border-radius: 8px;
+    border: 1px solid #ebeef5;
   }
 }
 
@@ -748,8 +747,9 @@ useHead({
 
   h2 {
     margin: 0 0 8px;
-    font-size: 22px;
-    color: #1f2937;
+    font-size: 14px;
+    font-weight: 600;
+    color: #303133;
   }
 
   p {
@@ -857,6 +857,16 @@ useHead({
   .page-actions,
   .form-actions {
     width: 100%;
+  }
+}
+
+@media screen and (max-width: 768px) {
+  .pay-config-container {
+    padding: 12px;
+
+    .cont {
+      padding: 14px;
+    }
   }
 }
 </style>

@@ -65,7 +65,6 @@ useHead({
     <div class="form-card">
       <div class="form-card-header">
         <span class="header-title">提交工单</span>
-        <span class="header-desc">请填写以下信息，我们将尽快为您处理</span>
       </div>
 
       <div class="form-card-body">
@@ -144,45 +143,42 @@ useHead({
 
 <style lang="less" scoped>
 .create-page {
-  padding: 20px 24px;
-  background: #f0f2f5;
   min-height: 100vh;
+  padding: 20px;
+  background: #f5f7fa;
 }
 
 .form-card {
   background: #fff;
-  border: 1px solid #dcdfe6;
-  border-radius: 2px;
+  border: 1px solid #ebeef5;
+  border-radius: 8px;
+  padding: 16px 20px;
 
   .form-card-header {
-    padding: 16px 24px;
-    border-bottom: 1px solid #e8e8e8;
-    background: #fafafa;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 16px;
 
     .header-title {
-      font-size: 15px;
+      font-size: 14px;
       font-weight: 600;
-      color: #262626;
-    }
-
-    .header-desc {
-      margin-left: 12px;
-      font-size: 12px;
-      color: #8c8c8c;
+      color: #303133;
+      line-height: 1.3;
     }
   }
 
   .form-card-body {
-    padding: 24px;
+    padding: 8px 0 0;
   }
 
   .form-card-footer {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 14px 24px;
-    border-top: 1px solid #e8e8e8;
-    background: #fafafa;
+    margin-top: 20px;
+    padding-top: 16px;
+    border-top: 1px solid #ebeef5;
 
     .footer-tip {
       display: flex;
@@ -229,7 +225,7 @@ useHead({
   .form-label {
     display: block;
     font-size: 13px;
-    color: #262626;
+    color: #303133;
     margin-bottom: 8px;
     font-weight: 500;
 
@@ -244,9 +240,9 @@ useHead({
 /* 统一输入框样式 */
 :deep(.el-input__wrapper),
 :deep(.el-select .el-input__wrapper) {
-  border-radius: 2px;
+  border-radius: 6px;
   box-shadow: none;
-  border: 1px solid #dcdfe6;
+  border: 1px solid #ebeef5;
 
   &:hover {
     border-color: #b0b0b0;
@@ -258,7 +254,7 @@ useHead({
 }
 
 :deep(.el-textarea__inner) {
-  border-radius: 2px;
+  border-radius: 6px;
   font-size: 13px;
   line-height: 1.6;
 
@@ -275,6 +271,15 @@ useHead({
 @media screen and (max-width: 768px) {
   .create-page {
     padding: 12px;
+  }
+
+  .form-card {
+    padding: 14px;
+
+    .form-card-header {
+      flex-direction: column;
+      gap: 12px;
+    }
   }
 
   .form-section {

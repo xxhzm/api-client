@@ -331,7 +331,6 @@ useHead({
     <div class="cont">
       <div class="card-header">
         <div class="header-left">
-          <el-icon class="icon"><Key /></el-icon>
           <span class="title">API密钥管理</span>
         </div>
       </div>
@@ -657,49 +656,42 @@ useHead({
 <style lang="less" scoped>
 .key-container {
   min-height: 100vh;
-  padding: 10px;
-  background-color: #f8fafc;
+  padding: 20px;
+  background-color: #f5f7fa;
 
   .cont {
     width: 100%;
     height: 100%;
-    padding: 20px;
+    padding: 16px 20px;
     background: #fff;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+    border: 1px solid #ebeef5;
     border-radius: 8px;
 
     .card-header {
       display: flex;
       justify-content: space-between;
-      align-items: center;
-      margin-bottom: 20px;
-      padding-bottom: 20px;
-      border-bottom: 1px solid #edf1f7;
+      align-items: flex-start;
+      margin-bottom: 16px;
 
       .header-left {
         display: flex;
-        align-items: center;
-        gap: 12px;
-
-        .icon {
-          font-size: 20px;
-          color: #4096ff;
-        }
+        align-items: flex-start;
 
         .title {
-          font-size: 16px;
+          font-size: 14px;
           font-weight: 600;
-          color: #2e3033;
+          color: #303133;
+          line-height: 1.3;
         }
       }
     }
 
     .key-info {
-      margin-bottom: 30px;
+      margin-bottom: 16px;
 
       .key-card {
         background: #fff;
-        border: 1px solid #edf1f7;
+        border: 1px solid #ebeef5;
         border-radius: 8px;
         overflow: hidden;
 
@@ -715,7 +707,7 @@ useHead({
           align-items: center;
           padding: 20px 24px;
           background: #fafbfc;
-          border-bottom: 1px solid #edf1f7;
+          border-bottom: 1px solid #ebeef5;
 
           .key-title {
             display: flex;
@@ -743,7 +735,7 @@ useHead({
           .key-display {
             flex: 1;
             background: #fafbfc;
-            border: 1px solid #edf1f7;
+            border: 1px solid #ebeef5;
             border-radius: 6px;
             padding: 12px 16px;
 
@@ -783,7 +775,7 @@ useHead({
         .key-footer {
           padding: 24px;
           background: #fff;
-          border-top: 1px solid #edf1f7;
+          border-top: 1px solid #ebeef5;
 
           .security-alert {
             padding: 10px 16px;
@@ -909,7 +901,7 @@ useHead({
     .security-settings {
       :deep(.el-tabs__nav-wrap::after) {
         height: 1px;
-        background-color: #edf1f7;
+        background-color: #ebeef5;
       }
 
       :deep(.el-tabs__item) {
@@ -941,7 +933,7 @@ useHead({
 
         :deep(.el-input__wrapper) {
           background-color: #fafbfc;
-          border: 1px solid #edf1f7;
+          border: 1px solid #ebeef5;
           box-shadow: none;
 
           &:hover {
@@ -975,18 +967,14 @@ useHead({
 
 @media screen and (max-width: 768px) {
   .key-container {
+    padding: 12px;
+
     .cont {
-      padding: 15px;
+      padding: 14px;
 
       .card-header {
-        padding-bottom: 15px;
-        margin-bottom: 15px;
-
-        .header-left {
-          .title {
-            font-size: 15px;
-          }
-        }
+        flex-direction: column;
+        gap: 12px;
       }
     }
   }

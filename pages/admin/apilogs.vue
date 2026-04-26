@@ -406,7 +406,7 @@ useHead({
   <div class="apilogs-page" v-loading="loading">
     <section class="overview-panel">
       <div class="panel-heading compact">
-        <div class="panel-title">概览</div>
+        <div class="panel-title">接口日志</div>
       </div>
 
       <div class="stats-grid">
@@ -431,7 +431,11 @@ useHead({
       <div v-if="topApis.length > 0" class="top-api-panel">
         <div class="top-api-title">前五接口</div>
         <div class="top-api-list">
-          <div v-for="(api, index) in topApis" :key="index" class="top-api-item">
+          <div
+            v-for="(api, index) in topApis"
+            :key="index"
+            class="top-api-item"
+          >
             <span class="top-api-rank">{{ index + 1 }}</span>
             <div class="top-api-content">
               <div class="top-api-name">{{ api.name }}</div>
@@ -690,16 +694,16 @@ useHead({
   background: #f5f7fa;
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 16px;
 }
 
 .overview-panel,
 .filter-panel,
 .table-panel {
-  padding: 20px;
+  padding: 16px 20px;
   background: #fff;
-  border: 1px solid #e5e7eb;
-  border-radius: 10px;
+  border: 1px solid #ebeef5;
+  border-radius: 8px;
 }
 
 .panel-heading {
@@ -715,10 +719,10 @@ useHead({
 }
 
 .panel-title {
-  font-size: 15px;
+  font-size: 14px;
   font-weight: 600;
-  color: #111827;
-  line-height: 1.4;
+  color: #303133;
+  line-height: 1.3;
 }
 
 .stats-grid {
@@ -952,7 +956,7 @@ useHead({
 
 @media screen and (max-width: 1200px) {
   .apilogs-page {
-    padding: 16px;
+    padding: 20px;
   }
 
   .panel-heading {
@@ -986,7 +990,7 @@ useHead({
   .overview-panel,
   .filter-panel,
   .table-panel {
-    padding: 16px;
+    padding: 14px;
   }
 
   .stats-grid,

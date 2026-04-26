@@ -1,5 +1,5 @@
 <script setup>
-import { Connection, Plus } from '@element-plus/icons-vue'
+import { Plus } from '@element-plus/icons-vue'
 const { $msg, $myFetch } = useNuxtApp()
 const msg = $msg
 const route = useRoute()
@@ -278,9 +278,6 @@ useHead({
       <!-- 标题区域 -->
       <div class="card-header">
         <div class="header-left">
-          <el-icon class="icon">
-            <Connection />
-          </el-icon>
           <span class="title">接口列表</span>
         </div>
         <div class="header-right">
@@ -466,40 +463,30 @@ useHead({
 .apilist-container {
   position: relative;
   min-height: 100vh;
-  padding: 24px;
-  display: flex;
-  justify-content: center;
+  padding: 20px;
+  background: #f5f7fa;
 
   .api-card {
     width: 100%;
-    border-radius: 12px;
-    margin: 0 auto;
+    padding: 16px 20px;
+    background: #fff;
+    border: 1px solid #ebeef5;
+    border-radius: 8px;
 
     .card-header {
       display: flex;
       justify-content: space-between;
-      align-items: center;
-      padding: 20px 24px;
-      background: #fff;
-      border: 1px solid #eaecf0;
-      border-radius: 12px;
-      box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.03);
+      align-items: flex-start;
       margin-bottom: 16px;
 
       .header-left {
         display: flex;
-        align-items: center;
-        gap: 12px;
-
-        .icon {
-          font-size: 20px;
-          color: #4b5563;
-        }
+        align-items: flex-start;
 
         .title {
-          font-size: 16px;
+          font-size: 14px;
           font-weight: 600;
-          color: #1a1f36;
+          color: #303133;
         }
       }
 
@@ -513,11 +500,7 @@ useHead({
     }
 
     .table-container {
-      padding: 24px;
-      background: #fff;
-      border: 1px solid #eaecf0;
-      border-radius: 12px;
-      box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.03);
+      padding: 8px 0 0;
 
       :deep(.el-table) {
         border: none;
@@ -579,13 +562,22 @@ useHead({
 
 @media screen and (max-width: 1200px) {
   .apilist-container {
-    padding: 16px;
+    padding: 20px;
   }
 }
 
 @media screen and (max-width: 768px) {
   .apilist-container {
     padding: 12px;
+
+    .api-card {
+      padding: 14px;
+
+      .card-header {
+        flex-direction: column;
+        gap: 12px;
+      }
+    }
   }
 }
 </style>

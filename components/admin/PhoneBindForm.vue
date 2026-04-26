@@ -329,7 +329,6 @@ onUnmounted(() => {
       <!-- 标题区域 -->
       <div class="card-header">
         <div class="header-left">
-          <el-icon class="icon"><Phone /></el-icon>
           <span class="title">{{ pageTitle }}</span>
         </div>
         <div v-if="hasPhone && currentStep === 2" class="header-right">
@@ -513,34 +512,26 @@ onUnmounted(() => {
   .cont {
     width: 100%;
     height: 100%;
-    padding: 20px;
+    padding: 16px 20px;
     background: #fff;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
-    border-radius: 8px;
     border: 1px solid #ebeef5;
+    border-radius: 8px;
 
     .card-header {
       display: flex;
       justify-content: space-between;
-      align-items: center;
-      margin-bottom: 20px;
-      padding-bottom: 20px;
-      border-bottom: 1px solid #edf1f7;
+      align-items: flex-start;
+      margin-bottom: 16px;
 
       .header-left {
         display: flex;
-        align-items: center;
-        gap: 12px;
-
-        .icon {
-          font-size: 20px;
-          color: #409eff;
-        }
+        align-items: flex-start;
 
         .title {
           font-size: 14px;
           font-weight: 600;
           color: #303133;
+          line-height: 1.3;
         }
       }
 
@@ -560,14 +551,14 @@ onUnmounted(() => {
       margin-bottom: 24px;
       padding: 16px 20px;
       background: #fafbfc;
-      border: 1px solid #edf1f7;
+      border: 1px solid #ebeef5;
       border-radius: 6px;
     }
 
     .current-phone {
       padding: 12px 16px;
       background: #fafbfc;
-      border: 1px solid #edf1f7;
+      border: 1px solid #ebeef5;
       border-radius: 6px;
       margin-bottom: 20px;
       display: flex;
@@ -588,6 +579,7 @@ onUnmounted(() => {
 
     .form-container {
       max-width: 520px;
+      padding: 8px 0 0;
 
       :deep(.el-form-item__label) {
         font-size: 13px;
@@ -699,7 +691,7 @@ onUnmounted(() => {
       margin-top: 24px;
       padding: 12px 16px;
       background: #fafbfc;
-      border: 1px solid #edf1f7;
+      border: 1px solid #ebeef5;
       border-radius: 6px;
 
       h4 {
@@ -729,6 +721,13 @@ onUnmounted(() => {
 
 @media screen and (max-width: 768px) {
   .phone-bind-form-wrap .cont {
+    padding: 14px;
+
+    .card-header {
+      flex-direction: column;
+      gap: 12px;
+    }
+
     .form-container {
       .captcha-container {
         flex-direction: column;
