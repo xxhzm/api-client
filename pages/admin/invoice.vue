@@ -1175,8 +1175,9 @@ useHead({
 
 .preview-step-header {
   display: flex;
-  justify-content: space-between;
-  align-items: center;
+  justify-content: flex-start;
+  align-items: flex-start;
+  flex-direction: column;
   gap: 16px;
   margin-bottom: 16px;
   padding: 12px;
@@ -1203,6 +1204,7 @@ useHead({
 .preview-step-actions {
   display: flex;
   align-items: center;
+  justify-content: flex-start;
   gap: 10px;
 }
 
@@ -1530,10 +1532,16 @@ useHead({
     }
   }
 
-  .preview-step-header,
-  .preview-step-actions {
-    align-items: stretch;
+  .preview-step-header {
+    align-items: flex-start;
     flex-direction: column;
+  }
+
+  .preview-step-actions {
+    align-items: center;
+    flex-direction: row;
+    flex-wrap: wrap;
+    justify-content: flex-start;
   }
 
   .invoice-preview-form {
