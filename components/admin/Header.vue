@@ -32,6 +32,8 @@ const routeNameMap = {
   '/admin/ai-article': 'AI生成文章',
   '/admin/articleset': '文章设置',
   '/admin/pay': '账户充值',
+  '/admin/invoice': '发票管理',
+  '/admin/invoicedetail': '开票详情',
   '/admin/createRechargeCard': '生成充值卡',
   '/admin/useRechargeCard': '使用充值卡',
   '/admin/rechargeCardHistory': '充值卡记录',
@@ -62,6 +64,7 @@ const routeNameMap = {
 const dynamicRouteMap = {
   apiset: '接口设置',
   articleset: '文章设置',
+  invoicedetail: '开票详情',
   workorderdetail: '工单详情',
 }
 
@@ -89,6 +92,8 @@ const parentNameMap = {
 
   // 财务管理
   '/admin/pay': '财务管理',
+  '/admin/invoice': '财务管理',
+  '/admin/invoicedetail': '财务管理',
   '/admin/createRechargeCard': '财务管理',
   '/admin/useRechargeCard': '财务管理',
   '/admin/rechargeCardHistory': '财务管理',
@@ -148,6 +153,7 @@ const breadcrumbs = computed(() => {
     pathParts.length > 3 &&
     (pathParts[2] === 'apiset' ||
       pathParts[2] === 'articleset' ||
+      pathParts[2] === 'invoicedetail' ||
       pathParts[2] === 'workorderdetail')
   ) {
     basePath = `/${pathParts[1]}/${pathParts[2]}`
@@ -195,6 +201,7 @@ const addVisitedView = () => {
     pathParts.length > 3 &&
     (pathParts[2] === 'apiset' ||
       pathParts[2] === 'articleset' ||
+      pathParts[2] === 'invoicedetail' ||
       pathParts[2] === 'workorderdetail')
   ) {
     basePath = `/${pathParts[1]}/${pathParts[2]}`
