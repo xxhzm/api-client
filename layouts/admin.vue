@@ -1,6 +1,4 @@
 <script setup>
-import { Menu } from '@element-plus/icons-vue'
-
 const route = useRoute()
 const screenWidth = ref(0)
 const isSidebarShow = ref(true)
@@ -77,11 +75,10 @@ watch(
     <div class="right">
       <!-- 遮罩层 -->
       <div class="overlay" v-show="isoverlay" @click="handleSidebarShow"></div>
-      <!-- 侧边栏控制按钮 -->
-      <div class="control-sidebar" v-show="iscontrolShow">
-        <el-icon @click="handleSidebarShow"><Menu /></el-icon>
-      </div>
-      <AdminHeader></AdminHeader>
+      <AdminHeader
+        :show-sidebar-control="iscontrolShow"
+        @toggle-sidebar="handleSidebarShow"
+      ></AdminHeader>
 
       <!-- 页面内容 -->
       <slot />
@@ -111,33 +108,6 @@ watch(
       background-color: rgba(0, 0, 0, 0.5);
     }
 
-    .control-sidebar {
-      position: absolute;
-      width: 50px;
-      height: 50px;
-      top: 0;
-      left: 0;
-      z-index: 9999;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      background: transparent;
-      cursor: pointer;
-      transition: background-color 0.3s;
-
-      .el-icon {
-        font-size: 20px;
-        color: #303133;
-      }
-
-      &:hover {
-        background-color: rgba(0, 0, 0, 0.025);
-      }
-
-      &:active {
-        background-color: rgba(0, 0, 0, 0.05);
-      }
-    }
   }
 }
 
@@ -153,9 +123,6 @@ watch(
         height: 100dvh;
       }
 
-      .control-sidebar {
-        position: fixed;
-      }
     }
 
     :deep(.sidebar-container) {

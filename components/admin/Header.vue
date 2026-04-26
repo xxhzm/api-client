@@ -1,5 +1,14 @@
 <script setup>
-import { Close } from '@element-plus/icons-vue'
+import { Close, Menu } from '@element-plus/icons-vue'
+
+const props = defineProps({
+  showSidebarControl: {
+    type: Boolean,
+    default: false,
+  },
+})
+
+const emit = defineEmits(['toggle-sidebar'])
 
 const { $logout } = useNuxtApp()
 const route = useRoute()
@@ -350,6 +359,18 @@ const handleSelect = (key) => {
 <template>
   <div class="header-wrapper">
     <div class="header-container">
+      <div
+        v-show="props.showSidebarControl"
+        class="mobile-sidebar-trigger"
+        role="button"
+        tabindex="0"
+        @click="emit('toggle-sidebar')"
+        @keydown.enter.prevent="emit('toggle-sidebar')"
+        @keydown.space.prevent="emit('toggle-sidebar')"
+      >
+        <el-icon><Menu /></el-icon>
+      </div>
+
       <div class="left-section">
         <el-breadcrumb separator="/">
           <el-breadcrumb-item
@@ -418,6 +439,35 @@ const handleSelect = (key) => {
   align-items: center;
   padding: 0 20px;
   border-bottom: 1px solid #e4e7ed;
+
+  .mobile-sidebar-trigger {
+    display: none;
+    width: 50px;
+    height: 50px;
+    flex: 0 0 50px;
+    align-items: center;
+    justify-content: center;
+    margin-left: -20px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+
+    .el-icon {
+      font-size: 20px;
+      color: #303133;
+    }
+
+    &:hover {
+      background-color: rgba(0, 0, 0, 0.025);
+    }
+
+    &:active {
+      background-color: rgba(0, 0, 0, 0.05);
+    }
+
+    @media screen and (max-width: 768px) {
+      display: flex;
+    }
+  }
 
   .left-section {
     flex: 1;
