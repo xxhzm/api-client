@@ -293,6 +293,11 @@ const addReason = (reason) => {
   }
 }
 
+const openCreateDialog = () => {
+  resetForm()
+  createBanStatus.value = true
+}
+
 onMounted(() => {
   getBanList()
 })
@@ -490,10 +495,10 @@ useHead({
           <el-form-item label="状态">
             <el-select v-model="banInfo.statusValue" class="full-width">
               <el-option :value="1" label="已封禁" />
-              <el-option :value="2" label="已解除" :disabled="!isEdit.value" />
+              <el-option :value="2" label="已解除" :disabled="!isEdit" />
               <el-option :value="3" label="IP白名单" />
             </el-select>
-            <div class="status-tip" v-if="!isEdit.value">
+            <div class="status-tip" v-if="!isEdit">
               <el-icon><InfoFilled /></el-icon>
               <span>新增IP时可选择"已封禁"或"IP白名单"(信任的IP)</span>
             </div>
