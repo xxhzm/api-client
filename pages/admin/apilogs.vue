@@ -61,6 +61,23 @@ const callStats = ref({
 })
 const topApis = ref([])
 
+const topApiCards = computed(() => {
+  const cards = topApis.value.slice(0, 5).map((api) => ({
+    ...api,
+    placeholder: false,
+  }))
+
+  while (cards.length < 5) {
+    cards.push({
+      name: '',
+      count: '',
+      placeholder: true,
+    })
+  }
+
+  return cards
+})
+
 const applyStats = (callStat = {}) => {
   callStats.value = {
     day1: callStat.day_1 || 0,
@@ -428,18 +445,24 @@ useHead({
         </div>
       </div>
 
-      <div v-if="topApis.length > 0" class="top-api-panel">
+      <div class="top-api-panel">
         <div class="top-api-title">前五接口</div>
         <div class="top-api-list">
           <div
-            v-for="(api, index) in topApis"
+            v-for="(api, index) in topApiCards"
             :key="index"
-            class="top-api-item"
+            :class="['top-api-item', { 'is-placeholder': api.placeholder }]"
           >
             <span class="top-api-rank">{{ index + 1 }}</span>
             <div class="top-api-content">
-              <div class="top-api-name">{{ api.name }}</div>
-              <div class="top-api-count">{{ api.count }} 次</div>
+              <template v-if="api.placeholder">
+                <div class="top-api-name-placeholder"></div>
+                <div class="top-api-count-placeholder"></div>
+              </template>
+              <template v-else>
+                <div class="top-api-name">{{ api.name }}</div>
+                <div class="top-api-count">{{ api.count }} 次</div>
+              </template>
             </div>
           </div>
         </div>
@@ -805,6 +828,16 @@ useHead({
   background: #fafbfc;
 }
 
+.top-api-item.is-placeholder {
+  border-style: dashed;
+  background: #fbfcfe;
+}
+
+.top-api-item.is-placeholder .top-api-rank {
+  background: #eef2f7;
+  color: #94a3b8;
+}
+
 .top-api-rank {
   display: inline-flex;
   align-items: center;
@@ -820,6 +853,7 @@ useHead({
 }
 
 .top-api-content {
+  flex: 1;
   min-width: 0;
 }
 
@@ -837,6 +871,23 @@ useHead({
   margin-top: 2px;
   color: #6b7280;
   font-size: 12px;
+}
+
+.top-api-name-placeholder,
+.top-api-count-placeholder {
+  border-radius: 999px;
+  background: #e9eef5;
+}
+
+.top-api-name-placeholder {
+  width: 76%;
+  height: 14px;
+}
+
+.top-api-count-placeholder {
+  width: 42%;
+  height: 12px;
+  margin-top: 8px;
 }
 
 .filter-grid {
