@@ -6,6 +6,9 @@ import { Connection, DataLine, Stopwatch, Star } from '@element-plus/icons-vue'
 const chartRef = ref(null)
 let chart = null
 let echarts = null
+let initObserver = null
+let resizeFrame = 0
+let isUnmounted = false
 
 // 全局数据中心（经纬度 + 核心等级）
 const centers = [
@@ -22,48 +25,22 @@ const centers = [
   { name: '阿姆斯特丹', coord: [4.9041, 52.3676], tier: 1 },
   { name: '巴黎', coord: [2.3522, 48.8566], tier: 1 },
 
-  { name: '西雅图', coord: [-122.3321, 47.6062], tier: 2 },
-  { name: '芝加哥', coord: [-87.6298, 41.8781], tier: 2 },
   { name: '达拉斯', coord: [-96.797, 32.7767], tier: 2 },
   { name: '迈阿密', coord: [-80.1918, 25.7617], tier: 2 },
-  { name: '多伦多', coord: [-79.3832, 43.6532], tier: 2 },
-  { name: '墨西哥城', coord: [-99.1332, 19.4326], tier: 3 },
   { name: '圣保罗', coord: [-46.6333, -23.5505], tier: 2 },
-  { name: '布宜诺斯艾利斯', coord: [-58.3816, -34.6037], tier: 3 },
-  { name: '圣地亚哥', coord: [-70.6693, -33.4489], tier: 3 },
-  { name: '波哥大', coord: [-74.0721, 4.711], tier: 3 },
 
   { name: '马德里', coord: [-3.7038, 40.4168], tier: 2 },
   { name: '米兰', coord: [9.19, 45.4642], tier: 2 },
-  { name: '苏黎世', coord: [8.5417, 47.3769], tier: 2 },
-  { name: '斯德哥尔摩', coord: [18.0686, 59.3293], tier: 2 },
-  { name: '华沙', coord: [21.0122, 52.2297], tier: 2 },
-  { name: '都柏林', coord: [-6.2603, 53.3498], tier: 3 },
-  { name: '布鲁塞尔', coord: [4.3517, 50.8503], tier: 3 },
-  { name: '布拉格', coord: [14.4378, 50.0755], tier: 3 },
-  { name: '维也纳', coord: [16.3738, 48.2082], tier: 3 },
-  { name: '里斯本', coord: [-9.1393, 38.7223], tier: 3 },
 
   { name: '首尔', coord: [126.978, 37.5665], tier: 2 },
-  { name: '大阪', coord: [135.5022, 34.6937], tier: 2 },
   { name: '台北', coord: [121.5654, 25.033], tier: 3 },
   { name: '曼谷', coord: [100.5018, 13.7563], tier: 3 },
-  { name: '雅加达', coord: [106.8456, -6.2088], tier: 3 },
   { name: '孟买', coord: [72.8777, 19.076], tier: 2 },
-  { name: '班加罗尔', coord: [77.5946, 12.9716], tier: 3 },
 
   { name: '悉尼', coord: [151.2093, -33.8688], tier: 2 },
-  { name: '墨尔本', coord: [144.9631, -37.8136], tier: 3 },
 
   { name: '迪拜', coord: [55.2708, 25.2048], tier: 2 },
-  { name: '利雅得', coord: [46.6753, 24.7136], tier: 3 },
-  { name: '特拉维夫', coord: [34.7818, 32.0853], tier: 3 },
-  { name: '伊斯坦布尔', coord: [28.9784, 41.0082], tier: 3 },
-  { name: '开罗', coord: [31.2357, 30.0444], tier: 3 },
   { name: '约翰内斯堡', coord: [28.0473, -26.2041], tier: 3 },
-  { name: '拉各斯', coord: [3.3792, 6.5244], tier: 3 },
-  { name: '内罗毕', coord: [36.8219, -1.2921], tier: 3 },
-  { name: '卡萨布兰卡', coord: [-7.5898, 33.5731], tier: 3 },
 ]
 
 // 连线数据（起点 -> 终点），覆盖主要跨洲骨干与区域互联
@@ -82,34 +59,13 @@ const links = [
   ['孟买', '迪拜'],
   ['迪拜', '法兰克福'],
   ['圣保罗', '迈阿密'],
-  ['墨西哥城', '达拉斯'],
-  ['多伦多', '纽约'],
-  ['西雅图', '硅谷'],
-  ['芝加哥', '纽约'],
+  ['达拉斯', '纽约'],
   ['首尔', '东京'],
   ['台北', '香港'],
-  ['雅加达', '新加坡'],
   ['曼谷', '新加坡'],
-  ['墨尔本', '悉尼'],
   ['马德里', '巴黎'],
   ['米兰', '法兰克福'],
-  ['苏黎世', '法兰克福'],
-  ['斯德哥尔摩', '阿姆斯特丹'],
-  ['华沙', '法兰克福'],
-  ['都柏林', '伦敦'],
-  ['布拉格', '维也纳'],
-  ['维也纳', '法兰克福'],
-  ['里斯本', '马德里'],
-  ['布鲁塞尔', '阿姆斯特丹'],
-  ['伊斯坦布尔', '法兰克福'],
-  ['开罗', '迪拜'],
-  ['特拉维夫', '法兰克福'],
-  ['利雅得', '迪拜'],
   ['约翰内斯堡', '法兰克福'],
-  ['拉各斯', '伦敦'],
-  ['内罗毕', '迪拜'],
-  ['卡萨布兰卡', '马德里'],
-  ['大阪', '东京'],
   ['迈阿密', '纽约'],
 ]
 
@@ -155,12 +111,36 @@ const toLineData = (pairs) =>
     })
     .filter(Boolean)
 
-// 世界地图配置
-const getWorldOption = () => {
-  const lineData = toLineData(links)
+const lineData = toLineData(links)
+const flowLineData = lineData
+  .filter((_, index) => index % 2 === 0)
+  .slice(0, 18)
+const nodeData = visibleCenters.map((c) => ({
+  name: c.name,
+  value: [...c.coord, 1],
+  symbolSize: c.tier === 1 ? 11 : c.tier === 2 ? 9 : 7,
+}))
+const coreNodeData = nodeData.filter((node) =>
+  tier1Centers.some((center) => center.name === node.name)
+)
+const labelData = visibleCenters
+  .filter((c) => (c.tier ?? 2) <= 2)
+  .map((c) => ({ name: c.name, value: [...c.coord, 1] }))
 
+const shouldEnableAnimation = () => {
+  const reducedMotion = window.matchMedia?.(
+    '(prefers-reduced-motion: reduce)'
+  ).matches
+
+  return !reducedMotion && window.innerWidth > 768
+}
+
+// 世界地图配置
+const getWorldOption = (enableAnimation = true) => {
   return {
     backgroundColor: '#fff',
+    animation: enableAnimation,
+    animationThreshold: 80,
     title: {
       text: '全球云联接网络',
       left: 'center',
@@ -212,67 +192,81 @@ const getWorldOption = () => {
         name: '全球连线',
         type: 'lines',
         coordinateSystem: 'geo',
-        zlevel: 2,
-        effect: {
-          show: true,
-          constantSpeed: 60,
-          trailLength: 0.25,
-          symbol: 'arrow',
-          symbolSize: 8,
-          color: '#66b1ff',
-        },
+        zlevel: 1,
+        silent: true,
+        effect: { show: false },
         lineStyle: {
           color: '#409eff',
-          width: 1.8,
-          opacity: 0.85,
+          width: 1.4,
+          opacity: 0.65,
           curveness: 0.25,
         },
         data: lineData,
       },
-      {
-        name: '粒子流光',
-        type: 'lines',
-        coordinateSystem: 'geo',
-        zlevel: 1,
-        effect: {
-          show: true,
-          constantSpeed: 35,
-          trailLength: 0,
-          symbol: 'circle',
-          symbolSize: 3.5,
-          color: '#a0c8ff',
-        },
-        lineStyle: {
-          color: '#a0c8ff',
-          width: 0.8,
-          opacity: 0.5,
-          curveness: 0.25,
-        },
-        data: lineData,
-      },
+      ...(enableAnimation
+        ? [
+            {
+              name: '核心流光',
+              type: 'lines',
+              coordinateSystem: 'geo',
+              zlevel: 2,
+              silent: true,
+              effect: {
+                show: true,
+                constantSpeed: 45,
+                trailLength: 0.15,
+                symbol: 'arrow',
+                symbolSize: 6,
+                color: '#66b1ff',
+              },
+              lineStyle: {
+                color: '#66b1ff',
+                width: 0,
+                opacity: 0,
+                curveness: 0.25,
+              },
+              data: flowLineData,
+            },
+          ]
+        : []),
       {
         name: '目标节点',
-        type: 'effectScatter',
+        type: 'scatter',
         coordinateSystem: 'geo',
         zlevel: 3,
-        rippleEffect: { brushType: 'stroke', scale: 3, period: 4 },
         itemStyle: {
           color: '#409eff',
-          shadowBlur: 10,
+          shadowBlur: 6,
           shadowColor: 'rgba(64, 158, 255, 0.5)',
         },
         symbolSize: (val, params) => params.data?.symbolSize ?? 9,
-        data: visibleCenters.map((c) => ({
-          name: c.name,
-          value: [...c.coord, 1],
-          symbolSize: c.tier === 1 ? 11 : c.tier === 2 ? 9 : 7,
-        })),
+        data: nodeData,
       },
+      ...(enableAnimation
+        ? [
+            {
+              name: '核心节点',
+              type: 'effectScatter',
+              coordinateSystem: 'geo',
+              zlevel: 4,
+              silent: true,
+              rippleEffect: { brushType: 'stroke', scale: 2.4, period: 5 },
+              itemStyle: {
+                color: '#409eff',
+                shadowBlur: 8,
+                shadowColor: 'rgba(64, 158, 255, 0.45)',
+              },
+              symbolSize: (val, params) => params.data?.symbolSize ?? 10,
+              data: coreNodeData,
+            },
+          ]
+        : []),
       {
         name: '节点标签',
         type: 'scatter',
         coordinateSystem: 'geo',
-        zlevel: 4,
+        zlevel: 5,
+        silent: true,
         symbolSize: 1,
         label: {
           show: true,
@@ -282,11 +276,7 @@ const getWorldOption = () => {
           fontSize: 12,
         },
         itemStyle: { color: '#409eff' },
-        // 在 ECharts 配置中，按核心等级调整节点大小，减少标签拥挤
-        // effectScatter 系列：为每个节点设置 symbolSize
-        data: visibleCenters
-          .filter((c) => (c.tier ?? 2) <= 2)
-          .map((c) => ({ name: c.name, value: [...c.coord, 1] })),
+        data: labelData,
       },
     ],
   }
@@ -332,7 +322,33 @@ const getGraphOption = () => {
   }
 }
 
+const handleResize = () => {
+  if (!chart || resizeFrame) return
+
+  resizeFrame = window.requestAnimationFrame(() => {
+    resizeFrame = 0
+    chart?.resize()
+  })
+}
+
+const setChartAnimationPaused = (paused) => {
+  const animation = chart?.getZr?.()?.animation
+  if (!animation) return
+
+  if (paused) {
+    animation.pause?.()
+  } else {
+    animation.resume?.()
+  }
+}
+
+const handleVisibilityChange = () => {
+  setChartAnimationPaused(document.hidden)
+}
+
 const initChart = async () => {
+  if (chart || !chartRef.value) return
+
   // 动态导入 ECharts
   const core = await import('echarts/core')
   const charts = await import('echarts/charts')
@@ -340,7 +356,8 @@ const initChart = async () => {
   const renderers = await import('echarts/renderers')
 
   echarts = core
-  const { LinesChart, ScatterChart, EffectScatterChart, MapChart } = charts
+  const { LinesChart, ScatterChart, EffectScatterChart, MapChart, GraphChart } =
+    charts
   const { GeoComponent, TooltipComponent, TitleComponent } = comps
   const { CanvasRenderer } = renderers
 
@@ -352,6 +369,7 @@ const initChart = async () => {
     ScatterChart,
     EffectScatterChart,
     MapChart,
+    GraphChart,
     CanvasRenderer,
   ])
 
@@ -366,18 +384,65 @@ const initChart = async () => {
     }
   })()
 
-  chart = echarts.init(chartRef.value)
-  chart.setOption(worldRegistered ? getWorldOption() : getGraphOption())
+  if (isUnmounted || !chartRef.value) return
 
-  window.addEventListener('resize', () => chart?.resize())
+  chart = echarts.init(chartRef.value, null, {
+    renderer: 'canvas',
+    useDirtyRect: true,
+    devicePixelRatio: Math.min(window.devicePixelRatio || 1, 1.5),
+  })
+  const enableAnimation = shouldEnableAnimation()
+  chart.setOption(
+    worldRegistered ? getWorldOption(enableAnimation) : getGraphOption()
+  )
+
+  window.addEventListener('resize', handleResize)
+  document.addEventListener('visibilitychange', handleVisibilityChange)
+}
+
+const scheduleChartInit = () => {
+  if (!chartRef.value) return
+
+  if (!('IntersectionObserver' in window)) {
+    initChart()
+    return
+  }
+
+  initObserver = new IntersectionObserver(
+    ([entry]) => {
+      if (!entry?.isIntersecting) return
+
+      initObserver?.disconnect()
+      initObserver = null
+
+      if ('requestIdleCallback' in window) {
+        window.requestIdleCallback(() => initChart(), { timeout: 1200 })
+      } else {
+        window.setTimeout(() => initChart(), 80)
+      }
+    },
+    { rootMargin: '160px 0px', threshold: 0.01 }
+  )
+  initObserver.observe(chartRef.value)
 }
 
 onMounted(() => {
-  initChart()
+  isUnmounted = false
+  scheduleChartInit()
 })
 
 onUnmounted(() => {
+  isUnmounted = true
+  initObserver?.disconnect()
+  initObserver = null
+  window.removeEventListener('resize', handleResize)
+  document.removeEventListener('visibilitychange', handleVisibilityChange)
+  if (resizeFrame) {
+    window.cancelAnimationFrame(resizeFrame)
+    resizeFrame = 0
+  }
   chart?.dispose()
+  chart = null
 })
 </script>
 
@@ -391,8 +456,8 @@ onUnmounted(() => {
 
       <div class="visual-card">
         <!-- 粒子背景 -->
-        <div class="particles">
-          <span v-for="i in 12" :key="i" class="particle" />
+        <div class="particles" aria-hidden="true">
+          <span v-for="i in 6" :key="i" class="particle" />
         </div>
 
         <!-- 地球/网络可视化 -->
@@ -494,6 +559,7 @@ onUnmounted(() => {
         background: rgba(255, 255, 255, 0.6);
         animation: float 9s linear infinite;
         filter: blur(0.3px);
+        will-change: transform, opacity;
       }
 
       .particle:nth-child(1) {
@@ -801,6 +867,12 @@ onUnmounted(() => {
     }
     .visual-card .stats {
       grid-template-columns: 1fr;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .visual-card .particles .particle {
+      animation: none;
     }
   }
 }
