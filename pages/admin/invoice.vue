@@ -5,7 +5,7 @@ definePageMeta({
   layout: 'admin',
 })
 
-const { $msg } = useNuxtApp()
+const { $msg, $myFetch } = useNuxtApp()
 
 // 标签页状态
 const activeName = ref('apply')
@@ -95,22 +95,15 @@ const showInvoiceRecordDetail = (row) => {
 }
 
 // === 发票抬头数据 ===
-const infoData = ref([
-  {
-    id: 1,
-    title: '广州某某科技有限公司',
-    tax_id: '91440101MA59XXXXXX',
-    type: '企业',
-    bank_name: '工行零庄滕州支行营业室',
-    bank_account: '1605003109200855862',
-    is_default: true,
-  },
-])
+const infoData = ref([])
 
 const invoiceTitleDialogVisible = ref(false)
 const invoiceTitleSubmitting = ref(false)
 const invoiceTitleFormRef = ref()
+const invoiceTitleMode = ref('create')
+const invoiceTitleDeletingId = ref(null)
 const invoiceTitleForm = reactive({
+  id: null,
   title: '',
   type: '企业',
   tax_id: '',
@@ -119,9 +112,11 @@ const invoiceTitleForm = reactive({
   is_default: false,
 })
 
-const validateTaxId = (rule, value, callback) => {
-  if (invoiceTitleForm.type === '企业' && !String(value || '').trim()) {
-    callback(new Error('请输入纳税人识别号'))
+const isCompanyInvoiceTitle = () => invoiceTitleForm.type === '企业'
+
+const validateCompanyRequired = (message) => (_rule, value, callback) => {
+  if (isCompanyInvoiceTitle() && !String(value || '').trim()) {
+    callback(new Error(message))
     return
   }
   callback()
@@ -130,10 +125,69 @@ const validateTaxId = (rule, value, callback) => {
 const invoiceTitleRules = {
   title: [{ required: true, message: '请输入发票抬头', trigger: 'blur' }],
   type: [{ required: true, message: '请选择抬头类型', trigger: 'change' }],
-  tax_id: [{ validator: validateTaxId, trigger: 'blur' }],
+  tax_id: [
+    {
+      validator: validateCompanyRequired('请输入纳税人识别号'),
+      trigger: 'blur',
+    },
+  ],
+  bank_name: [
+    { validator: validateCompanyRequired('请输入开户银行'), trigger: 'blur' },
+  ],
+  bank_account: [
+    { validator: validateCompanyRequired('请输入银行账号'), trigger: 'blur' },
+  ],
+}
+
+const mapInvoiceTitle = (item) => ({
+  id: item.id,
+  uid: item.uid,
+  title: item.invoice_title || '',
+  tax_id: item.tax_number || '',
+  type: item.title_type === 'personal' ? '个人' : '企业',
+  bank_name: item.bank_name || '',
+  bank_account: item.bank_account || '',
+  is_default: Boolean(item.is_default),
+  create_time: item.create_time,
+  update_time: item.update_time,
+})
+
+const sortInvoiceTitles = (list) => {
+  return [...list].sort((a, b) => {
+    const createTimeDiff =
+      Number(a.create_time || 0) - Number(b.create_time || 0)
+
+    if (createTimeDiff !== 0) {
+      return createTimeDiff
+    }
+
+    return Number(a.id || 0) - Number(b.id || 0)
+  })
+}
+
+const invoiceTitleDialogTitle = computed(() =>
+  invoiceTitleMode.value === 'edit' ? '编辑发票抬头' : '新增发票抬头',
+)
+
+const fetchInvoiceTitleList = async () => {
+  try {
+    const res = await $myFetch('InvoiceTitleList')
+
+    if (res.code === 200) {
+      infoData.value = sortInvoiceTitles(
+        (res.data?.list || []).map(mapInvoiceTitle),
+      )
+      return
+    }
+
+    $msg(res.msg || '获取发票抬头失败', 'error')
+  } catch (error) {
+    $msg('获取发票抬头失败', 'error')
+  }
 }
 
 const resetInvoiceTitleForm = () => {
+  invoiceTitleForm.id = null
   invoiceTitleForm.title = ''
   invoiceTitleForm.type = '企业'
   invoiceTitleForm.tax_id = ''
@@ -144,17 +198,37 @@ const resetInvoiceTitleForm = () => {
 }
 
 const openInvoiceTitleDialog = () => {
+  invoiceTitleMode.value = 'create'
   resetInvoiceTitleForm()
   invoiceTitleDialogVisible.value = true
 }
 
+const openEditInvoiceTitleDialog = (row) => {
+  invoiceTitleMode.value = 'edit'
+  invoiceTitleForm.id = row.id
+  invoiceTitleForm.title = row.title || ''
+  invoiceTitleForm.type = row.type || '企业'
+  invoiceTitleForm.tax_id = row.tax_id || ''
+  invoiceTitleForm.bank_name = row.bank_name || ''
+  invoiceTitleForm.bank_account = row.bank_account || ''
+  invoiceTitleForm.is_default = Boolean(row.is_default)
+  invoiceTitleDialogVisible.value = true
+  nextTick(() => {
+    invoiceTitleFormRef.value?.clearValidate?.()
+  })
+}
+
 const handleInvoiceTitleTypeChange = () => {
-  if (invoiceTitleForm.type === '个人') {
+  if (!isCompanyInvoiceTitle()) {
     invoiceTitleForm.tax_id = ''
     invoiceTitleForm.bank_name = ''
     invoiceTitleForm.bank_account = ''
   }
-  invoiceTitleFormRef.value?.clearValidate?.('tax_id')
+  invoiceTitleFormRef.value?.clearValidate?.([
+    'tax_id',
+    'bank_name',
+    'bank_account',
+  ])
 }
 
 const submitInvoiceTitle = async () => {
@@ -168,34 +242,88 @@ const submitInvoiceTitle = async () => {
 
   invoiceTitleSubmitting.value = true
   try {
-    if (invoiceTitleForm.is_default) {
-      infoData.value.forEach((item) => {
-        item.is_default = false
-      })
+    const body = new URLSearchParams()
+    const titleType = isCompanyInvoiceTitle() ? 'company' : 'personal'
+    const requestName =
+      invoiceTitleMode.value === 'edit'
+        ? 'UpdateInvoiceTitle'
+        : 'CreateInvoiceTitle'
+
+    if (invoiceTitleMode.value === 'edit') {
+      if (!invoiceTitleForm.id) {
+        $msg('缺少发票抬头 ID', 'error')
+        return
+      }
+      body.append('id', String(invoiceTitleForm.id))
+    }
+    body.append('titleType', titleType)
+    body.append('invoiceTitle', invoiceTitleForm.title.trim())
+    body.append('isDefault', String(invoiceTitleForm.is_default))
+
+    if (titleType === 'company') {
+      body.append('taxNumber', invoiceTitleForm.tax_id.trim())
+      body.append('bankName', invoiceTitleForm.bank_name.trim())
+      body.append('bankAccount', invoiceTitleForm.bank_account.trim())
     }
 
-    const nextId = Math.max(0, ...infoData.value.map((item) => item.id)) + 1
-    infoData.value.push({
-      id: nextId,
-      title: invoiceTitleForm.title.trim(),
-      type: invoiceTitleForm.type,
-      tax_id:
-        invoiceTitleForm.type === '企业' ? invoiceTitleForm.tax_id.trim() : '',
-      bank_name:
-        invoiceTitleForm.type === '企业'
-          ? invoiceTitleForm.bank_name.trim()
-          : '',
-      bank_account:
-        invoiceTitleForm.type === '企业'
-          ? invoiceTitleForm.bank_account.trim()
-          : '',
-      is_default: invoiceTitleForm.is_default,
+    const res = await $myFetch(requestName, {
+      method: 'POST',
+      body,
     })
 
+    if (res.code !== 200) {
+      $msg(
+        res.msg ||
+          (invoiceTitleMode.value === 'edit'
+            ? '发票抬头修改失败'
+            : '发票抬头新增失败'),
+        'error',
+      )
+      return
+    }
+
+    await fetchInvoiceTitleList()
+
     invoiceTitleDialogVisible.value = false
-    $msg('发票抬头新增成功', 'success')
+    $msg(
+      res.msg ||
+        (invoiceTitleMode.value === 'edit'
+          ? '发票抬头修改成功'
+          : '发票抬头新增成功'),
+      'success',
+    )
+  } catch (error) {
+    $msg(
+      invoiceTitleMode.value === 'edit'
+        ? '发票抬头修改失败'
+        : '发票抬头新增失败',
+      'error',
+    )
   } finally {
     invoiceTitleSubmitting.value = false
+  }
+}
+
+const deleteInvoiceTitle = async (row) => {
+  invoiceTitleDeletingId.value = row.id
+  try {
+    const res = await $myFetch('DeleteInvoiceTitle', {
+      params: {
+        id: row.id,
+      },
+    })
+
+    if (res.code !== 200) {
+      $msg(res.msg || '发票抬头删除失败', 'error')
+      return
+    }
+
+    await fetchInvoiceTitleList()
+    $msg(res.msg || '发票抬头删除成功', 'success')
+  } catch (error) {
+    $msg('发票抬头删除失败', 'error')
+  } finally {
+    invoiceTitleDeletingId.value = null
   }
 }
 
@@ -432,6 +560,7 @@ const fetchData = () => {
 
 onMounted(() => {
   fetchData()
+  fetchInvoiceTitleList()
   window.addEventListener('resize', updateInvoicePreviewScale)
 })
 
@@ -912,12 +1041,33 @@ useHead({
                     <span v-else>-</span>
                   </template>
                 </el-table-column>
-                <el-table-column label="操作" width="150" fixed="right">
-                  <template #default>
-                    <el-button type="primary" link :icon="Edit">编辑</el-button>
-                    <el-button type="danger" link :icon="Delete"
-                      >删除</el-button
+                <el-table-column label="操作" width="170" fixed="right">
+                  <template #default="scope">
+                    <el-button
+                      type="primary"
+                      link
+                      :icon="Edit"
+                      @click="openEditInvoiceTitleDialog(scope.row)"
                     >
+                      编辑
+                    </el-button>
+                    <el-popconfirm
+                      confirm-button-text="确定"
+                      cancel-button-text="取消"
+                      title="确定要删除该发票抬头吗？"
+                      @confirm="deleteInvoiceTitle(scope.row)"
+                    >
+                      <template #reference>
+                        <el-button
+                          type="danger"
+                          link
+                          :icon="Delete"
+                          :loading="invoiceTitleDeletingId === scope.row.id"
+                        >
+                          删除
+                        </el-button>
+                      </template>
+                    </el-popconfirm>
                   </template>
                 </el-table-column>
               </el-table>
@@ -929,7 +1079,7 @@ useHead({
 
     <el-dialog
       v-model="invoiceTitleDialogVisible"
-      title="新增发票抬头"
+      :title="invoiceTitleDialogTitle"
       width="520px"
       class="invoice-title-dialog"
       @closed="resetInvoiceTitleForm"
@@ -972,6 +1122,7 @@ useHead({
         <el-form-item
           v-if="invoiceTitleForm.type === '企业'"
           label="开户银行"
+          prop="bank_name"
         >
           <el-input
             v-model="invoiceTitleForm.bank_name"
@@ -982,6 +1133,7 @@ useHead({
         <el-form-item
           v-if="invoiceTitleForm.type === '企业'"
           label="银行账号"
+          prop="bank_account"
         >
           <el-input
             v-model="invoiceTitleForm.bank_account"
