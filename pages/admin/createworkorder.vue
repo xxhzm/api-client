@@ -2,6 +2,7 @@
 import { InfoFilled } from '@element-plus/icons-vue'
 
 const { $msg, $myFetch } = useNuxtApp()
+const CONTENT_MAX_LENGTH = 2000
 
 definePageMeta({
   layout: 'admin',
@@ -21,6 +22,11 @@ const loading = ref(false)
 const submit = async () => {
   if (!createOrderInfo.title || !createOrderInfo.content) {
     $msg('请填写完整信息', 'warning')
+    return false
+  }
+
+  if (createOrderInfo.content.length > CONTENT_MAX_LENGTH) {
+    $msg(`问题描述不能超过${CONTENT_MAX_LENGTH}字`, 'warning')
     return false
   }
 
@@ -118,6 +124,8 @@ useHead({
               v-model="createOrderInfo.content"
               type="textarea"
               :rows="8"
+              :maxlength="CONTENT_MAX_LENGTH"
+              show-word-limit
               placeholder="请详细描述问题背景、复现步骤等信息，以便我们更快为您解决问题..."
               resize="vertical"
             />

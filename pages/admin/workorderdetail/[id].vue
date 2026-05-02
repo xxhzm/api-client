@@ -1,6 +1,7 @@
 <script setup>
 import { Clock } from '@element-plus/icons-vue'
 const { $msg, $myFetch } = useNuxtApp()
+const CONTENT_MAX_LENGTH = 2000
 
 definePageMeta({
   layout: 'admin',
@@ -39,6 +40,11 @@ const fetchDetail = async () => {
 const submitReply = async () => {
   if (!replyContent.value.trim()) {
     $msg('请输入回复内容', 'warning')
+    return
+  }
+
+  if (replyContent.value.length > CONTENT_MAX_LENGTH) {
+    $msg(`回复内容不能超过${CONTENT_MAX_LENGTH}字`, 'warning')
     return
   }
 
@@ -297,6 +303,8 @@ useHead({
             v-model="replyContent"
             type="textarea"
             :rows="5"
+            :maxlength="CONTENT_MAX_LENGTH"
+            show-word-limit
             placeholder="请输入回复内容..."
             resize="vertical"
           />
