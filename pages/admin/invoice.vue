@@ -5,7 +5,7 @@ definePageMeta({
   layout: "admin",
 });
 
-const { $msg, $myFetch } = useNuxtApp();
+const { $msg, $myFetch, $decryptPhone } = useNuxtApp();
 
 // 标签页状态
 const activeName = ref("apply");
@@ -251,15 +251,31 @@ const invoiceTitleRules = {
   ],
 };
 
-const mapInvoiceTitle = (item) => ({
+const decryptInvoiceTitleValue = (value, token) => {
+  if (!value || !token) return value || "";
+
+  try {
+    return $decryptPhone(value, token) || "";
+  } catch {
+    return value || "";
+  }
+};
+
+const mapInvoiceTitle = (item, token) => ({
   id: item.id,
-  title: item.invoice_title || "",
-  tax_id: item.tax_number || "",
+  title: decryptInvoiceTitleValue(item.invoice_title, token),
+  tax_id: decryptInvoiceTitleValue(item.tax_number, token),
   type: item.title_type === "personal" ? "个人" : "企业",
-  company_address: item.company_address || item.companyAddress || "",
-  company_phone: item.company_phone || item.companyPhone || "",
-  bank_name: item.bank_name || "",
-  bank_account: item.bank_account || "",
+  company_address: decryptInvoiceTitleValue(
+    item.company_address || item.companyAddress,
+    token,
+  ),
+  company_phone: decryptInvoiceTitleValue(
+    item.company_phone || item.companyPhone,
+    token,
+  ),
+  bank_name: decryptInvoiceTitleValue(item.bank_name, token),
+  bank_account: decryptInvoiceTitleValue(item.bank_account, token),
   is_default: Boolean(item.is_default),
 });
 
@@ -288,8 +304,10 @@ const fetchInvoiceTitleList = async () => {
     const res = await $myFetch("InvoiceTitleList");
 
     if (res.code === 200) {
+      const token = useCookie("token").value;
+
       infoData.value = sortInvoiceTitles(
-        (res.data?.list || []).map(mapInvoiceTitle),
+        (res.data?.list || []).map((item) => mapInvoiceTitle(item, token)),
       );
       return;
     }
