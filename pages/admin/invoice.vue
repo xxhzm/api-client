@@ -1,511 +1,682 @@
 <script setup>
-import { Search, Plus, Edit, Delete } from '@element-plus/icons-vue'
+import { Search, Plus, Edit, Delete } from "@element-plus/icons-vue";
 
 definePageMeta({
-  layout: 'admin',
-})
+  layout: "admin",
+});
 
-const { $msg, $myFetch } = useNuxtApp()
+const { $msg, $myFetch } = useNuxtApp();
 
 // 标签页状态
-const activeName = ref('apply')
+const activeName = ref("apply");
 
 // 加载状态
-const loading = ref(false)
-const applyTableRef = ref()
-const invoicePreviewVisible = ref(false)
-const invoiceDocumentPanelRef = ref()
-const invoicePreviewScale = ref(0.82)
-let invoicePreviewResizeObserver = null
+const loading = ref(false);
+const applyTableRef = ref();
+const invoicePreviewVisible = ref(false);
+const invoiceDocumentPanelRef = ref();
+const invoicePreviewScale = ref(0.82);
+let invoicePreviewResizeObserver = null;
 
 // === 索取发票数据 ===
 // 按明细数据
 const applyData = ref([
   {
-    id: 'ORD202310010001',
+    id: "ORD202310010001",
     amount: 199.0,
-    create_time: '2023-10-01 10:23:00',
-    type: '消费',
-    status: '可开票',
+    create_time: "2023-10-01 10:23:00",
+    type: "消费",
+    status: "可开票",
   },
   {
-    id: 'ORD202310150002',
+    id: "ORD202310150002",
     amount: 500.0,
-    create_time: '2023-10-15 14:30:00',
-    type: '充值',
-    status: '可开票',
+    create_time: "2023-10-15 14:30:00",
+    type: "充值",
+    status: "可开票",
   },
-])
+]);
 
-const selectedApply = ref([])
+const selectedApply = ref([]);
 const totalApplyAmountValue = computed(() => {
-  return selectedApply.value.reduce((sum, item) => sum + item.amount, 0)
-})
+  return selectedApply.value.reduce((sum, item) => sum + item.amount, 0);
+});
 const totalApplyAmount = computed(() => {
-  return totalApplyAmountValue.value.toFixed(2)
-})
+  return totalApplyAmountValue.value.toFixed(2);
+});
 
-const invoiceTaxRate = 0.01
+const invoiceTaxRate = 0.01;
 const invoiceAmountWithoutTax = computed(() => {
-  return totalApplyAmountValue.value / (1 + invoiceTaxRate)
-})
+  return totalApplyAmountValue.value / (1 + invoiceTaxRate);
+});
 const invoiceTaxAmount = computed(() => {
-  return totalApplyAmountValue.value - invoiceAmountWithoutTax.value
-})
-const formatLocalDate = (date = new Date(), separator = '-') => {
-  const year = date.getFullYear()
-  const month = String(date.getMonth() + 1).padStart(2, '0')
-  const day = String(date.getDate()).padStart(2, '0')
+  return totalApplyAmountValue.value - invoiceAmountWithoutTax.value;
+});
+const formatLocalDate = (date = new Date(), separator = "-") => {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
 
-  return [year, month, day].join(separator)
-}
+  return [year, month, day].join(separator);
+};
 const invoicePreviewNumber = computed(() => {
-  return `INV${formatLocalDate(new Date(), '')}0001`
-})
+  return `INV${formatLocalDate(new Date(), "")}0001`;
+});
 const invoicePreviewDate = computed(() => {
-  return formatLocalDate()
-})
-const invoiceTypeOptions = [
-  '数字化电子普票 (电子)',
-  '数字化电子专票 (电子)',
-]
+  return formatLocalDate();
+});
+const invoiceTypeOptions = ["数字化电子普票 (电子)", "数字化电子专票 (电子)"];
+const maxInvoiceTitleCount = 3;
 const specModelOptions = [
-  { label: '空白(发票上空白，不显示内容)', value: 'blank' },
-  { label: '无(发票上显示为“无”)', value: '无' },
-]
+  { label: "空白(发票上空白，不显示内容)", value: "blank" },
+  { label: "无(发票上显示为“无”)", value: "无" },
+];
 
 const handleSelectionChange = (val) => {
-  selectedApply.value = val
-}
+  selectedApply.value = val;
+};
 
 // === 开票记录数据 ===
 const recordsData = ref([
   {
-    id: 'INV202310200001',
+    id: "INV202310200001",
     amount: 699.0,
-    title: '广州某某科技有限公司',
-    type: '数字化电子普票 (电子)',
-    status: '已开具',
-    create_time: '2023-10-20 16:00:00',
+    title: "广州某某科技有限公司",
+    type: "数字化电子普票 (电子)",
+    status: "已开具",
+    create_time: "2023-10-20 16:00:00",
   },
-])
+]);
 
 const showInvoiceRecordDetail = (row) => {
-  navigateTo(`/admin/invoicedetail/${row.id}`)
-}
+  navigateTo(`/admin/invoicedetail/${row.id}`);
+};
 
 // === 发票抬头数据 ===
-const infoData = ref([])
+const infoData = ref([]);
 
-const invoiceTitleDialogVisible = ref(false)
-const invoiceTitleSubmitting = ref(false)
-const invoiceTitleFormRef = ref()
-const invoiceTitleMode = ref('create')
-const invoiceTitleDeletingId = ref(null)
+const invoiceTitleDialogVisible = ref(false);
+const invoiceTitleSubmitting = ref(false);
+const invoiceTitleFormRef = ref();
+const invoiceTitleMode = ref("create");
+const invoiceTitleDeletingId = ref(null);
 const invoiceTitleForm = reactive({
   id: null,
-  title: '',
-  type: '企业',
-  tax_id: '',
-  bank_name: '',
-  bank_account: '',
+  title: "",
+  type: "企业",
+  tax_id: "",
+  company_address: "",
+  company_phone: "",
+  bank_name: "",
+  bank_account: "",
   is_default: false,
-})
+});
 
-const isCompanyInvoiceTitle = () => invoiceTitleForm.type === '企业'
+const isCompanyInvoiceTitle = () => invoiceTitleForm.type === "企业";
 
-const validateCompanyRequired = (message) => (_rule, value, callback) => {
-  if (isCompanyInvoiceTitle() && !String(value || '').trim()) {
-    callback(new Error(message))
-    return
+const commonNamePattern =
+  /^[\u4e00-\u9fa5A-Za-z0-9（）()【】\[\]《》·.&＆、\-\s]+$/;
+const addressPattern =
+  /^[\u4e00-\u9fa5A-Za-z0-9（）()【】\[\]《》·.,，、:：;；/#号\-\s]+$/;
+const taxNumberPattern = /^[0-9A-Z]+$/;
+const bankAccountPattern = /^\d+$/;
+const mobilePhonePattern = /^1[3-9]\d{9}$/;
+const fixedPhonePattern = /^(?:0\d{2,3}-?)?\d{7,8}(?:-\d{1,6})?$/;
+
+const getTrimmedValue = (value) => String(value || "").trim();
+
+const validateInvoiceTitle = (_rule, value, callback) => {
+  const text = getTrimmedValue(value);
+
+  if (!text) {
+    callback(new Error("请输入发票抬头"));
+    return;
   }
-  callback()
-}
+
+  if (!isCompanyInvoiceTitle()) {
+    if (!/^[\u4e00-\u9fa5]{2,8}$/.test(text)) {
+      callback(new Error("个人抬头仅支持 2-8 个汉字"));
+      return;
+    }
+
+    callback();
+    return;
+  }
+
+  if (text.length < 2 || text.length > 100 || !commonNamePattern.test(text)) {
+    callback(new Error("企业名称需为 2-100 位中文、字母、数字或常用名称符号"));
+    return;
+  }
+
+  callback();
+};
+
+const validateCompanyField = ({
+  requiredMessage,
+  invalidMessage,
+  validate,
+}) => (_rule, value, callback) => {
+  if (!isCompanyInvoiceTitle()) {
+    callback();
+    return;
+  }
+
+  const text = getTrimmedValue(value);
+
+  if (!text) {
+    callback(new Error(requiredMessage));
+    return;
+  }
+
+  if (!validate(text)) {
+    callback(new Error(invalidMessage));
+    return;
+  }
+
+  callback();
+};
 
 const invoiceTitleRules = {
-  title: [{ required: true, message: '请输入发票抬头', trigger: 'blur' }],
-  type: [{ required: true, message: '请选择抬头类型', trigger: 'change' }],
+  title: [
+    {
+      required: true,
+      validator: validateInvoiceTitle,
+      trigger: "blur",
+    },
+  ],
+  type: [{ required: true, message: "请选择抬头类型", trigger: "change" }],
   tax_id: [
     {
-      validator: validateCompanyRequired('请输入纳税人识别号'),
-      trigger: 'blur',
+      required: true,
+      validator: validateCompanyField({
+        requiredMessage: "请输入纳税人识别号",
+        invalidMessage: "税号需为 15、18 或 20 位数字/大写字母",
+        validate: (text) =>
+          [15, 18, 20].includes(text.length) && taxNumberPattern.test(text),
+      }),
+      trigger: "blur",
+    },
+  ],
+  company_address: [
+    {
+      required: true,
+      validator: validateCompanyField({
+        requiredMessage: "请输入企业地址",
+        invalidMessage: "地址需为 5-120 位常用地址字符",
+        validate: (text) =>
+          text.length >= 5 && text.length <= 120 && addressPattern.test(text),
+      }),
+      trigger: "blur",
+    },
+  ],
+  company_phone: [
+    {
+      required: true,
+      validator: validateCompanyField({
+        requiredMessage: "请输入企业电话",
+        invalidMessage: "电话需为中国大陆手机号或固定电话",
+        validate: (text) =>
+          mobilePhonePattern.test(text) || fixedPhonePattern.test(text),
+      }),
+      trigger: "blur",
     },
   ],
   bank_name: [
-    { validator: validateCompanyRequired('请输入开户银行'), trigger: 'blur' },
+    {
+      required: true,
+      validator: validateCompanyField({
+        requiredMessage: "请输入开户银行",
+        invalidMessage: "开户行需为 2-64 位中文、字母、数字或常用名称符号",
+        validate: (text) =>
+          text.length >= 2 &&
+          text.length <= 64 &&
+          commonNamePattern.test(text),
+      }),
+      trigger: "blur",
+    },
   ],
   bank_account: [
-    { validator: validateCompanyRequired('请输入银行账号'), trigger: 'blur' },
+    {
+      required: true,
+      validator: validateCompanyField({
+        requiredMessage: "请输入银行账号",
+        invalidMessage: "银行账号需为 8-30 位数字",
+        validate: (text) =>
+          text.length >= 8 &&
+          text.length <= 30 &&
+          bankAccountPattern.test(text),
+      }),
+      trigger: "blur",
+    },
   ],
-}
+};
 
 const mapInvoiceTitle = (item) => ({
   id: item.id,
-  uid: item.uid,
-  title: item.invoice_title || '',
-  tax_id: item.tax_number || '',
-  type: item.title_type === 'personal' ? '个人' : '企业',
-  bank_name: item.bank_name || '',
-  bank_account: item.bank_account || '',
+  title: item.invoice_title || "",
+  tax_id: item.tax_number || "",
+  type: item.title_type === "personal" ? "个人" : "企业",
+  company_address: item.company_address || item.companyAddress || "",
+  company_phone: item.company_phone || item.companyPhone || "",
+  bank_name: item.bank_name || "",
+  bank_account: item.bank_account || "",
   is_default: Boolean(item.is_default),
-  create_time: item.create_time,
-  update_time: item.update_time,
-})
+});
 
 const sortInvoiceTitles = (list) => {
   return [...list].sort((a, b) => {
-    const createTimeDiff =
-      Number(a.create_time || 0) - Number(b.create_time || 0)
-
-    if (createTimeDiff !== 0) {
-      return createTimeDiff
+    if (a.is_default !== b.is_default) {
+      return a.is_default ? -1 : 1;
     }
 
-    return Number(a.id || 0) - Number(b.id || 0)
-  })
-}
+    return Number(a.id || 0) - Number(b.id || 0);
+  });
+};
 
 const invoiceTitleDialogTitle = computed(() =>
-  invoiceTitleMode.value === 'edit' ? '编辑发票抬头' : '新增发票抬头',
-)
+  invoiceTitleMode.value === "edit" ? "编辑发票抬头" : "新增发票抬头",
+);
+const canCreateInvoiceTitle = computed(
+  () => infoData.value.length < maxInvoiceTitleCount,
+);
+const invoiceTitleCountText = computed(
+  () => `${infoData.value.length}/${maxInvoiceTitleCount}`,
+);
 
 const fetchInvoiceTitleList = async () => {
   try {
-    const res = await $myFetch('InvoiceTitleList')
+    const res = await $myFetch("InvoiceTitleList");
 
     if (res.code === 200) {
       infoData.value = sortInvoiceTitles(
         (res.data?.list || []).map(mapInvoiceTitle),
-      )
-      return
+      );
+      return;
     }
 
-    $msg(res.msg || '获取发票抬头失败', 'error')
+    $msg(res.msg || "获取发票抬头失败", "error");
   } catch (error) {
-    $msg('获取发票抬头失败', 'error')
+    $msg("获取发票抬头失败", "error");
   }
-}
+};
 
 const resetInvoiceTitleForm = () => {
-  invoiceTitleForm.id = null
-  invoiceTitleForm.title = ''
-  invoiceTitleForm.type = '企业'
-  invoiceTitleForm.tax_id = ''
-  invoiceTitleForm.bank_name = ''
-  invoiceTitleForm.bank_account = ''
-  invoiceTitleForm.is_default = false
-  invoiceTitleFormRef.value?.clearValidate?.()
-}
+  invoiceTitleForm.id = null;
+  invoiceTitleForm.title = "";
+  invoiceTitleForm.type = "企业";
+  invoiceTitleForm.tax_id = "";
+  invoiceTitleForm.company_address = "";
+  invoiceTitleForm.company_phone = "";
+  invoiceTitleForm.bank_name = "";
+  invoiceTitleForm.bank_account = "";
+  invoiceTitleForm.is_default = false;
+  invoiceTitleFormRef.value?.clearValidate?.();
+};
 
 const openInvoiceTitleDialog = () => {
-  invoiceTitleMode.value = 'create'
-  resetInvoiceTitleForm()
-  invoiceTitleDialogVisible.value = true
-}
+  if (!canCreateInvoiceTitle.value) {
+    $msg(`每个用户最多创建 ${maxInvoiceTitleCount} 个发票抬头`, "warning");
+    return;
+  }
+
+  invoiceTitleMode.value = "create";
+  resetInvoiceTitleForm();
+  invoiceTitleDialogVisible.value = true;
+};
 
 const openEditInvoiceTitleDialog = (row) => {
-  invoiceTitleMode.value = 'edit'
-  invoiceTitleForm.id = row.id
-  invoiceTitleForm.title = row.title || ''
-  invoiceTitleForm.type = row.type || '企业'
-  invoiceTitleForm.tax_id = row.tax_id || ''
-  invoiceTitleForm.bank_name = row.bank_name || ''
-  invoiceTitleForm.bank_account = row.bank_account || ''
-  invoiceTitleForm.is_default = Boolean(row.is_default)
-  invoiceTitleDialogVisible.value = true
+  invoiceTitleMode.value = "edit";
+  invoiceTitleForm.id = row.id;
+  invoiceTitleForm.title = row.title || "";
+  invoiceTitleForm.type = row.type || "企业";
+  invoiceTitleForm.tax_id = row.tax_id || "";
+  invoiceTitleForm.company_address = row.company_address || "";
+  invoiceTitleForm.company_phone = row.company_phone || "";
+  invoiceTitleForm.bank_name = row.bank_name || "";
+  invoiceTitleForm.bank_account = row.bank_account || "";
+  invoiceTitleForm.is_default = Boolean(row.is_default);
+  invoiceTitleDialogVisible.value = true;
   nextTick(() => {
-    invoiceTitleFormRef.value?.clearValidate?.()
-  })
-}
+    invoiceTitleFormRef.value?.clearValidate?.();
+  });
+};
 
 const handleInvoiceTitleTypeChange = () => {
   if (!isCompanyInvoiceTitle()) {
-    invoiceTitleForm.tax_id = ''
-    invoiceTitleForm.bank_name = ''
-    invoiceTitleForm.bank_account = ''
+    invoiceTitleForm.tax_id = "";
+    invoiceTitleForm.company_address = "";
+    invoiceTitleForm.company_phone = "";
+    invoiceTitleForm.bank_name = "";
+    invoiceTitleForm.bank_account = "";
   }
   invoiceTitleFormRef.value?.clearValidate?.([
-    'tax_id',
-    'bank_name',
-    'bank_account',
-  ])
-}
+    "title",
+    "tax_id",
+    "company_address",
+    "company_phone",
+    "bank_name",
+    "bank_account",
+  ]);
+};
+
+const handleTaxIdInput = (value) => {
+  invoiceTitleForm.tax_id = String(value || "").toUpperCase();
+};
 
 const submitInvoiceTitle = async () => {
-  if (!invoiceTitleFormRef.value) return
+  if (!invoiceTitleFormRef.value) return;
 
-  try {
-    await invoiceTitleFormRef.value.validate()
-  } catch {
-    return
+  if (invoiceTitleMode.value === "create" && !canCreateInvoiceTitle.value) {
+    $msg(`每个用户最多创建 ${maxInvoiceTitleCount} 个发票抬头`, "warning");
+    return;
   }
 
-  invoiceTitleSubmitting.value = true
   try {
-    const body = new URLSearchParams()
-    const titleType = isCompanyInvoiceTitle() ? 'company' : 'personal'
+    await invoiceTitleFormRef.value.validate();
+  } catch {
+    return;
+  }
+
+  invoiceTitleSubmitting.value = true;
+  try {
+    const body = new URLSearchParams();
+    const titleType = isCompanyInvoiceTitle() ? "company" : "personal";
     const requestName =
-      invoiceTitleMode.value === 'edit'
-        ? 'UpdateInvoiceTitle'
-        : 'CreateInvoiceTitle'
+      invoiceTitleMode.value === "edit"
+        ? "UpdateInvoiceTitle"
+        : "CreateInvoiceTitle";
 
-    if (invoiceTitleMode.value === 'edit') {
+    if (invoiceTitleMode.value === "edit") {
       if (!invoiceTitleForm.id) {
-        $msg('缺少发票抬头 ID', 'error')
-        return
+        $msg("缺少发票抬头 ID", "error");
+        return;
       }
-      body.append('id', String(invoiceTitleForm.id))
+      body.append("id", String(invoiceTitleForm.id));
     }
-    body.append('titleType', titleType)
-    body.append('invoiceTitle', invoiceTitleForm.title.trim())
-    body.append('isDefault', String(invoiceTitleForm.is_default))
+    if (invoiceTitleMode.value === "create") {
+      body.append("titleType", titleType);
+    }
+    body.append("invoiceTitle", invoiceTitleForm.title.trim());
+    body.append("isDefault", String(invoiceTitleForm.is_default));
 
-    if (titleType === 'company') {
-      body.append('taxNumber', invoiceTitleForm.tax_id.trim())
-      body.append('bankName', invoiceTitleForm.bank_name.trim())
-      body.append('bankAccount', invoiceTitleForm.bank_account.trim())
+    if (titleType === "company") {
+      body.append("taxNumber", invoiceTitleForm.tax_id.trim().toUpperCase());
+      body.append("companyAddress", invoiceTitleForm.company_address.trim());
+      body.append("companyPhone", invoiceTitleForm.company_phone.trim());
+      body.append("bankName", invoiceTitleForm.bank_name.trim());
+      body.append("bankAccount", invoiceTitleForm.bank_account.trim());
     }
 
     const res = await $myFetch(requestName, {
-      method: 'POST',
+      method: "POST",
       body,
-    })
+    });
 
     if (res.code !== 200) {
       $msg(
         res.msg ||
-          (invoiceTitleMode.value === 'edit'
-            ? '发票抬头修改失败'
-            : '发票抬头新增失败'),
-        'error',
-      )
-      return
+          (invoiceTitleMode.value === "edit"
+            ? "发票抬头修改失败"
+            : "发票抬头新增失败"),
+        "error",
+      );
+      return;
     }
 
-    await fetchInvoiceTitleList()
+    await fetchInvoiceTitleList();
 
-    invoiceTitleDialogVisible.value = false
+    invoiceTitleDialogVisible.value = false;
     $msg(
       res.msg ||
-        (invoiceTitleMode.value === 'edit'
-          ? '发票抬头修改成功'
-          : '发票抬头新增成功'),
-      'success',
-    )
+        (invoiceTitleMode.value === "edit"
+          ? "发票抬头修改成功"
+          : "发票抬头新增成功"),
+      "success",
+    );
   } catch (error) {
     $msg(
-      invoiceTitleMode.value === 'edit'
-        ? '发票抬头修改失败'
-        : '发票抬头新增失败',
-      'error',
-    )
+      invoiceTitleMode.value === "edit"
+        ? "发票抬头修改失败"
+        : "发票抬头新增失败",
+      "error",
+    );
   } finally {
-    invoiceTitleSubmitting.value = false
+    invoiceTitleSubmitting.value = false;
   }
-}
+};
 
 const deleteInvoiceTitle = async (row) => {
-  invoiceTitleDeletingId.value = row.id
+  invoiceTitleDeletingId.value = row.id;
   try {
-    const res = await $myFetch('DeleteInvoiceTitle', {
+    const res = await $myFetch("DeleteInvoiceTitle", {
       params: {
         id: row.id,
       },
-    })
+    });
 
     if (res.code !== 200) {
-      $msg(res.msg || '发票抬头删除失败', 'error')
-      return
+      $msg(res.msg || "发票抬头删除失败", "error");
+      return;
     }
 
-    await fetchInvoiceTitleList()
-    $msg(res.msg || '发票抬头删除成功', 'success')
+    await fetchInvoiceTitleList();
+    $msg(res.msg || "发票抬头删除成功", "success");
   } catch (error) {
-    $msg('发票抬头删除失败', 'error')
+    $msg("发票抬头删除失败", "error");
   } finally {
-    invoiceTitleDeletingId.value = null
+    invoiceTitleDeletingId.value = null;
   }
-}
+};
 
-const invoiceApplySubmitting = ref(false)
-const invoiceApplyFormRef = ref()
+const invoiceApplySubmitting = ref(false);
+const invoiceApplyFormRef = ref();
 const invoiceApplyForm = reactive({
   title_id: null,
   invoice_type: invoiceTypeOptions[0],
-  content: '软件服务费',
-  spec_model: 'blank',
-  email: '',
-  remark: '',
-})
+  content: "软件服务费",
+  spec_model: "blank",
+  email: "",
+  remark: "",
+});
 
 const invoiceApplyRules = {
-  title_id: [
-    { required: true, message: '请选择发票抬头', trigger: 'change' },
-  ],
+  title_id: [{ required: true, message: "请选择发票抬头", trigger: "change" }],
   email: [
-    { required: true, message: '请输入接收邮箱', trigger: 'blur' },
-    { type: 'email', message: '请输入正确的邮箱地址', trigger: 'blur' },
+    { required: true, message: "请输入接收邮箱", trigger: "blur" },
+    { type: "email", message: "请输入正确的邮箱地址", trigger: "blur" },
   ],
-}
+};
 
 const defaultInvoiceTitle = computed(() => {
   return (
     infoData.value.find((item) => item.is_default) || infoData.value[0] || null
-  )
-})
+  );
+});
 
 const selectedInvoiceTitle = computed(() => {
   return (
     infoData.value.find((item) => item.id === invoiceApplyForm.title_id) || null
-  )
-})
-const isSpecialInvoice = computed(() => {
-  return invoiceApplyForm.invoice_type.includes('专票')
-})
-const selectedTitleBankText = computed(() => {
-  const bankName = selectedInvoiceTitle.value?.bank_name
-  const bankAccount = selectedInvoiceTitle.value?.bank_account
+  );
+});
+const formatInvoiceTitleSelectLabel = (item) => {
+  if (!item) return "";
 
-  if (!bankName && !bankAccount) {
-    return '购方开户银行：-；银行账号：-；'
+  const identity =
+    item.type === "企业" && item.tax_id ? `税号：${item.tax_id}` : item.type;
+
+  return `${item.title || "-"}（${identity}）`;
+};
+const formatInvoiceTitleMeta = (item) => {
+  if (!item) return "-";
+
+  const meta = [item.type];
+
+  if (item.tax_id) {
+    meta.push(`税号：${item.tax_id}`);
   }
 
-  return `购方开户银行：${bankName || '-'}；银行账号：${bankAccount || '-'}；`
-})
+  if (item.company_address) {
+    meta.push(`地址：${item.company_address}`);
+  }
+
+  if (item.company_phone) {
+    meta.push(`电话：${item.company_phone}`);
+  }
+
+  if (item.bank_name) {
+    meta.push(`开户行：${item.bank_name}`);
+  }
+
+  if (item.bank_account) {
+    meta.push(`账号：${item.bank_account}`);
+  }
+
+  return meta.join(" / ");
+};
+const isSpecialInvoice = computed(() => {
+  return invoiceApplyForm.invoice_type.includes("专票");
+});
+const selectedTitleBankText = computed(() => {
+  const bankName = selectedInvoiceTitle.value?.bank_name;
+  const bankAccount = selectedInvoiceTitle.value?.bank_account;
+
+  if (!bankName && !bankAccount) {
+    return "购方开户银行：-；银行账号：-；";
+  }
+
+  return `购方开户银行：${bankName || "-"}；银行账号：${bankAccount || "-"}；`;
+});
 const invoiceSpecModelText = computed(() => {
-  return invoiceApplyForm.spec_model === 'blank' ? '' : invoiceApplyForm.spec_model
-})
+  return invoiceApplyForm.spec_model === "blank"
+    ? ""
+    : invoiceApplyForm.spec_model;
+});
 
 const resetInvoiceApplyForm = () => {
-  invoiceApplyForm.title_id = defaultInvoiceTitle.value?.id ?? null
-  invoiceApplyForm.invoice_type = invoiceTypeOptions[0]
-  invoiceApplyForm.content = '软件服务费'
-  invoiceApplyForm.spec_model = 'blank'
-  invoiceApplyForm.email = ''
-  invoiceApplyForm.remark = ''
-  invoiceApplyFormRef.value?.clearValidate?.()
-}
+  invoiceApplyForm.title_id = defaultInvoiceTitle.value?.id ?? null;
+  invoiceApplyForm.invoice_type = invoiceTypeOptions[0];
+  invoiceApplyForm.content = "软件服务费";
+  invoiceApplyForm.spec_model = "blank";
+  invoiceApplyForm.email = "";
+  invoiceApplyForm.remark = "";
+  invoiceApplyFormRef.value?.clearValidate?.();
+};
 
-const formatMoney = (value) => Number(value || 0).toFixed(2)
+const formatMoney = (value) => Number(value || 0).toFixed(2);
 
 const toChineseCurrency = (value) => {
-  const fraction = ['角', '分']
-  const digit = ['零', '壹', '贰', '叁', '肆', '伍', '陆', '柒', '捌', '玖']
+  const fraction = ["角", "分"];
+  const digit = ["零", "壹", "贰", "叁", "肆", "伍", "陆", "柒", "捌", "玖"];
   const unit = [
-    ['元', '万', '亿'],
-    ['', '拾', '佰', '仟'],
-  ]
-  const head = value < 0 ? '负' : ''
-  let amount = Math.abs(Number(value || 0))
-  let suffix = ''
+    ["元", "万", "亿"],
+    ["", "拾", "佰", "仟"],
+  ];
+  const head = value < 0 ? "负" : "";
+  let amount = Math.abs(Number(value || 0));
+  let suffix = "";
 
   fraction.forEach((item, index) => {
-    suffix +=
-      (digit[Math.floor(amount * 10 * 10 ** index) % 10] + item).replace(
-        /零./,
-        '',
-      )
-  })
-  suffix = suffix || '整'
-  amount = Math.floor(amount)
+    suffix += (
+      digit[Math.floor(amount * 10 * 10 ** index) % 10] + item
+    ).replace(/零./, "");
+  });
+  suffix = suffix || "整";
+  amount = Math.floor(amount);
 
-  let integerText = ''
+  let integerText = "";
   for (let i = 0; i < unit[0].length && amount > 0; i += 1) {
-    let partText = ''
+    let partText = "";
     for (let j = 0; j < unit[1].length && amount > 0; j += 1) {
-      partText = digit[amount % 10] + unit[1][j] + partText
-      amount = Math.floor(amount / 10)
+      partText = digit[amount % 10] + unit[1][j] + partText;
+      amount = Math.floor(amount / 10);
     }
     integerText =
-      partText.replace(/(零.)*零$/, '').replace(/^$/, '零') +
+      partText.replace(/(零.)*零$/, "").replace(/^$/, "零") +
       unit[0][i] +
-      integerText
+      integerText;
   }
 
   return (
     head +
     integerText
-      .replace(/(零.)*零元/, '元')
-      .replace(/(零.)+/g, '零')
-      .replace(/^整$/, '零元整') +
+      .replace(/(零.)*零元/, "元")
+      .replace(/(零.)+/g, "零")
+      .replace(/^整$/, "零元整") +
     suffix
-  )
-}
+  );
+};
 
 const openInvoicePreview = async () => {
   if (!selectedApply.value.length) {
-    $msg('请先选择开票明细', 'warning')
-    return
+    $msg("请先选择开票明细", "warning");
+    return;
   }
 
   if (totalApplyAmountValue.value < 100) {
-    $msg('开票金额需满 100 元', 'warning')
-    return
+    $msg("开票金额需满 100 元", "warning");
+    return;
   }
 
   if (!infoData.value.length) {
-    activeName.value = 'info'
-    $msg('请先新增发票抬头', 'warning')
-    return
+    activeName.value = "info";
+    $msg("请先新增发票抬头", "warning");
+    return;
   }
 
-  resetInvoiceApplyForm()
-  invoicePreviewVisible.value = true
-  await nextTick()
-  invoiceApplyFormRef.value?.clearValidate?.()
-  updateInvoicePreviewScale()
-}
+  resetInvoiceApplyForm();
+  invoicePreviewVisible.value = true;
+  await nextTick();
+  invoiceApplyFormRef.value?.clearValidate?.();
+  updateInvoicePreviewScale();
+};
 
 const backToInvoiceApplyList = () => {
-  invoicePreviewVisible.value = false
-}
+  invoicePreviewVisible.value = false;
+};
 
 const updateInvoicePreviewScale = async () => {
-  await nextTick()
+  await nextTick();
 
-  const panelWidth = invoiceDocumentPanelRef.value?.clientWidth || 0
-  if (!panelWidth) return
+  const panelWidth = invoiceDocumentPanelRef.value?.clientWidth || 0;
+  if (!panelWidth) return;
 
-  const previewBaseWidth = 980
-  const previewHorizontalPadding = 28
-  const availableWidth = Math.max(panelWidth - previewHorizontalPadding, 1)
+  const previewBaseWidth = 980;
+  const previewHorizontalPadding = 28;
+  const availableWidth = Math.max(panelWidth - previewHorizontalPadding, 1);
   const nextScale = Math.min(
     1.15,
     Math.max(0.1, availableWidth / previewBaseWidth),
-  )
+  );
 
-  invoicePreviewScale.value = Number(nextScale.toFixed(3))
-}
+  invoicePreviewScale.value = Number(nextScale.toFixed(3));
+};
 
 const stopInvoicePreviewObserver = () => {
-  invoicePreviewResizeObserver?.disconnect()
-  invoicePreviewResizeObserver = null
-}
+  invoicePreviewResizeObserver?.disconnect();
+  invoicePreviewResizeObserver = null;
+};
 
 const startInvoicePreviewObserver = async () => {
-  await nextTick()
-  stopInvoicePreviewObserver()
+  await nextTick();
+  stopInvoicePreviewObserver();
 
-  if (
-    typeof ResizeObserver === 'undefined' ||
-    !invoiceDocumentPanelRef.value
-  ) {
-    updateInvoicePreviewScale()
-    return
+  if (typeof ResizeObserver === "undefined" || !invoiceDocumentPanelRef.value) {
+    updateInvoicePreviewScale();
+    return;
   }
 
-  invoicePreviewResizeObserver = new ResizeObserver(updateInvoicePreviewScale)
-  invoicePreviewResizeObserver.observe(invoiceDocumentPanelRef.value)
-  updateInvoicePreviewScale()
-}
+  invoicePreviewResizeObserver = new ResizeObserver(updateInvoicePreviewScale);
+  invoicePreviewResizeObserver.observe(invoiceDocumentPanelRef.value);
+  updateInvoicePreviewScale();
+};
 
 const submitInvoiceApply = async () => {
-  if (!invoiceApplyFormRef.value) return
+  if (!invoiceApplyFormRef.value) return;
 
   try {
-    await invoiceApplyFormRef.value.validate()
+    await invoiceApplyFormRef.value.validate();
   } catch {
-    return
+    return;
   }
 
   if (
@@ -513,77 +684,79 @@ const submitInvoiceApply = async () => {
     (!selectedInvoiceTitle.value?.bank_name ||
       !selectedInvoiceTitle.value?.bank_account)
   ) {
-    $msg('申请专票请先在发票抬头中设置开户银行和银行账号', 'warning')
-    activeName.value = 'info'
-    invoicePreviewVisible.value = false
-    return
+    $msg("申请专票请先在发票抬头中设置开户银行和银行账号", "warning");
+    activeName.value = "info";
+    invoicePreviewVisible.value = false;
+    return;
   }
 
-  invoiceApplySubmitting.value = true
+  invoiceApplySubmitting.value = true;
   try {
-    const nextNumber = recordsData.value.length + 1
-    const nextId = `INV${formatLocalDate(new Date(), '')}${String(
+    const nextNumber = recordsData.value.length + 1;
+    const nextId = `INV${formatLocalDate(new Date(), "")}${String(
       nextNumber,
-    ).padStart(4, '0')}`
+    ).padStart(4, "0")}`;
 
     recordsData.value.unshift({
       id: nextId,
       amount: totalApplyAmountValue.value,
-      title: selectedInvoiceTitle.value?.title || '-',
+      title: selectedInvoiceTitle.value?.title || "-",
       type: invoiceApplyForm.invoice_type,
-      status: '审核中',
-      create_time: new Date().toLocaleString('zh-CN', {
+      status: "审核中",
+      create_time: new Date().toLocaleString("zh-CN", {
         hour12: false,
       }),
-    })
+    });
 
-    const selectedIds = new Set(selectedApply.value.map((item) => item.id))
-    applyData.value = applyData.value.filter((item) => !selectedIds.has(item.id))
-    selectedApply.value = []
-    applyTableRef.value?.clearSelection?.()
+    const selectedIds = new Set(selectedApply.value.map((item) => item.id));
+    applyData.value = applyData.value.filter(
+      (item) => !selectedIds.has(item.id),
+    );
+    selectedApply.value = [];
+    applyTableRef.value?.clearSelection?.();
 
-    invoicePreviewVisible.value = false
-    activeName.value = 'records'
-    $msg('开票申请已提交', 'success')
+    invoicePreviewVisible.value = false;
+    activeName.value = "records";
+    $msg("开票申请已提交", "success");
   } finally {
-    invoiceApplySubmitting.value = false
+    invoiceApplySubmitting.value = false;
   }
-}
+};
 
 // 模拟获取数据
 const fetchData = () => {
-  loading.value = true
+  loading.value = true;
   setTimeout(() => {
-    loading.value = false
-  }, 500)
-}
+    loading.value = false;
+  }, 500);
+};
 
 onMounted(() => {
-  fetchData()
-  fetchInvoiceTitleList()
-  window.addEventListener('resize', updateInvoicePreviewScale)
-})
+  fetchData();
+  fetchInvoiceTitleList();
+  window.addEventListener("resize", updateInvoicePreviewScale);
+});
 
 onBeforeUnmount(() => {
-  window.removeEventListener('resize', updateInvoicePreviewScale)
-  stopInvoicePreviewObserver()
-})
+  window.removeEventListener("resize", updateInvoicePreviewScale);
+  stopInvoicePreviewObserver();
+});
 
 watch(invoicePreviewVisible, (visible) => {
   if (visible) {
-    startInvoicePreviewObserver()
-    return
+    startInvoicePreviewObserver();
+    return;
   }
 
-  stopInvoicePreviewObserver()
-})
+  stopInvoicePreviewObserver();
+});
 
 useHead({
-  title: '发票管理',
+  title: "发票管理",
   viewport:
-    'width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0',
-  charset: 'utf-8',
-})
+    "width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0",
+  charset: "utf-8",
+});
 </script>
 
 <template>
@@ -655,7 +828,11 @@ useHead({
                   empty-text="暂无可开票明细"
                 >
                   <el-table-column type="selection" width="55" />
-                  <el-table-column prop="id" label="订单号/流水号" width="180" />
+                  <el-table-column
+                    prop="id"
+                    label="订单号/流水号"
+                    width="180"
+                  />
                   <el-table-column prop="type" label="业务类型" width="100" />
                   <el-table-column
                     prop="create_time"
@@ -721,14 +898,47 @@ useHead({
                           v-model="invoiceApplyForm.title_id"
                           placeholder="请选择发票抬头"
                           class="full-width"
+                          popper-class="invoice-title-select-popper"
                         >
                           <el-option
                             v-for="item in infoData"
                             :key="item.id"
-                            :label="item.title"
+                            :label="formatInvoiceTitleSelectLabel(item)"
                             :value="item.id"
-                          />
+                          >
+                            <div class="invoice-title-option">
+                              <div class="invoice-title-option__main">
+                                <span class="invoice-title-option__name">
+                                  {{ item.title || "-" }}
+                                </span>
+                                <el-tag
+                                  size="small"
+                                  :type="
+                                    item.type === '个人' ? 'success' : undefined
+                                  "
+                                >
+                                  {{ item.type }}
+                                </el-tag>
+                                <el-tag
+                                  v-if="item.is_default"
+                                  type="warning"
+                                  size="small"
+                                >
+                                  默认
+                                </el-tag>
+                              </div>
+                              <div class="invoice-title-option__meta">
+                                {{ formatInvoiceTitleMeta(item) }}
+                              </div>
+                            </div>
+                          </el-option>
                         </el-select>
+                        <div
+                          v-if="selectedInvoiceTitle"
+                          class="selected-title-meta"
+                        >
+                          {{ formatInvoiceTitleMeta(selectedInvoiceTitle) }}
+                        </div>
                       </el-form-item>
                       <el-form-item label="发票类型">
                         <el-select
@@ -819,13 +1029,13 @@ useHead({
                             <div>
                               <span>名称：</span>
                               <strong>{{
-                                selectedInvoiceTitle?.title || '-'
+                                selectedInvoiceTitle?.title || "-"
                               }}</strong>
                             </div>
                             <div>
                               <span>统一社会信用代码/纳税人识别号：</span>
                               <strong>{{
-                                selectedInvoiceTitle?.tax_id || '-'
+                                selectedInvoiceTitle?.tax_id || "-"
                               }}</strong>
                             </div>
                           </div>
@@ -854,7 +1064,7 @@ useHead({
                           <div class="doc-cell doc-head">税额</div>
 
                           <div class="doc-cell doc-value">
-                            {{ invoiceApplyForm.content || '-' }}
+                            {{ invoiceApplyForm.content || "-" }}
                           </div>
                           <div class="doc-cell doc-value">
                             {{ invoiceSpecModelText }}
@@ -987,90 +1197,108 @@ useHead({
           <el-tab-pane label="发票信息管理" name="info">
             <div class="tab-pane-content" v-loading="loading">
               <div class="action-bar action-bar--left">
-                <el-button type="primary" @click="openInvoiceTitleDialog">
+                <el-button
+                  type="primary"
+                  :disabled="!canCreateInvoiceTitle"
+                  @click="openInvoiceTitleDialog"
+                >
                   <el-icon><Plus /></el-icon>
                   新增发票抬头
                 </el-button>
+                <span
+                  class="invoice-title-count"
+                  :class="{ 'is-limit': !canCreateInvoiceTitle }"
+                >
+                  已创建 {{ invoiceTitleCountText }}，最多
+                  {{ maxInvoiceTitleCount }} 个
+                </span>
               </div>
 
-              <el-table
-                :data="infoData"
-                class="invoice-table"
-                style="width: 100%"
-                empty-text="暂无发票抬头"
-              >
-                <el-table-column prop="title" label="发票抬头" />
-                <el-table-column prop="type" label="抬头类型" width="120">
-                  <template #default="scope">
-                    <el-tag size="small">{{ scope.row.type }}</el-tag>
-                  </template>
-                </el-table-column>
-                <el-table-column prop="tax_id" label="纳税人识别号">
-                  <template #default="scope">
-                    {{ scope.row.tax_id || '-' }}
-                  </template>
-                </el-table-column>
-                <el-table-column
-                  prop="bank_name"
-                  label="开户银行"
-                  min-width="180"
-                  show-overflow-tooltip
+              <div v-if="infoData.length" class="invoice-title-list">
+                <div
+                  v-for="(item, index) in infoData"
+                  :key="item.id"
+                  class="invoice-title-card"
+                  :class="{ 'is-default': item.is_default }"
                 >
-                  <template #default="scope">
-                    {{ scope.row.bank_name || '-' }}
-                  </template>
-                </el-table-column>
-                <el-table-column
-                  prop="bank_account"
-                  label="银行账号"
-                  min-width="180"
-                  show-overflow-tooltip
-                >
-                  <template #default="scope">
-                    {{ scope.row.bank_account || '-' }}
-                  </template>
-                </el-table-column>
-                <el-table-column label="默认抬头" width="100">
-                  <template #default="scope">
-                    <el-tag
-                      v-if="scope.row.is_default"
-                      type="warning"
-                      size="small"
-                      >默认</el-tag
-                    >
-                    <span v-else>-</span>
-                  </template>
-                </el-table-column>
-                <el-table-column label="操作" width="170" fixed="right">
-                  <template #default="scope">
-                    <el-button
-                      type="primary"
-                      link
-                      :icon="Edit"
-                      @click="openEditInvoiceTitleDialog(scope.row)"
-                    >
-                      编辑
-                    </el-button>
-                    <el-popconfirm
-                      confirm-button-text="确定"
-                      cancel-button-text="取消"
-                      title="确定要删除该发票抬头吗？"
-                      @confirm="deleteInvoiceTitle(scope.row)"
-                    >
-                      <template #reference>
-                        <el-button
-                          type="danger"
-                          link
-                          :icon="Delete"
-                          :loading="invoiceTitleDeletingId === scope.row.id"
+                  <div class="invoice-title-card__top">
+                    <div class="invoice-title-card__rank">
+                      {{ index + 1 }}
+                    </div>
+                    <div class="invoice-title-card__heading">
+                      <div class="invoice-title-card__name">
+                        {{ item.title || "-" }}
+                      </div>
+                      <div class="invoice-title-card__tags">
+                        <el-tag
+                          size="small"
+                          :type="item.type === '个人' ? 'success' : undefined"
                         >
-                          删除
-                        </el-button>
-                      </template>
-                    </el-popconfirm>
-                  </template>
-                </el-table-column>
-              </el-table>
+                          {{ item.type }}
+                        </el-tag>
+                        <el-tag
+                          v-if="item.is_default"
+                          type="warning"
+                          size="small"
+                        >
+                          默认抬头
+                        </el-tag>
+                      </div>
+                    </div>
+                    <div class="invoice-title-card__actions">
+                      <el-button
+                        type="primary"
+                        link
+                        :icon="Edit"
+                        @click="openEditInvoiceTitleDialog(item)"
+                      >
+                        编辑
+                      </el-button>
+                      <el-popconfirm
+                        confirm-button-text="确定"
+                        cancel-button-text="取消"
+                        title="确定要删除该发票抬头吗？"
+                        @confirm="deleteInvoiceTitle(item)"
+                      >
+                        <template #reference>
+                          <el-button
+                            type="danger"
+                            link
+                            :icon="Delete"
+                            :loading="invoiceTitleDeletingId === item.id"
+                          >
+                            删除
+                          </el-button>
+                        </template>
+                      </el-popconfirm>
+                    </div>
+                  </div>
+
+                  <div class="invoice-title-card__details">
+                    <div class="invoice-title-card__detail">
+                      <span>纳税人识别号</span>
+                      <strong>{{ item.tax_id || "-" }}</strong>
+                    </div>
+                    <div class="invoice-title-card__detail">
+                      <span>企业地址</span>
+                      <strong>{{ item.company_address || "-" }}</strong>
+                    </div>
+                    <div class="invoice-title-card__detail">
+                      <span>企业电话</span>
+                      <strong>{{ item.company_phone || "-" }}</strong>
+                    </div>
+                    <div class="invoice-title-card__detail">
+                      <span>开户银行</span>
+                      <strong>{{ item.bank_name || "-" }}</strong>
+                    </div>
+                    <div class="invoice-title-card__detail">
+                      <span>银行账号</span>
+                      <strong>{{ item.bank_account || "-" }}</strong>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <el-empty v-else description="暂无发票抬头" />
             </div>
           </el-tab-pane>
         </el-tabs>
@@ -1094,6 +1322,7 @@ useHead({
         <el-form-item label="抬头类型" prop="type">
           <el-radio-group
             v-model="invoiceTitleForm.type"
+            :disabled="invoiceTitleMode === 'edit'"
             @change="handleInvoiceTitleTypeChange"
           >
             <el-radio-button value="企业">企业</el-radio-button>
@@ -1103,7 +1332,7 @@ useHead({
         <el-form-item label="发票抬头" prop="title">
           <el-input
             v-model="invoiceTitleForm.title"
-            maxlength="80"
+            :maxlength="isCompanyInvoiceTitle() ? 100 : 8"
             show-word-limit
             placeholder="请输入发票抬头"
           />
@@ -1115,8 +1344,32 @@ useHead({
         >
           <el-input
             v-model="invoiceTitleForm.tax_id"
-            maxlength="32"
+            maxlength="20"
             placeholder="请输入纳税人识别号"
+            @input="handleTaxIdInput"
+          />
+        </el-form-item>
+        <el-form-item
+          v-if="invoiceTitleForm.type === '企业'"
+          label="企业地址"
+          prop="company_address"
+        >
+          <el-input
+            v-model="invoiceTitleForm.company_address"
+            maxlength="120"
+            show-word-limit
+            placeholder="请输入企业地址"
+          />
+        </el-form-item>
+        <el-form-item
+          v-if="invoiceTitleForm.type === '企业'"
+          label="企业电话"
+          prop="company_phone"
+        >
+          <el-input
+            v-model="invoiceTitleForm.company_phone"
+            maxlength="20"
+            placeholder="请输入企业电话"
           />
         </el-form-item>
         <el-form-item
@@ -1126,7 +1379,7 @@ useHead({
         >
           <el-input
             v-model="invoiceTitleForm.bank_name"
-            maxlength="80"
+            maxlength="64"
             placeholder="请输入开户银行"
           />
         </el-form-item>
@@ -1137,7 +1390,7 @@ useHead({
         >
           <el-input
             v-model="invoiceTitleForm.bank_account"
-            maxlength="40"
+            maxlength="30"
             placeholder="请输入银行账号"
           />
         </el-form-item>
@@ -1270,6 +1523,15 @@ useHead({
   flex-wrap: wrap;
 }
 
+.invoice-title-count {
+  color: #606266;
+  font-size: 13px;
+}
+
+.invoice-title-count.is-limit {
+  color: #e6a23c;
+}
+
 .selected-info {
   font-size: 14px;
   color: #606266;
@@ -1303,6 +1565,126 @@ useHead({
 
   :deep(.el-table__row:hover > td.el-table__cell) {
     background: #f5f7fa;
+  }
+}
+
+.invoice-title-list {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.invoice-title-card {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  min-height: 260px;
+  padding: 14px;
+  border: 1px solid #e4e7ed;
+  border-radius: 8px;
+  background: #fff;
+  transition:
+    border-color 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.invoice-title-card:hover {
+  border-color: #c6e2ff;
+  box-shadow: 0 6px 18px rgba(48, 49, 51, 0.08);
+}
+
+.invoice-title-card.is-default {
+  border-color: #f3d19e;
+  background: linear-gradient(180deg, #fffaf2 0%, #fff 42%);
+}
+
+.invoice-title-card__top {
+  display: grid;
+  grid-template-columns: 34px minmax(0, 1fr);
+  gap: 10px;
+  align-items: flex-start;
+  min-width: 0;
+}
+
+.invoice-title-card__rank {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  border-radius: 8px;
+  background: #ecf5ff;
+  color: #409eff;
+  font-size: 16px;
+  font-weight: 700;
+}
+
+.invoice-title-card.is-default .invoice-title-card__rank {
+  background: #fdf6ec;
+  color: #e6a23c;
+}
+
+.invoice-title-card__heading {
+  min-width: 0;
+}
+
+.invoice-title-card__name {
+  overflow: hidden;
+  color: #303133;
+  font-size: 15px;
+  font-weight: 600;
+  line-height: 1.45;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.invoice-title-card__tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 8px;
+}
+
+.invoice-title-card__actions {
+  grid-column: 1 / -1;
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  padding-top: 8px;
+  border-top: 1px solid #f0f2f5;
+}
+
+.invoice-title-card__details {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 12px;
+}
+
+.invoice-title-card__detail {
+  min-width: 0;
+  padding: 9px 10px;
+  border-radius: 6px;
+  background: #f7f8fa;
+
+  span {
+    display: block;
+    margin-bottom: 4px;
+    color: #909399;
+    font-size: 12px;
+    line-height: 1.2;
+  }
+
+  strong {
+    display: block;
+    overflow: hidden;
+    color: #303133;
+    font-size: 13px;
+    font-weight: 500;
+    line-height: 1.45;
+    text-overflow: ellipsis;
+    white-space: nowrap;
   }
 }
 
@@ -1395,6 +1777,55 @@ useHead({
   color: #909399;
   font-size: 12px;
   line-height: 1.5;
+}
+
+.selected-title-meta {
+  margin-top: 6px;
+  color: #606266;
+  font-size: 12px;
+  line-height: 1.5;
+  word-break: break-all;
+}
+
+.invoice-title-option {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 3px;
+  min-width: 0;
+  padding: 5px 0;
+  line-height: 1.4;
+}
+
+.invoice-title-option__main {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+}
+
+.invoice-title-option__name {
+  overflow: hidden;
+  min-width: 0;
+  color: #303133;
+  font-weight: 500;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.invoice-title-option__meta {
+  overflow: hidden;
+  color: #909399;
+  font-size: 12px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+:global(.invoice-title-select-popper .el-select-dropdown__item) {
+  height: auto;
+  min-height: 48px;
+  padding-top: 4px;
+  padding-bottom: 4px;
 }
 
 .invoice-document-wrap {
@@ -1638,6 +2069,12 @@ useHead({
   }
 }
 
+@media screen and (max-width: 1200px) {
+  .invoice-title-list {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
 @media screen and (max-width: 768px) {
   .invoice-container {
     padding: 12px;
@@ -1674,6 +2111,14 @@ useHead({
   .pagination {
     justify-content: flex-start;
     overflow-x: auto;
+  }
+
+  .invoice-title-list {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .invoice-title-card {
+    min-height: 0;
   }
 
   :deep(.invoice-title-dialog) {
