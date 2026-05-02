@@ -60,10 +60,10 @@ const formatLocalDate = (date = new Date(), separator = "-") => {
   return [year, month, day].join(separator);
 };
 const invoicePreviewNumber = computed(() => {
-  return `INV${formatLocalDate(new Date(), "")}0001`;
+  return "xxxxxxxx";
 });
 const invoicePreviewDate = computed(() => {
-  return formatLocalDate();
+  return "xxxxxxxx";
 });
 const invoiceTypeOptions = ["数字化电子普票 (电子)", "数字化电子专票 (电子)"];
 const maxInvoiceTitleCount = 3;
@@ -151,30 +151,28 @@ const validateInvoiceTitle = (_rule, value, callback) => {
   callback();
 };
 
-const validateCompanyField = ({
-  requiredMessage,
-  invalidMessage,
-  validate,
-}) => (_rule, value, callback) => {
-  if (!isCompanyInvoiceTitle()) {
+const validateCompanyField =
+  ({ requiredMessage, invalidMessage, validate }) =>
+  (_rule, value, callback) => {
+    if (!isCompanyInvoiceTitle()) {
+      callback();
+      return;
+    }
+
+    const text = getTrimmedValue(value);
+
+    if (!text) {
+      callback(new Error(requiredMessage));
+      return;
+    }
+
+    if (!validate(text)) {
+      callback(new Error(invalidMessage));
+      return;
+    }
+
     callback();
-    return;
-  }
-
-  const text = getTrimmedValue(value);
-
-  if (!text) {
-    callback(new Error(requiredMessage));
-    return;
-  }
-
-  if (!validate(text)) {
-    callback(new Error(invalidMessage));
-    return;
-  }
-
-  callback();
-};
+  };
 
 const invoiceTitleRules = {
   title: [
@@ -228,9 +226,7 @@ const invoiceTitleRules = {
         requiredMessage: "请输入开户银行",
         invalidMessage: "开户行需为 2-64 位中文、字母、数字或常用名称符号",
         validate: (text) =>
-          text.length >= 2 &&
-          text.length <= 64 &&
-          commonNamePattern.test(text),
+          text.length >= 2 && text.length <= 64 && commonNamePattern.test(text),
       }),
       trigger: "blur",
     },
@@ -488,6 +484,8 @@ const deleteInvoiceTitle = async (row) => {
 
 const invoiceApplySubmitting = ref(false);
 const invoiceApplyFormRef = ref();
+const accountBoundEmail = ref("");
+const invoiceEmailMode = ref("custom");
 const invoiceApplyForm = reactive({
   title_id: null,
   invoice_type: invoiceTypeOptions[0],
@@ -501,8 +499,42 @@ const invoiceApplyRules = {
   title_id: [{ required: true, message: "请选择发票抬头", trigger: "change" }],
   email: [
     { required: true, message: "请输入接收邮箱", trigger: "blur" },
-    { type: "email", message: "请输入正确的邮箱地址", trigger: "blur" },
+    {
+      type: "email",
+      message: "请输入正确的邮箱地址",
+      trigger: "blur",
+    },
   ],
+};
+
+const hasAccountBoundEmail = computed(() => Boolean(accountBoundEmail.value));
+
+const fetchAccountEmail = async () => {
+  try {
+    const res = await $myFetch("Profile");
+
+    if (res.code !== 200) return;
+
+    accountBoundEmail.value = res.data?.mail || "";
+
+    if (!invoiceApplyForm.email && accountBoundEmail.value) {
+      invoiceEmailMode.value = "account";
+      invoiceApplyForm.email = accountBoundEmail.value;
+    }
+  } catch (error) {
+    accountBoundEmail.value = "";
+  }
+};
+
+const handleInvoiceEmailModeChange = async (mode) => {
+  if (mode === "account") {
+    invoiceApplyForm.email = accountBoundEmail.value || "";
+  } else if (invoiceApplyForm.email === accountBoundEmail.value) {
+    invoiceApplyForm.email = "";
+  }
+
+  await nextTick();
+  invoiceApplyFormRef.value?.clearValidate?.("email");
 };
 
 const defaultInvoiceTitle = computed(() => {
@@ -519,10 +551,7 @@ const selectedInvoiceTitle = computed(() => {
 const formatInvoiceTitleSelectLabel = (item) => {
   if (!item) return "";
 
-  const identity =
-    item.type === "企业" && item.tax_id ? `税号：${item.tax_id}` : item.type;
-
-  return `${item.title || "-"}（${identity}）`;
+  return item.title || "-";
 };
 const formatInvoiceTitleMeta = (item) => {
   if (!item) return "-";
@@ -575,7 +604,8 @@ const resetInvoiceApplyForm = () => {
   invoiceApplyForm.invoice_type = invoiceTypeOptions[0];
   invoiceApplyForm.content = "软件服务费";
   invoiceApplyForm.spec_model = "blank";
-  invoiceApplyForm.email = "";
+  invoiceEmailMode.value = accountBoundEmail.value ? "account" : "custom";
+  invoiceApplyForm.email = accountBoundEmail.value || "";
   invoiceApplyForm.remark = "";
   invoiceApplyFormRef.value?.clearValidate?.();
 };
@@ -752,6 +782,7 @@ const fetchData = () => {
 onMounted(() => {
   fetchData();
   fetchInvoiceTitleList();
+  fetchAccountEmail();
   window.addEventListener("resize", updateInvoicePreviewScale);
 });
 
@@ -930,6 +961,7 @@ useHead({
                                   {{ item.title || "-" }}
                                 </span>
                                 <el-tag
+                                  class="invoice-title-option__tag"
                                   size="small"
                                   :type="
                                     item.type === '个人' ? 'success' : undefined
@@ -939,14 +971,12 @@ useHead({
                                 </el-tag>
                                 <el-tag
                                   v-if="item.is_default"
+                                  class="invoice-title-option__tag"
                                   type="warning"
                                   size="small"
                                 >
                                   默认
                                 </el-tag>
-                              </div>
-                              <div class="invoice-title-option__meta">
-                                {{ formatInvoiceTitleMeta(item) }}
                               </div>
                             </div>
                           </el-option>
@@ -973,10 +1003,47 @@ useHead({
                         </el-select>
                       </el-form-item>
                       <el-form-item label="接收邮箱" prop="email">
-                        <el-input
-                          v-model="invoiceApplyForm.email"
-                          placeholder="请输入接收发票的邮箱"
-                        />
+                        <div class="invoice-email-field">
+                          <el-radio-group
+                            v-if="hasAccountBoundEmail"
+                            v-model="invoiceEmailMode"
+                            class="invoice-email-mode"
+                            @change="handleInvoiceEmailModeChange"
+                          >
+                            <el-radio-button label="account">
+                              账户绑定邮箱
+                            </el-radio-button>
+                            <el-radio-button label="custom">
+                              其他邮箱
+                            </el-radio-button>
+                          </el-radio-group>
+
+                          <div
+                            v-if="
+                              hasAccountBoundEmail &&
+                              invoiceEmailMode === 'account'
+                            "
+                            class="invoice-email-bound"
+                          >
+                            <span class="invoice-email-bound__value">
+                              {{ accountBoundEmail }}
+                            </span>
+                            <el-tag
+                              class="invoice-email-bound__tag"
+                              size="small"
+                              type="success"
+                            >
+                              已绑定
+                            </el-tag>
+                          </div>
+
+                          <el-input
+                            v-else
+                            v-model="invoiceApplyForm.email"
+                            clearable
+                            placeholder="请输入接收发票的新邮箱"
+                          />
+                        </div>
                       </el-form-item>
                       <el-form-item label="开票内容">
                         <el-input v-model="invoiceApplyForm.content" disabled />
@@ -1807,22 +1874,91 @@ useHead({
 
 .invoice-title-option {
   display: flex;
-  flex-direction: column;
-  justify-content: center;
-  gap: 3px;
+  align-items: center;
   min-width: 0;
-  padding: 5px 0;
-  line-height: 1.4;
+  height: 100%;
+  padding: 0 4px;
 }
 
 .invoice-title-option__main {
   display: flex;
   align-items: center;
-  gap: 6px;
+  width: 100%;
   min-width: 0;
+  gap: 8px;
 }
 
 .invoice-title-option__name {
+  flex: 1;
+  overflow: hidden;
+  min-width: 0;
+  color: #303133;
+  font-weight: 500;
+  line-height: 1.4;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.invoice-title-option__tag {
+  flex: none;
+  height: 20px;
+  padding: 0 7px;
+  border-radius: 999px;
+  font-size: 12px;
+  line-height: 18px;
+}
+
+:global(.invoice-title-select-popper) {
+  border-radius: 8px;
+}
+
+:global(.invoice-title-select-popper .el-select-dropdown__list) {
+  padding: 6px;
+}
+
+:global(.invoice-title-select-popper .el-select-dropdown__item) {
+  min-height: 38px;
+  padding: 0 10px;
+  border-radius: 6px;
+  color: #303133;
+}
+
+:global(.invoice-title-select-popper .el-select-dropdown__item.hover),
+:global(.invoice-title-select-popper .el-select-dropdown__item:hover) {
+  background: #f5f7fa;
+}
+
+:global(.invoice-title-select-popper .el-select-dropdown__item.selected) {
+  background: #ecf5ff;
+  color: #409eff;
+  font-weight: 600;
+}
+
+.invoice-email-field {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  gap: 10px;
+}
+
+.invoice-email-mode {
+  align-self: flex-start;
+}
+
+.invoice-email-bound {
+  display: flex;
+  align-items: center;
+  min-width: 0;
+  min-height: 32px;
+  padding: 0 10px;
+  background: #f5f7fa;
+  border: 1px solid #e4e7ed;
+  border-radius: 6px;
+  gap: 8px;
+}
+
+.invoice-email-bound__value {
+  flex: 1;
   overflow: hidden;
   min-width: 0;
   color: #303133;
@@ -1831,19 +1967,13 @@ useHead({
   white-space: nowrap;
 }
 
-.invoice-title-option__meta {
-  overflow: hidden;
-  color: #909399;
+.invoice-email-bound__tag {
+  flex: none;
+  height: 20px;
+  padding: 0 7px;
+  border-radius: 999px;
   font-size: 12px;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-:global(.invoice-title-select-popper .el-select-dropdown__item) {
-  height: auto;
-  min-height: 48px;
-  padding-top: 4px;
-  padding-bottom: 4px;
+  line-height: 18px;
 }
 
 .invoice-document-wrap {
