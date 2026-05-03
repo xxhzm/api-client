@@ -33,10 +33,230 @@
   --main--color: #409eff;
   --font--color: #fff;
   --title--color: #666;
+  --dialog-radius: 12px;
+  --dialog-border: #e8edf3;
+  --dialog-title: #1f2937;
+  --dialog-text: #4b5563;
+  --dialog-shadow: 0 22px 70px rgba(15, 23, 42, 0.18), 0 8px 24px rgba(15, 23, 42, 0.08);
 }
 
 /* 全局消息提示样式 */
 .el-message,
 .el-overlay {
   z-index: 999999999999999999999999999999 !important;
+}
+
+/* 全局弹窗样式 */
+.el-overlay {
+  background-color: rgba(15, 23, 42, 0.46);
+  backdrop-filter: blur(2px);
+}
+
+.el-overlay-dialog {
+  padding: 18px;
+}
+
+.el-dialog {
+  border-radius: var(--dialog-radius);
+  overflow: hidden;
+  box-shadow: var(--dialog-shadow);
+  border: 1px solid rgba(226, 232, 240, 0.9);
+}
+
+.el-dialog__header {
+  margin: 0;
+  padding: 20px 24px 16px;
+  border-bottom: 1px solid var(--dialog-border);
+  background: linear-gradient(180deg, #ffffff 0%, #fbfdff 100%);
+}
+
+.el-dialog__title {
+  display: inline-flex;
+  align-items: center;
+  color: var(--dialog-title);
+  font-size: 16px;
+  font-weight: 600;
+  line-height: 1.35;
+}
+
+.el-dialog__headerbtn {
+  top: 16px;
+  right: 16px;
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  transition: background-color 0.18s ease, color 0.18s ease;
+
+  &:hover {
+    background: #f1f5f9;
+  }
+
+  .el-dialog__close {
+    color: #94a3b8;
+    font-size: 18px;
+  }
+
+  &:hover .el-dialog__close {
+    color: #334155;
+  }
+}
+
+.el-dialog__body {
+  padding: 24px;
+  color: var(--dialog-text);
+}
+
+.el-dialog__footer {
+  padding: 14px 24px 20px;
+  border-top: 1px solid var(--dialog-border);
+  background: #fbfdff;
+}
+
+.el-dialog__footer .dialog-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
+.el-dialog .el-button,
+.el-message-box .el-button,
+.el-popconfirm .el-button {
+  border-radius: 8px;
+  font-weight: 500;
+}
+
+.el-dialog .el-button--primary,
+.el-message-box .el-button--primary,
+.el-popconfirm .el-button--primary {
+  box-shadow: 0 8px 18px rgba(64, 158, 255, 0.22);
+}
+
+.el-dialog .el-input__wrapper,
+.el-dialog .el-textarea__inner,
+.el-message-box .el-input__wrapper {
+  border-radius: 8px;
+}
+
+/* Element Plus MessageBox */
+.el-message-box {
+  width: min(420px, calc(100vw - 32px));
+  padding: 0;
+  border: 1px solid rgba(226, 232, 240, 0.9);
+  border-radius: var(--dialog-radius);
+  overflow: hidden;
+  box-shadow: var(--dialog-shadow);
+}
+
+.el-message-box__header {
+  padding: 20px 24px 14px;
+  border-bottom: 1px solid var(--dialog-border);
+  background: linear-gradient(180deg, #ffffff 0%, #fbfdff 100%);
+}
+
+.el-message-box__title {
+  color: var(--dialog-title);
+  font-size: 16px;
+  font-weight: 600;
+  line-height: 1.35;
+}
+
+.el-message-box__headerbtn {
+  top: 16px;
+  right: 16px;
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+
+  &:hover {
+    background: #f1f5f9;
+  }
+
+  .el-message-box__close {
+    color: #94a3b8;
+    font-size: 18px;
+  }
+
+  &:hover .el-message-box__close {
+    color: #334155;
+  }
+}
+
+.el-message-box__content {
+  padding: 22px 24px 10px;
+  color: var(--dialog-text);
+  font-size: 14px;
+  line-height: 1.7;
+}
+
+.el-message-box__status {
+  margin-top: 1px;
+}
+
+.el-message-box__message {
+  color: var(--dialog-text);
+}
+
+.el-message-box__btns {
+  padding: 14px 24px 22px;
+  gap: 10px;
+}
+
+/* Popconfirm */
+.el-popconfirm {
+  padding: 4px 2px;
+}
+
+.el-popconfirm__main {
+  align-items: flex-start;
+  color: var(--dialog-text);
+  line-height: 1.55;
+}
+
+.el-popconfirm__action {
+  margin-top: 14px;
+}
+
+@media screen and (max-width: 768px) {
+  .el-overlay-dialog {
+    padding: 12px;
+  }
+
+  .el-dialog {
+    width: min(92vw, 520px) !important;
+    margin-top: 8vh !important;
+  }
+
+  .el-dialog__header,
+  .el-message-box__header {
+    padding: 18px 18px 14px;
+  }
+
+  .el-dialog__body {
+    padding: 20px 18px;
+  }
+
+  .el-dialog__footer {
+    padding: 14px 18px 18px;
+  }
+
+  .el-dialog__footer .dialog-footer {
+    flex-direction: column-reverse;
+
+    .el-button {
+      width: 100%;
+      margin-left: 0;
+    }
+  }
+
+  .el-message-box__content {
+    padding: 20px 18px 8px;
+  }
+
+  .el-message-box__btns {
+    padding: 12px 18px 20px;
+
+    .el-button {
+      min-width: 88px;
+    }
+  }
 }

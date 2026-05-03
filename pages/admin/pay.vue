@@ -1041,17 +1041,30 @@ useHead({
                 font-size: 14px;
 
                 .label {
+                  flex: 0 0 72px;
+                  width: 72px;
                   color: #909399;
+                  white-space: nowrap;
                 }
 
                 .value {
+                  min-width: 0;
                   color: #606266;
                   font-weight: 500;
-                  margin: 0 4px;
+                  margin: 0;
+                  text-align: left;
                 }
 
                 .unit {
+                  margin-left: 4px;
                   color: #909399;
+                }
+              }
+
+              .preview-method,
+              .preview-bank {
+                .value {
+                  flex: 1;
                 }
               }
 
