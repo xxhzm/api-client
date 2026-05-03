@@ -113,6 +113,7 @@ const pathMap = {
 
   // 5: User & Merchant (Moved from 4)
   userlist: '5',
+  userdetail: '5',
   rolelist: '5',
   permissionlist: '5',
   merchant: '5',
@@ -189,6 +190,7 @@ const pathIndexMap = {
 
   // User & Merchant (5)
   '/admin/userlist': '5-1',
+  '/admin/userdetail': '5-1',
   '/admin/rolelist': '5-2',
   '/admin/permissionlist': '5-3',
   '/admin/merchant': '5-4',
@@ -217,14 +219,28 @@ const pathIndexMap = {
   '/admin/myworkorder': '8-3',
 }
 
+const getActiveIndex = (targetPath) => {
+  const normalizedPath = targetPath.replace(/\/$/, '') || '/admin'
+  if (pathIndexMap[normalizedPath]) {
+    return pathIndexMap[normalizedPath]
+  }
+
+  const pathParts = normalizedPath.split('/')
+  if (pathParts.length > 3) {
+    return pathIndexMap[`/${pathParts[1]}/${pathParts[2]}`] || ''
+  }
+
+  return ''
+}
+
 const route = useRoute()
 // 初始化高亮
-defaultActive.value = pathIndexMap[route.path] || ''
+defaultActive.value = getActiveIndex(route.path)
 // 路由变化时更新高亮
 watch(
   () => route.path,
   (newPath) => {
-    defaultActive.value = pathIndexMap[newPath] || ''
+    defaultActive.value = getActiveIndex(newPath)
   },
 )
 </script>

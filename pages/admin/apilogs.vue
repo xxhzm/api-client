@@ -1,35 +1,35 @@
 <script setup>
-import { Search } from '@element-plus/icons-vue'
+import { Search } from '@element-plus/icons-vue';
 
-const { $msg, $myFetch } = useNuxtApp()
-const { isAdmin } = useRouteAccess()
+const { $msg, $myFetch } = useNuxtApp();
+const { isAdmin } = useRouteAccess();
 
 definePageMeta({
   layout: 'admin',
-})
+});
 
 // 当前页数
-const page = ref(1)
-const pageLock = ref(false)
+const page = ref(1);
+const pageLock = ref(false);
 // 总记录
-const maxPage = ref(50)
+const maxPage = ref(50);
 // 页数loading
-const pageLoading = ref(false)
+const pageLoading = ref(false);
 // 每页显示条数
-const pageSize = ref(100)
+const pageSize = ref(100);
 
 // 监听页数变化
 watch(
   () => page.value,
   async (newValue) => {
     const currentSearchUserId =
-      searchInputUserId.value.trim() || searchUserId.value
+      searchInputUserId.value.trim() || searchUserId.value;
 
     if (pageLock.value === true) {
-      pageLock.value = false
-      return false
+      pageLock.value = false;
+      return false;
     }
-    pageLoading.value = true
+    pageLoading.value = true;
 
     if (
       searchTime.value === undefined &&
@@ -39,18 +39,18 @@ watch(
       !currentSearchUserId &&
       searchId.value === ''
     ) {
-      await getData()
+      await getData();
     } else {
-      await handleSearch(newValue)
+      await handleSearch(newValue);
     }
     setTimeout(() => {
-      pageLoading.value = false
-    }, 300)
+      pageLoading.value = false;
+    }, 300);
   },
-)
+);
 
-const loading = ref(false)
-const tableData = ref([])
+const loading = ref(false);
+const tableData = ref([]);
 
 // 统计数据
 const callStats = ref({
@@ -58,25 +58,25 @@ const callStats = ref({
   day3: 0,
   day7: 0,
   month1: 0,
-})
-const topApis = ref([])
+});
+const topApis = ref([]);
 
 const topApiCards = computed(() => {
   const cards = topApis.value.slice(0, 5).map((api) => ({
     ...api,
     placeholder: false,
-  }))
+  }));
 
   while (cards.length < 5) {
     cards.push({
       name: '',
       count: '',
       placeholder: true,
-    })
+    });
   }
 
-  return cards
-})
+  return cards;
+});
 
 const applyStats = (callStat = {}) => {
   callStats.value = {
@@ -84,26 +84,26 @@ const applyStats = (callStat = {}) => {
     day3: callStat.day_3 || 0,
     day7: callStat.day_7 || 0,
     month1: callStat.day_30 || 0,
-  }
-}
+  };
+};
 
 const applyTopApis = (items = []) => {
   if (!Array.isArray(items) || items.length === 0) {
-    topApis.value = []
-    return
+    topApis.value = [];
+    return;
   }
 
   topApis.value = items.slice(0, 5).map((item) => ({
     name: item.name,
     count: item.count,
-  }))
-}
+  }));
+};
 
 const formatPath = (url = '') => {
-  const parts = url.split(' ')
-  const path = parts[1]?.split('clientIP=')[0] || ''
-  return path.replace(/[?&]$/, '')
-}
+  const parts = url.split(' ');
+  const path = parts[1]?.split('clientIP=')[0] || '';
+  return path.replace(/[?&]$/, '');
+};
 
 const formatLogs = (logs = []) =>
   logs.map((item, index) => ({
@@ -112,14 +112,14 @@ const formatLogs = (logs = []) =>
     timestamp: new Date(item.timestamp).toLocaleString(),
     method: item.url?.split(' ')[0] || '',
     path: formatPath(item.url),
-  }))
+  }));
 
 const applyListData = (data = {}) => {
-  applyStats(data.call_stat)
-  applyTopApis(data.top_apis)
-  tableData.value = formatLogs(data.logs || [])
-  maxPage.value = data.max_page_count || 1
-}
+  applyStats(data.call_stat);
+  applyTopApis(data.top_apis);
+  tableData.value = formatLogs(data.logs || []);
+  maxPage.value = data.max_page_count || 1;
+};
 
 const getData = async () => {
   const res = await $myFetch('ApiLogList', {
@@ -127,25 +127,25 @@ const getData = async () => {
       page: page.value,
       size: pageSize.value,
     },
-  })
+  });
 
   if (res.code !== 200) {
-    $msg(res.msg, 'error')
-    tableData.value = []
-    maxPage.value = 1
-    return
+    tableData.value = [];
+    maxPage.value = 1;
+    return;
   }
 
-  applyListData(res.data)
-}
+  applyListData(res.data);
+};
 
 // 禁用时间
 const disabledDate = (time) => {
-  return time.getTime() > Date.now()
-}
+  return time.getTime() > Date.now();
+};
 
 const handleSearchTime = async (sPage) => {
-  const currentSearchUserId = searchInputUserId.value.trim() || searchUserId.value
+  const currentSearchUserId =
+    searchInputUserId.value.trim() || searchUserId.value;
 
   // 如果没有任何筛选条件，则返回错误
   if (
@@ -155,179 +155,181 @@ const handleSearchTime = async (sPage) => {
     !searchStatusCode.value &&
     !currentSearchUserId
   ) {
-    $msg('请至少选择一项筛选条件', 'error')
-    return false
+    $msg('请至少选择一项筛选条件', 'error');
+    return false;
   }
 
   const params = {
     page: sPage,
     size: pageSize.value,
-  }
+  };
 
   // 添加时间筛选条件
   if (searchTime.value) {
-    params.startTime = searchTime.value[0]
-    params.endTime = searchTime.value[1]
+    params.startTime = searchTime.value[0];
+    params.endTime = searchTime.value[1];
   }
 
   // 添加其他筛选条件
   if (searchIp.value) {
-    params.client_ip = searchIp.value
+    params.client_ip = searchIp.value;
   }
 
   if (searchAliasValue.value) {
-    params.alias = searchAliasValue.value
+    params.alias = searchAliasValue.value;
   }
 
   if (searchStatusCode.value) {
-    params.status_code = searchStatusCode.value
+    params.status_code = searchStatusCode.value;
   }
 
   if (isAdmin.value && currentSearchUserId) {
-    params.uid = currentSearchUserId
+    params.uid = currentSearchUserId;
   }
 
-  const res = await $myFetch('ApiLogList', { params })
+  const res = await $myFetch('ApiLogList', { params });
 
   if (res.code !== 200) {
-    $msg(res.msg, 'error')
-    tableData.value = []
-    maxPage.value = 1
-    return false
+    $msg(res.msg, 'error');
+    tableData.value = [];
+    maxPage.value = 1;
+    return false;
   }
 
-  applyListData(res.data)
+  applyListData(res.data);
 
   if (page.value !== sPage) {
-    pageLock.value = true
-    page.value = sPage
+    pageLock.value = true;
+    page.value = sPage;
   }
-}
+};
 
 const handleSearchId = async () => {
   if (searchId.value.length !== 24) {
-    $msg('请输入正确的请求ID', 'warning')
-    return false
+    $msg('请输入正确的请求ID', 'warning');
+    return false;
   }
   const res = await $myFetch('ApiLogId', {
     params: {
       id: searchId.value,
     },
-  })
+  });
 
   if (res.code !== 200) {
-    $msg(res.msg, 'error')
-    tableData.value = []
-    return false
+    $msg(res.msg, 'error');
+    tableData.value = [];
+    return false;
   }
 
-  pageLock.value = true
-  tableData.value = formatLogs([res.data])
-  maxPage.value = 1
-  page.value = 1
-}
+  pageLock.value = true;
+  tableData.value = formatLogs([res.data]);
+  maxPage.value = 1;
+  page.value = 1;
+};
 
 const handleSearch = async (currentPage) => {
   if (searchId.value === '') {
-    await handleSearchTime(currentPage)
+    await handleSearchTime(currentPage);
   } else {
-    await handleSearchId()
+    await handleSearchId();
   }
-}
+};
 
 onMounted(() => {
-  getData()
-})
+  getData();
+});
 
-const searchTime = ref()
-const searchId = ref('')
-const searchIp = ref('')
-const searchAlias = ref('')
-const searchAliasValue = ref('')
-const searchStatusCode = ref('')
-const searchUser = ref('')
-const searchUserId = ref('')
-const searchInputUserId = ref('')
-const isUsernameSearchDisabled = computed(() => !!searchInputUserId.value.trim())
+const searchTime = ref();
+const searchId = ref('');
+const searchIp = ref('');
+const searchAlias = ref('');
+const searchAliasValue = ref('');
+const searchStatusCode = ref('');
+const searchUser = ref('');
+const searchUserId = ref('');
+const searchInputUserId = ref('');
+const isUsernameSearchDisabled = computed(
+  () => !!searchInputUserId.value.trim(),
+);
 const isUserIdSearchDisabled = computed(
   () => !!searchUser.value || !!searchUserId.value,
-)
+);
 
 // 接口搜索相关变量
-const searchApiData = ref([])
-const searchApiOldValue = ref('')
-const searchUserData = ref([])
-const searchUserOldValue = ref('')
+const searchApiData = ref([]);
+const searchApiOldValue = ref('');
+const searchUserData = ref([]);
+const searchUserOldValue = ref('');
 
 // 接口名称搜索
 const querySearchAsync = async (queryString, cb) => {
   if (queryString === '') {
-    searchAlias.value = ''
-    searchAliasValue.value = ''
-    cb([])
-    return false
+    searchAlias.value = '';
+    searchAliasValue.value = '';
+    cb([]);
+    return false;
   }
 
   if (queryString === searchApiOldValue.value) {
-    cb(searchApiData.value)
-    return false
+    cb(searchApiData.value);
+    return false;
   }
 
   const res = await $myFetch('ApiSearch', {
     params: {
       keyword: queryString,
     },
-  })
+  });
 
   if (res.code !== 200) {
-    $msg(res.msg, 'error')
-    cb([])
-    return
+    $msg(res.msg, 'error');
+    cb([]);
+    return;
   }
 
   // 遍历数据，显示name，但保存alias用于搜索
   const formattedData = res.data.map((item) => ({
     value: item.name,
     alias: item.alias,
-  }))
+  }));
 
-  searchApiOldValue.value = queryString
-  searchApiData.value = formattedData
-  cb(searchApiData.value)
-}
+  searchApiOldValue.value = queryString;
+  searchApiData.value = formattedData;
+  cb(searchApiData.value);
+};
 
 // 处理接口名称选择
 const handleSearchSelect = (item) => {
-  searchAliasValue.value = item.alias
-}
+  searchAliasValue.value = item.alias;
+};
 
 watch(searchAlias, (newValue) => {
   if (!newValue) {
-    searchAliasValue.value = ''
-    return
+    searchAliasValue.value = '';
+    return;
   }
 
   const selectedItem = searchApiData.value.find(
     (item) => item.value === newValue,
-  )
+  );
   if (!selectedItem) {
-    searchAliasValue.value = ''
+    searchAliasValue.value = '';
   }
-})
+});
 
 const queryUserSearchAsync = async (queryString, cb) => {
-  const keyword = queryString.trim()
+  const keyword = queryString.trim();
 
   if (!isAdmin.value || keyword === '' || isUsernameSearchDisabled.value) {
-    searchUser.value = ''
-    searchUserId.value = ''
-    cb([])
-    return false
+    searchUser.value = '';
+    searchUserId.value = '';
+    cb([]);
+    return false;
   }
 
   if (queryString === searchUserOldValue.value) {
-    cb(searchUserData.value)
-    return false
+    cb(searchUserData.value);
+    return false;
   }
 
   const res = await $myFetch('UserList', {
@@ -336,87 +338,87 @@ const queryUserSearchAsync = async (queryString, cb) => {
       limit: 10,
       keyword,
     },
-  })
+  });
 
   if (res.code !== 200) {
-    $msg(res.msg, 'error')
-    cb([])
-    return
+    $msg(res.msg, 'error');
+    cb([]);
+    return;
   }
 
   const formattedData = (res.data.userList || []).map((item) => ({
     value: `${item.username} (#${item.id})`,
     id: item.id,
     username: item.username,
-  }))
+  }));
 
-  searchUserOldValue.value = queryString
-  searchUserData.value = formattedData
-  cb(searchUserData.value)
-}
+  searchUserOldValue.value = queryString;
+  searchUserData.value = formattedData;
+  cb(searchUserData.value);
+};
 
 const handleUserSearchSelect = (item) => {
-  searchInputUserId.value = ''
-  searchUser.value = item.value
-  searchUserId.value = item.id
-}
+  searchInputUserId.value = '';
+  searchUser.value = item.value;
+  searchUserId.value = item.id;
+};
 
 watch(searchUser, (newValue) => {
   if (!newValue) {
-    searchUserId.value = ''
-    return
+    searchUserId.value = '';
+    return;
   }
 
   const selectedItem = searchUserData.value.find(
     (item) => item.value === newValue,
-  )
+  );
   if (!selectedItem) {
-    searchUserId.value = ''
+    searchUserId.value = '';
   }
-})
+});
 
 watch(searchInputUserId, (newValue) => {
-  const digitsOnly = String(newValue || '').replace(/\D+/g, '')
+  const digitsOnly = String(newValue || '').replace(/\D+/g, '');
   if (digitsOnly !== newValue) {
-    searchInputUserId.value = digitsOnly
-    return
+    searchInputUserId.value = digitsOnly;
+    return;
   }
 
   if (!newValue.trim()) {
-    return
+    return;
   }
 
-  searchUser.value = ''
-  searchUserId.value = ''
-  searchUserOldValue.value = ''
-  searchUserData.value = []
-})
+  searchUser.value = '';
+  searchUserId.value = '';
+  searchUserOldValue.value = '';
+  searchUserData.value = [];
+});
 
 const handleReset = () => {
-  searchTime.value = undefined
-  searchId.value = ''
-  searchIp.value = ''
-  searchAlias.value = ''
-  searchAliasValue.value = ''
-  searchStatusCode.value = ''
-  searchUser.value = ''
-  searchUserId.value = ''
-  searchInputUserId.value = ''
-  searchApiOldValue.value = ''
-  searchApiData.value = []
-  searchUserOldValue.value = ''
-  searchUserData.value = []
-  pageLock.value = true
-  page.value = 1
-  getData()
-}
+  searchTime.value = undefined;
+  searchId.value = '';
+  searchIp.value = '';
+  searchAlias.value = '';
+  searchAliasValue.value = '';
+  searchStatusCode.value = '';
+  searchUser.value = '';
+  searchUserId.value = '';
+  searchInputUserId.value = '';
+  searchApiOldValue.value = '';
+  searchApiData.value = [];
+  searchUserOldValue.value = '';
+  searchUserData.value = [];
+  pageLock.value = true;
+  page.value = 1;
+  getData();
+};
 
 useHead({
   title: '接口日志',
   viewport:
     'width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0',
   charset: 'utf-8',
-})
+});
 </script>
 
 <template>

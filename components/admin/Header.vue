@@ -33,6 +33,7 @@ const routeNameMap = {
   '/admin/apilogs': '接口日志',
   '/admin/statistics': '统计分析',
   '/admin/userlist': '用户列表',
+  '/admin/userdetail': '用户详情',
   '/admin/rolelist': '角色列表',
   '/admin/permissionlist': '权限列表',
   '/admin/keylog': '秘钥历史记录',
@@ -75,6 +76,7 @@ const dynamicRouteMap = {
   apiset: '接口设置',
   articleset: '文章设置',
   invoicedetail: '开票详情',
+  userdetail: '用户详情',
   workorderdetail: '工单详情',
 }
 
@@ -116,6 +118,7 @@ const parentNameMap = {
 
   // 用户与商户
   '/admin/userlist': '用户与商户',
+  '/admin/userdetail': '用户与商户',
   '/admin/rolelist': '用户与商户',
   '/admin/permissionlist': '用户与商户',
   '/admin/keylog': '用户与商户',
@@ -165,6 +168,7 @@ const breadcrumbs = computed(() => {
     (pathParts[2] === 'apiset' ||
       pathParts[2] === 'articleset' ||
       pathParts[2] === 'invoicedetail' ||
+      pathParts[2] === 'userdetail' ||
       pathParts[2] === 'workorderdetail')
   ) {
     basePath = `/${pathParts[1]}/${pathParts[2]}`
@@ -213,6 +217,7 @@ const addVisitedView = () => {
     (pathParts[2] === 'apiset' ||
       pathParts[2] === 'articleset' ||
       pathParts[2] === 'invoicedetail' ||
+      pathParts[2] === 'userdetail' ||
       pathParts[2] === 'workorderdetail')
   ) {
     basePath = `/${pathParts[1]}/${pathParts[2]}`
