@@ -204,6 +204,26 @@ const visibleViews = computed(() => {
   )
 })
 
+const isUserDetailPath = (path) => {
+  return /^\/admin\/userdetail\/[^/]+$/.test(path)
+}
+
+const keepLastUserDetailView = (views) => {
+  let lastUserDetailIndex = -1
+  for (let index = views.length - 1; index >= 0; index -= 1) {
+    if (isUserDetailPath(views[index].path)) {
+      lastUserDetailIndex = index
+      break
+    }
+  }
+
+  if (lastUserDetailIndex === -1) return views
+
+  return views.filter(
+    (v, index) => !isUserDetailPath(v.path) || index === lastUserDetailIndex,
+  )
+}
+
 const addVisitedView = () => {
   const path = route.path.replace(/\/$/, '') || '/admin'
 
@@ -240,6 +260,12 @@ const addVisitedView = () => {
     path,
     title,
     name: route.name || 'no-name',
+  }
+
+  if (isUserDetailPath(path)) {
+    visitedViews.value = visitedViews.value.filter(
+      (v) => !isUserDetailPath(v.path) || v.path === path,
+    )
   }
 
   // Deduplicate
@@ -321,7 +347,7 @@ onMounted(() => {
     const saved = localStorage.getItem('visitedViews')
     if (saved) {
       try {
-        visitedViews.value = JSON.parse(saved)
+        visitedViews.value = keepLastUserDetailView(JSON.parse(saved))
       } catch (e) {
         console.error(e)
       }
@@ -334,8 +360,14 @@ onMounted(() => {
 watch(
   visitedViews,
   (val) => {
+    const normalizedViews = keepLastUserDetailView(val)
+    if (normalizedViews.length !== val.length) {
+      visitedViews.value = normalizedViews
+      return
+    }
+
     if (process.client) {
-      localStorage.setItem('visitedViews', JSON.stringify(val))
+      localStorage.setItem('visitedViews', JSON.stringify(normalizedViews))
     }
     checkTagsWidth()
   },

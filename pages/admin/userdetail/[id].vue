@@ -298,7 +298,7 @@ const updateUser = async () => {
     if (res.code === 200) {
       $msg(res.msg, 'success');
       editDialogVisible.value = false;
-      await fetchUserInfo();
+      await Promise.all([fetchUserInfo(), fetchUserRoles()]);
     } else {
       $msg(res.msg, 'error');
     }
@@ -558,6 +558,44 @@ const handleInvoiceTitleSizeChange = (newSize) => {
   fetchUserInvoiceTitles();
 };
 
+const resetDetailState = () => {
+  userInfo.value = null;
+  editDialogVisible.value = false;
+  editLoading.value = false;
+  roleList.value = [];
+  bindRoleInfo.value = [];
+  userRoleRecords.value = [];
+  userRoleLoading.value = false;
+
+  rechargeRecords.value = [];
+  rechargeLoading.value = false;
+  rechargePage.value = 1;
+  rechargeTotalRecords.value = 0;
+
+  buyPackageRecords.value = [];
+  buyPackageLoading.value = false;
+  buyPackagePage.value = 1;
+  buyPackageTotalRecords.value = 0;
+
+  callRecords.value = [];
+  callRecordLoading.value = false;
+  callRecordPage.value = 1;
+  callRecordMaxPage.value = 1;
+
+  invoiceTitleRecords.value = [];
+  invoiceTitleLoading.value = false;
+  invoiceTitlePage.value = 1;
+  invoiceTitleTotalRecords.value = 0;
+
+  userCallStats.value = {
+    day1: 0,
+    day3: 0,
+    day7: 0,
+    month1: 0,
+  };
+  userTopApis.value = [];
+};
+
 onMounted(async () => {
   if (!userId.value) {
     $msg('缺少用户ID', 'error');
@@ -568,6 +606,23 @@ onMounted(async () => {
   loadCachedUser();
   await refreshAll();
 });
+
+watch(
+  () => route.params.id,
+  async (newId, oldId) => {
+    if (String(newId || '') === String(oldId || '')) return;
+
+    if (!newId) {
+      $msg('缺少用户ID', 'error');
+      goBack();
+      return;
+    }
+
+    resetDetailState();
+    loadCachedUser();
+    await refreshAll();
+  },
+);
 
 useHead({
   title: '用户详情',
