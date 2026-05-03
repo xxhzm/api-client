@@ -665,35 +665,52 @@ useHead({
     <el-dialog
       v-model="qrPayDialogVisible"
       :title="getQrDialogTitle()"
-      width="400px"
+      width="680px"
       :close-on-click-modal="false"
       :show-close="false"
       class="wechat-pay-dialog"
     >
       <div class="wechat-pay-content">
         <p class="qr-code-tips">请使用{{ qrPaySoftware }}扫码支付</p>
-        <div class="payment-amount-section">
-          <div class="amount-display">
-            <span class="amount-label">实际支付金额：</span>
-            <span class="amount-value">{{ qrPayAmount }}</span>
-            <span class="amount-unit">元</span>
+        <div class="qr-pay-main">
+          <div class="qr-code">
+            <img :src="qrCodeUrl" :alt="getQrDialogTitle()" />
+          </div>
+          <div class="qr-pay-info">
+            <div class="payment-amount-section">
+              <div class="amount-display">
+                <span class="amount-label">实际支付金额：</span>
+                <span class="amount-value">{{ qrPayAmount }}</span>
+                <span class="amount-unit">元</span>
+              </div>
+            </div>
+            <div class="qr-tips">
+              <div class="qr-tips-title">使用说明</div>
+              <div class="qr-tip-item">
+                <span class="qr-tip-index">1</span>
+                <span>打开{{ qrPaySoftware }}，使用"扫一扫"功能扫描二维码</span>
+              </div>
+              <div class="qr-tip-item">
+                <span class="qr-tip-index">2</span>
+                <span>
+                  确认支付金额为
+                  <strong>{{ qrPayAmount }}元</strong>，点击"确认"完成支付
+                </span>
+              </div>
+              <div class="qr-tip-item">
+                <span class="qr-tip-index">3</span>
+                <span>支付成功后系统将自动检测并更新余额</span>
+              </div>
+            </div>
+            <el-button
+              type="primary"
+              @click="closeQrPayDialog"
+              class="close-btn"
+            >
+              关闭
+            </el-button>
           </div>
         </div>
-        <div class="qr-code">
-          <img :src="qrCodeUrl" :alt="getQrDialogTitle()" />
-        </div>
-        <div class="qr-tips">
-          <p>使用说明：</p>
-          <p>1. 打开{{ qrPaySoftware }}，使用"扫一扫"功能扫描二维码</p>
-          <p>
-            2. 确认支付金额为
-            <strong>{{ qrPayAmount }}元</strong>，点击"确认"完成支付
-          </p>
-          <p>3. 支付成功后系统将自动检测并更新余额</p>
-        </div>
-        <el-button type="primary" @click="closeQrPayDialog" class="close-btn">
-          关闭
-        </el-button>
       </div>
     </el-dialog>
   </div>
@@ -808,8 +825,6 @@ useHead({
 
           .recharge-form {
             flex: 1;
-            padding-right: 40px;
-            border-right: 1px solid #ebeef5;
 
             .label {
               font-size: 14px;
@@ -1297,6 +1312,120 @@ useHead({
   }
 }
 
+.wechat-pay-dialog {
+  :deep(.el-dialog__body) {
+    padding: 22px 24px 24px;
+  }
+
+  .wechat-pay-content {
+    padding: 0;
+
+    .qr-code-tips {
+      margin: 0 0 18px;
+      line-height: 1.45;
+    }
+
+    .qr-pay-main {
+      display: grid;
+      grid-template-columns: 244px minmax(0, 1fr);
+      gap: 22px;
+      align-items: stretch;
+      text-align: left;
+    }
+
+    .qr-pay-info {
+      display: flex;
+      flex-direction: column;
+      min-width: 0;
+    }
+
+    .payment-amount-section {
+      margin-bottom: 14px;
+
+      .amount-display {
+        justify-content: flex-start;
+        margin-bottom: 0;
+        padding: 13px 14px;
+        border-width: 1px;
+        border-color: #f1b6a8;
+        border-radius: 10px;
+        background: linear-gradient(180deg, #fff7f4 0%, #ffffff 100%);
+
+        .amount-label {
+          flex: 0 0 auto;
+        }
+      }
+    }
+
+    .qr-code {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      margin: 0;
+      padding: 16px;
+      border: 1px solid #eef2f7;
+      border-radius: 12px;
+      background: #fff;
+      box-shadow: 0 10px 28px rgba(15, 23, 42, 0.08);
+
+      img {
+        display: block;
+        max-width: 236px;
+        width: 100%;
+        border: none;
+        border-radius: 6px;
+        padding: 0;
+      }
+    }
+
+    .qr-tips {
+      flex: 1;
+      margin: 0 0 14px;
+      padding: 14px 16px;
+      border: 1px solid #eef2f7;
+      border-radius: 10px;
+      background: #f8fafc;
+      text-align: left;
+
+      .qr-tips-title {
+        margin-bottom: 10px;
+        color: #606266;
+        font-size: 13px;
+        font-weight: 600;
+      }
+
+      .qr-tip-item {
+        display: grid;
+        grid-template-columns: 20px 1fr;
+        gap: 8px;
+        align-items: flex-start;
+        margin-top: 8px;
+        line-height: 1.55;
+      }
+
+      .qr-tip-index {
+        display: inline-flex;
+        justify-content: center;
+        align-items: center;
+        width: 20px;
+        height: 20px;
+        border-radius: 50%;
+        background: #eaf3ff;
+        color: #409eff;
+        font-size: 12px;
+        font-weight: 600;
+      }
+    }
+
+    .close-btn {
+      align-self: flex-end;
+      width: 128px;
+      height: 40px;
+      font-size: 14px;
+    }
+  }
+}
+
 .bank-transfer-dialog {
   .bank-transfer-detail {
     margin: 0 0 18px;
@@ -1340,6 +1469,105 @@ useHead({
 
     p {
       margin: 0;
+    }
+  }
+}
+
+@media screen and (max-width: 768px) {
+  .wechat-pay-dialog {
+    :deep(.el-dialog__header) {
+      padding-top: 16px;
+      padding-bottom: 12px;
+    }
+
+    :deep(.el-dialog__body) {
+      padding: 16px;
+    }
+
+    .wechat-pay-content {
+      padding: 0;
+
+      .qr-code-tips {
+        margin-bottom: 10px;
+        font-size: 14px;
+        line-height: 1.45;
+      }
+
+      .qr-pay-main {
+        grid-template-columns: 1fr;
+        gap: 14px;
+        align-items: center;
+        text-align: center;
+      }
+
+      .qr-pay-info {
+        width: 100%;
+      }
+
+      .payment-amount-section {
+        margin-bottom: 10px;
+
+        .amount-display {
+          display: flex;
+          justify-content: center;
+          padding: 10px;
+          border-radius: 10px;
+
+          .amount-label {
+            font-size: 12px;
+          }
+
+          .amount-unit {
+            font-size: 12px;
+          }
+
+          .amount-value {
+            font-size: 22px;
+            line-height: 1.2;
+          }
+        }
+      }
+
+      .qr-code {
+        margin: 0 auto;
+        padding: 8px;
+        border-radius: 10px;
+        width: fit-content;
+
+        img {
+          width: min(58vw, 220px);
+          max-width: 100%;
+        }
+      }
+
+      .qr-tips {
+        margin-bottom: 10px;
+        padding: 10px;
+        font-size: 12px;
+        line-height: 1.45;
+
+        .qr-tips-title {
+          margin-bottom: 6px;
+        }
+
+        .qr-tip-item {
+          grid-template-columns: 18px 1fr;
+          gap: 7px;
+          margin-top: 6px;
+        }
+
+        .qr-tip-index {
+          width: 18px;
+          height: 18px;
+          font-size: 11px;
+        }
+      }
+
+      .close-btn {
+        width: 100%;
+        height: 36px;
+        font-size: 13px;
+      }
     }
   }
 }
