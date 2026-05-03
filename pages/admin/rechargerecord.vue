@@ -1,27 +1,27 @@
 <script setup>
-import { Wallet, Search } from '@element-plus/icons-vue'
+import { Wallet, Search } from '@element-plus/icons-vue';
 
 definePageMeta({
   layout: 'admin',
-})
+});
 
-const { $myFetch, $msg } = useNuxtApp()
+const { $myFetch, $msg } = useNuxtApp();
 
 // 加载状态
-const loading = ref(false)
-const pageLoading = ref(false)
+const loading = ref(false);
+const pageLoading = ref(false);
 
 // 表格数据
-const filteredData = ref([]) // 存储记录数据
+const filteredData = ref([]); // 存储记录数据
 
 // 分页相关
-const page = ref(1) // 当前页数
-const pageSize = ref(20) // 每页显示数量，默认20条
-const totalRecords = ref(0) // 总记录数
+const page = ref(1); // 当前页数
+const pageSize = ref(20); // 每页显示数量，默认20条
+const totalRecords = ref(0); // 总记录数
 
 // 详情对话框
-const dialogVisible = ref(false)
-const currentRecord = ref(null)
+const dialogVisible = ref(false);
+const currentRecord = ref(null);
 
 // 上方卡片信息
 const recargarInfo = ref({
@@ -29,83 +29,83 @@ const recargarInfo = ref({
   total_money: 0,
   recently_order: 0,
   recently_money: 0,
-})
+});
 
 // 获取充值记录数据
 const fetchAllRecords = async () => {
-  pageLoading.value = true
+  pageLoading.value = true;
   try {
     // 构建查询参数，包含分页参数
     const params = {
       page: page.value,
       limit: pageSize.value, // 添加每页数量参数
-    }
+    };
     // 发送请求获取充值记录数据
-    const res = await $myFetch('GetRechargeRecords', { params })
+    const res = await $myFetch('GetRechargeRecords', { params });
 
     if (res.code === 200) {
       // 保存记录
-      filteredData.value = res.data.data || []
+      filteredData.value = res.data.data || [];
 
       // 设置分页信息
       if (res.data && typeof res.data.total_records === 'number') {
-        totalRecords.value = res.data.total_records || 0
+        totalRecords.value = res.data.total_records || 0;
       }
 
       // 设置卡片信息
-      recargarInfo.value.total_order = res.data.total_order || 0
-      recargarInfo.value.total_money = res.data.total_money || 0
-      recargarInfo.value.recently_order = res.data.recently_order || 0
-      recargarInfo.value.recently_money = res.data.recently_money || 0
+      recargarInfo.value.total_order = res.data.total_order || 0;
+      recargarInfo.value.total_money = res.data.total_money || 0;
+      recargarInfo.value.recently_order = res.data.recently_order || 0;
+      recargarInfo.value.recently_money = res.data.recently_money || 0;
     } else {
-      $msg(res.msg || '获取充值记录失败', 'error')
+      $msg(res.msg || '获取充值记录失败', 'error');
     }
   } catch (error) {
-    $msg('获取充值记录失败', 'error')
+    $msg('获取充值记录失败', 'error');
   } finally {
-    pageLoading.value = false
+    pageLoading.value = false;
   }
-}
+};
 
 // 页码变化时获取对应页的数据
 watch(
   () => page.value,
   (newValue, oldValue) => {
-    pageLoading.value = true
-    fetchAllRecords() // 页码变化时重新获取数据
+    pageLoading.value = true;
+    fetchAllRecords(); // 页码变化时重新获取数据
   },
-)
+);
 
 // 手动处理页面切换
 const handlePageChange = (newPage) => {
-  page.value = newPage
-  fetchAllRecords()
-}
+  page.value = newPage;
+  fetchAllRecords();
+};
 
 // 处理每页显示数量变化
 const handleSizeChange = (newSize) => {
-  pageSize.value = newSize
-  page.value = 1 // 重置到第一页
-  fetchAllRecords()
-}
+  pageSize.value = newSize;
+  page.value = 1; // 重置到第一页
+  fetchAllRecords();
+};
 
 // 显示详情
 const showDetail = (row) => {
-  currentRecord.value = row
-  dialogVisible.value = true
-}
+  currentRecord.value = row;
+  dialogVisible.value = true;
+};
 
 const getPaymentMethodLabel = (method) => {
   const methodLabelMap = {
     alipay: '支付宝',
     mpay: '易支付',
     epay: '易支付',
-    wechat: '微信',
+    weixin: '微信',
     bank_transfer: '对公转账',
-  }
+  };
 
-  return methodLabelMap[method] || method || '-'
-}
+  return methodLabelMap[method] || method || '-';
+};
 
 const getPaymentMethodTagType = (method) => {
   const methodTagTypeMap = {
@@ -114,35 +114,35 @@ const getPaymentMethodTagType = (method) => {
     epay: 'success',
     wechat: 'success',
     bank_transfer: 'danger',
-  }
+  };
 
-  return methodTagTypeMap[method] || 'info'
-}
+  return methodTagTypeMap[method] || 'info';
+};
 
 // 格式化时间戳为可读日期时间格式
 const formatTimestamp = (timestamp) => {
-  if (!timestamp) return '-'
-  const date = new Date(Number(timestamp))
-  const year = date.getFullYear()
-  const month = String(date.getMonth() + 1).padStart(2, '0')
-  const day = String(date.getDate()).padStart(2, '0')
-  const hours = String(date.getHours()).padStart(2, '0')
-  const minutes = String(date.getMinutes()).padStart(2, '0')
-  const seconds = String(date.getSeconds()).padStart(2, '0')
-  return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`
-}
+  if (!timestamp) return '-';
+  const date = new Date(Number(timestamp));
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  const hours = String(date.getHours()).padStart(2, '0');
+  const minutes = String(date.getMinutes()).padStart(2, '0');
+  const seconds = String(date.getSeconds()).padStart(2, '0');
+  return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
+};
 
 // 页面加载时获取数据
 onMounted(() => {
-  fetchAllRecords()
-})
+  fetchAllRecords();
+});
 
 useHead({
   title: '充值记录',
   viewport:
     'width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0',
   charset: 'utf-8',
-})
+});
 </script>
 
 <template>
@@ -176,7 +176,6 @@ useHead({
             v-loading="pageLoading"
           >
             <el-table-column prop="id" label="ID" show-overflow-tooltip />
-            <el-table-column prop="uid" label="用户ID" show-overflow-tooltip />
             <el-table-column
               prop="username"
               label="用户名"

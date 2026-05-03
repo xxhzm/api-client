@@ -1,205 +1,205 @@
 <script setup>
-import { Search } from '@element-plus/icons-vue'
+import { Search } from '@element-plus/icons-vue';
 
-const { $myFetch, $msg } = useNuxtApp()
+const { $myFetch, $msg } = useNuxtApp();
 
 definePageMeta({
   layout: 'admin',
-})
+});
 
 // 加载状态
-const loading = ref(false)
-const pageLoading = ref(false)
+const loading = ref(false);
+const pageLoading = ref(false);
 
 // 表格数据
-const filteredData = ref([]) // 存储记录数据
+const filteredData = ref([]); // 存储记录数据
 
 // 分页相关
-const page = ref(1) // 当前页数
-const pageSize = ref(20) // 每页显示数量，默认20条
-const totalRecords = ref(0) // 总记录数
+const page = ref(1); // 当前页数
+const pageSize = ref(20); // 每页显示数量，默认20条
+const totalRecords = ref(0); // 总记录数
 
 // 详情对话框
-const dialogVisible = ref(false)
-const currentRecord = ref(null)
+const dialogVisible = ref(false);
+const currentRecord = ref(null);
 
 // 接口筛选相关
-const apiList = ref([]) // 接口列表
-const selectedApiId = ref('') // 选中的接口ID
-const apiSearchKeyword = ref('') // 接口搜索关键词
-const apiSearchLoading = ref(false)
+const apiList = ref([]); // 接口列表
+const selectedApiId = ref(''); // 选中的接口ID
+const apiSearchKeyword = ref(''); // 接口搜索关键词
+const apiSearchLoading = ref(false);
 
 // 搜索接口列表
 const searchApiList = async (keyword = '') => {
   if (!keyword.trim()) {
-    apiList.value = []
-    return
+    apiList.value = [];
+    return;
   }
 
-  apiSearchLoading.value = true
+  apiSearchLoading.value = true;
   try {
     const res = await $myFetch('ApiSearch', {
       params: { keyword: keyword.trim() },
-    })
+    });
     if (res.code === 200) {
-      apiList.value = res.data || []
+      apiList.value = res.data || [];
     } else {
-      $msg(res.msg || '搜索接口失败', 'error')
-      apiList.value = []
+      $msg(res.msg || '搜索接口失败', 'error');
+      apiList.value = [];
     }
   } catch (error) {
-    $msg('搜索接口失败', 'error')
-    apiList.value = []
+    $msg('搜索接口失败', 'error');
+    apiList.value = [];
   } finally {
-    apiSearchLoading.value = false
+    apiSearchLoading.value = false;
   }
-}
+};
 
 // 监听搜索关键词变化
 watch(apiSearchKeyword, (newValue) => {
-  searchApiList(newValue)
-})
+  searchApiList(newValue);
+});
 
 // 清空接口筛选
 const clearApiFilter = () => {
-  selectedApiId.value = ''
-  apiSearchKeyword.value = ''
-  apiList.value = []
-  page.value = 1
-  fetchAllRecords()
-}
+  selectedApiId.value = '';
+  apiSearchKeyword.value = '';
+  apiList.value = [];
+  page.value = 1;
+  fetchAllRecords();
+};
 
 // 获取购买套餐记录数据
 const fetchAllRecords = async () => {
-  pageLoading.value = true
+  pageLoading.value = true;
   try {
     // 构建查询参数，包含分页参数
     const params = {
       page: page.value,
       limit: pageSize.value, // 添加每页数量参数
-    }
+    };
 
     // 如果选择了接口，添加aid参数
     if (selectedApiId.value) {
-      params.aid = selectedApiId.value
+      params.aid = selectedApiId.value;
     }
 
     // 发送请求获取购买套餐记录数据
-    const res = await $myFetch('GetBuyPackageRecords', { params })
+    const res = await $myFetch('GetBuyPackageRecords', { params });
     if (res.code === 200) {
       // 保存记录
-      filteredData.value = res.data.data || []
+      filteredData.value = res.data.data || [];
 
       // 设置分页信息
       if (res.data && typeof res.data.total_records === 'number') {
-        totalRecords.value = res.data.total_records || 0
+        totalRecords.value = res.data.total_records || 0;
       }
     } else {
-      $msg(res.msg || '获取购买记录失败', 'error')
+      $msg(res.msg || '获取购买记录失败', 'error');
     }
   } catch (error) {
-    $msg('获取购买记录失败', 'error')
+    $msg('获取购买记录失败', 'error');
   } finally {
-    pageLoading.value = false
+    pageLoading.value = false;
   }
-}
+};
 
 // 页码变化时获取对应页的数据
 watch(
   () => page.value,
   (newValue, oldValue) => {
-    pageLoading.value = true
-    fetchAllRecords() // 页码变化时重新获取数据
+    pageLoading.value = true;
+    fetchAllRecords(); // 页码变化时重新获取数据
   },
-)
+);
 
 // 监听接口选择变化
 watch(selectedApiId, () => {
-  page.value = 1 // 重置到第一页
-  fetchAllRecords()
-})
+  page.value = 1; // 重置到第一页
+  fetchAllRecords();
+});
 
 // 手动处理页面切换
 const handlePageChange = (newPage) => {
-  page.value = newPage
-  fetchAllRecords()
-}
+  page.value = newPage;
+  fetchAllRecords();
+};
 
 // 处理每页显示数量变化
 const handleSizeChange = (newSize) => {
-  pageSize.value = newSize
-  page.value = 1 // 重置到第一页
-  fetchAllRecords()
-}
+  pageSize.value = newSize;
+  page.value = 1; // 重置到第一页
+  fetchAllRecords();
+};
 
 // 显示详情
 const showDetail = (row) => {
-  currentRecord.value = row
-  dialogVisible.value = true
-}
+  currentRecord.value = row;
+  dialogVisible.value = true;
+};
 
 // 格式化时间戳为可读日期时间格式
 const formatTimestamp = (timestamp) => {
-  if (!timestamp) return '-'
-  const date = new Date(Number(timestamp))
-  const year = date.getFullYear()
-  const month = String(date.getMonth() + 1).padStart(2, '0')
-  const day = String(date.getDate()).padStart(2, '0')
-  const hours = String(date.getHours()).padStart(2, '0')
-  const minutes = String(date.getMinutes()).padStart(2, '0')
-  const seconds = String(date.getSeconds()).padStart(2, '0')
-  return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`
-}
+  if (!timestamp) return '-';
+  const date = new Date(Number(timestamp));
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  const hours = String(date.getHours()).padStart(2, '0');
+  const minutes = String(date.getMinutes()).padStart(2, '0');
+  const seconds = String(date.getSeconds()).padStart(2, '0');
+  return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
+};
 
 const formatAction = (action) => {
   switch (Number(action)) {
     case 1:
-      return '购买'
+      return '购买';
     case 2:
-      return '续费'
+      return '续费';
     case 3:
-      return '自动续费'
+      return '自动续费';
     case 4:
-      return '赠送'
+      return '赠送';
     default:
-      return '-'
+      return '-';
   }
-}
+};
 
 const actionTagType = (action) => {
   switch (Number(action)) {
     case 1:
-      return 'success'
+      return 'success';
     case 2:
-      return 'warning'
+      return 'warning';
     case 3:
-      return 'info'
+      return 'info';
     case 4:
-      return 'primary'
+      return 'primary';
     default:
-      return ''
+      return '';
   }
-}
+};
 
 const formatTypeLabel = (type) => {
-  const t = Number(type)
-  if (t === 4) return '直接扣费'
-  if (t === 2) return '包月'
-  if (t === 3) return '点数'
-  return '-'
-}
+  const t = Number(type);
+  if (t === 4) return '直接扣费';
+  if (t === 2) return '包月';
+  if (t === 3) return '点数';
+  return '-';
+};
 
 // 页面加载时获取数据
 onMounted(() => {
-  fetchAllRecords()
-})
+  fetchAllRecords();
+});
 
 useHead({
   title: '购买记录',
   viewport:
     'width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0',
   charset: 'utf-8',
-})
+});
 </script>
 
 <template>
@@ -264,15 +264,19 @@ useHead({
             style="width: 100%"
             v-loading="pageLoading"
           >
+            <el-table-column prop="id" label="ID" />
             <el-table-column
-              prop="id"
-              label="ID"
+              prop="username"
+              label="用户名"
               min-width="100"
               show-overflow-tooltip
             />
-            <el-table-column prop="uid" label="用户ID" min-width="100" />
-            <el-table-column prop="aid" label="接口ID" min-width="100" />
-            <el-table-column prop="package_id" label="套餐ID" min-width="120" />
+            <el-table-column
+              prop="api_name"
+              label="接口名"
+              min-width="180"
+              show-overflow-tooltip
+            />
             <el-table-column
               prop="package_name"
               label="套餐名称"
@@ -379,8 +383,16 @@ useHead({
           <span class="value">{{ currentRecord.uid }}</span>
         </div>
         <div class="detail-item">
+          <span class="label">用户名：</span>
+          <span class="value">{{ currentRecord.username }}</span>
+        </div>
+        <div class="detail-item">
           <span class="label">接口ID：</span>
           <span class="value">{{ currentRecord.aid }}</span>
+        </div>
+        <div class="detail-item">
+          <span class="label">接口名：</span>
+          <span class="value">{{ currentRecord.api_name }}</span>
         </div>
         <div class="detail-item">
           <span class="label">套餐名称：</span>

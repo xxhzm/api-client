@@ -1,281 +1,281 @@
 <script setup>
-const { $msg, $myFetch } = useNuxtApp()
+const { $msg, $myFetch } = useNuxtApp();
 
 definePageMeta({
   layout: 'admin',
-})
+});
 
-const loading = ref(false)
-const tableData = ref([])
-const search = ref('')
-const statusFilter = ref('') // 状态筛选
+const loading = ref(false);
+const tableData = ref([]);
+const search = ref('');
+const statusFilter = ref(''); // 状态筛选
 
 // 当前页数
-const page = ref(1)
+const page = ref(1);
 // 总页数
-const totalPages = ref(1)
+const totalPages = ref(1);
 // 总记录
-const totalRecords = ref(0)
+const totalRecords = ref(0);
 // 页数loading
-const pageLoading = ref(false)
+const pageLoading = ref(false);
 
 // 充值卡生成对话框
-const createCardDialogVisible = ref(false)
-const batchCreateDialogVisible = ref(false)
+const createCardDialogVisible = ref(false);
+const batchCreateDialogVisible = ref(false);
 
 // 单个充值卡表单
 const cardForm = ref({
   amount: 10, // 默认金额
   expiredAt: '', // 过期时间
-})
+});
 
 // 批量充值卡表单
 const batchCardForm = ref({
   amount: 10, // 默认金额
   expiredAt: '', // 过期时间
   count: 1, // 默认生成数量
-})
+});
 
 // 格式化时间戳为可读日期时间格式
 const formatTimestamp = (timestamp) => {
-  if (!timestamp) return '-'
-  const date = new Date(Number(timestamp))
-  const year = date.getFullYear()
-  const month = String(date.getMonth() + 1).padStart(2, '0')
-  const day = String(date.getDate()).padStart(2, '0')
-  const hours = String(date.getHours()).padStart(2, '0')
-  const minutes = String(date.getMinutes()).padStart(2, '0')
-  const seconds = String(date.getSeconds()).padStart(2, '0')
-  return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`
-}
+  if (!timestamp) return '-';
+  const date = new Date(Number(timestamp));
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  const hours = String(date.getHours()).padStart(2, '0');
+  const minutes = String(date.getMinutes()).padStart(2, '0');
+  const seconds = String(date.getSeconds()).padStart(2, '0');
+  return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
+};
 
 // 获取充值卡列表数据
 const getData = async () => {
-  pageLoading.value = true
+  pageLoading.value = true;
   try {
     const params = {
       page: page.value,
-    }
+    };
 
     // 添加状态筛选
     if (statusFilter.value) {
-      params.status = statusFilter.value
+      params.status = statusFilter.value;
     }
 
     // 添加卡号搜索
     if (search.value.trim()) {
-      params.card_code = search.value.trim()
+      params.card_code = search.value.trim();
     }
 
     const res = await $myFetch('GetRechargeCardList', {
       params,
-    })
+    });
 
     if (res.code !== 200) {
-      $msg(res.msg || '获取数据失败', 'error')
-      return
+      $msg(res.msg || '获取数据失败', 'error');
+      return;
     }
 
     // 根据实际接口返回格式调整
-    tableData.value = res.data.list || []
-    totalPages.value = res.data.totalPages || 1
-    totalRecords.value = res.data.count || 0
+    tableData.value = res.data.list || [];
+    totalPages.value = res.data.totalPages || 1;
+    totalRecords.value = res.data.count || 0;
   } catch (error) {
-    $msg('获取数据失败', 'error')
+    $msg('获取数据失败', 'error');
   } finally {
-    pageLoading.value = false
+    pageLoading.value = false;
   }
-}
+};
 
 // 生成单个充值卡
 const generateCard = async () => {
   if (cardForm.value.amount <= 0) {
-    $msg('金额必须大于0', 'error')
-    return
+    $msg('金额必须大于0', 'error');
+    return;
   }
 
-  loading.value = true
+  loading.value = true;
   try {
-    const apiBodyValue = new URLSearchParams()
-    apiBodyValue.append('amount', cardForm.value.amount)
+    const apiBodyValue = new URLSearchParams();
+    apiBodyValue.append('amount', cardForm.value.amount);
 
     if (cardForm.value.expiredAt) {
       // 将日期转换为时间戳
-      const expireTimestamp = new Date(cardForm.value.expiredAt).getTime()
-      apiBodyValue.append('expiredAt', expireTimestamp)
+      const expireTimestamp = new Date(cardForm.value.expiredAt).getTime();
+      apiBodyValue.append('expiredAt', expireTimestamp);
     }
 
     const res = await $myFetch('CreateRechargeCard', {
       method: 'POST',
       body: apiBodyValue,
-    })
+    });
 
     if (res.code === 200) {
-      $msg(res.msg || '充值卡生成成功', 'success')
-      createCardDialogVisible.value = false
-      await getData()
+      $msg(res.msg || '充值卡生成成功', 'success');
+      createCardDialogVisible.value = false;
+      await getData();
     } else {
-      $msg(res.msg || '充值卡生成失败', 'error')
+      $msg(res.msg || '充值卡生成失败', 'error');
     }
   } catch (error) {
-    $msg('充值卡生成失败', 'error')
+    $msg('充值卡生成失败', 'error');
   } finally {
-    loading.value = false
+    loading.value = false;
   }
-}
+};
 
 // 批量生成充值卡
 const batchGenerateCards = async () => {
   if (batchCardForm.value.amount <= 0) {
-    $msg('金额必须大于0', 'error')
-    return
+    $msg('金额必须大于0', 'error');
+    return;
   }
 
   if (batchCardForm.value.count <= 0 || batchCardForm.value.count > 100) {
-    $msg('生成数量必须在1-100之间', 'error')
-    return
+    $msg('生成数量必须在1-100之间', 'error');
+    return;
   }
 
-  loading.value = true
+  loading.value = true;
   try {
-    const apiBodyValue = new URLSearchParams()
-    apiBodyValue.append('amount', batchCardForm.value.amount)
-    apiBodyValue.append('count', batchCardForm.value.count)
+    const apiBodyValue = new URLSearchParams();
+    apiBodyValue.append('amount', batchCardForm.value.amount);
+    apiBodyValue.append('count', batchCardForm.value.count);
 
     if (batchCardForm.value.expiredAt) {
       // 将日期转换为时间戳
-      const expireTimestamp = new Date(batchCardForm.value.expiredAt).getTime()
-      apiBodyValue.append('expiredAt', expireTimestamp)
+      const expireTimestamp = new Date(batchCardForm.value.expiredAt).getTime();
+      apiBodyValue.append('expiredAt', expireTimestamp);
     }
 
     const res = await $myFetch('BatchCreateRechargeCards', {
       method: 'POST',
       body: apiBodyValue,
-    })
+    });
 
     if (res.code === 200) {
-      $msg(res.msg || '充值卡批量生成成功', 'success')
-      batchCreateDialogVisible.value = false
-      await getData()
+      $msg(res.msg || '充值卡批量生成成功', 'success');
+      batchCreateDialogVisible.value = false;
+      await getData();
     } else {
-      $msg(res.msg || '充值卡批量生成失败', 'error')
+      $msg(res.msg || '充值卡批量生成失败', 'error');
     }
   } catch (error) {
-    $msg('充值卡批量生成失败', 'error')
+    $msg('充值卡批量生成失败', 'error');
   } finally {
-    loading.value = false
+    loading.value = false;
   }
-}
+};
 
 // 删除充值卡
 const handleDelete = async (row) => {
-  loading.value = true
+  loading.value = true;
   try {
     const res = await $myFetch('DeleteRechargeCard', {
       params: {
         id: row.id,
       },
-    })
+    });
 
     if (res.code === 200) {
-      $msg(res.msg || '删除成功', 'success')
-      await getData()
+      $msg(res.msg || '删除成功', 'success');
+      await getData();
     } else {
-      $msg(res.msg || '删除失败', 'error')
+      $msg(res.msg || '删除失败', 'error');
     }
   } catch (error) {
-    $msg('删除失败', 'error')
+    $msg('删除失败', 'error');
   } finally {
-    loading.value = false
+    loading.value = false;
   }
-}
+};
 
 // 监听搜索输入
-const debouncedSearch = ref(null)
+const debouncedSearch = ref(null);
 watch(search, (newValue) => {
   if (debouncedSearch.value) {
-    clearTimeout(debouncedSearch.value)
+    clearTimeout(debouncedSearch.value);
   }
 
   debouncedSearch.value = setTimeout(() => {
-    getData()
-  }, 500)
-})
+    getData();
+  }, 500);
+});
 
 // 监听状态筛选变化
 watch(statusFilter, () => {
-  getData()
-})
+  getData();
+});
 
 // 监听页数变化
 watch(
   () => page.value,
   async () => {
-    pageLoading.value = true
-    await getData()
+    pageLoading.value = true;
+    await getData();
     setTimeout(() => {
-      pageLoading.value = false
-    }, 300)
+      pageLoading.value = false;
+    }, 300);
   },
-)
+);
 
 // 清除筛选
 const clearFilters = () => {
-  search.value = ''
-  statusFilter.value = ''
-  getData()
-}
+  search.value = '';
+  statusFilter.value = '';
+  getData();
+};
 
 // 复制充值卡号
 const copyCardCode = (code) => {
   navigator.clipboard
     .writeText(code)
     .then(() => {
-      $msg('复制成功', 'success')
+      $msg('复制成功', 'success');
     })
     .catch(() => {
-      $msg('复制失败，请手动复制', 'error')
-    })
-}
+      $msg('复制失败，请手动复制', 'error');
+    });
+};
 
 // 导出选中的充值卡
-const multipleSelection = ref([])
+const multipleSelection = ref([]);
 const handleSelectionChange = (val) => {
-  multipleSelection.value = val
-}
+  multipleSelection.value = val;
+};
 
 const exportSelectedCards = () => {
   if (multipleSelection.value.length === 0) {
-    $msg('请先选择要导出的充值卡', 'warning')
-    return
+    $msg('请先选择要导出的充值卡', 'warning');
+    return;
   }
 
   // 仅提取充值卡号，每行一个
   const cardCodes = multipleSelection.value
     .map((item) => item.card_code)
-    .join('\n')
+    .join('\n');
 
   // 创建下载链接
-  const blob = new Blob([cardCodes], { type: 'text/plain;charset=utf-8;' })
-  const url = URL.createObjectURL(blob)
-  const link = document.createElement('a')
-  link.href = url
-  link.setAttribute('download', `充值卡号_${new Date().getTime()}.txt`)
-  document.body.appendChild(link)
-  link.click()
-  document.body.removeChild(link)
-}
+  const blob = new Blob([cardCodes], { type: 'text/plain;charset=utf-8;' });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  link.href = url;
+  link.setAttribute('download', `充值卡号_${new Date().getTime()}.txt`);
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+};
 
 onMounted(() => {
-  getData()
-})
+  getData();
+});
 
 useHead({
   title: '充值卡管理',
   viewport:
     'width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0',
   charset: 'utf-8',
-})
+});
 </script>
 
 <template>
@@ -394,9 +394,13 @@ useHead({
                 </el-tag>
               </template>
             </el-table-column>
-            <el-table-column prop="uid" label="使用用户" width="100">
+            <el-table-column prop="username" label="使用用户" width="150">
               <template #default="scope">
-                {{ scope.row.uid && scope.row.uid !== 0 ? scope.row.uid : '-' }}
+                {{
+                  scope.row.username && scope.row.username !== ''
+                    ? scope.row.username
+                    : '-'
+                }}
               </template>
             </el-table-column>
             <el-table-column label="创建时间" min-width="180">

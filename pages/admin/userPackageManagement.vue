@@ -1,32 +1,32 @@
 <script setup>
-import { Search } from '@element-plus/icons-vue'
+import { Search } from '@element-plus/icons-vue';
 
 definePageMeta({
   layout: 'admin',
-})
+});
 
-const { $myFetch, $msg } = useNuxtApp()
+const { $myFetch, $msg } = useNuxtApp();
 
 // 加载状态
-const loading = ref(false)
-const pageLoading = ref(false)
+const loading = ref(false);
+const pageLoading = ref(false);
 
 // 表格数据
-const filteredData = ref([]) // 存储记录数据
+const filteredData = ref([]); // 存储记录数据
 
 // 分页相关
-const page = ref(1) // 当前页数
-const pageSize = ref(20) // 每页显示数量，默认20条
-const totalRecords = ref(0) // 总记录数
+const page = ref(1); // 当前页数
+const pageSize = ref(20); // 每页显示数量，默认20条
+const totalRecords = ref(0); // 总记录数
 
 // 详情对话框
-const dialogVisible = ref(false)
-const currentRecord = ref(null)
+const dialogVisible = ref(false);
+const currentRecord = ref(null);
 
 // 编辑对话框
-const editDialogVisible = ref(false)
-const editLoading = ref(false)
-const editFormRef = ref(null)
+const editDialogVisible = ref(false);
+const editLoading = ref(false);
+const editFormRef = ref(null);
 // 编辑表单数据
 const editForm = ref({
   id: '',
@@ -40,7 +40,7 @@ const editForm = ref({
   points_used: 0, // 已用点数
   duration: 0, // 续费套餐时增加的天数
   package_points: 0, // 续费套餐时添加的点数
-})
+});
 
 // 编辑表单验证规则（动态计算）
 const editRules = computed(() => {
@@ -72,7 +72,7 @@ const editRules = computed(() => {
       { required: true, message: '请输入套餐点数', trigger: 'blur' },
       { type: 'number', min: 0, message: '套餐点数不能小于0', trigger: 'blur' },
     ],
-  }
+  };
 
   // 只有包月计费（type === 2）才需要验证过期时间
   if (editForm.value.type === 2) {
@@ -85,133 +85,133 @@ const editRules = computed(() => {
       {
         validator: (rule, value, callback) => {
           if (value && new Date(Number(value)) <= new Date()) {
-            callback(new Error('过期时间必须大于当前时间'))
+            callback(new Error('过期时间必须大于当前时间'));
           } else {
-            callback()
+            callback();
           }
         },
         trigger: 'change',
       },
-    ]
+    ];
   }
 
-  return rules
-})
+  return rules;
+});
 
 // 接口筛选相关
-const apiList = ref([]) // 接口列表
-const selectedApiId = ref('') // 选中的接口ID
-const apiSearchKeyword = ref('') // 接口搜索关键词
-const apiSearchLoading = ref(false)
+const apiList = ref([]); // 接口列表
+const selectedApiId = ref(''); // 选中的接口ID
+const apiSearchKeyword = ref(''); // 接口搜索关键词
+const apiSearchLoading = ref(false);
 
 // 搜索接口列表
 const searchApiList = async (keyword = '') => {
   if (!keyword.trim()) {
-    apiList.value = []
-    return
+    apiList.value = [];
+    return;
   }
 
-  apiSearchLoading.value = true
+  apiSearchLoading.value = true;
   try {
     const res = await $myFetch('ApiSearch', {
       params: { keyword: keyword.trim() },
-    })
+    });
     if (res.code === 200) {
-      apiList.value = res.data || []
+      apiList.value = res.data || [];
     } else {
-      $msg(res.msg || '搜索接口失败', 'error')
-      apiList.value = []
+      $msg(res.msg || '搜索接口失败', 'error');
+      apiList.value = [];
     }
   } catch (error) {
-    $msg('搜索接口失败', 'error')
-    apiList.value = []
+    $msg('搜索接口失败', 'error');
+    apiList.value = [];
   } finally {
-    apiSearchLoading.value = false
+    apiSearchLoading.value = false;
   }
-}
+};
 
 // 监听搜索关键词变化
 watch(apiSearchKeyword, (newValue) => {
-  searchApiList(newValue)
-})
+  searchApiList(newValue);
+});
 
 // 清空接口筛选
 const clearApiFilter = () => {
-  selectedApiId.value = ''
-  apiSearchKeyword.value = ''
-  apiList.value = []
-  page.value = 1
-  fetchAllRecords()
-}
+  selectedApiId.value = '';
+  apiSearchKeyword.value = '';
+  apiList.value = [];
+  page.value = 1;
+  fetchAllRecords();
+};
 
 // 获取购买套餐记录数据
 const fetchAllRecords = async () => {
-  pageLoading.value = true
+  pageLoading.value = true;
   try {
     // 构建查询参数，包含分页参数
     const params = {
       page: page.value,
       limit: pageSize.value, // 添加每页数量参数
-    }
+    };
 
     // 如果选择了接口，添加aid参数
     if (selectedApiId.value) {
-      params.aid = selectedApiId.value
+      params.aid = selectedApiId.value;
     }
 
     // 发送请求获取购买套餐记录数据
-    const res = await $myFetch('GetUserPackageRecords', { params })
+    const res = await $myFetch('GetUserPackageRecords', { params });
     if (res.code === 200) {
       // 保存记录
-      filteredData.value = res.data.data || []
+      filteredData.value = res.data.data || [];
 
       // 设置分页信息
       if (res.data && typeof res.data.total_records === 'number') {
-        totalRecords.value = res.data.total_records || 0
+        totalRecords.value = res.data.total_records || 0;
       }
     } else {
-      $msg(res.msg || '获取记录失败', 'error')
+      $msg(res.msg || '获取记录失败', 'error');
     }
   } catch (error) {
-    $msg('获取记录失败', 'error')
+    $msg('获取记录失败', 'error');
   } finally {
-    pageLoading.value = false
+    pageLoading.value = false;
   }
-}
+};
 
 // 页码变化时获取对应页的数据
 watch(
   () => page.value,
   (newValue, oldValue) => {
-    pageLoading.value = true
-    fetchAllRecords() // 页码变化时重新获取数据
+    pageLoading.value = true;
+    fetchAllRecords(); // 页码变化时重新获取数据
   },
-)
+);
 
 // 监听接口选择变化
 watch(selectedApiId, () => {
-  page.value = 1 // 重置到第一页
-  fetchAllRecords()
-})
+  page.value = 1; // 重置到第一页
+  fetchAllRecords();
+});
 
 // 手动处理页面切换
 const handlePageChange = (newPage) => {
-  page.value = newPage
-  fetchAllRecords()
-}
+  page.value = newPage;
+  fetchAllRecords();
+};
 
 // 处理每页显示数量变化
 const handleSizeChange = (newSize) => {
-  pageSize.value = newSize
-  page.value = 1 // 重置到第一页
-  fetchAllRecords()
-}
+  pageSize.value = newSize;
+  page.value = 1; // 重置到第一页
+  fetchAllRecords();
+};
 
 // 显示详情
 const showDetail = (row) => {
-  currentRecord.value = row
-  dialogVisible.value = true
-}
+  currentRecord.value = row;
+  dialogVisible.value = true;
+};
 
 // 显示编辑对话框
 const showEdit = (row) => {
@@ -229,15 +229,15 @@ const showEdit = (row) => {
     points_used: Number(row.points_used) || 0, // 已用点数
     duration: Number(row.duration) || 0, // 天数
     package_points: Number(row.package_points) || 0, // 套餐点数
-  }
-  editDialogVisible.value = true
-}
+  };
+  editDialogVisible.value = true;
+};
 
 // 取消编辑
 const cancelEdit = () => {
-  editDialogVisible.value = false
+  editDialogVisible.value = false;
   if (editFormRef.value) {
-    editFormRef.value.resetFields()
+    editFormRef.value.resetFields();
   }
   // 重置表单数据
   editForm.value = {
@@ -252,21 +252,21 @@ const cancelEdit = () => {
     points_used: 0,
     duration: 0,
     package_points: 0,
-  }
-}
+  };
+};
 
 // 保存编辑
 const saveEdit = async () => {
   if (!editFormRef.value) {
-    $msg('表单引用不存在', 'error')
-    return
+    $msg('表单引用不存在', 'error');
+    return;
   }
 
   try {
     // 验证表单
-    await editFormRef.value.validate()
+    await editFormRef.value.validate();
 
-    editLoading.value = true
+    editLoading.value = true;
 
     // 构建更新参数
     const updateData = {
@@ -277,86 +277,86 @@ const saveEdit = async () => {
       pointsUsed: Number(editForm.value.points_used),
       duration: Number(editForm.value.duration),
       packagePoints: Number(editForm.value.package_points),
-    }
+    };
 
     // 根据套餐类型处理过期时间
     if (editForm.value.type === 2) {
       // 包月计费必须有过期时间
-      updateData.expireTime = editForm.value.expire_time
+      updateData.expireTime = editForm.value.expire_time;
     }
     // 点数包不发送过期时间字段
 
     // 验证数据有效性
     if (!updateData.id) {
-      $msg('订单ID不能为空', 'error')
-      return
+      $msg('订单ID不能为空', 'error');
+      return;
     }
 
     if (updateData.amount < 0) {
-      $msg('金额不能小于0', 'error')
-      return
+      $msg('金额不能小于0', 'error');
+      return;
     }
 
     // 只有包月计费才验证过期时间
     if (editForm.value.type === 2 && !updateData.expireTime) {
-      $msg('包月计费必须设置过期时间', 'error')
-      return
+      $msg('包月计费必须设置过期时间', 'error');
+      return;
     }
 
     // 调用更新API
     const res = await $myFetch('UpdateBuyPackageRecord', {
       method: 'POST',
       body: new URLSearchParams(updateData),
-    })
+    });
 
     if (res.code === 200) {
-      $msg('更新成功', 'success')
-      editDialogVisible.value = false
+      $msg('更新成功', 'success');
+      editDialogVisible.value = false;
       // 重置表单
-      editFormRef.value.resetFields()
+      editFormRef.value.resetFields();
       // 刷新数据
-      await fetchAllRecords()
+      await fetchAllRecords();
     } else {
-      $msg(res.msg || '更新失败，请稍后重试', 'error')
+      $msg(res.msg || '更新失败，请稍后重试', 'error');
     }
   } catch (error) {
     // 表单验证错误不显示额外消息
     if (error && typeof error === 'object' && error.message) {
-      return
+      return;
     }
 
     // 网络或其他错误
-    console.error('更新套餐记录失败:', error)
-    $msg('网络错误，请检查网络连接后重试', 'error')
+    console.error('更新套餐记录失败:', error);
+    $msg('网络错误，请检查网络连接后重试', 'error');
   } finally {
-    editLoading.value = false
+    editLoading.value = false;
   }
-}
+};
 
 // 格式化时间戳为可读日期时间格式
 const formatTimestamp = (timestamp) => {
-  if (!timestamp) return '-'
-  const date = new Date(Number(timestamp))
-  const year = date.getFullYear()
-  const month = String(date.getMonth() + 1).padStart(2, '0')
-  const day = String(date.getDate()).padStart(2, '0')
-  const hours = String(date.getHours()).padStart(2, '0')
-  const minutes = String(date.getMinutes()).padStart(2, '0')
-  const seconds = String(date.getSeconds()).padStart(2, '0')
-  return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`
-}
+  if (!timestamp) return '-';
+  const date = new Date(Number(timestamp));
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  const hours = String(date.getHours()).padStart(2, '0');
+  const minutes = String(date.getMinutes()).padStart(2, '0');
+  const seconds = String(date.getSeconds()).padStart(2, '0');
+  return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
+};
 
 // 页面加载时获取数据
 onMounted(() => {
-  fetchAllRecords()
-})
+  fetchAllRecords();
+});
 
 useHead({
   title: '购买记录',
   viewport:
     'width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0',
   charset: 'utf-8',
-})
+});
 </script>
 
 <template>
@@ -428,9 +428,15 @@ useHead({
               show-overflow-tooltip
             />
             <el-table-column
-              prop="uid"
-              label="uid"
+              prop="username"
+              label="用户名"
               min-width="100"
+              show-overflow-tooltip
+            />
+            <el-table-column
+              prop="api_name"
+              label="接口名"
+              min-width="180"
               show-overflow-tooltip
             />
             <el-table-column prop="name" label="套餐名称" min-width="150">
@@ -524,8 +530,16 @@ useHead({
           <span class="value">{{ currentRecord.uid }}</span>
         </div>
         <div class="detail-item">
+          <span class="label">用户名：</span>
+          <span class="value">{{ currentRecord.username }}</span>
+        </div>
+        <div class="detail-item">
           <span class="label">接口ID：</span>
           <span class="value">{{ currentRecord.aid }}</span>
+        </div>
+        <div class="detail-item">
+          <span class="label">接口名：</span>
+          <span class="value">{{ currentRecord.api_name }}</span>
         </div>
         <div class="detail-item">
           <span class="label">套餐名称：</span>

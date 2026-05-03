@@ -1,57 +1,57 @@
 <script setup>
-import { Delete, View } from '@element-plus/icons-vue'
+import { Delete, View } from '@element-plus/icons-vue';
 
-const { $msg, $myFetch } = useNuxtApp()
+const { $msg, $myFetch } = useNuxtApp();
 
 definePageMeta({
   layout: 'admin',
-})
+});
 
 useHead({
   title: 'AI会话管理',
   viewport:
     'width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0',
   charset: 'utf-8',
-})
+});
 
 // 会话列表
-const loading = ref(false)
-const tableData = ref([])
-const page = ref(1)
-const pageSize = ref(20)
-const totalRecords = ref(0)
-const pageLoading = ref(false)
+const loading = ref(false);
+const tableData = ref([]);
+const page = ref(1);
+const pageSize = ref(20);
+const totalRecords = ref(0);
+const pageLoading = ref(false);
 
 // 获取会话列表
 const getData = async () => {
-  loading.value = true
+  loading.value = true;
   try {
     const res = await $myFetch('ChatConversationList', {
       params: {
         page: page.value,
         pageSize: pageSize.value,
       },
-    })
+    });
 
     if (res.code !== 200) {
-      $msg(res.msg || '获取会话列表失败', 'error')
-      tableData.value = []
-      totalRecords.value = 0
-      return
+      $msg(res.msg || '获取会话列表失败', 'error');
+      tableData.value = [];
+      totalRecords.value = 0;
+      return;
     }
 
     tableData.value = (res.data.list || []).map((item) => ({
       ...item,
       create_time_fmt: formatTimestamp(item.create_time),
       update_time_fmt: formatTimestamp(item.update_time),
-    }))
-    totalRecords.value = res.data.count || 0
+    }));
+    totalRecords.value = res.data.count || 0;
   } catch (error) {
-    $msg('获取会话列表失败', 'error')
+    $msg('获取会话列表失败', 'error');
   } finally {
-    loading.value = false
+    loading.value = false;
   }
-}
+};
 
 // 删除会话
 const handleDelete = async (row) => {
@@ -60,100 +60,100 @@ const handleDelete = async (row) => {
       params: {
         conversation_id: row.id,
       },
-    })
+    });
 
     if (res.code === 200) {
-      $msg('删除成功', 'success')
-      await getData()
+      $msg('删除成功', 'success');
+      await getData();
     } else {
-      $msg(res.msg || '删除失败', 'error')
+      $msg(res.msg || '删除失败', 'error');
     }
   } catch (error) {
-    $msg('删除失败', 'error')
+    $msg('删除失败', 'error');
   }
-}
+};
 
 // 查看会话消息
-const messageDialogVisible = ref(false)
-const messageLoading = ref(false)
-const messageList = ref([])
-const currentConversation = ref(null)
+const messageDialogVisible = ref(false);
+const messageLoading = ref(false);
+const messageList = ref([]);
+const currentConversation = ref(null);
 
 const handleViewMessages = async (row) => {
-  currentConversation.value = row
-  messageDialogVisible.value = true
-  messageLoading.value = true
+  currentConversation.value = row;
+  messageDialogVisible.value = true;
+  messageLoading.value = true;
 
   try {
     const res = await $myFetch('ChatMessageList', {
       params: {
         conversation_id: row.id,
       },
-    })
+    });
 
     if (res.code === 200 && res.data) {
       messageList.value = (res.data.list || []).map((item) => ({
         ...item,
         create_time_fmt: formatTimestamp(item.create_time),
-      }))
+      }));
     } else {
-      $msg(res.msg || '获取消息列表失败', 'error')
-      messageList.value = []
+      $msg(res.msg || '获取消息列表失败', 'error');
+      messageList.value = [];
     }
   } catch (error) {
-    $msg('获取消息列表失败', 'error')
-    messageList.value = []
+    $msg('获取消息列表失败', 'error');
+    messageList.value = [];
   } finally {
-    messageLoading.value = false
+    messageLoading.value = false;
   }
-}
+};
 
 // 格式化时间戳
 const formatTimestamp = (timestamp) => {
-  if (!timestamp) return '-'
-  const date = new Date(Number(timestamp))
-  const year = date.getFullYear()
-  const month = String(date.getMonth() + 1).padStart(2, '0')
-  const day = String(date.getDate()).padStart(2, '0')
-  const hours = String(date.getHours()).padStart(2, '0')
-  const minutes = String(date.getMinutes()).padStart(2, '0')
-  const seconds = String(date.getSeconds()).padStart(2, '0')
-  return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`
-}
+  if (!timestamp) return '-';
+  const date = new Date(Number(timestamp));
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  const hours = String(date.getHours()).padStart(2, '0');
+  const minutes = String(date.getMinutes()).padStart(2, '0');
+  const seconds = String(date.getSeconds()).padStart(2, '0');
+  return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
+};
 
 // 监听页数变化
 watch(
   () => page.value,
   async () => {
-    pageLoading.value = true
-    await getData()
+    pageLoading.value = true;
+    await getData();
     setTimeout(() => {
-      pageLoading.value = false
-    }, 300)
+      pageLoading.value = false;
+    }, 300);
   },
-)
+);
 
 // 监听每页数量变化
 watch(pageSize, async () => {
-  page.value = 1
-  pageLoading.value = true
-  await getData()
+  page.value = 1;
+  pageLoading.value = true;
+  await getData();
   setTimeout(() => {
-    pageLoading.value = false
-  }, 300)
-})
+    pageLoading.value = false;
+  }, 300);
+});
 
 // 关闭消息对话框时清空数据
 watch(messageDialogVisible, (newValue) => {
   if (!newValue) {
-    messageList.value = []
-    currentConversation.value = null
+    messageList.value = [];
+    currentConversation.value = null;
   }
-})
+});
 
 onMounted(() => {
-  getData()
-})
+  getData();
+});
 </script>
 
 <template>
@@ -176,6 +176,7 @@ onMounted(() => {
           >
             <el-table-column prop="id" label="ID" width="80" />
             <el-table-column prop="uid" label="用户ID" width="100" />
+            <el-table-column prop="username" label="用户名" width="160" />
             <el-table-column
               prop="title"
               label="会话标题"
@@ -255,7 +256,10 @@ onMounted(() => {
           <div
             v-for="item in messageList"
             :key="item.id"
-            :class="['message-item', item.role === 'user' ? 'user' : 'assistant']"
+            :class="[
+              'message-item',
+              item.role === 'user' ? 'user' : 'assistant',
+            ]"
           >
             <div class="message-header">
               <el-tag
