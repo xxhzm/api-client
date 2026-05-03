@@ -95,6 +95,30 @@ const showDetail = (row) => {
   dialogVisible.value = true
 }
 
+const getPaymentMethodLabel = (method) => {
+  const methodLabelMap = {
+    alipay: '支付宝',
+    mpay: '易支付',
+    epay: '易支付',
+    wechat: '微信',
+    bank_transfer: '对公转账',
+  }
+
+  return methodLabelMap[method] || method || '-'
+}
+
+const getPaymentMethodTagType = (method) => {
+  const methodTagTypeMap = {
+    alipay: 'primary',
+    mpay: 'success',
+    epay: 'success',
+    wechat: 'success',
+    bank_transfer: 'danger',
+  }
+
+  return methodTagTypeMap[method] || 'info'
+}
+
 // 格式化时间戳为可读日期时间格式
 const formatTimestamp = (timestamp) => {
   if (!timestamp) return '-'
@@ -168,22 +192,10 @@ useHead({
             <el-table-column prop="method" label="支付方式" width="120">
               <template #default="scope">
                 <el-tag
-                  :type="
-                    scope.row.method === 'alipay'
-                      ? 'primary'
-                      : scope.row.method === 'mpay'
-                        ? 'success'
-                        : 'info'
-                  "
+                  :type="getPaymentMethodTagType(scope.row.method)"
                   size="small"
                 >
-                  {{
-                    scope.row.method === 'alipay'
-                      ? '支付宝'
-                      : scope.row.method === 'mpay'
-                        ? '易支付'
-                        : '微信'
-                  }}
+                  {{ getPaymentMethodLabel(scope.row.method) }}
                 </el-tag>
               </template>
             </el-table-column>
@@ -262,13 +274,9 @@ useHead({
         </div>
         <div class="detail-item">
           <span class="label">支付方式：</span>
-          <span class="value">{{
-            currentRecord.method === 'alipay'
-              ? '支付宝'
-              : currentRecord.method === 'mpay'
-                ? '易支付'
-                : '微信'
-          }}</span>
+          <span class="value">
+            {{ getPaymentMethodLabel(currentRecord.method) }}
+          </span>
         </div>
         <div class="detail-item">
           <span class="label">订单状态：</span>

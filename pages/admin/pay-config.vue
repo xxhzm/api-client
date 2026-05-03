@@ -1,12 +1,12 @@
 <script setup>
-import { Plus } from '@element-plus/icons-vue'
-import { ElMessageBox } from 'element-plus'
+import { Plus } from '@element-plus/icons-vue';
+import { ElMessageBox } from 'element-plus';
 
 definePageMeta({
   layout: 'admin',
-})
+});
 
-const { $msg, $myFetch } = useNuxtApp()
+const { $msg, $myFetch } = useNuxtApp();
 
 const channelOptions = [
   {
@@ -29,39 +29,48 @@ const channelOptions = [
     value: 'hupi',
     defaultName: '虎皮椒主通道',
   },
-]
+  {
+    label: '对公转账配置',
+    value: 'bank_transfer',
+    defaultName: '对公转账',
+  },
+];
 
-const activeChannel = ref('alipay')
+const activeChannel = ref('alipay');
 const loadedMap = reactive({
   alipay: false,
   wechat: false,
   epay: false,
   hupi: false,
-})
+  bank_transfer: false,
+});
 const loadingMap = reactive({
   alipay: false,
   wechat: false,
   epay: false,
   hupi: false,
-})
+  bank_transfer: false,
+});
 const submitLoadingMap = reactive({
   alipay: false,
   wechat: false,
   epay: false,
   hupi: false,
-})
+  bank_transfer: false,
+});
 const paymentLists = reactive({
   alipay: [],
   wechat: [],
   epay: [],
   hupi: [],
-})
-const formDialogVisible = ref(false)
-const dialogMode = ref('create')
-const editingChannel = ref('alipay')
+  bank_transfer: [],
+});
+const formDialogVisible = ref(false);
+const dialogMode = ref('create');
+const editingChannel = ref('alipay');
 
 const getDefaultConfigName = (channel) =>
-  channelOptions.find((item) => item.value === channel)?.defaultName || ''
+  channelOptions.find((item) => item.value === channel)?.defaultName || '';
 
 const createEmptyPaymentForm = (channel) => ({
   id: '',
@@ -83,17 +92,21 @@ const createEmptyPaymentForm = (channel) => ({
   app_secret: '',
   host: '',
   method: channel === 'hupi' ? 'wechat' : '',
-})
+  account_name: '',
+  bank_name: '',
+  bank_account: '',
+});
 
 const paymentForms = reactive({
   alipay: createEmptyPaymentForm('alipay'),
   wechat: createEmptyPaymentForm('wechat'),
   epay: createEmptyPaymentForm('epay'),
   hupi: createEmptyPaymentForm('hupi'),
-})
+  bank_transfer: createEmptyPaymentForm('bank_transfer'),
+});
 
 const normalizePaymentConfig = (channel, config = {}) => {
-  const defaultForm = createEmptyPaymentForm(channel)
+  const defaultForm = createEmptyPaymentForm(channel);
 
   return {
     ...defaultForm,
@@ -118,92 +131,99 @@ const normalizePaymentConfig = (channel, config = {}) => {
       config.wxPublicKeyId ??
       defaultForm.wx_public_key_id,
     app_secret: config.app_secret ?? config.appSecret ?? defaultForm.app_secret,
+    account_name:
+      config.account_name ?? config.accountName ?? defaultForm.account_name,
+    bank_name: config.bank_name ?? config.bankName ?? defaultForm.bank_name,
+    bank_account:
+      config.bank_account ?? config.bankAccount ?? defaultForm.bank_account,
     status:
       config.status === 0 || config.status === 1
         ? config.status
         : Number(config.status || defaultForm.status),
-  }
-}
+  };
+};
 
 const applyConfigToForm = (channel, config) => {
-  paymentForms[channel] = normalizePaymentConfig(channel, config)
-}
+  paymentForms[channel] = normalizePaymentConfig(channel, config);
+};
 
 const resetChannelForm = (channel) => {
-  paymentForms[channel] = createEmptyPaymentForm(channel)
-}
+  paymentForms[channel] = createEmptyPaymentForm(channel);
+};
 
 const pickConfigByName = (channel, name) => {
   if (!name) {
-    return null
+    return null;
   }
 
-  const matchedList = paymentLists[channel].filter((item) => item.name === name)
+  const matchedList = paymentLists[channel].filter(
+    (item) => item.name === name,
+  );
 
   if (!matchedList.length) {
-    return null
+    return null;
   }
 
   return matchedList.sort((a, b) => {
-    const aTime = Number(a.update_time || a.create_time || 0)
-    const bTime = Number(b.update_time || b.create_time || 0)
-    return bTime - aTime
-  })[0]
-}
+    const aTime = Number(a.update_time || a.create_time || 0);
+    const bTime = Number(b.update_time || b.create_time || 0);
+    return bTime - aTime;
+  })[0];
+};
 
 const loadChannelConfigs = async (channel, preferredId = '') => {
-  loadingMap[channel] = true
+  loadingMap[channel] = true;
 
   try {
     const res = await $myFetch('PaymentConfigList', {
       params: {
         channel,
       },
-    })
+    });
 
     if (res.code !== 200) {
-      $msg(res.msg, 'error')
-      return
+      $msg(res.msg, 'error');
+      return;
     }
 
     paymentLists[channel] = Array.isArray(res.data)
       ? res.data.map((item) => normalizePaymentConfig(channel, item))
-      : []
+      : [];
 
     if (preferredId) {
       const currentConfig = paymentLists[channel].find(
         (item) => String(item.id) === String(preferredId),
-      )
+      );
 
       if (currentConfig) {
-        applyConfigToForm(channel, currentConfig)
+        applyConfigToForm(channel, currentConfig);
       }
     }
   } finally {
-    loadingMap[channel] = false
+    loadingMap[channel] = false;
   }
-}
+};
 
 const openCreateConfigDialog = (channel) => {
-  editingChannel.value = channel
-  dialogMode.value = 'create'
-  resetChannelForm(channel)
-  formDialogVisible.value = true
-}
+  editingChannel.value = channel;
+  dialogMode.value = 'create';
+  resetChannelForm(channel);
+  formDialogVisible.value = true;
+};
 
 const openEditConfigDialog = (channel, config) => {
-  editingChannel.value = channel
-  dialogMode.value = 'edit'
-  applyConfigToForm(channel, config)
-  formDialogVisible.value = true
-}
+  editingChannel.value = channel;
+  dialogMode.value = 'edit';
+  applyConfigToForm(channel, config);
+  formDialogVisible.value = true;
+};
 
 const validateChannelForm = (channel) => {
-  const form = paymentForms[channel]
+  const form = paymentForms[channel];
 
   if (!form.name?.trim()) {
-    $msg('请填写配置名称', 'error')
-    return false
+    $msg('请填写配置名称', 'error');
+    return false;
   }
 
   const requiredFieldsMap = {
@@ -233,121 +253,130 @@ const validateChannelForm = (channel) => {
       ['host', '支付网关'],
       ['method', '支付方式'],
     ],
-  }
+    bank_transfer: [
+      ['account_name', '开户名称'],
+      ['bank_name', '开户银行'],
+      ['bank_account', '银行账号'],
+    ],
+  };
 
   const missingField = requiredFieldsMap[channel].find(
     ([key]) => !String(form[key] ?? '').trim(),
-  )
+  );
 
   if (missingField) {
-    $msg(`请填写${missingField[1]}`, 'error')
-    return false
+    $msg(`请填写${missingField[1]}`, 'error');
+    return false;
   }
 
   if (![0, 1].includes(Number(form.status))) {
-    $msg('通道状态只能是启用或停用', 'error')
-    return false
+    $msg('通道状态只能是启用或停用', 'error');
+    return false;
   }
 
   if (channel === 'epay' && !['wxpay', 'alipay'].includes(form.type)) {
-    $msg('易支付类型只能是 wxpay 或 alipay', 'error')
-    return false
+    $msg('易支付类型只能是 wxpay 或 alipay', 'error');
+    return false;
   }
 
   if (channel === 'hupi' && !['wechat', 'alipay'].includes(form.method)) {
-    $msg('虎皮椒支付方式只能是 wechat 或 alipay', 'error')
-    return false
+    $msg('虎皮椒支付方式只能是 wechat 或 alipay', 'error');
+    return false;
   }
 
-  return true
-}
+  return true;
+};
 
 const buildPayload = (channel) => {
-  const form = paymentForms[channel]
+  const form = paymentForms[channel];
   const payload = {
     channel,
     name: form.name.trim(),
     status: Number(form.status),
-  }
+  };
 
   if (form.id) {
-    payload.id = form.id
+    payload.id = form.id;
   }
 
   if (channel === 'alipay') {
-    payload.appid = form.appid.trim()
-    payload.privateKey = form.private_key
-    payload.publicKey = form.public_key
+    payload.appid = form.appid.trim();
+    payload.privateKey = form.private_key;
+    payload.publicKey = form.public_key;
   } else if (channel === 'wechat') {
-    payload.appid = form.appid.trim()
-    payload.apiV3Key = form.api_v_3_key.trim()
-    payload.mchid = form.mchid.trim()
-    payload.privateKey = form.private_key
-    payload.serialNo = form.serial_no.trim()
-    payload.wxPublicKeyContent = form.wx_public_key_content
-    payload.wxPublicKeyID = form.wx_public_key_id.trim()
+    payload.appid = form.appid.trim();
+    payload.apiV3Key = form.api_v_3_key.trim();
+    payload.mchid = form.mchid.trim();
+    payload.privateKey = form.private_key;
+    payload.serialNo = form.serial_no.trim();
+    payload.wxPublicKeyContent = form.wx_public_key_content;
+    payload.wxPublicKeyID = form.wx_public_key_id.trim();
   } else if (channel === 'epay') {
-    payload.key = form.key.trim()
-    payload.pid = form.pid.trim()
-    payload.type = form.type
-    payload.url = form.url.trim()
+    payload.key = form.key.trim();
+    payload.pid = form.pid.trim();
+    payload.type = form.type;
+    payload.url = form.url.trim();
   } else if (channel === 'hupi') {
-    payload.appid = form.appid.trim()
-    payload.appSecret = form.app_secret.trim()
-    payload.host = form.host.trim()
-    payload.method = form.method
+    payload.appid = form.appid.trim();
+    payload.appSecret = form.app_secret.trim();
+    payload.host = form.host.trim();
+    payload.method = form.method;
+  } else if (channel === 'bank_transfer') {
+    payload.accountName = form.account_name.trim();
+    payload.bankName = form.bank_name.trim();
+    payload.bankAccount = form.bank_account.trim();
   }
 
-  return payload
-}
+  return payload;
+};
 
 const buildRequestBody = (payload) => {
-  const body = new URLSearchParams()
+  const body = new URLSearchParams();
 
   Object.entries(payload).forEach(([key, value]) => {
-    body.append(key, value == null ? '' : String(value))
-  })
+    body.append(key, value == null ? '' : String(value));
+  });
 
-  return body
-}
+  return body;
+};
 
 const submitChannelConfig = async (channel) => {
   if (!validateChannelForm(channel)) {
-    return
+    return;
   }
 
-  const formSnapshot = { ...paymentForms[channel] }
+  const formSnapshot = { ...paymentForms[channel] };
   const requestName = formSnapshot.id
     ? 'PaymentConfigUpdate'
-    : 'PaymentConfigCreate'
+    : 'PaymentConfigCreate';
 
-  submitLoadingMap[channel] = true
+  submitLoadingMap[channel] = true;
 
   try {
     const res = await $myFetch(requestName, {
       method: 'POST',
       body: buildRequestBody(buildPayload(channel)),
-    })
+    });
 
     if (res.code !== 200) {
-      $msg(res.msg, 'error')
-      return
+      $msg(res.msg, 'error');
+      return;
     }
 
-    $msg(res.msg, 'success')
+    $msg(res.msg, 'success');
 
     const preferredId = res.data?.id
       ? String(res.data.id)
       : formSnapshot.id
         ? String(formSnapshot.id)
-        : pickConfigByName(channel, formSnapshot.name)?.id
+        : pickConfigByName(channel, formSnapshot.name)?.id;
 
-    await loadChannelConfigs(channel, preferredId)
-    formDialogVisible.value = false
+    await loadChannelConfigs(channel, preferredId);
+    formDialogVisible.value = false;
   } finally {
-    submitLoadingMap[channel] = false
+    submitLoadingMap[channel] = false;
   }
-}
+};
 
 const deleteConfig = async (channel, config) => {
   try {
@@ -357,9 +386,9 @@ const deleteConfig = async (channel, config) => {
       {
         type: 'warning',
       },
-    )
+    );
   } catch {
-    return
+    return;
   }
 
   try {
@@ -368,85 +397,89 @@ const deleteConfig = async (channel, config) => {
       params: {
         id: config.id,
       },
-    })
+    });
 
     if (res.code !== 200) {
-      $msg(res.msg, 'error')
-      return
+      $msg(res.msg, 'error');
+      return;
     }
 
-    $msg(res.msg, 'success')
-    await loadChannelConfigs(channel)
+    $msg(res.msg, 'success');
+    await loadChannelConfigs(channel);
 
     if (paymentForms[channel].id === config.id) {
-      resetChannelForm(channel)
+      resetChannelForm(channel);
     }
   } catch (error) {
-    $msg(error?.data?.msg || error?.message || '删除失败', 'error')
+    $msg(error?.data?.msg || error?.message || '删除失败', 'error');
   }
-}
+};
 
 const formatTime = (value) => {
   if (!value) {
-    return '-'
+    return '-';
   }
 
   if (typeof value === 'string') {
-    return value
+    return value;
   }
 
-  const date = new Date(Number(value))
+  const date = new Date(Number(value));
 
   if (Number.isNaN(date.getTime())) {
-    return '-'
+    return '-';
   }
 
-  const pad = (num) => String(num).padStart(2, '0')
+  const pad = (num) => String(num).padStart(2, '0');
 
-  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())} ${pad(date.getHours())}:${pad(date.getMinutes())}:${pad(date.getSeconds())}`
-}
+  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())} ${pad(date.getHours())}:${pad(date.getMinutes())}:${pad(date.getSeconds())}`;
+};
 
 const getConfigSummary = (channel, config) => {
   if (channel === 'alipay') {
-    return `AppID: ${config.appid || '-'}`
+    return `AppID: ${config.appid || '-'}`;
   }
 
   if (channel === 'wechat') {
-    return `AppID: ${config.appid || '-'} / 商户号: ${config.mchid || '-'}`
+    return `AppID: ${config.appid || '-'} / 商户号: ${config.mchid || '-'}`;
   }
 
   if (channel === 'epay') {
-    return `PID: ${config.pid || '-'} / 类型: ${config.type || '-'} / 地址: ${config.url || '-'}`
+    return `PID: ${config.pid || '-'} / 类型: ${config.type || '-'} / 地址: ${config.url || '-'}`;
   }
 
   if (channel === 'hupi') {
-    return `AppID: ${config.appid || '-'} / 方式: ${config.method || '-'} / 网关: ${config.host || '-'}`
+    return `AppID: ${config.appid || '-'} / 方式: ${config.method || '-'} / 网关: ${config.host || '-'}`;
   }
 
-  return '-'
-}
+  if (channel === 'bank_transfer') {
+    return `户名: ${config.account_name || '-'} / 开户行: ${config.bank_name || '-'} / 账号: ${config.bank_account || '-'}`;
+  }
+
+  return '-';
+};
 
 const dialogTitle = computed(() =>
   dialogMode.value === 'edit' ? '编辑支付配置' : '新增支付配置',
-)
+);
 
 watch(
   activeChannel,
   async (channel) => {
     if (!loadedMap[channel]) {
-      await loadChannelConfigs(channel)
-      loadedMap[channel] = true
+      await loadChannelConfigs(channel);
+      loadedMap[channel] = true;
     }
   },
   { immediate: true },
-)
+);
 
 useHead({
   title: '支付配置',
   viewport:
     'width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0',
   charset: 'utf-8',
-})
+});
 </script>
 
 <template>
@@ -701,6 +734,27 @@ useHead({
                   <el-option label="微信支付" value="wechat" />
                   <el-option label="支付宝" value="alipay" />
                 </el-select>
+              </el-form-item>
+            </template>
+
+            <template v-else-if="editingChannel === 'bank_transfer'">
+              <el-form-item label="开户名称" required>
+                <el-input
+                  v-model="paymentForms.bank_transfer.account_name"
+                  placeholder="请输入开户名称"
+                />
+              </el-form-item>
+              <el-form-item label="开户银行" required>
+                <el-input
+                  v-model="paymentForms.bank_transfer.bank_name"
+                  placeholder="请输入开户银行"
+                />
+              </el-form-item>
+              <el-form-item label="银行账号" required>
+                <el-input
+                  v-model="paymentForms.bank_transfer.bank_account"
+                  placeholder="请输入银行账号"
+                />
               </el-form-item>
             </template>
           </el-form>

@@ -1,68 +1,71 @@
 <script setup>
-import { Refresh, InfoFilled, Wallet } from '@element-plus/icons-vue'
-import { ref, onMounted } from 'vue'
+import { Refresh, InfoFilled, Wallet } from '@element-plus/icons-vue';
+import { computed, ref, onMounted } from 'vue';
 
 definePageMeta({
   layout: 'admin',
-})
+});
 
-const { $msg, $myFetch } = useNuxtApp()
+const { $msg, $myFetch } = useNuxtApp();
 
 // 加载状态
-const loading = ref(false)
-const username = useCookie('username')
+const loading = ref(false);
+const username = useCookie('username');
 
 // 账户余额
-const balance = ref(0)
+const balance = ref(0);
 
 // 支付通道配置列表
-const payChannels = ref([])
+const payChannels = ref([]);
 
 // 表单数据
 const form = ref({
   amount: 10,
   customAmount: null,
   payMethod: '',
-})
+});
 
 // 支付状态弹窗
-const payStatusDialogVisible = ref(false)
+const payStatusDialogVisible = ref(false);
 
 // 二维码支付弹窗
-const qrPayDialogVisible = ref(false)
-const qrCodeUrl = ref('')
-const qrPayAmount = ref('')
-const qrPaySoftware = ref('')
-const currentOrderId = ref('')
+const qrPayDialogVisible = ref(false);
+const qrCodeUrl = ref('');
+const qrPayAmount = ref('');
+const qrPaySoftware = ref('');
+const currentOrderId = ref('');
+const bankTransferDialogVisible = ref(false);
+const bankTransferAmount = ref('');
+const currentBankTransferConfig = ref(null);
 
 // 处理自定义金额输入
 const handleCustomAmount = (val) => {
   if (val) {
     // 允许输入数字和小数点，但限制只能有一个小数点
-    let numVal = val.replace(/[^\d.]/g, '').replace(/(\..*)\./g, '$1')
+    let numVal = val.replace(/[^\d.]/g, '').replace(/(\..*)\./g, '$1');
 
     // 限制小数点后两位
     if (numVal.includes('.')) {
-      const parts = numVal.split('.')
+      const parts = numVal.split('.');
       if (parts[1].length > 2) {
-        numVal = parts[0] + '.' + parts[1].slice(0, 2)
+        numVal = parts[0] + '.' + parts[1].slice(0, 2);
       }
     }
 
     // 限制最大金额为100000
     if (parseFloat(numVal) > 100000) {
-      numVal = '100000'
+      numVal = '100000';
     }
 
-    form.value.customAmount = numVal
+    form.value.customAmount = numVal;
     // 转换为数字，保留两位小数
-    form.value.amount = parseFloat(numVal) || 0
+    form.value.amount = parseFloat(numVal) || 0;
   } else {
     // 当输入框为空时，设置金额为0
-    form.value.amount = 0
-    form.value.customAmount = null
+    form.value.amount = 0;
+    form.value.customAmount = null;
   }
-}
+};
 
 // 获取账户余额
 const getBalance = async (showTip = false) => {
@@ -71,117 +74,170 @@ const getBalance = async (showTip = false) => {
       params: {
         username: username.value,
       },
-    })
+    });
 
     if (res.code === 200) {
-      balance.value = res.data.AccountBalance
+      balance.value = res.data.AccountBalance;
       if (showTip) {
-        $msg('余额刷新成功', 'success')
+        $msg('余额刷新成功', 'success');
       }
     }
   } catch (error) {
-    $msg(error.message, 'error')
+    $msg(error.message, 'error');
   }
-}
+};
 
 // 新增：获取支付通道配置
 const getPayChannels = async () => {
   try {
-    const res = await $myFetch('GetPayChannels')
+    const res = await $myFetch('GetPayChannels');
     if (res.code === 200) {
       const configs = Array.isArray(res.data?.configs)
         ? res.data.configs.map((config) => ({
             ...config,
             id: String(config.id),
           }))
-        : []
+        : [];
 
-      payChannels.value = configs
+      payChannels.value = configs;
 
       const hasCurrentChannel = configs.some(
         (config) => config.id === String(form.value.payMethod),
-      )
+      );
 
       if (!hasCurrentChannel) {
-        form.value.payMethod = configs[0]?.id || ''
+        form.value.payMethod = configs[0]?.id || '';
       }
     }
   } catch (error) {
-    console.error('获取支付通道失败:', error)
+    console.error('获取支付通道失败:', error);
   }
-}
+};
 
 // 手动刷新余额
 const refreshBalance = () => {
-  getBalance(true)
-}
+  getBalance(true);
+};
 
 // 查询是否支付定时器
-let timer = null
+let timer = null;
 
 const getSelectedChannelConfig = () => {
   return (
     payChannels.value.find(
       (item) => String(item.id) === String(form.value.payMethod),
     ) || null
-  )
-}
+  );
+};
+
+const getPayChannelDisplayName = (channel) => {
+  if (channel?.channel !== 'bank_transfer') {
+    return channel?.name || '未知支付方式';
+  }
+
+  const bankInfo = channel.bank_name || channel.bank_account;
+  return bankInfo ? `${channel.name}（${bankInfo}）` : channel.name;
+};
+
+const getPayChannelTypeLabel = (channel) => {
+  const channelLabelMap = {
+    alipay: '支付宝',
+    wechat: '微信支付',
+    epay: '易支付',
+    hupi: '虎皮椒支付',
+    bank_transfer: '对公转账',
+  };
+
+  return channelLabelMap[channel.channel] || channel.name || '支付方式';
+};
+
+const paymentChannelTip = computed(() => {
+  const channelNames = [
+    ...new Set(
+      payChannels.value.map((channel) => getPayChannelTypeLabel(channel)),
+    ),
+  ];
+
+  if (!channelNames.length) {
+    return '暂无可用支付通道，请联系客服';
+  }
+
+  return `支持${channelNames.join('、')}，请选择合适的支付方式`;
+});
 
 const getPaySoftwareLabel = (channel) => {
-  console.log(channel)
   if (channel === 'alipay') {
-    return '支付宝'
+    return '支付宝';
   }
 
   if (channel === 'wechat') {
-    return '微信'
+    return '微信';
   }
 
-  return '支付应用'
-}
+  if (channel === 'bank_transfer') {
+    return '对公转账';
+  }
+
+  return '支付应用';
+};
 
 const getSelectedChannelLabel = () => {
-  return getSelectedChannelConfig()?.name || '未知支付方式'
-}
+  return getPayChannelDisplayName(getSelectedChannelConfig());
+};
+
+const getSelectedBankTransferConfig = () => {
+  const selectedChannel = getSelectedChannelConfig();
+  return selectedChannel?.channel === 'bank_transfer' ? selectedChannel : null;
+};
 
 const getQrDialogTitle = () => {
-  return `${qrPaySoftware.value}二维码`
-}
+  return `${qrPaySoftware.value}二维码`;
+};
 
 const closeQrPayDialog = () => {
-  clearInterval(timer)
-  qrPayDialogVisible.value = false
-  qrCodeUrl.value = ''
-  $msg('如遇支付问题，请联系客服处理', 'warning')
-}
+  clearInterval(timer);
+  qrPayDialogVisible.value = false;
+  qrCodeUrl.value = '';
+  $msg('如遇支付问题，请联系客服处理', 'warning');
+};
+
+const showBankTransferDialog = (config, amount) => {
+  currentBankTransferConfig.value = config;
+  bankTransferAmount.value = amount;
+  bankTransferDialogVisible.value = true;
+};
+
+const closeBankTransferDialog = () => {
+  bankTransferDialogVisible.value = false;
+};
 
 // 提交充值表单
 const submitForm = async () => {
   if (form.value.amount < 0.01) {
-    $msg('充值金额不能小于0.01元', 'error')
-    return
+    $msg('充值金额不能小于0.01元', 'error');
+    return;
   }
   if (form.value.amount > 100000) {
-    $msg('单次充值金额不能大于100000元', 'error')
-    return
+    $msg('单次充值金额不能大于100000元', 'error');
+    return;
   }
 
   if (!payChannels.value.length) {
-    $msg('暂无可用的支付方式，请联系客服', 'error')
-    return
+    $msg('暂无可用的支付方式，请联系客服', 'error');
+    return;
   }
 
-  const selectedChannel = getSelectedChannelConfig()
+  const selectedChannel = getSelectedChannelConfig();
   if (!selectedChannel?.id) {
-    $msg('支付通道配置异常，请联系客服', 'error')
-    return
+    $msg('支付通道配置异常，请联系客服', 'error');
+    return;
   }
 
-  loading.value = true
+  loading.value = true;
   try {
-    const body = new URLSearchParams()
-    body.append('amount', form.value.amount)
-    body.append('channelId', selectedChannel.id)
+    const body = new URLSearchParams();
+    body.append('amount', form.value.amount);
+    body.append('channelId', selectedChannel.id);
 
     const res = await $myFetch('WebPayment', {
       method: 'POST',
@@ -189,45 +245,52 @@ const submitForm = async () => {
       params: {
         username: username.value,
       },
-    })
+    });
 
     if (res.code === 200) {
-      $msg('订单创建成功', 'success')
-      currentOrderId.value = res.data.id
-      const responseChannel = res.data.channel || selectedChannel.channel
-      const imageUrl = (res.data.image_url || '').trim()
-      const paymentUrl = (res.data.url || '').trim()
+      $msg('订单创建成功', 'success');
+      currentOrderId.value = res.data.id;
+      const responseChannel = res.data.channel || selectedChannel.channel;
+      const imageUrl = (res.data.image_url || '').trim();
+      const paymentUrl = (res.data.url || '').trim();
 
       if (imageUrl) {
-        qrCodeUrl.value = imageUrl
-        qrPayAmount.value = res.data.amount || form.value.amount
-        qrPaySoftware.value = getPaySoftwareLabel(responseChannel)
-        qrPayDialogVisible.value = true
+        qrCodeUrl.value = imageUrl;
+        qrPayAmount.value = res.data.amount || form.value.amount;
+        qrPaySoftware.value = getPaySoftwareLabel(responseChannel);
+        qrPayDialogVisible.value = true;
       } else if (paymentUrl) {
-        const newWin = window.open('', '_blank')
+        const newWin = window.open('', '_blank');
         if (newWin) {
-          newWin.location = paymentUrl
-          newWin.focus()
+          newWin.location = paymentUrl;
+          newWin.focus();
         } else {
-          window.location.href = paymentUrl
+          window.location.href = paymentUrl;
         }
 
-        payStatusDialogVisible.value = true
+        payStatusDialogVisible.value = true;
+      } else if (responseChannel === 'bank_transfer') {
+        showBankTransferDialog(
+          selectedChannel,
+          res.data.amount || form.value.amount,
+        );
       } else {
-        $msg('支付信息获取失败，请稍后重试', 'error')
-        return
+        $msg('支付信息获取失败，请稍后重试', 'error');
+        return;
       }
 
-      startPaymentQuery(res.data.id)
+      if (responseChannel !== 'bank_transfer') {
+        startPaymentQuery(res.data.id);
+      }
     } else {
-      $msg(res.msg, 'error')
+      $msg(res.msg, 'error');
     }
   } catch (error) {
-    $msg(error.message, 'error')
+    $msg(error.message, 'error');
   } finally {
-    loading.value = false
+    loading.value = false;
   }
-}
+};
 
 // 新增：开始支付状态查询
 const startPaymentQuery = (orderId) => {
@@ -237,62 +300,74 @@ const startPaymentQuery = (orderId) => {
         id: orderId,
         username: username.value,
       },
-    })
+    });
 
     if (queryRes.code === 200 && queryRes.data === '订单已支付') {
-      $msg('支付成功', 'success')
+      $msg('支付成功', 'success');
       // 刷新余额
-      getBalance(false)
+      getBalance(false);
       // 关闭所有弹窗
-      payStatusDialogVisible.value = false
-      qrPayDialogVisible.value = false
-      clearInterval(timer)
+      payStatusDialogVisible.value = false;
+      qrPayDialogVisible.value = false;
+      clearInterval(timer);
     }
-  }, 2000)
+  }, 2000);
 
   // 5分钟后关闭定时器
   setTimeout(
     () => {
-      clearInterval(timer)
-      payStatusDialogVisible.value = false
-      qrPayDialogVisible.value = false
-      getBalance(false)
+      clearInterval(timer);
+      payStatusDialogVisible.value = false;
+      qrPayDialogVisible.value = false;
+      getBalance(false);
     },
     5 * 60 * 1000,
-  )
-}
+  );
+};
 
 // 处理支付状态
 const handlmPayStatus = (isSuccess) => {
   if (isSuccess) {
-    clearInterval(timer)
+    clearInterval(timer);
     $msg(
       '支付完成后，请刷新页面查看余额。若未显示入账，请及时联系客服。',
       'success',
-    )
+    );
   } else {
-    clearInterval(timer)
-    $msg('如遇支付问题，请联系客服处理', 'warning')
+    clearInterval(timer);
+    $msg('如遇支付问题，请联系客服处理', 'warning');
   }
-  payStatusDialogVisible.value = false
-}
+  payStatusDialogVisible.value = false;
+};
 
 const getChannelIconType = (channel) => {
-  return channel === 'alipay' ? 'alipay' : channel === 'wechat' ? 'wechat' : ''
-}
+  if (channel === 'alipay') {
+    return 'alipay';
+  }
+
+  if (channel === 'wechat') {
+    return 'wechat';
+  }
+
+  if (channel === 'bank_transfer') {
+    return 'bank_transfer';
+  }
+
+  return '';
+};
 
 // 页面加载时获取数据
 onMounted(() => {
-  getBalance(false)
-  getPayChannels()
-})
+  getBalance(false);
+  getPayChannels();
+});
 
 useHead({
   title: '账户充值',
   viewport:
     'width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0',
   charset: 'utf-8',
-})
+});
 </script>
 
 <template>
@@ -307,8 +382,8 @@ useHead({
         <el-card class="tips-card">
           <div class="tips-info">
             <ul>
-              <li>充值最小金额 0.01 元</li>
-              <li>支持支付宝和微信支付，请选择合适的支付方式</li>
+              <li>充值最小金额 0.01 元，最大10万元，超出请联系客服处理</li>
+              <li>{{ paymentChannelTip }}</li>
               <li>支付过程中如遇到各种问题，请及时联系客服处理</li>
             </ul>
           </div>
@@ -437,10 +512,36 @@ useHead({
                         <el-icon v-else class="pay-icon">
                           <Wallet />
                         </el-icon>
-                        <span>{{ channel.name }}</span>
+                        <span :title="getPayChannelDisplayName(channel)">
+                          {{ getPayChannelDisplayName(channel) }}
+                        </span>
                       </div>
                     </el-radio>
                   </el-radio-group>
+                  <div
+                    v-if="getSelectedBankTransferConfig()"
+                    class="bank-transfer-info"
+                  >
+                    <div class="bank-transfer-info__title">对公转账信息</div>
+                    <div class="bank-transfer-info__row">
+                      <span class="label">户名：</span>
+                      <span class="value">
+                        {{ getSelectedBankTransferConfig().account_name }}
+                      </span>
+                    </div>
+                    <div class="bank-transfer-info__row">
+                      <span class="label">开户行：</span>
+                      <span class="value">
+                        {{ getSelectedBankTransferConfig().bank_name }}
+                      </span>
+                    </div>
+                    <div class="bank-transfer-info__row">
+                      <span class="label">账号：</span>
+                      <span class="value">
+                        {{ getSelectedBankTransferConfig().bank_account }}
+                      </span>
+                    </div>
+                  </div>
                   <div v-if="!payChannels.length" class="no-payment-tips">
                     <el-alert
                       title="暂无可用的支付方式"
@@ -465,6 +566,15 @@ useHead({
                 <div class="preview-method">
                   <span class="label">支付方式：</span>
                   <span class="value">{{ getSelectedChannelLabel() }}</span>
+                </div>
+                <div
+                  v-if="getSelectedBankTransferConfig()"
+                  class="preview-bank"
+                >
+                  <span class="label">收款账号：</span>
+                  <span class="value">
+                    {{ getSelectedBankTransferConfig().bank_account }}
+                  </span>
                 </div>
               </div>
               <el-button
@@ -500,6 +610,55 @@ useHead({
             已完成支付
           </el-button>
         </div>
+      </div>
+    </el-dialog>
+    <!-- 对公转账弹窗 -->
+    <el-dialog
+      v-model="bankTransferDialogVisible"
+      title="对公转账"
+      width="460px"
+      :close-on-click-modal="false"
+      class="bank-transfer-dialog"
+    >
+      <div class="bank-transfer-content">
+        <div class="payment-amount-section">
+          <div class="amount-display">
+            <span class="amount-label">转账金额：</span>
+            <span class="amount-value">{{ bankTransferAmount }}</span>
+            <span class="amount-unit">元</span>
+          </div>
+        </div>
+        <div class="bank-transfer-detail">
+          <div class="bank-transfer-detail__row">
+            <span class="label">户名</span>
+            <span class="value">
+              {{ currentBankTransferConfig?.account_name || '-' }}
+            </span>
+          </div>
+          <div class="bank-transfer-detail__row">
+            <span class="label">开户行</span>
+            <span class="value">
+              {{ currentBankTransferConfig?.bank_name || '-' }}
+            </span>
+          </div>
+          <div class="bank-transfer-detail__row">
+            <span class="label">账号</span>
+            <span class="value">
+              {{ currentBankTransferConfig?.bank_account || '-' }}
+            </span>
+          </div>
+        </div>
+        <div class="bank-transfer-tips">
+          <p>请按以上账户信息完成转账。</p>
+          <p>转账完成后请联系客服核对入账。</p>
+        </div>
+        <el-button
+          type="primary"
+          @click="closeBankTransferDialog"
+          class="close-btn"
+        >
+          我知道了
+        </el-button>
       </div>
     </el-dialog>
     <!-- 二维码支付弹窗 -->
@@ -748,6 +907,7 @@ useHead({
               .methods {
                 :deep(.el-radio-group) {
                   display: flex;
+                  flex-wrap: wrap;
                   gap: 15px;
 
                   .el-radio {
@@ -777,12 +937,19 @@ useHead({
                       align-items: center;
                       justify-content: center;
                       width: 100%;
+                      min-width: 0;
 
                       .pay-icon {
                         width: 24px;
                         height: 24px;
                         margin-right: 10px;
                         flex-shrink: 0;
+                      }
+
+                      span {
+                        overflow: hidden;
+                        text-overflow: ellipsis;
+                        white-space: nowrap;
                       }
                     }
 
@@ -797,6 +964,40 @@ useHead({
                     &:hover {
                       border-color: #409eff;
                     }
+                  }
+                }
+
+                .bank-transfer-info {
+                  margin-top: 16px;
+                  padding: 14px 16px;
+                  background: #f8fafc;
+                  border: 1px solid #dcdfe6;
+                  border-radius: 4px;
+                }
+
+                .bank-transfer-info__title {
+                  margin-bottom: 10px;
+                  font-size: 14px;
+                  font-weight: 600;
+                  color: #303133;
+                }
+
+                .bank-transfer-info__row {
+                  display: flex;
+                  gap: 8px;
+                  font-size: 13px;
+                  line-height: 1.8;
+
+                  .label {
+                    flex: 0 0 56px;
+                    margin-bottom: 0;
+                    color: #909399;
+                  }
+
+                  .value {
+                    min-width: 0;
+                    color: #303133;
+                    word-break: break-all;
                   }
                 }
 
@@ -832,7 +1033,8 @@ useHead({
               }
 
               .preview-amount,
-              .preview-method {
+              .preview-method,
+              .preview-bank {
                 display: flex;
                 align-items: center;
                 margin-bottom: 10px;
@@ -857,6 +1059,14 @@ useHead({
                 .value {
                   font-size: 24px;
                   color: #ff6b00;
+                }
+              }
+
+              .preview-bank {
+                align-items: flex-start;
+
+                .value {
+                  word-break: break-all;
                 }
               }
             }
@@ -968,7 +1178,8 @@ useHead({
 }
 
 .wechat-pay-dialog,
-.mpay-dialog {
+.mpay-dialog,
+.bank-transfer-dialog {
   :deep(.el-dialog__header) {
     margin-right: 0;
     text-align: center;
@@ -977,7 +1188,8 @@ useHead({
   }
 
   .wechat-pay-content,
-  .mpay-content {
+  .mpay-content,
+  .bank-transfer-content {
     padding: 20px 0;
     text-align: center;
 
@@ -1068,6 +1280,53 @@ useHead({
       height: 44px;
       font-size: 16px;
       font-weight: 500;
+    }
+  }
+}
+
+.bank-transfer-dialog {
+  .bank-transfer-detail {
+    margin: 0 0 18px;
+    border: 1px solid #ebeef5;
+    border-radius: 4px;
+    overflow: hidden;
+    text-align: left;
+  }
+
+  .bank-transfer-detail__row {
+    display: flex;
+    border-bottom: 1px solid #ebeef5;
+
+    &:last-child {
+      border-bottom: none;
+    }
+
+    .label {
+      flex: 0 0 90px;
+      padding: 12px;
+      background: #f8fafc;
+      color: #909399;
+      font-size: 13px;
+    }
+
+    .value {
+      flex: 1;
+      min-width: 0;
+      padding: 12px;
+      color: #303133;
+      font-size: 13px;
+      word-break: break-all;
+    }
+  }
+
+  .bank-transfer-tips {
+    margin-bottom: 20px;
+    color: #606266;
+    font-size: 13px;
+    line-height: 1.7;
+
+    p {
+      margin: 0;
     }
   }
 }
