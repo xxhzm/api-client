@@ -20,6 +20,10 @@ const page = ref(1); // 当前页数
 const pageSize = ref(20); // 每页显示数量，默认20条
 const totalRecords = ref(0); // 总记录数
 
+// 筛选条件
+const statusFilter = ref('');
+const invoiceFilter = ref('');
+
 // 详情对话框
 const dialogVisible = ref(false);
 const currentRecord = ref(null);
@@ -36,6 +40,11 @@ const editForm = ref({
 const rechargeStatusOptions = [
   { label: '未支付', value: '1' },
   { label: '已支付', value: '2' },
+];
+
+const invoiceStatusOptions = [
+  { label: '未开具', value: '0' },
+  { label: '已开具', value: '1' },
 ];
 
 // 上方卡片信息
@@ -55,6 +64,15 @@ const fetchAllRecords = async () => {
       page: page.value,
       limit: pageSize.value, // 添加每页数量参数
     };
+
+    if (statusFilter.value !== '') {
+      params.status = statusFilter.value;
+    }
+
+    if (invoiceFilter.value !== '') {
+      params.is_invoiced = invoiceFilter.value;
+    }
+
     // 发送请求获取充值记录数据
     const res = await $myFetch('GetRechargeRecords', { params });
 
@@ -96,6 +114,18 @@ const handlePageChange = (newPage) => {
 const handleSizeChange = (newSize) => {
   pageSize.value = newSize;
   page.value = 1; // 重置到第一页
+  fetchAllRecords();
+};
+
+const handleFilterSearch = () => {
+  page.value = 1;
+  fetchAllRecords();
+};
+
+const clearFilters = () => {
+  statusFilter.value = '';
+  invoiceFilter.value = '';
+  page.value = 1;
   fetchAllRecords();
 };
 
@@ -184,6 +214,15 @@ const getPaymentMethodTagType = (method) => {
   return methodTagTypeMap[method] || 'info';
 };
 
+const isInvoiced = (value) =>
+  value === true || value === 1 || value === '1' || value === 'true';
+
+const getInvoiceStatusLabel = (value) =>
+  isInvoiced(value) ? '已开具' : '未开具';
+
+const getInvoiceStatusTagType = (value) =>
+  isInvoiced(value) ? 'success' : 'info';
+
 // 格式化时间戳为可读日期时间格式
 const formatTimestamp = (timestamp) => {
   if (!timestamp) return '-';
@@ -235,6 +274,39 @@ useHead({
       <!-- 表格区域 -->
       <div class="table-container">
         <client-only>
+          <div class="filter-container">
+            <el-select
+              v-model="statusFilter"
+              placeholder="支付状态筛选"
+              clearable
+              class="filter-select"
+            >
+              <el-option
+                v-for="item in rechargeStatusOptions"
+                :key="item.value"
+                :label="item.label"
+                :value="item.value"
+              />
+            </el-select>
+            <el-select
+              v-model="invoiceFilter"
+              placeholder="发票状态筛选"
+              clearable
+              class="filter-select"
+            >
+              <el-option
+                v-for="item in invoiceStatusOptions"
+                :key="item.value"
+                :label="item.label"
+                :value="item.value"
+              />
+            </el-select>
+            <el-button type="primary" @click="handleFilterSearch">
+              筛选
+            </el-button>
+            <el-button @click="clearFilters">重置</el-button>
+          </div>
+
           <el-table
             :data="filteredData"
             style="width: 100%"
@@ -270,6 +342,16 @@ useHead({
                   size="small"
                 >
                   {{ scope.row.status === '2' ? '已支付' : '未支付' }}
+                </el-tag>
+              </template>
+            </el-table-column>
+            <el-table-column label="是否已开具发票" width="150">
+              <template #default="scope">
+                <el-tag
+                  :type="getInvoiceStatusTagType(scope.row.is_invoiced)"
+                  size="small"
+                >
+                  {{ getInvoiceStatusLabel(scope.row.is_invoiced) }}
                 </el-tag>
               </template>
             </el-table-column>
@@ -363,6 +445,12 @@ useHead({
             }`"
           >
             {{ currentRecord.status === '2' ? '已支付' : '未支付' }}
+          </span>
+        </div>
+        <div class="detail-item">
+          <span class="label">是否已开具发票：</span>
+          <span class="value">
+            {{ getInvoiceStatusLabel(currentRecord.is_invoiced) }}
           </span>
         </div>
         <div class="detail-item">
@@ -480,6 +568,17 @@ useHead({
 
 .table-container {
   padding: 20px;
+}
+
+.filter-container {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-bottom: 15px;
+}
+
+.filter-select {
+  width: 180px;
 }
 
 .table-actions {
