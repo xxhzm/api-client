@@ -1,39 +1,40 @@
 <script setup>
-const recargarInfo = ref({
-  total_order: 0,
-  total_money: 0,
-  recently_order: 0,
-  recently_money: 0,
+const props = defineProps({
+  info: {
+    type: Object,
+    default: () => ({
+      total_order: 0,
+      total_money: 0,
+      recently_order: 0,
+      recently_money: 0,
+    }),
+  },
 })
-
-const props = defineProps(['info'])
-
-recargarInfo.value = props.info
 
 // 定义卡片数据
 const cards = computed(() => [
   {
     title: '历史有效订单总数',
     tag: '总数',
-    value: recargarInfo.value.total_order,
+    value: props.info.total_order || 0,
     isCount: true,
   },
   {
     title: '历史有效订单金额',
     tag: '总金额',
-    value: recargarInfo.value.total_money,
+    value: props.info.total_money || 0,
     isCount: true,
   },
   {
     title: '当月有效订单总数',
     tag: '总数',
-    value: recargarInfo.value.recently_order,
+    value: props.info.recently_order || 0,
     isCount: true,
   },
   {
     title: '当月有效订单金额',
     tag: '总金额',
-    value: recargarInfo.value.recently_money,
+    value: props.info.recently_money || 0,
     isCount: true,
   },
 ])

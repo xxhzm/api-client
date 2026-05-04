@@ -1,11 +1,12 @@
 <script setup>
-import { Wallet, Search } from '@element-plus/icons-vue';
+import { Wallet, Search, Edit } from '@element-plus/icons-vue';
 
 definePageMeta({
   layout: 'admin',
 });
 
 const { $myFetch, $msg } = useNuxtApp();
+const { isAdmin } = useRouteAccess();
 
 // 加载状态
 const loading = ref(false);
@@ -22,6 +23,20 @@ const totalRecords = ref(0); // 总记录数
 // 详情对话框
 const dialogVisible = ref(false);
 const currentRecord = ref(null);
+
+// 编辑对话框
+const editDialogVisible = ref(false);
+const editLoading = ref(false);
+const editForm = ref({
+  id: '',
+  amount: '',
+  status: '',
+});
+
+const rechargeStatusOptions = [
+  { label: '未支付', value: '1' },
+  { label: '已支付', value: '2' },
+];
 
 // 上方卡片信息
 const recargarInfo = ref({
@@ -44,19 +59,23 @@ const fetchAllRecords = async () => {
     const res = await $myFetch('GetRechargeRecords', { params });
 
     if (res.code === 200) {
+      const data = res.data || {};
+
       // 保存记录
-      filteredData.value = res.data.data || [];
+      filteredData.value = data.data || [];
 
       // 设置分页信息
-      if (res.data && typeof res.data.total_records === 'number') {
-        totalRecords.value = res.data.total_records || 0;
+      if (typeof data.total_records === 'number') {
+        totalRecords.value = data.total_records || 0;
       }
 
       // 设置卡片信息
-      recargarInfo.value.total_order = res.data.total_order || 0;
-      recargarInfo.value.total_money = res.data.total_money || 0;
-      recargarInfo.value.recently_order = res.data.recently_order || 0;
-      recargarInfo.value.recently_money = res.data.recently_money || 0;
+      recargarInfo.value = {
+        total_order: data.total_order || 0,
+        total_money: data.total_money || 0,
+        recently_order: data.recently_order || 0,
+        recently_money: data.recently_money || 0,
+      };
     } else {
       $msg(res.msg || '获取充值记录失败', 'error');
     }
@@ -66,15 +85,6 @@ const fetchAllRecords = async () => {
     pageLoading.value = false;
   }
 };
-
-// 页码变化时获取对应页的数据
-watch(
-  () => page.value,
-  (newValue, oldValue) => {
-    pageLoading.value = true;
-    fetchAllRecords(); // 页码变化时重新获取数据
-  },
-);
 
 // 手动处理页面切换
 const handlePageChange = (newPage) => {
@@ -93,6 +103,61 @@ const handleSizeChange = (newSize) => {
 const showDetail = (row) => {
   currentRecord.value = row;
   dialogVisible.value = true;
+};
+
+// 显示编辑
+const showEdit = (row) => {
+  editForm.value = {
+    id: row.id,
+    amount:
+      row.amount == null || row.amount === '' ? undefined : Number(row.amount),
+    status: String(row.status) === '2' ? '2' : '1',
+  };
+  editDialogVisible.value = true;
+};
+
+const submitEdit = async () => {
+  if (!editForm.value.id) {
+    $msg('充值ID不能为空', 'error');
+    return;
+  }
+
+  const amountValue = String(editForm.value.amount ?? '').trim();
+  if (amountValue && Number(amountValue) < 0) {
+    $msg('充值金额不能小于0', 'error');
+    return;
+  }
+
+  const body = new URLSearchParams();
+  body.append('id', editForm.value.id);
+
+  if (amountValue) {
+    body.append('amount', amountValue);
+  }
+
+  if (editForm.value.status !== '') {
+    body.append('status', editForm.value.status);
+  }
+
+  editLoading.value = true;
+  try {
+    const res = await $myFetch('UpdateRechargeRecord', {
+      method: 'POST',
+      body,
+    });
+
+    if (res.code === 200) {
+      $msg(res.msg || '修改充值记录成功', 'success');
+      editDialogVisible.value = false;
+      await fetchAllRecords();
+    } else {
+      $msg(res.msg || '修改充值记录失败', 'error');
+    }
+  } catch (error) {
+    $msg('修改充值记录失败', 'error');
+  } finally {
+    editLoading.value = false;
+  }
 };
 
 const getPaymentMethodLabel = (method) => {
@@ -222,11 +287,23 @@ useHead({
                 }}
               </template>
             </el-table-column>
-            <el-table-column label="操作" width="60" fixed="right">
+            <el-table-column
+              label="操作"
+              :width="isAdmin ? 110 : 60"
+              fixed="right"
+            >
               <template #default="scope">
                 <div class="table-actions">
                   <el-button type="primary" link @click="showDetail(scope.row)">
                     详情
+                  </el-button>
+                  <el-button
+                    v-if="isAdmin"
+                    type="warning"
+                    link
+                    @click="showEdit(scope.row)"
+                  >
+                    编辑
                   </el-button>
                 </div>
               </template>
@@ -309,6 +386,49 @@ useHead({
         </span>
       </template>
     </el-dialog>
+
+    <!-- 编辑对话框 -->
+    <el-dialog v-model="editDialogVisible" title="编辑充值记录" width="500px">
+      <el-form :model="editForm" label-width="100px">
+        <el-form-item label="充值ID">
+          <el-input v-model="editForm.id" disabled />
+        </el-form-item>
+        <el-form-item label="充值金额">
+          <el-input-number
+            v-model="editForm.amount"
+            :min="0"
+            :precision="2"
+            :step="1"
+            controls-position="right"
+            style="width: 100%"
+            placeholder="不修改可留空"
+          />
+        </el-form-item>
+        <el-form-item label="账单状态">
+          <el-select
+            v-model="editForm.status"
+            clearable
+            placeholder="不修改可留空"
+            style="width: 100%"
+          >
+            <el-option
+              v-for="item in rechargeStatusOptions"
+              :key="item.value"
+              :label="item.label"
+              :value="item.value"
+            />
+          </el-select>
+        </el-form-item>
+      </el-form>
+      <template #footer>
+        <span class="dialog-footer">
+          <el-button @click="editDialogVisible = false">取消</el-button>
+          <el-button type="primary" :loading="editLoading" @click="submitEdit">
+            保存
+          </el-button>
+        </span>
+      </template>
+    </el-dialog>
   </div>
 </template>
 
@@ -364,6 +484,7 @@ useHead({
 
 .table-actions {
   display: flex;
+  gap: 8px;
   justify-content: center;
 }
 
