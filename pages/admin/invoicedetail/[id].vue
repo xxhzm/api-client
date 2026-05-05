@@ -1,66 +1,207 @@
 <script setup>
-import { ArrowLeft } from '@element-plus/icons-vue'
+import { ArrowLeft } from '@element-plus/icons-vue';
 
 definePageMeta({
   layout: 'admin',
-})
+});
 
-const route = useRoute()
-const invoiceId = computed(() => String(route.params.id || '-'))
-
-const invoiceDetail = computed(() => ({
-  id: invoiceId.value,
-  status: '已开具',
-  audit_result: '通过',
-  amount: 699.0,
-  type: '增值税电子普通发票',
-  content: '技术服务费',
-  email: '2595557857@qq.com',
-  title: '广州某某科技有限公司',
-  tax_id: '91440101MA59XXXXXX',
-  apply_time: '2023-10-20 16:00:00',
+const { $msg, $myFetch, $decryptPhone } = useNuxtApp();
+const route = useRoute();
+const invoiceId = computed(() => String(route.params.id || '-'));
+const loading = ref(false);
+const invoiceDetail = ref({
+  id: '-',
+  status: '-',
+  status_code: null,
+  audit_result: '-',
+  amount: null,
+  type: '-',
+  content: '软件服务费',
+  email: '-',
+  title: '-',
+  tax_id: '-',
+  specification_model: '-',
+  apply_time: '-',
+  update_time: '-',
   remark: '-',
-}))
+  title_type: '-',
+  bank_name: '-',
+  bank_account: '-',
+  company_address: '-',
+  company_phone: '-',
+});
+const invoiceOrders = ref([]);
 
-const invoiceOrders = computed(() => [
-  {
-    id: 'ORD202310010001',
-    amount: 199.0,
-    pay_method: '余额支付',
-    payee: '广州某某科技有限公司',
-    create_time: '2023-10-01 10:23:00',
-  },
-  {
-    id: 'ORD202310150002',
-    amount: 500.0,
-    pay_method: '余额支付',
-    payee: '广州某某科技有限公司',
-    create_time: '2023-10-15 14:30:00',
-  },
-])
+const decryptInvoiceValue = (value, token) => {
+  if (!value || !token) return value || '-';
 
-const steps = [{ title: '审核中' }, { title: '已开具' }, { title: '已完成' }]
+  try {
+    return $decryptPhone(value, token) || '-';
+  } catch {
+    return value || '-';
+  }
+};
+
+const formatTimestamp = (timestamp) => {
+  if (!timestamp) return '-';
+
+  const date = new Date(Number(timestamp));
+  if (Number.isNaN(date.getTime())) return '-';
+
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  const hours = String(date.getHours()).padStart(2, '0');
+  const minutes = String(date.getMinutes()).padStart(2, '0');
+  const seconds = String(date.getSeconds()).padStart(2, '0');
+
+  return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
+};
+
+const getStatusLabel = (status) => {
+  const statusMap = {
+    0: '审核中',
+    1: '已开具',
+    2: '已驳回',
+  };
+
+  return statusMap[Number(status)] || '未知';
+};
+
+const getAuditResultLabel = (status) => {
+  const resultMap = {
+    0: '待审核',
+    1: '通过',
+    2: '驳回',
+  };
+
+  return resultMap[Number(status)] || '-';
+};
+
+const getSpecificationModelLabel = (value) => {
+  return String(value) === '2' ? '无' : '空白';
+};
+
+const formatAmount = (amount) => {
+  if (amount === undefined || amount === null || amount === '') return '-';
+
+  const amountValue = Number(amount);
+  if (Number.isNaN(amountValue)) return '-';
+
+  return `${amountValue.toFixed(2)}元`;
+};
+
+const getPaymentMethodLabel = (method) => {
+  const methodLabelMap = {
+    alipay: '支付宝',
+    mpay: '易支付',
+    epay: '易支付',
+    weixin: '微信',
+    wechat: '微信',
+    bank_transfer: '对公转账',
+  };
+
+  return methodLabelMap[method] || method || '-';
+};
+
+const mapInvoiceOrders = (orders) => {
+  return (orders || []).map((item) => ({
+    id: item.id || '-',
+    amount: item.amount,
+    pay_method: getPaymentMethodLabel(item.method),
+    pay_time: formatTimestamp(item.pay_time),
+  }));
+};
+
+const fetchInvoiceDetail = async () => {
+  if (!invoiceId.value || invoiceId.value === '-') return;
+
+  loading.value = true;
+  try {
+    const res = await $myFetch('InvoiceApplicationDetail', {
+      params: {
+        id: invoiceId.value,
+      },
+    });
+
+    if (res.code !== 200) {
+      $msg(res.msg || '获取开票详情失败', 'error');
+      return;
+    }
+
+    const detail = res.data?.detail || {};
+    const token = useCookie('token').value;
+    invoiceDetail.value = {
+      id: detail.id || invoiceId.value,
+      status: getStatusLabel(detail.status),
+      status_code: Number(detail.status),
+      audit_result: getAuditResultLabel(detail.status),
+      amount: detail.invoice_amount,
+      type: detail.invoice_type || '-',
+      content: '软件服务费',
+      email: detail.email || '-',
+      title_type: detail.title_type
+        ? detail.title_type === 'personal'
+          ? '个人'
+          : '企业'
+        : '-',
+      title: decryptInvoiceValue(detail.invoice_title, token),
+      tax_id: decryptInvoiceValue(detail.tax_number, token),
+      specification_model: getSpecificationModelLabel(
+        detail.specification_model,
+      ),
+      apply_time: formatTimestamp(detail.create_time),
+      update_time: formatTimestamp(detail.update_time),
+      remark: detail.remark || '-',
+      bank_name: decryptInvoiceValue(detail.bank_name, token),
+      bank_account: decryptInvoiceValue(detail.bank_account, token),
+      company_address: decryptInvoiceValue(detail.company_address, token),
+      company_phone: decryptInvoiceValue(detail.company_phone, token),
+    };
+    invoiceOrders.value = mapInvoiceOrders(detail.orders);
+  } catch (error) {
+    $msg('获取开票详情失败', 'error');
+  } finally {
+    loading.value = false;
+  }
+};
+
+const steps = [{ title: '审核中' }, { title: '已开具' }];
+const currentStepIndex = computed(() => {
+  return invoiceDetail.value.status_code === 1 ? 1 : 0;
+});
+
+const getStepItemClass = (index) => ({
+  'is-active': index <= currentStepIndex.value,
+  'is-current': index === currentStepIndex.value,
+  'is-last': index === steps.length - 1,
+});
 
 const goBack = () => {
-  navigateTo('/admin/invoice')
-}
+  navigateTo('/admin/invoice');
+};
+
+onMounted(() => {
+  fetchInvoiceDetail();
+});
+
+watch(invoiceId, () => {
+  fetchInvoiceDetail();
+});
 
 useHead({
   title: '开票详情',
   viewport:
     'width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0',
   charset: 'utf-8',
-})
+});
 </script>
 
 <template>
-  <div class="invoice-detail-page">
+  <div class="invoice-detail-page" v-loading="loading">
     <div class="detail-card">
       <div class="page-header">
-        <el-button
-          :icon="ArrowLeft"
-          class="back-button"
-          @click="goBack"
+        <el-button :icon="ArrowLeft" class="back-button" @click="goBack"
           >返回</el-button
         >
       </div>
@@ -70,7 +211,7 @@ useHead({
           v-for="(step, index) in steps"
           :key="step.title"
           class="step-item"
-          :class="{ 'is-last': index === steps.length - 1 }"
+          :class="getStepItemClass(index)"
         >
           <span>{{ index + 1 }}、{{ step.title }}</span>
         </div>
@@ -96,11 +237,17 @@ useHead({
           <div class="info-grid">
             <div class="info-item">
               <span class="label">发票金额：</span>
-              <span class="value">{{ invoiceDetail.amount.toFixed(2) }}元</span>
+              <span class="value">{{
+                formatAmount(invoiceDetail.amount)
+              }}</span>
             </div>
             <div class="info-item">
               <span class="label">发票抬头：</span>
               <span class="value">{{ invoiceDetail.title }}</span>
+            </div>
+            <div class="info-item">
+              <span class="label">抬头类型：</span>
+              <span class="value">{{ invoiceDetail.title_type }}</span>
             </div>
             <div class="info-item">
               <span class="label">发票类型：</span>
@@ -115,12 +262,36 @@ useHead({
               <span class="value">{{ invoiceDetail.content }}</span>
             </div>
             <div class="info-item">
+              <span class="label">规格型号：</span>
+              <span class="value">{{ invoiceDetail.specification_model }}</span>
+            </div>
+            <div class="info-item">
               <span class="label">申请日期：</span>
               <span class="value">{{ invoiceDetail.apply_time }}</span>
             </div>
             <div class="info-item">
               <span class="label">邮箱：</span>
               <span class="value">{{ invoiceDetail.email }}</span>
+            </div>
+            <div class="info-item">
+              <span class="label">企业地址：</span>
+              <span class="value">{{ invoiceDetail.company_address }}</span>
+            </div>
+            <div class="info-item">
+              <span class="label">企业电话：</span>
+              <span class="value">{{ invoiceDetail.company_phone }}</span>
+            </div>
+            <div class="info-item">
+              <span class="label">开户银行：</span>
+              <span class="value">{{ invoiceDetail.bank_name }}</span>
+            </div>
+            <div class="info-item">
+              <span class="label">银行账号：</span>
+              <span class="value">{{ invoiceDetail.bank_account }}</span>
+            </div>
+            <div class="info-item">
+              <span class="label">更新时间：</span>
+              <span class="value">{{ invoiceDetail.update_time }}</span>
             </div>
             <div class="info-item">
               <span class="label">备注：</span>
@@ -139,14 +310,13 @@ useHead({
           empty-text="暂无开票订单"
         >
           <el-table-column prop="id" label="订单编号" min-width="180" />
-          <el-table-column prop="amount" label="订单费用(元)" width="160">
+          <el-table-column prop="amount" label="订单金额" width="160">
             <template #default="scope">
-              {{ scope.row.amount.toFixed(2) }}
+              {{ formatAmount(scope.row.amount) }}
             </template>
           </el-table-column>
           <el-table-column prop="pay_method" label="支付方式" width="160" />
-          <el-table-column prop="payee" label="收款主体" min-width="220" />
-          <el-table-column prop="create_time" label="订单时间" width="180" />
+          <el-table-column prop="pay_time" label="支付时间" width="180" />
         </el-table>
       </section>
     </div>
@@ -190,8 +360,8 @@ useHead({
   display: flex;
   overflow: hidden;
   margin-bottom: 20px;
-  color: #fff;
-  background: #409eff;
+  color: #909399;
+  background: #f5f7fa;
 }
 
 .step-item {
@@ -199,9 +369,19 @@ useHead({
   flex: 1;
   min-width: 0;
   padding: 9px 24px;
+  background: #f5f7fa;
   text-align: center;
   font-size: 13px;
   font-weight: 500;
+
+  &.is-active {
+    color: #fff;
+    background: #409eff;
+  }
+
+  &.is-current {
+    font-weight: 600;
+  }
 
   &::after {
     position: absolute;
@@ -212,7 +392,7 @@ useHead({
     height: 100%;
     border-top: 17px solid transparent;
     border-bottom: 17px solid transparent;
-    border-left: 14px solid #409eff;
+    border-left: 14px solid #f5f7fa;
     content: '';
   }
 
@@ -232,6 +412,10 @@ useHead({
   &.is-last::before,
   &.is-last::after {
     display: none;
+  }
+
+  &.is-active::after {
+    border-left-color: #409eff;
   }
 }
 

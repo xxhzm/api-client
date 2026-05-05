@@ -1,14 +1,14 @@
 <script setup>
-import { Search, Plus, Edit, Delete } from "@element-plus/icons-vue";
+import { Search, Plus, Edit, Delete } from '@element-plus/icons-vue';
 
 definePageMeta({
-  layout: "admin",
+  layout: 'admin',
 });
 
 const { $msg, $myFetch, $decryptPhone } = useNuxtApp();
 
 // 标签页状态
-const activeName = ref("apply");
+const activeName = ref('apply');
 
 // 加载状态
 const loading = ref(false);
@@ -18,24 +18,13 @@ const invoiceDocumentPanelRef = ref();
 const invoicePreviewScale = ref(0.82);
 let invoicePreviewResizeObserver = null;
 
-// === 索取发票数据 ===
-// 按明细数据
-const applyData = ref([
-  {
-    id: "ORD202310010001",
-    amount: 199.0,
-    create_time: "2023-10-01 10:23:00",
-    type: "消费",
-    status: "可开票",
-  },
-  {
-    id: "ORD202310150002",
-    amount: 500.0,
-    create_time: "2023-10-15 14:30:00",
-    type: "充值",
-    status: "可开票",
-  },
-]);
+// === 申请开票数据 ===
+// 已支付且未开具发票的充值记录
+const applyData = ref([]);
+const applyPage = ref(1);
+const applyPageSize = ref(20);
+const applyTotalRecords = ref(0);
+const currentUserId = ref('');
 
 const selectedApply = ref([]);
 const totalApplyAmountValue = computed(() => {
@@ -52,41 +41,199 @@ const invoiceAmountWithoutTax = computed(() => {
 const invoiceTaxAmount = computed(() => {
   return totalApplyAmountValue.value - invoiceAmountWithoutTax.value;
 });
-const formatLocalDate = (date = new Date(), separator = "-") => {
-  const year = date.getFullYear();
-  const month = String(date.getMonth() + 1).padStart(2, "0");
-  const day = String(date.getDate()).padStart(2, "0");
-
-  return [year, month, day].join(separator);
-};
 const invoicePreviewNumber = computed(() => {
-  return "xxxxxxxx";
+  return 'xxxxxxxx';
 });
 const invoicePreviewDate = computed(() => {
-  return "xxxxxxxx";
+  return 'xxxxxxxx';
 });
-const invoiceTypeOptions = ["数字化电子普票 (电子)", "数字化电子专票 (电子)"];
+const invoiceTypeOptions = ['数字化电子普票 (电子)', '数字化电子专票 (电子)'];
 const maxInvoiceTitleCount = 3;
 const specModelOptions = [
-  { label: "空白(发票上空白，不显示内容)", value: "blank" },
-  { label: "无(发票上显示为“无”)", value: "无" },
+  { label: '空白(发票上空白，不显示内容)', value: 'blank' },
+  { label: '无(发票上显示为“无”)', value: '无' },
 ];
 
 const handleSelectionChange = (val) => {
   selectedApply.value = val;
 };
 
+const formatTimestamp = (timestamp) => {
+  if (!timestamp) return '-';
+
+  const date = new Date(Number(timestamp));
+  if (Number.isNaN(date.getTime())) return '-';
+
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  const hours = String(date.getHours()).padStart(2, '0');
+  const minutes = String(date.getMinutes()).padStart(2, '0');
+  const seconds = String(date.getSeconds()).padStart(2, '0');
+
+  return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
+};
+
+const getRechargeTradeTime = (item) => {
+  if (item.pay_time && item.pay_time !== 0 && item.pay_time !== '0') {
+    return item.pay_time;
+  }
+
+  return item.create_time;
+};
+
+const getPaymentMethodLabel = (method) => {
+  const methodLabelMap = {
+    alipay: '支付宝',
+    mpay: '易支付',
+    epay: '易支付',
+    weixin: '微信',
+    wechat: '微信',
+    bank_transfer: '对公转账',
+  };
+
+  return methodLabelMap[method] || method || '-';
+};
+
+const mapRechargeRecordToApplyItem = (item) => ({
+  ...item,
+  id: item.id,
+  amount: Number(item.amount || 0),
+  create_time: formatTimestamp(getRechargeTradeTime(item)),
+  payment_method: getPaymentMethodLabel(item.method),
+  status: '可开票',
+});
+
+const fetchInvoiceApplyRecords = async () => {
+  loading.value = true;
+  try {
+    if (!currentUserId.value) {
+      await fetchAccountEmail();
+    }
+
+    if (!currentUserId.value) {
+      $msg('获取用户信息失败', 'error');
+      return;
+    }
+
+    const res = await $myFetch('GetRechargeRecords', {
+      params: {
+        page: applyPage.value,
+        limit: applyPageSize.value,
+        uid: currentUserId.value,
+        status: '2',
+        is_invoiced: '0',
+      },
+    });
+
+    if (res.code !== 200) {
+      $msg(res.msg || '获取可开票订单失败', 'error');
+      return;
+    }
+
+    const data = res.data || {};
+    applyData.value = (data.data || []).map(mapRechargeRecordToApplyItem);
+    applyTotalRecords.value = data.total_records || 0;
+    selectedApply.value = [];
+    applyTableRef.value?.clearSelection?.();
+  } catch (error) {
+    $msg('获取可开票订单失败', 'error');
+  } finally {
+    loading.value = false;
+  }
+};
+
+const handleApplyPageChange = (newPage) => {
+  applyPage.value = newPage;
+  fetchInvoiceApplyRecords();
+};
+
 // === 开票记录数据 ===
-const recordsData = ref([
-  {
-    id: "INV202310200001",
-    amount: 699.0,
-    title: "广州某某科技有限公司",
-    type: "数字化电子普票 (电子)",
-    status: "已开具",
-    create_time: "2023-10-20 16:00:00",
-  },
-]);
+const recordsData = ref([]);
+const recordsPage = ref(1);
+const recordsPageSize = ref(15);
+const recordsTotalRecords = ref(0);
+
+const getInvoiceApplicationStatusLabel = (status) => {
+  const statusMap = {
+    0: '审核中',
+    1: '已开具',
+    2: '已驳回',
+  };
+
+  return statusMap[Number(status)] || '未知';
+};
+
+const getInvoiceApplicationStatusTagType = (status) => {
+  const statusMap = {
+    0: 'warning',
+    1: 'success',
+    2: 'danger',
+  };
+
+  return statusMap[Number(status)] || 'info';
+};
+
+const formatRecordAmount = (amount) => {
+  if (amount === undefined || amount === null || amount === '') return '-';
+
+  const amountValue = Number(amount);
+  if (Number.isNaN(amountValue)) return '-';
+
+  return `¥${amountValue.toFixed(2)}`;
+};
+
+const mapInvoiceApplicationRecord = (item, token) => ({
+  ...item,
+  title: decryptInvoiceTitleValue(item.invoice_title, token),
+  type: item.invoice_type || '-',
+  amount: item.invoice_amount,
+  create_time: formatTimestamp(item.create_time),
+  status_label: getInvoiceApplicationStatusLabel(item.status),
+});
+
+const fetchInvoiceApplicationList = async () => {
+  loading.value = true;
+  try {
+    if (!currentUserId.value) {
+      await fetchAccountEmail();
+    }
+
+    if (!currentUserId.value) {
+      $msg('获取用户信息失败', 'error');
+      return;
+    }
+
+    const res = await $myFetch('InvoiceApplicationList', {
+      params: {
+        page: recordsPage.value,
+        limit: recordsPageSize.value,
+        uid: currentUserId.value,
+      },
+    });
+
+    if (res.code !== 200) {
+      $msg(res.msg || '获取开票记录失败', 'error');
+      return;
+    }
+
+    const data = res.data || {};
+    const token = useCookie('token').value;
+    recordsData.value = (data.list || []).map((item) =>
+      mapInvoiceApplicationRecord(item, token),
+    );
+    recordsTotalRecords.value = data.totalRecords || 0;
+  } catch (error) {
+    $msg('获取开票记录失败', 'error');
+  } finally {
+    loading.value = false;
+  }
+};
+
+const handleRecordsPageChange = (newPage) => {
+  recordsPage.value = newPage;
+  fetchInvoiceApplicationList();
+};
 
 const showInvoiceRecordDetail = (row) => {
   navigateTo(`/admin/invoicedetail/${row.id}`);
@@ -98,21 +245,21 @@ const infoData = ref([]);
 const invoiceTitleDialogVisible = ref(false);
 const invoiceTitleSubmitting = ref(false);
 const invoiceTitleFormRef = ref();
-const invoiceTitleMode = ref("create");
+const invoiceTitleMode = ref('create');
 const invoiceTitleDeletingId = ref(null);
 const invoiceTitleForm = reactive({
   id: null,
-  title: "",
-  type: "企业",
-  tax_id: "",
-  company_address: "",
-  company_phone: "",
-  bank_name: "",
-  bank_account: "",
+  title: '',
+  type: '企业',
+  tax_id: '',
+  company_address: '',
+  company_phone: '',
+  bank_name: '',
+  bank_account: '',
   is_default: false,
 });
 
-const isCompanyInvoiceTitle = () => invoiceTitleForm.type === "企业";
+const isCompanyInvoiceTitle = () => invoiceTitleForm.type === '企业';
 
 const commonNamePattern =
   /^[\u4e00-\u9fa5A-Za-z0-9（）()【】\[\]《》·.&＆、\-\s]+$/;
@@ -123,19 +270,19 @@ const bankAccountPattern = /^\d+$/;
 const mobilePhonePattern = /^1[3-9]\d{9}$/;
 const fixedPhonePattern = /^(?:0\d{2,3}-?)?\d{7,8}(?:-\d{1,6})?$/;
 
-const getTrimmedValue = (value) => String(value || "").trim();
+const getTrimmedValue = (value) => String(value || '').trim();
 
 const validateInvoiceTitle = (_rule, value, callback) => {
   const text = getTrimmedValue(value);
 
   if (!text) {
-    callback(new Error("请输入发票抬头"));
+    callback(new Error('请输入发票抬头'));
     return;
   }
 
   if (!isCompanyInvoiceTitle()) {
     if (!/^[\u4e00-\u9fa5]{2,8}$/.test(text)) {
-      callback(new Error("个人抬头仅支持 2-8 个汉字"));
+      callback(new Error('个人抬头仅支持 2-8 个汉字'));
       return;
     }
 
@@ -144,7 +291,7 @@ const validateInvoiceTitle = (_rule, value, callback) => {
   }
 
   if (text.length < 2 || text.length > 100 || !commonNamePattern.test(text)) {
-    callback(new Error("企业名称需为 2-100 位中文、字母、数字或常用名称符号"));
+    callback(new Error('企业名称需为 2-100 位中文、字母、数字或常用名称符号'));
     return;
   }
 
@@ -179,81 +326,81 @@ const invoiceTitleRules = {
     {
       required: true,
       validator: validateInvoiceTitle,
-      trigger: "blur",
+      trigger: 'blur',
     },
   ],
-  type: [{ required: true, message: "请选择抬头类型", trigger: "change" }],
+  type: [{ required: true, message: '请选择抬头类型', trigger: 'change' }],
   tax_id: [
     {
       required: true,
       validator: validateCompanyField({
-        requiredMessage: "请输入纳税人识别号",
-        invalidMessage: "税号需为 15、18 或 20 位数字/大写字母",
+        requiredMessage: '请输入纳税人识别号',
+        invalidMessage: '税号需为 15、18 或 20 位数字/大写字母',
         validate: (text) =>
           [15, 18, 20].includes(text.length) && taxNumberPattern.test(text),
       }),
-      trigger: "blur",
+      trigger: 'blur',
     },
   ],
   company_address: [
     {
       required: true,
       validator: validateCompanyField({
-        requiredMessage: "请输入企业地址",
-        invalidMessage: "地址需为 5-120 位常用地址字符",
+        requiredMessage: '请输入企业地址',
+        invalidMessage: '地址需为 5-120 位常用地址字符',
         validate: (text) =>
           text.length >= 5 && text.length <= 120 && addressPattern.test(text),
       }),
-      trigger: "blur",
+      trigger: 'blur',
     },
   ],
   company_phone: [
     {
       required: true,
       validator: validateCompanyField({
-        requiredMessage: "请输入企业电话",
-        invalidMessage: "电话需为中国大陆手机号或固定电话",
+        requiredMessage: '请输入企业电话',
+        invalidMessage: '电话需为中国大陆手机号或固定电话',
         validate: (text) =>
           mobilePhonePattern.test(text) || fixedPhonePattern.test(text),
       }),
-      trigger: "blur",
+      trigger: 'blur',
     },
   ],
   bank_name: [
     {
       required: true,
       validator: validateCompanyField({
-        requiredMessage: "请输入开户银行",
-        invalidMessage: "开户行需为 2-64 位中文、字母、数字或常用名称符号",
+        requiredMessage: '请输入开户银行',
+        invalidMessage: '开户行需为 2-64 位中文、字母、数字或常用名称符号',
         validate: (text) =>
           text.length >= 2 && text.length <= 64 && commonNamePattern.test(text),
       }),
-      trigger: "blur",
+      trigger: 'blur',
     },
   ],
   bank_account: [
     {
       required: true,
       validator: validateCompanyField({
-        requiredMessage: "请输入银行账号",
-        invalidMessage: "银行账号需为 8-30 位数字",
+        requiredMessage: '请输入银行账号',
+        invalidMessage: '银行账号需为 8-30 位数字',
         validate: (text) =>
           text.length >= 8 &&
           text.length <= 30 &&
           bankAccountPattern.test(text),
       }),
-      trigger: "blur",
+      trigger: 'blur',
     },
   ],
 };
 
 const decryptInvoiceTitleValue = (value, token) => {
-  if (!value || !token) return value || "";
+  if (!value || !token) return value || '';
 
   try {
-    return $decryptPhone(value, token) || "";
+    return $decryptPhone(value, token) || '';
   } catch {
-    return value || "";
+    return value || '';
   }
 };
 
@@ -261,7 +408,7 @@ const mapInvoiceTitle = (item, token) => ({
   id: item.id,
   title: decryptInvoiceTitleValue(item.invoice_title, token),
   tax_id: decryptInvoiceTitleValue(item.tax_number, token),
-  type: item.title_type === "personal" ? "个人" : "企业",
+  type: item.title_type === 'personal' ? '个人' : '企业',
   company_address: decryptInvoiceTitleValue(
     item.company_address || item.companyAddress,
     token,
@@ -286,7 +433,7 @@ const sortInvoiceTitles = (list) => {
 };
 
 const invoiceTitleDialogTitle = computed(() =>
-  invoiceTitleMode.value === "edit" ? "编辑发票抬头" : "新增发票抬头",
+  invoiceTitleMode.value === 'edit' ? '编辑发票抬头' : '新增发票抬头',
 );
 const canCreateInvoiceTitle = computed(
   () => infoData.value.length < maxInvoiceTitleCount,
@@ -297,10 +444,10 @@ const invoiceTitleCountText = computed(
 
 const fetchInvoiceTitleList = async () => {
   try {
-    const res = await $myFetch("InvoiceTitleList");
+    const res = await $myFetch('InvoiceTitleList');
 
     if (res.code === 200) {
-      const token = useCookie("token").value;
+      const token = useCookie('token').value;
 
       infoData.value = sortInvoiceTitles(
         (res.data?.list || []).map((item) => mapInvoiceTitle(item, token)),
@@ -308,46 +455,46 @@ const fetchInvoiceTitleList = async () => {
       return;
     }
 
-    $msg(res.msg || "获取发票抬头失败", "error");
+    $msg(res.msg || '获取发票抬头失败', 'error');
   } catch (error) {
-    $msg("获取发票抬头失败", "error");
+    $msg('获取发票抬头失败', 'error');
   }
 };
 
 const resetInvoiceTitleForm = () => {
   invoiceTitleForm.id = null;
-  invoiceTitleForm.title = "";
-  invoiceTitleForm.type = "企业";
-  invoiceTitleForm.tax_id = "";
-  invoiceTitleForm.company_address = "";
-  invoiceTitleForm.company_phone = "";
-  invoiceTitleForm.bank_name = "";
-  invoiceTitleForm.bank_account = "";
+  invoiceTitleForm.title = '';
+  invoiceTitleForm.type = '企业';
+  invoiceTitleForm.tax_id = '';
+  invoiceTitleForm.company_address = '';
+  invoiceTitleForm.company_phone = '';
+  invoiceTitleForm.bank_name = '';
+  invoiceTitleForm.bank_account = '';
   invoiceTitleForm.is_default = false;
   invoiceTitleFormRef.value?.clearValidate?.();
 };
 
 const openInvoiceTitleDialog = () => {
   if (!canCreateInvoiceTitle.value) {
-    $msg(`每个用户最多创建 ${maxInvoiceTitleCount} 个发票抬头`, "warning");
+    $msg(`每个用户最多创建 ${maxInvoiceTitleCount} 个发票抬头`, 'warning');
     return;
   }
 
-  invoiceTitleMode.value = "create";
+  invoiceTitleMode.value = 'create';
   resetInvoiceTitleForm();
   invoiceTitleDialogVisible.value = true;
 };
 
 const openEditInvoiceTitleDialog = (row) => {
-  invoiceTitleMode.value = "edit";
+  invoiceTitleMode.value = 'edit';
   invoiceTitleForm.id = row.id;
-  invoiceTitleForm.title = row.title || "";
-  invoiceTitleForm.type = row.type || "企业";
-  invoiceTitleForm.tax_id = row.tax_id || "";
-  invoiceTitleForm.company_address = row.company_address || "";
-  invoiceTitleForm.company_phone = row.company_phone || "";
-  invoiceTitleForm.bank_name = row.bank_name || "";
-  invoiceTitleForm.bank_account = row.bank_account || "";
+  invoiceTitleForm.title = row.title || '';
+  invoiceTitleForm.type = row.type || '企业';
+  invoiceTitleForm.tax_id = row.tax_id || '';
+  invoiceTitleForm.company_address = row.company_address || '';
+  invoiceTitleForm.company_phone = row.company_phone || '';
+  invoiceTitleForm.bank_name = row.bank_name || '';
+  invoiceTitleForm.bank_account = row.bank_account || '';
   invoiceTitleForm.is_default = Boolean(row.is_default);
   invoiceTitleDialogVisible.value = true;
   nextTick(() => {
@@ -357,31 +504,31 @@ const openEditInvoiceTitleDialog = (row) => {
 
 const handleInvoiceTitleTypeChange = () => {
   if (!isCompanyInvoiceTitle()) {
-    invoiceTitleForm.tax_id = "";
-    invoiceTitleForm.company_address = "";
-    invoiceTitleForm.company_phone = "";
-    invoiceTitleForm.bank_name = "";
-    invoiceTitleForm.bank_account = "";
+    invoiceTitleForm.tax_id = '';
+    invoiceTitleForm.company_address = '';
+    invoiceTitleForm.company_phone = '';
+    invoiceTitleForm.bank_name = '';
+    invoiceTitleForm.bank_account = '';
   }
   invoiceTitleFormRef.value?.clearValidate?.([
-    "title",
-    "tax_id",
-    "company_address",
-    "company_phone",
-    "bank_name",
-    "bank_account",
+    'title',
+    'tax_id',
+    'company_address',
+    'company_phone',
+    'bank_name',
+    'bank_account',
   ]);
 };
 
 const handleTaxIdInput = (value) => {
-  invoiceTitleForm.tax_id = String(value || "").toUpperCase();
+  invoiceTitleForm.tax_id = String(value || '').toUpperCase();
 };
 
 const submitInvoiceTitle = async () => {
   if (!invoiceTitleFormRef.value) return;
 
-  if (invoiceTitleMode.value === "create" && !canCreateInvoiceTitle.value) {
-    $msg(`每个用户最多创建 ${maxInvoiceTitleCount} 个发票抬头`, "warning");
+  if (invoiceTitleMode.value === 'create' && !canCreateInvoiceTitle.value) {
+    $msg(`每个用户最多创建 ${maxInvoiceTitleCount} 个发票抬头`, 'warning');
     return;
   }
 
@@ -394,45 +541,45 @@ const submitInvoiceTitle = async () => {
   invoiceTitleSubmitting.value = true;
   try {
     const body = new URLSearchParams();
-    const titleType = isCompanyInvoiceTitle() ? "company" : "personal";
+    const titleType = isCompanyInvoiceTitle() ? 'company' : 'personal';
     const requestName =
-      invoiceTitleMode.value === "edit"
-        ? "UpdateInvoiceTitle"
-        : "CreateInvoiceTitle";
+      invoiceTitleMode.value === 'edit'
+        ? 'UpdateInvoiceTitle'
+        : 'CreateInvoiceTitle';
 
-    if (invoiceTitleMode.value === "edit") {
+    if (invoiceTitleMode.value === 'edit') {
       if (!invoiceTitleForm.id) {
-        $msg("缺少发票抬头 ID", "error");
+        $msg('缺少发票抬头 ID', 'error');
         return;
       }
-      body.append("id", String(invoiceTitleForm.id));
+      body.append('id', String(invoiceTitleForm.id));
     }
-    if (invoiceTitleMode.value === "create") {
-      body.append("titleType", titleType);
+    if (invoiceTitleMode.value === 'create') {
+      body.append('titleType', titleType);
     }
-    body.append("invoiceTitle", invoiceTitleForm.title.trim());
-    body.append("isDefault", String(invoiceTitleForm.is_default));
+    body.append('invoiceTitle', invoiceTitleForm.title.trim());
+    body.append('isDefault', String(invoiceTitleForm.is_default));
 
-    if (titleType === "company") {
-      body.append("taxNumber", invoiceTitleForm.tax_id.trim().toUpperCase());
-      body.append("companyAddress", invoiceTitleForm.company_address.trim());
-      body.append("companyPhone", invoiceTitleForm.company_phone.trim());
-      body.append("bankName", invoiceTitleForm.bank_name.trim());
-      body.append("bankAccount", invoiceTitleForm.bank_account.trim());
+    if (titleType === 'company') {
+      body.append('taxNumber', invoiceTitleForm.tax_id.trim().toUpperCase());
+      body.append('companyAddress', invoiceTitleForm.company_address.trim());
+      body.append('companyPhone', invoiceTitleForm.company_phone.trim());
+      body.append('bankName', invoiceTitleForm.bank_name.trim());
+      body.append('bankAccount', invoiceTitleForm.bank_account.trim());
     }
 
     const res = await $myFetch(requestName, {
-      method: "POST",
+      method: 'POST',
       body,
     });
 
     if (res.code !== 200) {
       $msg(
         res.msg ||
-          (invoiceTitleMode.value === "edit"
-            ? "发票抬头修改失败"
-            : "发票抬头新增失败"),
-        "error",
+          (invoiceTitleMode.value === 'edit'
+            ? '发票抬头修改失败'
+            : '发票抬头新增失败'),
+        'error',
       );
       return;
     }
@@ -442,17 +589,17 @@ const submitInvoiceTitle = async () => {
     invoiceTitleDialogVisible.value = false;
     $msg(
       res.msg ||
-        (invoiceTitleMode.value === "edit"
-          ? "发票抬头修改成功"
-          : "发票抬头新增成功"),
-      "success",
+        (invoiceTitleMode.value === 'edit'
+          ? '发票抬头修改成功'
+          : '发票抬头新增成功'),
+      'success',
     );
   } catch (error) {
     $msg(
-      invoiceTitleMode.value === "edit"
-        ? "发票抬头修改失败"
-        : "发票抬头新增失败",
-      "error",
+      invoiceTitleMode.value === 'edit'
+        ? '发票抬头修改失败'
+        : '发票抬头新增失败',
+      'error',
     );
   } finally {
     invoiceTitleSubmitting.value = false;
@@ -462,21 +609,21 @@ const submitInvoiceTitle = async () => {
 const deleteInvoiceTitle = async (row) => {
   invoiceTitleDeletingId.value = row.id;
   try {
-    const res = await $myFetch("DeleteInvoiceTitle", {
+    const res = await $myFetch('DeleteInvoiceTitle', {
       params: {
         id: row.id,
       },
     });
 
     if (res.code !== 200) {
-      $msg(res.msg || "发票抬头删除失败", "error");
+      $msg(res.msg || '发票抬头删除失败', 'error');
       return;
     }
 
     await fetchInvoiceTitleList();
-    $msg(res.msg || "发票抬头删除成功", "success");
+    $msg(res.msg || '发票抬头删除成功', 'success');
   } catch (error) {
-    $msg("发票抬头删除失败", "error");
+    $msg('发票抬头删除失败', 'error');
   } finally {
     invoiceTitleDeletingId.value = null;
   }
@@ -484,25 +631,25 @@ const deleteInvoiceTitle = async (row) => {
 
 const invoiceApplySubmitting = ref(false);
 const invoiceApplyFormRef = ref();
-const accountBoundEmail = ref("");
-const invoiceEmailMode = ref("custom");
+const accountBoundEmail = ref('');
+const invoiceEmailMode = ref('custom');
 const invoiceApplyForm = reactive({
   title_id: null,
   invoice_type: invoiceTypeOptions[0],
-  content: "软件服务费",
-  spec_model: "blank",
-  email: "",
-  remark: "",
+  content: '软件服务费',
+  spec_model: 'blank',
+  email: '',
+  remark: '',
 });
 
 const invoiceApplyRules = {
-  title_id: [{ required: true, message: "请选择发票抬头", trigger: "change" }],
+  title_id: [{ required: true, message: '请选择发票抬头', trigger: 'change' }],
   email: [
-    { required: true, message: "请输入接收邮箱", trigger: "blur" },
+    { required: true, message: '请输入接收邮箱', trigger: 'blur' },
     {
-      type: "email",
-      message: "请输入正确的邮箱地址",
-      trigger: "blur",
+      type: 'email',
+      message: '请输入正确的邮箱地址',
+      trigger: 'blur',
     },
   ],
 };
@@ -511,30 +658,32 @@ const hasAccountBoundEmail = computed(() => Boolean(accountBoundEmail.value));
 
 const fetchAccountEmail = async () => {
   try {
-    const res = await $myFetch("Profile");
+    const res = await $myFetch('Profile');
 
     if (res.code !== 200) return;
 
-    accountBoundEmail.value = res.data?.mail || "";
+    currentUserId.value =
+      res.data?.id || res.data?.uid || res.data?.user_id || '';
+    accountBoundEmail.value = res.data?.mail || '';
 
     if (!invoiceApplyForm.email && accountBoundEmail.value) {
-      invoiceEmailMode.value = "account";
+      invoiceEmailMode.value = 'account';
       invoiceApplyForm.email = accountBoundEmail.value;
     }
   } catch (error) {
-    accountBoundEmail.value = "";
+    accountBoundEmail.value = '';
   }
 };
 
 const handleInvoiceEmailModeChange = async (mode) => {
-  if (mode === "account") {
-    invoiceApplyForm.email = accountBoundEmail.value || "";
+  if (mode === 'account') {
+    invoiceApplyForm.email = accountBoundEmail.value || '';
   } else if (invoiceApplyForm.email === accountBoundEmail.value) {
-    invoiceApplyForm.email = "";
+    invoiceApplyForm.email = '';
   }
 
   await nextTick();
-  invoiceApplyFormRef.value?.clearValidate?.("email");
+  invoiceApplyFormRef.value?.clearValidate?.('email');
 };
 
 const defaultInvoiceTitle = computed(() => {
@@ -549,12 +698,12 @@ const selectedInvoiceTitle = computed(() => {
   );
 });
 const formatInvoiceTitleSelectLabel = (item) => {
-  if (!item) return "";
+  if (!item) return '';
 
-  return item.title || "-";
+  return item.title || '-';
 };
 const formatInvoiceTitleMeta = (item) => {
-  if (!item) return "-";
+  if (!item) return '-';
 
   const meta = [item.type];
 
@@ -578,68 +727,76 @@ const formatInvoiceTitleMeta = (item) => {
     meta.push(`账号：${item.bank_account}`);
   }
 
-  return meta.join(" / ");
+  return meta.join(' / ');
 };
 const isSpecialInvoice = computed(() => {
-  return invoiceApplyForm.invoice_type.includes("专票");
+  return invoiceApplyForm.invoice_type.includes('专票');
 });
 const selectedTitleBankText = computed(() => {
   const bankName = selectedInvoiceTitle.value?.bank_name;
   const bankAccount = selectedInvoiceTitle.value?.bank_account;
 
   if (!bankName && !bankAccount) {
-    return "购方开户银行：-；银行账号：-；";
+    return '购方开户银行：-；银行账号：-；';
   }
 
-  return `购方开户银行：${bankName || "-"}；银行账号：${bankAccount || "-"}；`;
+  return `购方开户银行：${bankName || '-'}；银行账号：${bankAccount || '-'}；`;
 });
 const invoiceSpecModelText = computed(() => {
-  return invoiceApplyForm.spec_model === "blank"
-    ? ""
+  return invoiceApplyForm.spec_model === 'blank'
+    ? ''
     : invoiceApplyForm.spec_model;
 });
+
+const getInvoiceTypeValue = (invoiceType) => {
+  return invoiceType.includes('专票') ? '电子专票' : '电子普票';
+};
+
+const getSpecificationModelValue = (specModel) => {
+  return specModel === '无' ? '2' : '1';
+};
 
 const resetInvoiceApplyForm = () => {
   invoiceApplyForm.title_id = defaultInvoiceTitle.value?.id ?? null;
   invoiceApplyForm.invoice_type = invoiceTypeOptions[0];
-  invoiceApplyForm.content = "软件服务费";
-  invoiceApplyForm.spec_model = "blank";
-  invoiceEmailMode.value = accountBoundEmail.value ? "account" : "custom";
-  invoiceApplyForm.email = accountBoundEmail.value || "";
-  invoiceApplyForm.remark = "";
+  invoiceApplyForm.content = '软件服务费';
+  invoiceApplyForm.spec_model = 'blank';
+  invoiceEmailMode.value = accountBoundEmail.value ? 'account' : 'custom';
+  invoiceApplyForm.email = accountBoundEmail.value || '';
+  invoiceApplyForm.remark = '';
   invoiceApplyFormRef.value?.clearValidate?.();
 };
 
 const formatMoney = (value) => Number(value || 0).toFixed(2);
 
 const toChineseCurrency = (value) => {
-  const fraction = ["角", "分"];
-  const digit = ["零", "壹", "贰", "叁", "肆", "伍", "陆", "柒", "捌", "玖"];
+  const fraction = ['角', '分'];
+  const digit = ['零', '壹', '贰', '叁', '肆', '伍', '陆', '柒', '捌', '玖'];
   const unit = [
-    ["元", "万", "亿"],
-    ["", "拾", "佰", "仟"],
+    ['元', '万', '亿'],
+    ['', '拾', '佰', '仟'],
   ];
-  const head = value < 0 ? "负" : "";
+  const head = value < 0 ? '负' : '';
   let amount = Math.abs(Number(value || 0));
-  let suffix = "";
+  let suffix = '';
 
   fraction.forEach((item, index) => {
     suffix += (
       digit[Math.floor(amount * 10 * 10 ** index) % 10] + item
-    ).replace(/零./, "");
+    ).replace(/零./, '');
   });
-  suffix = suffix || "整";
+  suffix = suffix || '整';
   amount = Math.floor(amount);
 
-  let integerText = "";
+  let integerText = '';
   for (let i = 0; i < unit[0].length && amount > 0; i += 1) {
-    let partText = "";
+    let partText = '';
     for (let j = 0; j < unit[1].length && amount > 0; j += 1) {
       partText = digit[amount % 10] + unit[1][j] + partText;
       amount = Math.floor(amount / 10);
     }
     integerText =
-      partText.replace(/(零.)*零$/, "").replace(/^$/, "零") +
+      partText.replace(/(零.)*零$/, '').replace(/^$/, '零') +
       unit[0][i] +
       integerText;
   }
@@ -647,27 +804,27 @@ const toChineseCurrency = (value) => {
   return (
     head +
     integerText
-      .replace(/(零.)*零元/, "元")
-      .replace(/(零.)+/g, "零")
-      .replace(/^整$/, "零元整") +
+      .replace(/(零.)*零元/, '元')
+      .replace(/(零.)+/g, '零')
+      .replace(/^整$/, '零元整') +
     suffix
   );
 };
 
 const openInvoicePreview = async () => {
   if (!selectedApply.value.length) {
-    $msg("请先选择开票明细", "warning");
+    $msg('请先选择开票明细', 'warning');
     return;
   }
 
   if (totalApplyAmountValue.value < 100) {
-    $msg("开票金额需满 100 元", "warning");
+    $msg('开票金额需满 100 元', 'warning');
     return;
   }
 
   if (!infoData.value.length) {
-    activeName.value = "info";
-    $msg("请先新增发票抬头", "warning");
+    activeName.value = 'info';
+    $msg('请先新增发票抬头', 'warning');
     return;
   }
 
@@ -708,7 +865,7 @@ const startInvoicePreviewObserver = async () => {
   await nextTick();
   stopInvoicePreviewObserver();
 
-  if (typeof ResizeObserver === "undefined" || !invoiceDocumentPanelRef.value) {
+  if (typeof ResizeObserver === 'undefined' || !invoiceDocumentPanelRef.value) {
     updateInvoicePreviewScale();
     return;
   }
@@ -732,62 +889,80 @@ const submitInvoiceApply = async () => {
     (!selectedInvoiceTitle.value?.bank_name ||
       !selectedInvoiceTitle.value?.bank_account)
   ) {
-    $msg("申请专票请先在发票抬头中设置开户银行和银行账号", "warning");
-    activeName.value = "info";
+    $msg('申请专票请先在发票抬头中设置开户银行和银行账号', 'warning');
+    activeName.value = 'info';
     invoicePreviewVisible.value = false;
     return;
   }
 
   invoiceApplySubmitting.value = true;
   try {
-    const nextNumber = recordsData.value.length + 1;
-    const nextId = `INV${formatLocalDate(new Date(), "")}${String(
-      nextNumber,
-    ).padStart(4, "0")}`;
+    const orderIds = selectedApply.value
+      .map((item) => String(item.id || '').trim())
+      .filter(Boolean)
+      .join('|');
 
-    recordsData.value.unshift({
-      id: nextId,
-      amount: totalApplyAmountValue.value,
-      title: selectedInvoiceTitle.value?.title || "-",
-      type: invoiceApplyForm.invoice_type,
-      status: "审核中",
-      create_time: new Date().toLocaleString("zh-CN", {
-        hour12: false,
-      }),
+    if (!orderIds) {
+      $msg('请选择有效的开票订单', 'warning');
+      return;
+    }
+
+    const body = new URLSearchParams();
+    body.append('invoiceTitleId', String(invoiceApplyForm.title_id));
+    body.append(
+      'invoiceType',
+      getInvoiceTypeValue(invoiceApplyForm.invoice_type),
+    );
+    body.append('email', invoiceApplyForm.email.trim());
+    body.append(
+      'specificationModel',
+      getSpecificationModelValue(invoiceApplyForm.spec_model),
+    );
+    body.append('remark', invoiceApplyForm.remark.trim());
+    body.append('orderIds', orderIds);
+
+    const res = await $myFetch('CreateInvoiceApplication', {
+      method: 'POST',
+      body,
     });
 
-    const selectedIds = new Set(selectedApply.value.map((item) => item.id));
-    applyData.value = applyData.value.filter(
-      (item) => !selectedIds.has(item.id),
-    );
-    selectedApply.value = [];
-    applyTableRef.value?.clearSelection?.();
+    if (res.code !== 200) {
+      $msg(res.msg || '开票申请提交失败', 'error');
+      return;
+    }
 
     invoicePreviewVisible.value = false;
-    activeName.value = "records";
-    $msg("开票申请已提交", "success");
+    selectedApply.value = [];
+    applyTableRef.value?.clearSelection?.();
+    await fetchInvoiceApplyRecords();
+    $msg(res.msg || '开票申请已提交', 'success');
+  } catch (error) {
+    $msg('开票申请提交失败', 'error');
   } finally {
     invoiceApplySubmitting.value = false;
   }
 };
 
-// 模拟获取数据
-const fetchData = () => {
-  loading.value = true;
-  setTimeout(() => {
-    loading.value = false;
-  }, 500);
+const fetchData = async (tabName = activeName.value) => {
+  if (tabName === 'apply') {
+    await fetchInvoiceApplyRecords();
+    return;
+  }
+
+  if (tabName === 'records') {
+    await fetchInvoiceApplicationList();
+  }
 };
 
-onMounted(() => {
+onMounted(async () => {
+  await fetchAccountEmail();
   fetchData();
   fetchInvoiceTitleList();
-  fetchAccountEmail();
-  window.addEventListener("resize", updateInvoicePreviewScale);
+  window.addEventListener('resize', updateInvoicePreviewScale);
 });
 
 onBeforeUnmount(() => {
-  window.removeEventListener("resize", updateInvoicePreviewScale);
+  window.removeEventListener('resize', updateInvoicePreviewScale);
   stopInvoicePreviewObserver();
 });
 
@@ -801,10 +976,10 @@ watch(invoicePreviewVisible, (visible) => {
 });
 
 useHead({
-  title: "发票管理",
+  title: '发票管理',
   viewport:
-    "width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0",
-  charset: "utf-8",
+    'width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0',
+  charset: 'utf-8',
 });
 </script>
 
@@ -826,8 +1001,8 @@ useHead({
           class="invoice-tabs"
           @tab-change="fetchData"
         >
-          <!-- 索取发票 -->
-          <el-tab-pane label="索取发票" name="apply">
+          <!-- 申请开票 -->
+          <el-tab-pane label="申请开票" name="apply">
             <div class="tab-pane-content" v-loading="loading">
               <template v-if="!invoicePreviewVisible">
                 <el-alert
@@ -853,19 +1028,6 @@ useHead({
                       下一步
                     </el-button>
                   </div>
-                  <div class="action-right">
-                    <el-date-picker
-                      type="daterange"
-                      range-separator="至"
-                      start-placeholder="开始日期"
-                      end-placeholder="结束日期"
-                      class="date-range"
-                    />
-                    <el-button type="primary">
-                      <el-icon><Search /></el-icon>
-                      查询
-                    </el-button>
-                  </div>
                 </div>
 
                 <el-table
@@ -879,16 +1041,22 @@ useHead({
                   <el-table-column type="selection" width="55" />
                   <el-table-column
                     prop="id"
-                    label="订单号/流水号"
-                    width="180"
+                    label="订单号"
+                    show-overflow-tooltip
+                    min-width="100px"
                   />
-                  <el-table-column prop="type" label="业务类型" width="100" />
+                  <el-table-column prop="payment_method" label="支付方式" />
                   <el-table-column
                     prop="create_time"
                     label="交易时间"
-                    width="180"
+                    show-overflow-tooltip
+                    min-width="120px"
                   />
-                  <el-table-column prop="amount" label="可开票金额" width="150">
+                  <el-table-column
+                    prop="amount"
+                    label="可开票金额"
+                    min-width="120px"
+                  >
                     <template #default="scope">
                       <span class="table-amount"
                         >¥{{ scope.row.amount.toFixed(2) }}</span
@@ -908,7 +1076,10 @@ useHead({
                   <el-pagination
                     background
                     layout="total, prev, pager, next"
-                    :total="applyData.length"
+                    v-model:current-page="applyPage"
+                    :page-size="applyPageSize"
+                    :total="applyTotalRecords"
+                    @current-change="handleApplyPageChange"
                   />
                 </div>
               </template>
@@ -958,7 +1129,7 @@ useHead({
                             <div class="invoice-title-option">
                               <div class="invoice-title-option__main">
                                 <span class="invoice-title-option__name">
-                                  {{ item.title || "-" }}
+                                  {{ item.title || '-' }}
                                 </span>
                                 <el-tag
                                   class="invoice-title-option__tag"
@@ -1072,7 +1243,7 @@ useHead({
                           v-model="invoiceApplyForm.remark"
                           type="textarea"
                           :rows="4"
-                          maxlength="120"
+                          maxlength="255"
                           show-word-limit
                           resize="none"
                           placeholder="选填，填写开票备注"
@@ -1114,13 +1285,13 @@ useHead({
                             <div>
                               <span>名称：</span>
                               <strong>{{
-                                selectedInvoiceTitle?.title || "-"
+                                selectedInvoiceTitle?.title || '-'
                               }}</strong>
                             </div>
                             <div>
                               <span>统一社会信用代码/纳税人识别号：</span>
                               <strong>{{
-                                selectedInvoiceTitle?.tax_id || "-"
+                                selectedInvoiceTitle?.tax_id || '-'
                               }}</strong>
                             </div>
                           </div>
@@ -1149,7 +1320,7 @@ useHead({
                           <div class="doc-cell doc-head">税额</div>
 
                           <div class="doc-cell doc-value">
-                            {{ invoiceApplyForm.content || "-" }}
+                            {{ invoiceApplyForm.content || '-' }}
                           </div>
                           <div class="doc-cell doc-value">
                             {{ invoiceSpecModelText }}
@@ -1239,9 +1410,9 @@ useHead({
                 <el-table-column prop="type" label="发票类型" width="160" />
                 <el-table-column prop="amount" label="开票金额" width="120">
                   <template #default="scope">
-                    <span class="table-amount"
-                      >¥{{ scope.row.amount.toFixed(2) }}</span
-                    >
+                    <span class="table-amount">{{
+                      formatRecordAmount(scope.row.amount)
+                    }}</span>
                   </template>
                 </el-table-column>
                 <el-table-column
@@ -1251,9 +1422,14 @@ useHead({
                 />
                 <el-table-column prop="status" label="状态" width="100">
                   <template #default="scope">
-                    <el-tag type="success" size="small">{{
-                      scope.row.status
-                    }}</el-tag>
+                    <el-tag
+                      :type="
+                        getInvoiceApplicationStatusTagType(scope.row.status)
+                      "
+                      size="small"
+                    >
+                      {{ scope.row.status_label }}
+                    </el-tag>
                   </template>
                 </el-table-column>
                 <el-table-column label="操作" width="100" fixed="right">
@@ -1272,7 +1448,10 @@ useHead({
                 <el-pagination
                   background
                   layout="total, prev, pager, next"
-                  :total="recordsData.length"
+                  v-model:current-page="recordsPage"
+                  :page-size="recordsPageSize"
+                  :total="recordsTotalRecords"
+                  @current-change="handleRecordsPageChange"
                 />
               </div>
             </div>
@@ -1312,7 +1491,7 @@ useHead({
                     </div>
                     <div class="invoice-title-card__heading">
                       <div class="invoice-title-card__name">
-                        {{ item.title || "-" }}
+                        {{ item.title || '-' }}
                       </div>
                       <div class="invoice-title-card__tags">
                         <el-tag
@@ -1362,23 +1541,23 @@ useHead({
                   <div class="invoice-title-card__details">
                     <div class="invoice-title-card__detail">
                       <span>纳税人识别号</span>
-                      <strong>{{ item.tax_id || "-" }}</strong>
+                      <strong>{{ item.tax_id || '-' }}</strong>
                     </div>
                     <div class="invoice-title-card__detail">
                       <span>企业地址</span>
-                      <strong>{{ item.company_address || "-" }}</strong>
+                      <strong>{{ item.company_address || '-' }}</strong>
                     </div>
                     <div class="invoice-title-card__detail">
                       <span>企业电话</span>
-                      <strong>{{ item.company_phone || "-" }}</strong>
+                      <strong>{{ item.company_phone || '-' }}</strong>
                     </div>
                     <div class="invoice-title-card__detail">
                       <span>开户银行</span>
-                      <strong>{{ item.bank_name || "-" }}</strong>
+                      <strong>{{ item.bank_name || '-' }}</strong>
                     </div>
                     <div class="invoice-title-card__detail">
                       <span>银行账号</span>
-                      <strong>{{ item.bank_account || "-" }}</strong>
+                      <strong>{{ item.bank_account || '-' }}</strong>
                     </div>
                   </div>
                 </div>
@@ -1627,10 +1806,6 @@ useHead({
     font-weight: 600;
     margin-left: 5px;
   }
-}
-
-.date-range {
-  width: 260px;
 }
 
 .search-input {
@@ -2251,7 +2426,6 @@ useHead({
     flex-direction: column;
   }
 
-  .date-range,
   .search-input {
     width: 100%;
   }
