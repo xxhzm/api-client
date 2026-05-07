@@ -166,19 +166,47 @@ const fetchInvoiceDetail = async () => {
   }
 };
 
-const steps = [{ title: '审核中' }, { title: '已开具' }];
+const steps = [
+  { title: '审核中', status: 0 },
+  { title: '已开具', status: 1 },
+  { title: '已驳回', status: 2 },
+];
 const currentStepIndex = computed(() => {
-  return invoiceDetail.value.status_code === 1 ? 1 : 0;
+  const index = steps.findIndex(
+    (step) => step.status === invoiceDetail.value.status_code,
+  );
+  return index === -1 ? 0 : index;
+});
+const isPersonalInvoiceTitle = computed(() => {
+  return invoiceDetail.value.title_type === '个人';
+});
+const isIssuedInvoice = computed(() => {
+  return invoiceDetail.value.status_code === 1;
+});
+const backPath = computed(() => {
+  return route.query.from === 'audit'
+    ? '/admin/invoice-audit'
+    : '/admin/invoice';
 });
 
+const isStepActive = (index) => {
+  if (invoiceDetail.value.status_code === 2) {
+    return steps[index].status === 0 || steps[index].status === 2;
+  }
+
+  return index <= currentStepIndex.value;
+};
+
 const getStepItemClass = (index) => ({
-  'is-active': index <= currentStepIndex.value,
+  'is-active': isStepActive(index),
   'is-current': index === currentStepIndex.value,
   'is-last': index === steps.length - 1,
+  'is-rejected':
+    invoiceDetail.value.status_code === 2 && steps[index].status === 2,
 });
 
 const goBack = () => {
-  navigateTo('/admin/invoice');
+  navigateTo(backPath.value);
 };
 
 onMounted(() => {
@@ -231,6 +259,15 @@ useHead({
         </div>
       </div>
 
+      <el-alert
+        v-if="isIssuedInvoice"
+        class="invoice-sent-alert"
+        title="发票已发送到您填写的邮箱中，请前往邮箱查看。"
+        type="success"
+        show-icon
+        :closable="false"
+      />
+
       <section class="detail-section">
         <div class="section-title">发票信息</div>
         <div class="info-box">
@@ -253,7 +290,7 @@ useHead({
               <span class="label">发票类型：</span>
               <span class="value">{{ invoiceDetail.type }}</span>
             </div>
-            <div class="info-item">
+            <div v-if="!isPersonalInvoiceTitle" class="info-item">
               <span class="label">纳税人识别号：</span>
               <span class="value">{{ invoiceDetail.tax_id }}</span>
             </div>
@@ -273,19 +310,19 @@ useHead({
               <span class="label">邮箱：</span>
               <span class="value">{{ invoiceDetail.email }}</span>
             </div>
-            <div class="info-item">
+            <div v-if="!isPersonalInvoiceTitle" class="info-item">
               <span class="label">企业地址：</span>
               <span class="value">{{ invoiceDetail.company_address }}</span>
             </div>
-            <div class="info-item">
+            <div v-if="!isPersonalInvoiceTitle" class="info-item">
               <span class="label">企业电话：</span>
               <span class="value">{{ invoiceDetail.company_phone }}</span>
             </div>
-            <div class="info-item">
+            <div v-if="!isPersonalInvoiceTitle" class="info-item">
               <span class="label">开户银行：</span>
               <span class="value">{{ invoiceDetail.bank_name }}</span>
             </div>
-            <div class="info-item">
+            <div v-if="!isPersonalInvoiceTitle" class="info-item">
               <span class="label">银行账号：</span>
               <span class="value">{{ invoiceDetail.bank_account }}</span>
             </div>
@@ -379,6 +416,10 @@ useHead({
     background: #409eff;
   }
 
+  &.is-rejected {
+    background: #f56c6c;
+  }
+
   &.is-current {
     font-weight: 600;
   }
@@ -417,6 +458,10 @@ useHead({
   &.is-active::after {
     border-left-color: #409eff;
   }
+
+  &.is-rejected::after {
+    border-left-color: #f56c6c;
+  }
 }
 
 .summary-row {
@@ -431,6 +476,10 @@ useHead({
 .summary-item {
   min-width: 0;
   word-break: break-all;
+}
+
+.invoice-sent-alert {
+  margin-bottom: 18px;
 }
 
 .primary-text {

@@ -100,6 +100,7 @@ const pathMap = {
 
   // 4: Finance Management (Moved from 3)
   invoice: '4',
+  'invoice-audit': '4',
   package: '4',
   userPackageManagement: '4',
   rechargerecord: '4',
@@ -176,6 +177,7 @@ const pathIndexMap = {
   '/admin/statistics': '3-7',
 
   // Finance Management (4)
+  '/admin/invoice-audit': '4-12',
   '/admin/invoice': '4-11',
   '/admin/pay': '4-1',
   '/admin/buy': '4-2',
@@ -424,6 +426,7 @@ watch(
           index="4"
           v-if="
             routeShowArr([
+              '/admin/invoice-audit',
               '/admin/invoice',
               '/admin/package',
               '/admin/userPackageManagement',
@@ -446,10 +449,16 @@ watch(
           </template>
           <el-menu-item-group title="财务管理">
             <el-menu-item
+              index="4-12"
+              @click="navigateTo('/admin/invoice-audit')"
+              v-if="routeShow('/admin/invoice-audit')"
+              >发票管理</el-menu-item
+            >
+            <el-menu-item
               index="4-11"
               @click="navigateTo('/admin/invoice')"
               v-if="routeShow('/admin/invoice')"
-              >发票管理</el-menu-item
+              >发票申请</el-menu-item
             >
             <el-menu-item
               index="4-1"

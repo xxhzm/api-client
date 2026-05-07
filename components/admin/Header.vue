@@ -43,7 +43,8 @@ const routeNameMap = {
   '/admin/ai-chat': 'AI会话管理',
   '/admin/articleset': '文章设置',
   '/admin/pay': '账户充值',
-  '/admin/invoice': '发票管理',
+  '/admin/invoice-audit': '发票管理',
+  '/admin/invoice': '发票申请',
   '/admin/invoicedetail': '开票详情',
   '/admin/createRechargeCard': '生成充值卡',
   '/admin/useRechargeCard': '使用充值卡',
@@ -104,6 +105,7 @@ const parentNameMap = {
 
   // 财务管理
   '/admin/pay': '财务管理',
+  '/admin/invoice-audit': '财务管理',
   '/admin/invoice': '财务管理',
   '/admin/invoicedetail': '财务管理',
   '/admin/createRechargeCard': '财务管理',

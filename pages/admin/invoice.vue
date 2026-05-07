@@ -976,7 +976,7 @@ watch(invoicePreviewVisible, (visible) => {
 });
 
 useHead({
-  title: '发票管理',
+  title: '发票申请',
   viewport:
     'width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0',
   charset: 'utf-8',
@@ -989,7 +989,7 @@ useHead({
       <!-- 标题区域 -->
       <div class="card-header">
         <div class="header-left">
-          <span class="title">发票管理</span>
+          <span class="title">发票申请</span>
         </div>
         <span class="header-meta">开票金额需满 100 元</span>
       </div>
