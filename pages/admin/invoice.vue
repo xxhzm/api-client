@@ -190,6 +190,7 @@ const mapInvoiceApplicationRecord = (item, token) => ({
   amount: item.invoice_amount,
   create_time: formatTimestamp(item.create_time),
   status_label: getInvoiceApplicationStatusLabel(item.status),
+  review_remark: item.review_remark || '-',
 });
 
 const fetchInvoiceApplicationList = async () => {
@@ -1430,6 +1431,20 @@ useHead({
                     >
                       {{ scope.row.status_label }}
                     </el-tag>
+                  </template>
+                </el-table-column>
+                <el-table-column
+                  prop="review_remark"
+                  label="驳回说明"
+                  min-width="180"
+                  show-overflow-tooltip
+                >
+                  <template #default="scope">
+                    <span>{{
+                      Number(scope.row.status) === 2
+                        ? scope.row.review_remark
+                        : '-'
+                    }}</span>
                   </template>
                 </el-table-column>
                 <el-table-column label="操作" width="100" fixed="right">

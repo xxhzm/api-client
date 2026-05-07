@@ -29,6 +29,10 @@ const invoiceDetail = ref({
   bank_account: '-',
   company_address: '-',
   company_phone: '-',
+  review_time: '-',
+  review_by: '',
+  review_by_username: '',
+  review_remark: '-',
 });
 const invoiceOrders = ref([]);
 
@@ -157,6 +161,10 @@ const fetchInvoiceDetail = async () => {
       bank_account: decryptInvoiceValue(detail.bank_account, token),
       company_address: decryptInvoiceValue(detail.company_address, token),
       company_phone: decryptInvoiceValue(detail.company_phone, token),
+      review_time: formatTimestamp(detail.review_time),
+      review_by: detail.review_by || '',
+      review_by_username: detail.review_by_username || '',
+      review_remark: detail.review_remark || '-',
     };
     invoiceOrders.value = mapInvoiceOrders(detail.orders);
   } catch (error) {
@@ -166,13 +174,21 @@ const fetchInvoiceDetail = async () => {
   }
 };
 
-const steps = [
-  { title: '审核中', status: 0 },
-  { title: '已开具', status: 1 },
-  { title: '已驳回', status: 2 },
-];
+const steps = computed(() => {
+  if (invoiceDetail.value.status_code === 2) {
+    return [
+      { title: '审核中', status: 0 },
+      { title: '已驳回', status: 2 },
+    ];
+  }
+
+  return [
+    { title: '审核中', status: 0 },
+    { title: '已开具', status: 1 },
+  ];
+});
 const currentStepIndex = computed(() => {
-  const index = steps.findIndex(
+  const index = steps.value.findIndex(
     (step) => step.status === invoiceDetail.value.status_code,
   );
   return index === -1 ? 0 : index;
@@ -183,6 +199,17 @@ const isPersonalInvoiceTitle = computed(() => {
 const isIssuedInvoice = computed(() => {
   return invoiceDetail.value.status_code === 1;
 });
+const isRejectedInvoice = computed(() => {
+  return invoiceDetail.value.status_code === 2;
+});
+const reviewerName = computed(() => {
+  return (
+    invoiceDetail.value.review_by_username ||
+    invoiceDetail.value.review_by ||
+    '-'
+  );
+});
+const hasReviewer = computed(() => reviewerName.value !== '-');
 const backPath = computed(() => {
   return route.query.from === 'audit'
     ? '/admin/invoice-audit'
@@ -191,7 +218,7 @@ const backPath = computed(() => {
 
 const isStepActive = (index) => {
   if (invoiceDetail.value.status_code === 2) {
-    return steps[index].status === 0 || steps[index].status === 2;
+    return steps.value[index].status === 0 || steps.value[index].status === 2;
   }
 
   return index <= currentStepIndex.value;
@@ -200,9 +227,9 @@ const isStepActive = (index) => {
 const getStepItemClass = (index) => ({
   'is-active': isStepActive(index),
   'is-current': index === currentStepIndex.value,
-  'is-last': index === steps.length - 1,
+  'is-last': index === steps.value.length - 1,
   'is-rejected':
-    invoiceDetail.value.status_code === 2 && steps[index].status === 2,
+    invoiceDetail.value.status_code === 2 && steps.value[index].status === 2,
 });
 
 const goBack = () => {
@@ -268,6 +295,15 @@ useHead({
         :closable="false"
       />
 
+      <el-alert
+        v-if="isRejectedInvoice"
+        class="invoice-reject-alert"
+        :title="`驳回说明：${invoiceDetail.review_remark}`"
+        type="error"
+        show-icon
+        :closable="false"
+      />
+
       <section class="detail-section">
         <div class="section-title">发票信息</div>
         <div class="info-box">
@@ -329,6 +365,18 @@ useHead({
             <div class="info-item">
               <span class="label">更新时间：</span>
               <span class="value">{{ invoiceDetail.update_time }}</span>
+            </div>
+            <div v-if="invoiceDetail.review_time !== '-'" class="info-item">
+              <span class="label">审核时间：</span>
+              <span class="value">{{ invoiceDetail.review_time }}</span>
+            </div>
+            <div v-if="hasReviewer" class="info-item">
+              <span class="label">审核人：</span>
+              <span class="value">{{ reviewerName }}</span>
+            </div>
+            <div v-if="isRejectedInvoice" class="info-item">
+              <span class="label">驳回说明：</span>
+              <span class="value">{{ invoiceDetail.review_remark }}</span>
             </div>
             <div class="info-item">
               <span class="label">备注：</span>
@@ -479,6 +527,10 @@ useHead({
 }
 
 .invoice-sent-alert {
+  margin-bottom: 18px;
+}
+
+.invoice-reject-alert {
   margin-bottom: 18px;
 }
 

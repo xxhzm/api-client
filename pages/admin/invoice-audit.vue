@@ -25,6 +25,7 @@ const reviewForm = ref({
   title: '',
   action: 'approve',
   status: 1,
+  remark: '',
 });
 
 const statusOptions = [
@@ -130,6 +131,10 @@ const mapInvoiceApplication = (item, token) => ({
   remark: item.remark || '-',
   create_time: formatTimestamp(item.create_time),
   update_time: formatTimestamp(item.update_time),
+  review_by: item.review_by || '-',
+  review_by_username: item.review_by_username || item.review_by || '-',
+  review_time: formatTimestamp(item.review_time),
+  review_remark: item.review_remark || '-',
 });
 
 const fetchInvoiceApplications = async () => {
@@ -224,16 +229,26 @@ const openReviewDialog = (row, action) => {
     title: row.title,
     action,
     status: action === 'approve' ? 1 : 2,
+    remark: '',
   };
   reviewDialogVisible.value = true;
 };
 
 const submitReview = async () => {
+  const reviewRemark = reviewForm.value.remark.trim();
+  if (reviewForm.value.action === 'reject' && !reviewRemark) {
+    $msg('请填写驳回说明', 'warning');
+    return;
+  }
+
   reviewSubmitting.value = true;
   try {
     const body = new URLSearchParams();
     body.append('id', reviewForm.value.id);
     body.append('status', String(reviewForm.value.status));
+    if (reviewForm.value.action === 'reject') {
+      body.append('remark', reviewRemark);
+    }
 
     const res = await $myFetch('ReviewInvoiceApplication', {
       method: 'POST',
@@ -393,6 +408,14 @@ useHead({
             </template>
           </el-table-column>
           <el-table-column prop="create_time" label="申请时间" width="170" />
+          <el-table-column prop="review_by_username" label="审核人" width="120" />
+          <el-table-column prop="review_time" label="审核时间" width="170" />
+          <el-table-column
+            prop="review_remark"
+            label="驳回说明"
+            min-width="180"
+            show-overflow-tooltip
+          />
           <el-table-column fixed="right" label="操作" width="210">
             <template #default="scope">
               <div class="table-actions">
@@ -464,6 +487,20 @@ useHead({
           >
             {{ reviewForm.action === 'approve' ? '通过审核' : '驳回申请' }}
           </el-tag>
+        </el-form-item>
+        <el-form-item
+          v-if="reviewForm.action === 'reject'"
+          label="驳回说明"
+          required
+        >
+          <el-input
+            v-model="reviewForm.remark"
+            :rows="4"
+            maxlength="500"
+            placeholder="请填写驳回说明，用户将看到该说明"
+            show-word-limit
+            type="textarea"
+          />
         </el-form-item>
       </el-form>
       <template #footer>
