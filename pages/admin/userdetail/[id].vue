@@ -163,11 +163,8 @@ const fetchUserInfo = async () => {
   if (!userId.value) return;
 
   try {
-    const res = await $myFetch('UserList', {
+    const res = await $myFetch('UserDetail', {
       params: {
-        page: 1,
-        limit: 10,
-        keyword: userId.value,
         id: userId.value,
       },
     });
@@ -177,11 +174,11 @@ const fetchUserInfo = async () => {
       return;
     }
 
-    const userList = res.data?.userList || [];
-    const exactUser = userList.find((item) => String(item.id) === userId.value);
+    const detail =
+      res.data?.user || res.data?.userInfo || res.data?.detail || res.data;
 
-    if (exactUser) {
-      userInfo.value = normalizeUser(exactUser);
+    if (detail && String(detail.id) === userId.value) {
+      userInfo.value = normalizeUser(detail);
       return;
     }
 
