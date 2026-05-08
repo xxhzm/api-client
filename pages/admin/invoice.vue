@@ -1,5 +1,6 @@
 <script setup>
 import { Search, Plus, Edit, Delete } from '@element-plus/icons-vue';
+import { ElMessageBox } from 'element-plus';
 
 definePageMeta({
   layout: 'admin',
@@ -698,6 +699,9 @@ const selectedInvoiceTitle = computed(() => {
     infoData.value.find((item) => item.id === invoiceApplyForm.title_id) || null
   );
 });
+const isSelectedPersonalInvoiceTitle = computed(() => {
+  return selectedInvoiceTitle.value?.type === '个人';
+});
 const formatInvoiceTitleSelectLabel = (item) => {
   if (!item) return '';
 
@@ -882,6 +886,18 @@ const submitInvoiceApply = async () => {
   try {
     await invoiceApplyFormRef.value.validate();
   } catch {
+    return;
+  }
+
+  if (isSpecialInvoice.value && isSelectedPersonalInvoiceTitle.value) {
+    await ElMessageBox.alert(
+      '申请专票必须使用企业抬头，请选择企业抬头后再提交。',
+      '提示',
+      {
+        confirmButtonText: '我知道了',
+        type: 'warning',
+      },
+    );
     return;
   }
 
