@@ -364,8 +364,14 @@ const bottomStats = computed(() => {
 
 // 购买套餐
 const buyPackage = (pkg) => {
-  navigateTo(`/admin/buy?package_id=${pkg.id}`)
+  navigateTo(`/admin/buy?package_id=${pkg.id}&api_id=${apiInfo.value.id}`)
 }
+
+const getPackageSharedText = (pkg) =>
+  Number(pkg?.shared) === 1 ? '共享套餐' : '独立套餐'
+
+const getPackageSharedTag = (pkg) =>
+  Number(pkg?.shared) === 1 ? 'success' : 'info'
 
 // 生成请求示例代码
 const generateExamples = () => {
@@ -1332,6 +1338,13 @@ const generatedExamples = computed(() => {
                   <span v-if="scope.row.type === 2">无限制</span>
                   <span v-else-if="scope.row.type === 4">按次扣费</span>
                   <span v-else>{{ scope.row.points }}次</span>
+                </template>
+              </el-table-column>
+              <el-table-column label="使用范围" width="110" align="center">
+                <template #default="scope">
+                  <el-tag :type="getPackageSharedTag(scope.row)" size="small">
+                    {{ getPackageSharedText(scope.row) }}
+                  </el-tag>
                 </template>
               </el-table-column>
               <el-table-column label="有效期" width="100" align="center">

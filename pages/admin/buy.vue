@@ -25,11 +25,34 @@ const highlightedPackageId = computed(() => {
   return Number.isFinite(id) && id > 0 ? id : null
 })
 
+const highlightedApiId = computed(() => {
+  const id = Number(route.query.api_id)
+  return Number.isFinite(id) && id > 0 ? id : null
+})
+
+const splitApiIds = (apiId) =>
+  String(apiId || '')
+    .split(/[｜|]/)
+    .map((item) => Number(item.trim()))
+    .filter((id) => Number.isFinite(id) && id > 0)
+
+const getPurchaseApiId = (pkg = {}) => {
+  if (
+    highlightedApiId.value &&
+    pkg.api_ids?.includes(highlightedApiId.value)
+  ) {
+    return highlightedApiId.value
+  }
+  return pkg.api_ids?.[0] || Number(pkg.api_id) || 0
+}
+
 const normalizePackage = (pkg) => ({
   ...pkg,
   id: Number(pkg.id),
-  api_id: Number(pkg.api_id),
+  api_id: String(pkg.api_id || ''),
+  api_ids: splitApiIds(pkg.api_id),
   type: Number(pkg.type),
+  shared: Number(pkg.shared || 0),
   price: Number(pkg.price || 0),
   points: Number(pkg.points || 0),
   duration: Number(pkg.duration || 0),
@@ -60,6 +83,16 @@ const getTypeTag = (type) => {
   }
   return types[type] || ''
 }
+
+const isSharedPackage = (pkg = {}) => Number(pkg.shared) === 1
+
+const getSharedText = (pkg = {}) =>
+  isSharedPackage(pkg) ? '共享套餐' : '独立套餐'
+
+const getScopeText = (pkg = {}) =>
+  isSharedPackage(pkg)
+    ? '购买一次可用于该套餐绑定的所有接口'
+    : '仅当前接口可用'
 
 const getQuotaText = (pkg = {}) => {
   if (Number(pkg.type) === 2) return '不限次数'
@@ -106,6 +139,7 @@ const formatPrice = (price) => {
 
 const displayList = computed(() => {
   let apis = apiList.value
+  const shownSharedPackageIds = new Set()
 
   if (selectedApi.value) {
     apis = apis.filter((api) => api.id === selectedApi.value)
@@ -128,6 +162,9 @@ const displayList = computed(() => {
             [
               pkg.name,
               pkg.description,
+              pkg.api_name,
+              pkg.api_id,
+              getSharedText(pkg),
               getTypeText(pkg.type),
               getQuotaText(pkg),
               getDurationText(pkg),
@@ -138,6 +175,13 @@ const displayList = computed(() => {
           )
         }
       }
+
+      pkgs = pkgs.filter((pkg) => {
+        if (!isSharedPackage(pkg)) return true
+        if (shownSharedPackageIds.has(pkg.id)) return false
+        shownSharedPackageIds.add(pkg.id)
+        return true
+      })
 
       return {
         ...api,
@@ -197,6 +241,12 @@ const setPackageCardRef = (packageId, el) => {
 
 const findPackageTarget = (packageId) => {
   for (const api of apiList.value) {
+    if (
+      highlightedApiId.value &&
+      !api.api_ids.includes(highlightedApiId.value)
+    ) {
+      continue
+    }
     const pkg = api.packages.find((item) => item.id === packageId)
     if (pkg) return { api, pkg }
   }
@@ -224,13 +274,15 @@ const getData = async () => {
     const res = await $myFetch('ApiPackageList')
     if (res.code === 200) {
       const groupedData = {}
-      res.data.forEach((rawPkg) => {
+
+      ;(res.data || []).forEach((rawPkg) => {
         const pkg = normalizePackage(rawPkg)
         if (!groupedData[pkg.api_id]) {
           groupedData[pkg.api_id] = {
             id: pkg.api_id,
+            api_ids: pkg.api_ids,
             name: pkg.api_name,
-            description: rawPkg.api_description || rawPkg.api_desc || '',
+            description: pkg.api_description || pkg.api_desc || '',
             packages: [],
           }
         }
@@ -268,6 +320,7 @@ const confirmBuy = async () => {
       method: 'POST',
       body: new URLSearchParams({
         packageId: selectedPackage.value.id,
+        apiId: String(getPurchaseApiId(selectedPackage.value)),
       }),
     })
 
@@ -482,6 +535,12 @@ useHead({
                       {{ getTypeText(pkg.type) }}
                     </el-tag>
                     <el-tag
+                      :type="isSharedPackage(pkg) ? 'success' : 'info'"
+                      size="small"
+                    >
+                      {{ getSharedText(pkg) }}
+                    </el-tag>
+                    <el-tag
                       v-if="isHighlightedPackage(pkg.id)"
                       type="warning"
                       size="small"
@@ -503,11 +562,13 @@ useHead({
                 <div class="card-meta">
                   <div class="meta-item">
                     <span class="meta-label">调用范围</span>
-                    <span class="meta-value">{{ getQuotaText(pkg) }}</span>
+                    <span class="meta-value">{{ getScopeText(pkg) }}</span>
                   </div>
                   <div class="meta-item">
-                    <span class="meta-label">有效期</span>
-                    <span class="meta-value">{{ getDurationText(pkg) }}</span>
+                    <span class="meta-label">额度/有效期</span>
+                    <span class="meta-value">
+                      {{ getQuotaText(pkg) }} / {{ getDurationText(pkg) }}
+                    </span>
                   </div>
                 </div>
 
@@ -550,8 +611,12 @@ useHead({
             <span>{{ selectedPackage.name }}</span>
           </div>
           <div class="info-row">
-            <span class="label">所属接口：</span>
+            <span class="label">适用接口：</span>
             <span>{{ selectedPackage.api_name }}</span>
+          </div>
+          <div class="info-row">
+            <span class="label">使用范围：</span>
+            <span>{{ getScopeText(selectedPackage) }}</span>
           </div>
           <div class="info-row">
             <span class="label">套餐类型：</span>
@@ -560,7 +625,7 @@ useHead({
             </el-tag>
           </div>
           <div class="info-row">
-            <span class="label">调用范围：</span>
+            <span class="label">调用额度：</span>
             <span>{{ getQuotaText(selectedPackage) }}</span>
           </div>
           <div class="info-row">
@@ -901,6 +966,7 @@ useHead({
   font-size: 13px;
   font-weight: 600;
   color: #303133;
+  line-height: 1.45;
 }
 
 .card-foot {

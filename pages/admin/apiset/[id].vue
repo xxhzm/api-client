@@ -42,6 +42,13 @@ const exampleEditorType = ref('basic')
 const paramsArr = ref()
 const responseParamsArr = ref([])
 const packageList = ref([])
+const allPackageList = ref([])
+const packageGroupList = ref([])
+const packageBindingLoading = ref(false)
+const packageBinding = ref({
+  group_ids: [],
+  package_ids: [],
+})
 
 // 请求方法选项
 const methodOptions = [
@@ -84,13 +91,40 @@ const getData = async () => {
   })
 
   // 获取套餐信息
-  const packageRes = await $myFetch('PackageList', {
-    params: {
-      api_id: route.params.id,
-    },
-  })
+  const [packageRes, allPackageRes, groupRes, bindingRes] = await Promise.all([
+    $myFetch('PackageList', {
+      params: {
+        api_id: route.params.id,
+      },
+    }),
+    $myFetch('PackageList'),
+    $myFetch('PackageGroupList'),
+    $myFetch('GetApiPackageBinding', {
+      params: {
+        api_id: route.params.id,
+      },
+    }),
+  ])
   if (packageRes.code === 200) {
     packageList.value = packageRes.data
+  }
+  if (allPackageRes.code === 200) {
+    allPackageList.value = allPackageRes.data || []
+  }
+  if (groupRes.code === 200) {
+    packageGroupList.value = groupRes.data || []
+  }
+  if (bindingRes.code === 200) {
+    packageBinding.value = {
+      group_ids: String(bindingRes.data?.group_ids || '')
+        .split('|')
+        .filter(Boolean)
+        .map((id) => Number(id)),
+      package_ids: String(bindingRes.data?.package_ids || '')
+        .split('|')
+        .filter(Boolean)
+        .map((id) => Number(id)),
+    }
   }
 
   // 判断参数是否必传
@@ -466,6 +500,48 @@ const filterPackageList = computed(() =>
   ),
 )
 
+const packageBindingOptions = computed(() =>
+  allPackageList.value
+    .filter((item) => item.type === 2 || item.type === 3)
+    .map((item) => ({
+      label: `${item.name}（${getSharedText(item.shared)}）`,
+      value: Number(item.id),
+      type: item.type,
+      shared: Number(item.shared || 0),
+    })),
+)
+
+const packageGroupOptions = computed(() =>
+  packageGroupList.value
+    .filter((item) => item.status === 1)
+    .map((item) => ({
+      label: item.name,
+      value: Number(item.id),
+      packages: item.packages || [],
+    })),
+)
+
+const updateApiPackageBinding = async () => {
+  packageBindingLoading.value = true
+  const body = new URLSearchParams()
+  body.append('apiId', route.params.id)
+  body.append('groupIds', packageBinding.value.group_ids.join('|'))
+  body.append('packageIds', packageBinding.value.package_ids.join('|'))
+
+  const res = await $myFetch('UpdateApiPackageBinding', {
+    method: 'POST',
+    body,
+  })
+
+  if (res.code === 200) {
+    msg(res.msg, 'success')
+    await getData()
+  } else {
+    msg(res.msg, 'error')
+  }
+  packageBindingLoading.value = false
+}
+
 // 获取套餐类型文字
 const getPackageTypeText = (type) => {
   const types = {
@@ -486,13 +562,17 @@ const getPackageTypeTag = (type) => {
   return types[type] || ''
 }
 
+const getSharedText = (shared) => (Number(shared) === 1 ? '共享套餐' : '独立套餐')
+
+const getSharedTag = (shared) => (Number(shared) === 1 ? 'success' : 'info')
+
 // 编辑套餐
 const handlePackageEdit = (index, row) => {
   dialogStatus.value = true
   updatePackageStatus.value = true
   packageInfo.value = {
     ...row,
-    api_name: apiSetInfo.value.name,
+    shared: Number(row.shared || 0),
   }
 }
 
@@ -520,12 +600,12 @@ const handlePackageStatusChange = async (row) => {
   const body = new URLSearchParams()
   body.append('id', row.id)
   body.append('name', row.name)
-  body.append('apiId', row.api_id)
   body.append('type', row.type)
   body.append('price', row.price)
   body.append('duration', row.duration)
   body.append('points', row.points || 0)
   body.append('status', row.status === 1 ? 0 : 1)
+  body.append('shared', row.shared || 0)
   body.append('description', row.description || '')
 
   const res = await $myFetch('UpdatePackage', {
@@ -550,13 +630,12 @@ const updatePackageStatus = ref(false)
 const packageInfo = ref({
   id: 0,
   name: '',
-  api_name: '',
-  api_id: 0,
   type: 2,
   price: 0,
   duration: 30,
   points: 0,
   status: 1,
+  shared: 0,
   description: '',
 })
 
@@ -583,12 +662,12 @@ const submitPackage = async () => {
   loading.value = true
   const body = new URLSearchParams()
   body.append('name', packageInfo.value.name)
-  body.append('apiId', route.params.id)
   body.append('type', packageInfo.value.type)
   body.append('price', packageInfo.value.price)
   body.append('duration', packageInfo.value.duration)
   body.append('points', packageInfo.value.points || 0)
   body.append('status', packageInfo.value.status)
+  body.append('shared', packageInfo.value.shared || 0)
   body.append('description', packageInfo.value.description || '')
 
   if (updatePackageStatus.value) {
@@ -619,13 +698,12 @@ watch(dialogStatus, (newValue) => {
     packageInfo.value = {
       id: 0,
       name: '',
-      api_name: '',
-      api_id: 0,
       type: 2,
       price: 0,
       duration: 30,
       points: 0,
       status: 1,
+      shared: 0,
       description: '',
     }
   }
@@ -1022,13 +1100,12 @@ const handleAddPackage = () => {
   packageInfo.value = {
     id: 0,
     name: '',
-    api_name: apiSetInfo.value.name,
-    api_id: route.params.id,
     type: 2,
     price: 0,
     duration: 30,
     points: 0,
     status: 1,
+    shared: 0,
     description: '',
   }
 }
@@ -2636,6 +2713,59 @@ useHead({
 
           <el-tab-pane label="套餐信息" name="Package">
             <div class="table-container">
+              <div class="binding-panel" v-loading="packageBindingLoading">
+                <div class="binding-header">
+                  <span class="title">接口套餐绑定</span>
+                  <el-button type="primary" @click="updateApiPackageBinding">
+                    保存绑定
+                  </el-button>
+                </div>
+                <el-row :gutter="16">
+                  <el-col :xs="24" :sm="12">
+                    <el-form-item label="套餐组">
+                      <el-select
+                        v-model="packageBinding.group_ids"
+                        multiple
+                        filterable
+                        clearable
+                        collapse-tags
+                        collapse-tags-tooltip
+                        class="full-width"
+                        placeholder="请选择套餐组"
+                      >
+                        <el-option
+                          v-for="item in packageGroupOptions"
+                          :key="item.value"
+                          :label="item.label"
+                          :value="item.value"
+                        />
+                      </el-select>
+                    </el-form-item>
+                  </el-col>
+                  <el-col :xs="24" :sm="12">
+                    <el-form-item label="直接绑定套餐">
+                      <el-select
+                        v-model="packageBinding.package_ids"
+                        multiple
+                        filterable
+                        clearable
+                        collapse-tags
+                        collapse-tags-tooltip
+                        class="full-width"
+                        placeholder="请选择直接绑定套餐"
+                      >
+                        <el-option
+                          v-for="item in packageBindingOptions"
+                          :key="item.value"
+                          :label="item.label"
+                          :value="item.value"
+                        />
+                      </el-select>
+                    </el-form-item>
+                  </el-col>
+                </el-row>
+              </div>
+
               <div class="card-header">
                 <div class="header-left">
                   <span class="title">套餐管理</span>
@@ -2711,6 +2841,13 @@ useHead({
                       <span class="points">{{ scope.row.points }}</span>
                     </template>
                   </el-table-column>
+                  <el-table-column prop="shared" label="使用范围" width="110">
+                    <template #default="scope">
+                      <el-tag :type="getSharedTag(scope.row.shared)">
+                        {{ getSharedText(scope.row.shared) }}
+                      </el-tag>
+                    </template>
+                  </el-table-column>
                   <el-table-column prop="status" label="状态" width="100">
                     <template #default="scope">
                       <el-tag
@@ -2762,24 +2899,15 @@ useHead({
                   <div class="dialog-content">
                     <el-form :model="packageInfo" label-width="100px">
                       <el-row :gutter="20">
-                        <el-col :span="12">
-                          <el-form-item label="套餐名称" required>
-                            <el-input
-                              v-model="packageInfo.name"
-                              placeholder="请输入套餐名称"
-                            />
-                          </el-form-item>
-                        </el-col>
-                        <el-col :span="12">
-                          <el-form-item label="接口名称" required>
-                            <el-input
-                              v-model="packageInfo.api_name"
-                              placeholder="请输入接口名称"
-                              disabled
-                            />
-                          </el-form-item>
-                        </el-col>
-                      </el-row>
+	                        <el-col :span="24">
+	                          <el-form-item label="套餐名称" required>
+	                            <el-input
+	                              v-model="packageInfo.name"
+	                              placeholder="请输入套餐名称"
+	                            />
+	                          </el-form-item>
+	                        </el-col>
+	                      </el-row>
 
                       <el-row :gutter="20">
                         <el-col :span="12">
@@ -2789,9 +2917,8 @@ useHead({
                               placeholder="请选择套餐类型"
                               class="full-width"
                             >
-                              <el-option label="直接扣费" :value="4" />
-                              <el-option label="包月计费" :value="2" />
-                              <el-option label="点数包" :value="3" />
+	                              <el-option label="包月计费" :value="2" />
+	                              <el-option label="点数包" :value="3" />
                             </el-select>
                           </el-form-item>
                         </el-col>
@@ -2872,6 +2999,17 @@ useHead({
                           :active-value="1"
                           :inactive-value="0"
                         />
+                      </el-form-item>
+
+                      <el-form-item label="共享套餐">
+                        <el-switch
+                          v-model="packageInfo.shared"
+                          :active-value="1"
+                          :inactive-value="0"
+                        />
+                        <div class="form-tip">
+                          开启后，用户购买一次可使用该套餐绑定的所有接口；关闭后需按接口分别购买。
+                        </div>
                       </el-form-item>
 
                       <el-form-item label="描述">
@@ -3289,6 +3427,32 @@ useHead({
       align-items: center;
       gap: 6px;
     }
+  }
+}
+
+.binding-panel {
+  margin-bottom: 16px;
+  padding: 16px;
+  background: #fafafa;
+  border: 1px solid #ebeef5;
+  border-radius: 8px;
+
+  .binding-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 16px;
+
+    .title {
+      font-size: 14px;
+      font-weight: 600;
+      color: #303133;
+    }
+  }
+
+  :deep(.el-form-item) {
+    margin-bottom: 0;
   }
 }
 
