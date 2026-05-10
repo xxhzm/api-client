@@ -1,17 +1,17 @@
 <script setup>
-const { $myFetch } = useNuxtApp()
-import { ElMessage } from 'element-plus'
+const { $myFetch } = useNuxtApp();
+import { ElMessage } from 'element-plus';
 import {
   CopyDocument,
   VideoPlay,
   Document,
   Connection,
-} from '@element-plus/icons-vue'
+} from '@element-plus/icons-vue';
 
 // highlight.js 动态导入，避免静态打包
-let hljs = null
+let hljs = null;
 const loadHighlightJs = async () => {
-  if (hljs) return hljs
+  if (hljs) return hljs;
   const [
     { default: core },
     { default: json },
@@ -34,24 +34,24 @@ const loadHighlightJs = async () => {
     import('highlight.js/lib/languages/go'),
     import('highlight.js/lib/languages/csharp'),
     import('highlight.js/lib/languages/ruby'),
-  ])
-  await import('highlight.js/styles/github.css')
+  ]);
+  await import('highlight.js/styles/github.css');
 
-  core.registerLanguage('json', json)
-  core.registerLanguage('javascript.js', javascript)
-  core.registerLanguage('php', php)
-  core.registerLanguage('python', python)
-  core.registerLanguage('bash', bash)
-  core.registerLanguage('java', java)
-  core.registerLanguage('go', go)
-  core.registerLanguage('csharp', csharp)
-  core.registerLanguage('ruby', ruby)
-  hljs = core
-  return hljs
-}
+  core.registerLanguage('json', json);
+  core.registerLanguage('javascript.js', javascript);
+  core.registerLanguage('php', php);
+  core.registerLanguage('python', python);
+  core.registerLanguage('bash', bash);
+  core.registerLanguage('java', java);
+  core.registerLanguage('go', go);
+  core.registerLanguage('csharp', csharp);
+  core.registerLanguage('ruby', ruby);
+  hljs = core;
+  return hljs;
+};
 
-const activeName = ref('shell')
-const jsActiveName = ref('axios')
+const activeName = ref('shell');
+const jsActiveName = ref('axios');
 
 // 语言列表
 const languages = [
@@ -63,7 +63,7 @@ const languages = [
   { name: 'go', label: 'Go' },
   { name: 'csharp', label: 'C#' },
   { name: 'ruby', label: 'Ruby' },
-]
+];
 
 // JavaScript 库列表
 const jsLibraries = [
@@ -72,11 +72,11 @@ const jsLibraries = [
   { name: 'ajax', label: 'jQuery' },
   { name: 'xhr', label: 'xhr' },
   { name: 'nodejs', label: 'Node.js' },
-]
+];
 
-const route = useRoute()
+const route = useRoute();
 
-const apiInfo = ref({})
+const apiInfo = ref({});
 
 const {
   data: { value: res },
@@ -86,22 +86,22 @@ const {
       alias: route.params.alias,
     },
   }),
-)
+);
 
 if (res.code !== 200) {
   throw createError({
     statusCode: 404,
     statusMessage: 'Page Not Found',
-  })
+  });
 }
 
 // 判断参数是否必传
 res.data.params = res.data.params.map((item) => {
-  let requiredText
+  let requiredText;
   if (item.required === 1 || item.required === '必传') {
-    requiredText = '必传'
+    requiredText = '必传';
   } else {
-    requiredText = '可选'
+    requiredText = '可选';
   }
 
   return {
@@ -112,10 +112,10 @@ res.data.params = res.data.params.map((item) => {
     position: item.position,
     docs: item.docs,
     required: requiredText,
-  }
-})
+  };
+});
 
-apiInfo.value = res.data
+apiInfo.value = res.data;
 
 const getMethodList = (method) => {
   return [
@@ -125,28 +125,30 @@ const getMethodList = (method) => {
         .map((item) => item.trim().toUpperCase())
         .filter(Boolean),
     ),
-  ]
-}
+  ];
+};
 
 const getPreferredMethod = (method) => {
-  const methodList = getMethodList(method)
+  const methodList = getMethodList(method);
 
   if (methodList.includes('POST')) {
-    return 'POST'
+    return 'POST';
   }
 
   if (methodList.includes('GET')) {
-    return 'GET'
+    return 'GET';
   }
 
-  return methodList[0] || 'GET'
-}
+  return methodList[0] || 'GET';
+};
 
-const docMethodList = computed(() => getMethodList(apiInfo.value.method))
-const preferredMethod = computed(() => getPreferredMethod(apiInfo.value.method))
+const docMethodList = computed(() => getMethodList(apiInfo.value.method));
+const preferredMethod = computed(() =>
+  getPreferredMethod(apiInfo.value.method),
+);
 
 // 配置项
-const options = useState('options')
+const options = useState('options');
 
 useHead({
   title: apiInfo.value.name + ' - 免费API',
@@ -162,82 +164,82 @@ useHead({
       children: options.value.css,
     },
   ],
-})
+});
 
 onMounted(async () => {
-  await loadHighlightJs()
-  hljs.highlightAll()
-})
+  await loadHighlightJs();
+  hljs.highlightAll();
+});
 
 // 监听标签页切换，触发代码高亮
 watch([activeName, jsActiveName], async () => {
-  await nextTick()
+  await nextTick();
   if (hljs) {
     // 只高亮代码展示区域内的代码块
-    const codeBlocks = document.querySelectorAll('.code-display code')
+    const codeBlocks = document.querySelectorAll('.code-display code');
     codeBlocks.forEach((block) => {
-      hljs.highlightElement(block)
-    })
+      hljs.highlightElement(block);
+    });
   }
-})
+});
 
-const urlDom = ref()
+const urlDom = ref();
 
 const copy = (value) => {
-  const textArea = document.createElement('textarea')
-  textArea.value = value
-  document.body.appendChild(textArea)
-  textArea.select()
-  document.execCommand('copy')
-  document.body.removeChild(textArea)
+  const textArea = document.createElement('textarea');
+  textArea.value = value;
+  document.body.appendChild(textArea);
+  textArea.select();
+  document.execCommand('copy');
+  document.body.removeChild(textArea);
 
   ElMessage({
     message: '复制成功',
     type: 'success',
-  })
-}
+  });
+};
 
 // 调试对话框宽度（移动端95%，桌面端60%）
-const isMobile = ref(false)
+const isMobile = ref(false);
 const updateIsMobile = () => {
-  isMobile.value = document.body.clientWidth < 768
-}
+  isMobile.value = document.body.clientWidth < 768;
+};
 onMounted(() => {
-  updateIsMobile()
-  window.addEventListener('resize', updateIsMobile)
-})
+  updateIsMobile();
+  window.addEventListener('resize', updateIsMobile);
+});
 onUnmounted(() => {
-  window.removeEventListener('resize', updateIsMobile)
-})
+  window.removeEventListener('resize', updateIsMobile);
+});
 
 // 调试对话框组件引用
-const debugDialogRef = ref(null)
+const debugDialogRef = ref(null);
 
 // 广告显示控制
-const adDisplay = ref(true)
+const adDisplay = ref(true);
 
 // 处理广告数据
 const adInfo = (info) => {
   if (info.value.length === 0) {
-    adDisplay.value = false
+    adDisplay.value = false;
   }
-}
+};
 
 // 检测内容是否为HTML格式（来自高级编辑器）
 const isHtmlContent = computed(() => {
-  if (!apiInfo.value.example) return false
+  if (!apiInfo.value.example) return false;
 
   // 检测是否包含HTML标签
-  const htmlRegex = /<[^>]*>/
-  return htmlRegex.test(apiInfo.value.example)
-})
+  const htmlRegex = /<[^>]*>/;
+  return htmlRegex.test(apiInfo.value.example);
+});
 
 const formattedExampleText = computed(() => {
-  if (!apiInfo.value.example) return ''
+  if (!apiInfo.value.example) return '';
 
   // 如果是HTML内容（来自高级编辑器），直接返回
   if (isHtmlContent.value) {
-    return apiInfo.value.example
+    return apiInfo.value.example;
   }
 
   try {
@@ -245,83 +247,83 @@ const formattedExampleText = computed(() => {
     const parsed =
       typeof apiInfo.value.example === 'string'
         ? JSON.parse(apiInfo.value.example)
-        : apiInfo.value.example
+        : apiInfo.value.example;
 
-    const formatted = JSON.stringify(parsed, null, 2)
-    return formatted
+    const formatted = JSON.stringify(parsed, null, 2);
+    return formatted;
   } catch (e) {
     // 如果解析失败,直接返回原始内容
-    return apiInfo.value.example
+    return apiInfo.value.example;
   }
-})
+});
 
 const highlightedExample = computed(() => {
-  if (!formattedExampleText.value) return ''
-  if (isHtmlContent.value) return formattedExampleText.value
+  if (!formattedExampleText.value) return '';
+  if (isHtmlContent.value) return formattedExampleText.value;
   if (hljs) {
     return hljs.highlight(formattedExampleText.value, { language: 'json' })
-      .value
+      .value;
   }
-  return formattedExampleText.value
-})
+  return formattedExampleText.value;
+});
 
 const responseExampleLines = computed(() => {
-  if (!formattedExampleText.value || isHtmlContent.value) return []
-  return formattedExampleText.value.split('\n')
-})
+  if (!formattedExampleText.value || isHtmlContent.value) return [];
+  return formattedExampleText.value.split('\n');
+});
 
-const getCodeLines = (code) => String(code || '').split('\n')
+const getCodeLines = (code) => String(code || '').split('\n');
 
-const getExampleParamName = (param) => String(param?.name || '')
-const getExampleParamValue = (param) => String(param?.param || '')
+const getExampleParamName = (param) => String(param?.name || '');
+const getExampleParamValue = (param) => String(param?.param || '');
 const buildExampleQueryString = (params) =>
   params
     .map((p) => `${getExampleParamName(p)}=${getExampleParamValue(p)}`)
-    .join('&')
+    .join('&');
 
 const jsonBodyParam = computed(() => {
-  if (!apiInfo.value.params) return null
+  if (!apiInfo.value.params) return null;
   return apiInfo.value.params.find(
     (p) =>
       p.name === 'json' &&
       p.param === 'json' &&
       p.position === 'body' &&
       p.required === '必传',
-  )
-})
+  );
+});
 
 const formattedJsonDocs = computed(() => {
-  if (!jsonBodyParam.value || !jsonBodyParam.value.docs) return ''
+  if (!jsonBodyParam.value || !jsonBodyParam.value.docs) return '';
   try {
     const parsed =
       typeof jsonBodyParam.value.docs === 'string'
         ? JSON.parse(jsonBodyParam.value.docs)
-        : jsonBodyParam.value.docs
-    return JSON.stringify(parsed, null, 2)
+        : jsonBodyParam.value.docs;
+    return JSON.stringify(parsed, null, 2);
   } catch (e) {
-    return jsonBodyParam.value.docs
+    return jsonBodyParam.value.docs;
   }
-})
+});
 
 // 格式化大数字显示
 const formatLargeNumber = (num) => {
-  if (num === undefined || num === null) return '-'
+  if (num === undefined || num === null) return '-';
   if (num >= 100000000) {
-    return (num / 100000000).toFixed(1) + '亿'
+    return (num / 100000000).toFixed(1) + '亿';
   }
   if (num >= 10000) {
-    return (num / 10000).toFixed(1) + '万'
+    return (num / 10000).toFixed(1) + '万';
   }
-  return num.toLocaleString()
-}
+  return num.toLocaleString();
+};
 
 const hasMetricValue = (value) =>
-  value !== undefined && value !== null && value !== -1
+  value !== undefined && value !== null && value !== -1;
 
 const bottomStats = computed(() => {
   const { qps, avg_response_time, today_call_count, total_call_count } =
-    apiInfo.value
-  const items = []
+    apiInfo.value;
+  const items = [];
 
   if (hasMetricValue(qps)) {
     items.push({
@@ -329,7 +331,7 @@ const bottomStats = computed(() => {
       label: 'QPS 上限',
       value: qps,
       unit: '次/秒',
-    })
+    });
   }
 
   if (hasMetricValue(avg_response_time)) {
@@ -338,7 +340,7 @@ const bottomStats = computed(() => {
       label: '平均响应时间',
       value: avg_response_time,
       unit: 'ms',
-    })
+    });
   }
 
   if (hasMetricValue(today_call_count)) {
@@ -347,7 +349,7 @@ const bottomStats = computed(() => {
       label: '今日调用量',
       value: formatLargeNumber(today_call_count),
       unit: '次',
-    })
+    });
   }
 
   if (hasMetricValue(total_call_count)) {
@@ -356,698 +358,721 @@ const bottomStats = computed(() => {
       label: '累计调用量',
       value: formatLargeNumber(total_call_count),
       unit: '次',
-    })
+    });
   }
 
-  return items
-})
+  return items;
+});
 
 // 购买套餐
 const buyPackage = (pkg) => {
-  navigateTo(`/admin/buy?package_id=${pkg.id}&api_id=${apiInfo.value.id}`)
-}
+  navigateTo(`/admin/buy?package_id=${pkg.id}&api_id=${apiInfo.value.id}`);
+};
 
 const getPackageSharedText = (pkg) =>
-  Number(pkg?.shared) === 1 ? '共享套餐' : '独立套餐'
+  Number(pkg?.shared) === 1 ? '共享套餐' : '独立套餐';
 
 const getPackageSharedTag = (pkg) =>
-  Number(pkg?.shared) === 1 ? 'success' : 'info'
+  Number(pkg?.shared) === 1 ? 'success' : 'info';
+
+const hasSharedPackage = computed(() =>
+  (apiInfo.value.package_list || []).some((pkg) => Number(pkg?.shared) === 1),
+);
+
+const getPackageApiNames = (pkg) =>
+  String(pkg?.api_names || '')
+    .split('|')
+    .map((n) => n.trim())
+    .filter(Boolean);
+
+const apiNamesDialogVisible = ref(false);
+const apiNamesDialogPackage = ref(null);
+const apiNamesDialogList = computed(() =>
+  getPackageApiNames(apiNamesDialogPackage.value),
+);
+
+const openApiNamesDialog = (pkg) => {
+  apiNamesDialogPackage.value = pkg;
+  apiNamesDialogVisible.value = true;
+};
 
 // 生成请求示例代码
 const generateExamples = () => {
-  const url = apiInfo.value.url
-  const method = getPreferredMethod(apiInfo.value.method)
-  const params = apiInfo.value.params || []
+  const url = apiInfo.value.url;
+  const method = getPreferredMethod(apiInfo.value.method);
+  const params = apiInfo.value.params || [];
 
   // 分离不同位置的参数
-  const headerParams = []
-  const bodyParams = []
-  const queryParams = []
-  let hasKeyParam = false
+  const headerParams = [];
+  const bodyParams = [];
+  const queryParams = [];
+  let hasKeyParam = false;
 
   params.forEach((param) => {
     if (String(param.name).toLowerCase() === 'key') {
-      hasKeyParam = true
-      return
+      hasKeyParam = true;
+      return;
     }
     if (param.position === 'header') {
-      headerParams.push(param)
+      headerParams.push(param);
     } else if (param.position === 'body') {
-      bodyParams.push(param)
+      bodyParams.push(param);
     } else {
-      queryParams.push(param)
+      queryParams.push(param);
     }
-  })
+  });
 
   // 生成 axios 示例
   const generateAxios = () => {
-    let code = `import axios from 'axios';\n\n`
+    let code = `import axios from 'axios';\n\n`;
 
     if (method === 'POST') {
-      code += `const data = new URLSearchParams();\n`
-      const targetParams = bodyParams.length > 0 ? bodyParams : queryParams
+      code += `const data = new URLSearchParams();\n`;
+      const targetParams = bodyParams.length > 0 ? bodyParams : queryParams;
       targetParams.forEach((p) => {
-        code += `data.append('${getExampleParamName(p)}', '${getExampleParamValue(p)}');\n`
-      })
-      code += `\n`
+        code += `data.append('${getExampleParamName(p)}', '${getExampleParamValue(p)}');\n`;
+      });
+      code += `\n`;
     }
 
-    code += `axios({\n`
-    code += `  method: '${method}',\n`
+    code += `axios({\n`;
+    code += `  method: '${method}',\n`;
 
-    let finalUrl = url
+    let finalUrl = url;
     if (
       method === 'GET' ||
       (method === 'POST' && bodyParams.length > 0 && queryParams.length > 0)
     ) {
       const qParams =
-        method === 'GET' ? [...queryParams, ...bodyParams] : queryParams
+        method === 'GET' ? [...queryParams, ...bodyParams] : queryParams;
       if (qParams.length > 0) {
-        const queryStr = buildExampleQueryString(qParams)
-        finalUrl += (url.includes('?') ? '&' : '?') + queryStr
+        const queryStr = buildExampleQueryString(qParams);
+        finalUrl += (url.includes('?') ? '&' : '?') + queryStr;
       }
     }
-    code += `  url: '${finalUrl}',\n`
+    code += `  url: '${finalUrl}',\n`;
 
     if (hasKeyParam || headerParams.length > 0) {
-      code += `  headers: {\n`
+      code += `  headers: {\n`;
       if (hasKeyParam) {
-        code += `    'Authorization': 'Bearer YOUR_API_KEY',\n`
+        code += `    'Authorization': 'Bearer YOUR_API_KEY',\n`;
       }
       headerParams.forEach((p) => {
-        code += `    '${getExampleParamName(p)}': '${getExampleParamValue(p)}',\n`
-      })
-      code += `  },\n`
+        code += `    '${getExampleParamName(p)}': '${getExampleParamValue(p)}',\n`;
+      });
+      code += `  },\n`;
     }
 
     if (method === 'POST') {
-      code += `  data: data\n`
+      code += `  data: data\n`;
     }
 
-    code += `})\n`
-    code += `.then(response => {\n`
-    code += `  console.log(response.data);\n`
-    code += `})\n`
-    code += `.catch(error => {\n`
-    code += `  console.error(error);\n`
-    code += `});`
+    code += `})\n`;
+    code += `.then(response => {\n`;
+    code += `  console.log(response.data);\n`;
+    code += `})\n`;
+    code += `.catch(error => {\n`;
+    code += `  console.error(error);\n`;
+    code += `});`;
 
-    return code
-  }
+    return code;
+  };
 
   // 生成 ajax 示例
   const generateAjax = () => {
-    let code = `$.ajax({\n`
-    code += `  type: '${method}',\n`
+    let code = `$.ajax({\n`;
+    code += `  type: '${method}',\n`;
 
-    let finalUrl = url
+    let finalUrl = url;
     if (
       method === 'GET' ||
       (method === 'POST' && bodyParams.length > 0 && queryParams.length > 0)
     ) {
       const qParams =
-        method === 'GET' ? [...queryParams, ...bodyParams] : queryParams
+        method === 'GET' ? [...queryParams, ...bodyParams] : queryParams;
       if (qParams.length > 0) {
-        const queryStr = buildExampleQueryString(qParams)
-        finalUrl += (url.includes('?') ? '&' : '?') + queryStr
+        const queryStr = buildExampleQueryString(qParams);
+        finalUrl += (url.includes('?') ? '&' : '?') + queryStr;
       }
     }
-    code += `  url: '${finalUrl}',\n`
+    code += `  url: '${finalUrl}',\n`;
 
     if (hasKeyParam || headerParams.length > 0) {
-      code += `  headers: {\n`
+      code += `  headers: {\n`;
       if (hasKeyParam) {
-        code += `    'Authorization': 'Bearer YOUR_API_KEY',\n`
+        code += `    'Authorization': 'Bearer YOUR_API_KEY',\n`;
       }
       headerParams.forEach((p) => {
-        code += `    '${getExampleParamName(p)}': '${getExampleParamValue(p)}',\n`
-      })
-      code += `  },\n`
+        code += `    '${getExampleParamName(p)}': '${getExampleParamValue(p)}',\n`;
+      });
+      code += `  },\n`;
     }
 
     if (method === 'POST') {
-      code += `  data: {\n`
-      const targetParams = bodyParams.length > 0 ? bodyParams : queryParams
+      code += `  data: {\n`;
+      const targetParams = bodyParams.length > 0 ? bodyParams : queryParams;
       targetParams.forEach((p, i) => {
-        code += `    '${getExampleParamName(p)}': '${getExampleParamValue(p)}'${i < targetParams.length - 1 ? ',' : ''}\n`
-      })
-      code += `  },\n`
+        code += `    '${getExampleParamName(p)}': '${getExampleParamValue(p)}'${i < targetParams.length - 1 ? ',' : ''}\n`;
+      });
+      code += `  },\n`;
     }
 
-    code += `  success: function(data) {\n`
-    code += `    console.log(data);\n`
-    code += `  },\n`
-    code += `  error: function(error) {\n`
-    code += `    console.error(error);\n`
-    code += `  }\n`
-    code += `});`
+    code += `  success: function(data) {\n`;
+    code += `    console.log(data);\n`;
+    code += `  },\n`;
+    code += `  error: function(error) {\n`;
+    code += `    console.error(error);\n`;
+    code += `  }\n`;
+    code += `});`;
 
-    return code
-  }
+    return code;
+  };
 
   // 生成 fetch 示例
   const generateFetch = () => {
-    let finalUrl = url
-    let code = ''
+    let finalUrl = url;
+    let code = '';
 
     if (
       method === 'GET' ||
       (method === 'POST' && bodyParams.length > 0 && queryParams.length > 0)
     ) {
       const qParams =
-        method === 'GET' ? [...queryParams, ...bodyParams] : queryParams
+        method === 'GET' ? [...queryParams, ...bodyParams] : queryParams;
       if (qParams.length > 0) {
-        const queryStr = buildExampleQueryString(qParams)
-        finalUrl += (url.includes('?') ? '&' : '?') + queryStr
+        const queryStr = buildExampleQueryString(qParams);
+        finalUrl += (url.includes('?') ? '&' : '?') + queryStr;
       }
     }
 
     if (method === 'POST') {
-      code += `const formData = new URLSearchParams();\n`
-      const targetParams = bodyParams.length > 0 ? bodyParams : queryParams
+      code += `const formData = new URLSearchParams();\n`;
+      const targetParams = bodyParams.length > 0 ? bodyParams : queryParams;
       targetParams.forEach((p) => {
-        code += `formData.append('${getExampleParamName(p)}', '${getExampleParamValue(p)}');\n`
-      })
-      code += `\n`
+        code += `formData.append('${getExampleParamName(p)}', '${getExampleParamValue(p)}');\n`;
+      });
+      code += `\n`;
     }
 
-    code += `fetch('${finalUrl}', {\n`
-    code += `  method: '${method}',\n`
+    code += `fetch('${finalUrl}', {\n`;
+    code += `  method: '${method}',\n`;
 
     if (hasKeyParam || headerParams.length > 0) {
-      code += `  headers: {\n`
+      code += `  headers: {\n`;
       if (hasKeyParam) {
-        code += `    'Authorization': 'Bearer YOUR_API_KEY',\n`
+        code += `    'Authorization': 'Bearer YOUR_API_KEY',\n`;
       }
       headerParams.forEach((p) => {
-        code += `    '${getExampleParamName(p)}': '${getExampleParamValue(p)}',\n`
-      })
-      code += `  },\n`
+        code += `    '${getExampleParamName(p)}': '${getExampleParamValue(p)}',\n`;
+      });
+      code += `  },\n`;
     }
 
     if (method === 'POST') {
-      code += `  body: formData\n`
+      code += `  body: formData\n`;
     }
 
-    code += `})\n`
-    code += `.then(response => response.json())\n`
-    code += `.then(data => {\n`
-    code += `  console.log(data);\n`
-    code += `})\n`
-    code += `.catch(error => {\n`
-    code += `  console.error(error);\n`
-    code += `});`
+    code += `})\n`;
+    code += `.then(response => response.json())\n`;
+    code += `.then(data => {\n`;
+    code += `  console.log(data);\n`;
+    code += `})\n`;
+    code += `.catch(error => {\n`;
+    code += `  console.error(error);\n`;
+    code += `});`;
 
-    return code
-  }
+    return code;
+  };
 
   // 生成 xhr 示例
   const generateXhr = () => {
-    let finalUrl = url
-    let code = `const xhr = new XMLHttpRequest();\n\n`
+    let finalUrl = url;
+    let code = `const xhr = new XMLHttpRequest();\n\n`;
 
     if (
       method === 'GET' ||
       (method === 'POST' && bodyParams.length > 0 && queryParams.length > 0)
     ) {
       const qParams =
-        method === 'GET' ? [...queryParams, ...bodyParams] : queryParams
+        method === 'GET' ? [...queryParams, ...bodyParams] : queryParams;
       if (qParams.length > 0) {
-        const queryStr = buildExampleQueryString(qParams)
-        finalUrl += (url.includes('?') ? '&' : '?') + queryStr
+        const queryStr = buildExampleQueryString(qParams);
+        finalUrl += (url.includes('?') ? '&' : '?') + queryStr;
       }
     }
 
-    code += `xhr.open('${method}', '${finalUrl}', true);\n`
+    code += `xhr.open('${method}', '${finalUrl}', true);\n`;
 
     if (hasKeyParam) {
-      code += `xhr.setRequestHeader('Authorization', 'Bearer YOUR_API_KEY');\n`
+      code += `xhr.setRequestHeader('Authorization', 'Bearer YOUR_API_KEY');\n`;
     }
     headerParams.forEach((p) => {
-      code += `xhr.setRequestHeader('${getExampleParamName(p)}', '${getExampleParamValue(p)}');\n`
-    })
+      code += `xhr.setRequestHeader('${getExampleParamName(p)}', '${getExampleParamValue(p)}');\n`;
+    });
 
     if (method === 'POST') {
-      code += `xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');\n`
+      code += `xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');\n`;
     }
 
-    code += `\nxhr.onload = function() {\n`
-    code += `  if (xhr.status === 200) {\n`
-    code += `    console.log(JSON.parse(xhr.responseText));\n`
-    code += `  } else {\n`
-    code += `    console.error('Request failed');\n`
-    code += `  }\n`
-    code += `};\n\n`
+    code += `\nxhr.onload = function() {\n`;
+    code += `  if (xhr.status === 200) {\n`;
+    code += `    console.log(JSON.parse(xhr.responseText));\n`;
+    code += `  } else {\n`;
+    code += `    console.error('Request failed');\n`;
+    code += `  }\n`;
+    code += `};\n\n`;
 
     if (method === 'POST') {
-      code += `const data = new URLSearchParams();\n`
-      const targetParams = bodyParams.length > 0 ? bodyParams : queryParams
+      code += `const data = new URLSearchParams();\n`;
+      const targetParams = bodyParams.length > 0 ? bodyParams : queryParams;
       targetParams.forEach((p) => {
-        code += `data.append('${getExampleParamName(p)}', '${getExampleParamValue(p)}');\n`
-      })
-      code += `\nxhr.send(data);`
+        code += `data.append('${getExampleParamName(p)}', '${getExampleParamValue(p)}');\n`;
+      });
+      code += `\nxhr.send(data);`;
     } else {
-      code += `xhr.send();`
+      code += `xhr.send();`;
     }
 
-    return code
-  }
+    return code;
+  };
 
   // 生成 PHP 示例
   const generatePhp = () => {
-    let code = `<?php\n\n`
-    let finalUrl = url
+    let code = `<?php\n\n`;
+    let finalUrl = url;
 
     if (
       method === 'GET' ||
       (method === 'POST' && bodyParams.length > 0 && queryParams.length > 0)
     ) {
       const qParams =
-        method === 'GET' ? [...queryParams, ...bodyParams] : queryParams
+        method === 'GET' ? [...queryParams, ...bodyParams] : queryParams;
       if (qParams.length > 0) {
-        const queryStr = buildExampleQueryString(qParams)
-        finalUrl += (url.includes('?') ? '&' : '?') + queryStr
+        const queryStr = buildExampleQueryString(qParams);
+        finalUrl += (url.includes('?') ? '&' : '?') + queryStr;
       }
     }
 
-    code += `$url = '${finalUrl}';\n\n`
+    code += `$url = '${finalUrl}';\n\n`;
 
     if (method === 'POST') {
-      code += `$data = array(\n`
-      const targetParams = bodyParams.length > 0 ? bodyParams : queryParams
+      code += `$data = array(\n`;
+      const targetParams = bodyParams.length > 0 ? bodyParams : queryParams;
       targetParams.forEach((p, i) => {
-        code += `    '${getExampleParamName(p)}' => '${getExampleParamValue(p)}'${i < targetParams.length - 1 ? ',' : ''}\n`
-      })
-      code += `);\n\n`
+        code += `    '${getExampleParamName(p)}' => '${getExampleParamValue(p)}'${i < targetParams.length - 1 ? ',' : ''}\n`;
+      });
+      code += `);\n\n`;
     }
 
-    code += `$options = array(\n`
-    code += `    'http' => array(\n`
-    code += `        'method' => '${method}',\n`
+    code += `$options = array(\n`;
+    code += `    'http' => array(\n`;
+    code += `        'method' => '${method}',\n`;
 
     if (hasKeyParam || headerParams.length > 0) {
-      code += `        'header' => `
-      const headers = []
+      code += `        'header' => `;
+      const headers = [];
       if (hasKeyParam) {
-        headers.push(`"Authorization: Bearer YOUR_API_KEY"`)
+        headers.push(`"Authorization: Bearer YOUR_API_KEY"`);
       }
       headerParams.forEach((p) => {
-        headers.push(
-          `"${getExampleParamName(p)}: ${getExampleParamValue(p)}"`,
-        )
-      })
+        headers.push(`"${getExampleParamName(p)}: ${getExampleParamValue(p)}"`);
+      });
       if (method === 'POST') {
-        headers.push(`"Content-Type: application/x-www-form-urlencoded"`)
+        headers.push(`"Content-Type: application/x-www-form-urlencoded"`);
       }
-      code += headers.join(' . "\\r\\n" . ') + `,\n`
+      code += headers.join(' . "\\r\\n" . ') + `,\n`;
     }
 
     if (method === 'POST') {
-      code += `        'content' => http_build_query($data)\n`
+      code += `        'content' => http_build_query($data)\n`;
     }
 
-    code += `    )\n`
-    code += `);\n\n`
-    code += `$context = stream_context_create($options);\n`
-    code += `$result = file_get_contents($url, false, $context);\n\n`
-    code += `if ($result === FALSE) {\n`
-    code += `    die('Error');\n`
-    code += `}\n\n`
-    code += `$response = json_decode($result, true);\n`
-    code += `print_r($response);\n\n`
-    code += `?>`
+    code += `    )\n`;
+    code += `);\n\n`;
+    code += `$context = stream_context_create($options);\n`;
+    code += `$result = file_get_contents($url, false, $context);\n\n`;
+    code += `if ($result === FALSE) {\n`;
+    code += `    die('Error');\n`;
+    code += `}\n\n`;
+    code += `$response = json_decode($result, true);\n`;
+    code += `print_r($response);\n\n`;
+    code += `?>`;
 
-    return code
-  }
+    return code;
+  };
 
   // 生成 Python 示例
   const generatePython = () => {
-    let code = `import requests\n\n`
-    let finalUrl = url
+    let code = `import requests\n\n`;
+    let finalUrl = url;
 
     if (
       method === 'GET' ||
       (method === 'POST' && bodyParams.length > 0 && queryParams.length > 0)
     ) {
       const qParams =
-        method === 'GET' ? [...queryParams, ...bodyParams] : queryParams
+        method === 'GET' ? [...queryParams, ...bodyParams] : queryParams;
       if (qParams.length > 0) {
-        const queryStr = buildExampleQueryString(qParams)
-        finalUrl += (url.includes('?') ? '&' : '?') + queryStr
+        const queryStr = buildExampleQueryString(qParams);
+        finalUrl += (url.includes('?') ? '&' : '?') + queryStr;
       }
     }
 
-    code += `url = '${finalUrl}'\n\n`
+    code += `url = '${finalUrl}'\n\n`;
 
     if (hasKeyParam || headerParams.length > 0) {
-      code += `headers = {\n`
+      code += `headers = {\n`;
       if (hasKeyParam) {
-        code += `    'Authorization': 'Bearer YOUR_API_KEY',\n`
+        code += `    'Authorization': 'Bearer YOUR_API_KEY',\n`;
       }
       headerParams.forEach((p) => {
-        code += `    '${getExampleParamName(p)}': '${getExampleParamValue(p)}',\n`
-      })
-      code += `}\n\n`
+        code += `    '${getExampleParamName(p)}': '${getExampleParamValue(p)}',\n`;
+      });
+      code += `}\n\n`;
     }
 
     if (method === 'POST') {
-      code += `data = {\n`
-      const targetParams = bodyParams.length > 0 ? bodyParams : queryParams
+      code += `data = {\n`;
+      const targetParams = bodyParams.length > 0 ? bodyParams : queryParams;
       targetParams.forEach((p, i) => {
-        code += `    '${getExampleParamName(p)}': '${getExampleParamValue(p)}'${i < targetParams.length - 1 ? ',' : ''}\n`
-      })
-      code += `}\n\n`
+        code += `    '${getExampleParamName(p)}': '${getExampleParamValue(p)}'${i < targetParams.length - 1 ? ',' : ''}\n`;
+      });
+      code += `}\n\n`;
     }
 
     if (method === 'POST') {
-      code += `response = requests.post(url`
+      code += `response = requests.post(url`;
       if (hasKeyParam || headerParams.length > 0) {
-        code += `, headers=headers`
+        code += `, headers=headers`;
       }
-      code += `, data=data)\n`
+      code += `, data=data)\n`;
     } else {
-      code += `response = requests.get(url`
+      code += `response = requests.get(url`;
       if (hasKeyParam || headerParams.length > 0) {
-        code += `, headers=headers`
+        code += `, headers=headers`;
       }
-      code += `)\n`
+      code += `)\n`;
     }
 
-    code += `\nif response.status_code == 200:\n`
-    code += `    print(response.json())\n`
-    code += `else:\n`
-    code += `    print(f'Error: {response.status_code}')`
+    code += `\nif response.status_code == 200:\n`;
+    code += `    print(response.json())\n`;
+    code += `else:\n`;
+    code += `    print(f'Error: {response.status_code}')`;
 
-    return code
-  }
+    return code;
+  };
 
   // 生成 cURL 示例
   const generateCurl = () => {
-    let finalUrl = url
-    let code = `curl -X ${method}`
+    let finalUrl = url;
+    let code = `curl -X ${method}`;
 
     if (
       method === 'GET' ||
       (method === 'POST' && bodyParams.length > 0 && queryParams.length > 0)
     ) {
       const qParams =
-        method === 'GET' ? [...queryParams, ...bodyParams] : queryParams
+        method === 'GET' ? [...queryParams, ...bodyParams] : queryParams;
       if (qParams.length > 0) {
-        const queryStr = buildExampleQueryString(qParams)
-        finalUrl += (url.includes('?') ? '&' : '?') + queryStr
+        const queryStr = buildExampleQueryString(qParams);
+        finalUrl += (url.includes('?') ? '&' : '?') + queryStr;
       }
     }
 
-    code += ` '${finalUrl}'`
+    code += ` '${finalUrl}'`;
 
     if (hasKeyParam) {
-      code += ` \\\n  -H 'Authorization: Bearer YOUR_API_KEY'`
+      code += ` \\\n  -H 'Authorization: Bearer YOUR_API_KEY'`;
     }
     headerParams.forEach((p) => {
-      code += ` \\\n  -H '${getExampleParamName(p)}: ${getExampleParamValue(p)}'`
-    })
+      code += ` \\\n  -H '${getExampleParamName(p)}: ${getExampleParamValue(p)}'`;
+    });
 
     if (method === 'POST') {
-      const targetParams = bodyParams.length > 0 ? bodyParams : queryParams
+      const targetParams = bodyParams.length > 0 ? bodyParams : queryParams;
       targetParams.forEach((p) => {
-        code += ` \\\n  -d '${getExampleParamName(p)}=${getExampleParamValue(p)}'`
-      })
+        code += ` \\\n  -d '${getExampleParamName(p)}=${getExampleParamValue(p)}'`;
+      });
     }
 
-    return code
-  }
+    return code;
+  };
 
   // 生成 Java 示例
   const generateJava = () => {
-    let finalUrl = url
-    let code = `import java.net.http.*;\nimport java.net.URI;\n\n`
+    let finalUrl = url;
+    let code = `import java.net.http.*;\nimport java.net.URI;\n\n`;
 
     if (
       method === 'GET' ||
       (method === 'POST' && bodyParams.length > 0 && queryParams.length > 0)
     ) {
       const qParams =
-        method === 'GET' ? [...queryParams, ...bodyParams] : queryParams
+        method === 'GET' ? [...queryParams, ...bodyParams] : queryParams;
       if (qParams.length > 0) {
-        const queryStr = buildExampleQueryString(qParams)
-        finalUrl += (url.includes('?') ? '&' : '?') + queryStr
+        const queryStr = buildExampleQueryString(qParams);
+        finalUrl += (url.includes('?') ? '&' : '?') + queryStr;
       }
     }
 
-    code += `HttpClient client = HttpClient.newHttpClient();\n\n`
-    code += `HttpRequest.Builder builder = HttpRequest.newBuilder()\n`
-    code += `    .uri(URI.create("${finalUrl}"))\n`
+    code += `HttpClient client = HttpClient.newHttpClient();\n\n`;
+    code += `HttpRequest.Builder builder = HttpRequest.newBuilder()\n`;
+    code += `    .uri(URI.create("${finalUrl}"))\n`;
 
     if (hasKeyParam) {
-      code += `    .header("Authorization", "Bearer YOUR_API_KEY")\n`
+      code += `    .header("Authorization", "Bearer YOUR_API_KEY")\n`;
     }
     headerParams.forEach((p) => {
-      code += `    .header("${getExampleParamName(p)}", "${getExampleParamValue(p)}")\n`
-    })
+      code += `    .header("${getExampleParamName(p)}", "${getExampleParamValue(p)}")\n`;
+    });
 
     if (method === 'POST') {
-      const targetParams = bodyParams.length > 0 ? bodyParams : queryParams
+      const targetParams = bodyParams.length > 0 ? bodyParams : queryParams;
       const formData = targetParams
-        .map((p) => `"${getExampleParamName(p)}=" + "${getExampleParamValue(p)}"`)
-        .join(' + "&" + ')
-      code += `    .header("Content-Type", "application/x-www-form-urlencoded")\n`
-      code += `    .POST(HttpRequest.BodyPublishers.ofString(${formData}));\n\n`
+        .map(
+          (p) => `"${getExampleParamName(p)}=" + "${getExampleParamValue(p)}"`,
+        )
+        .join(' + "&" + ');
+      code += `    .header("Content-Type", "application/x-www-form-urlencoded")\n`;
+      code += `    .POST(HttpRequest.BodyPublishers.ofString(${formData}));\n\n`;
     } else {
-      code += `    .GET();\n\n`
+      code += `    .GET();\n\n`;
     }
 
-    code += `HttpRequest request = builder.build();\n\n`
-    code += `try {\n`
-    code += `    HttpResponse<String> response = client.send(request,\n`
-    code += `        HttpResponse.BodyHandlers.ofString());\n`
-    code += `    System.out.println(response.body());\n`
-    code += `} catch (Exception e) {\n`
-    code += `    e.printStackTrace();\n`
-    code += `}`
+    code += `HttpRequest request = builder.build();\n\n`;
+    code += `try {\n`;
+    code += `    HttpResponse<String> response = client.send(request,\n`;
+    code += `        HttpResponse.BodyHandlers.ofString());\n`;
+    code += `    System.out.println(response.body());\n`;
+    code += `} catch (Exception e) {\n`;
+    code += `    e.printStackTrace();\n`;
+    code += `}`;
 
-    return code
-  }
+    return code;
+  };
 
   // 生成 Go 示例
   const generateGo = () => {
-    let finalUrl = url
-    let code = `package main\n\nimport (\n    "fmt"\n    "io"\n    "net/http"\n`
+    let finalUrl = url;
+    let code = `package main\n\nimport (\n    "fmt"\n    "io"\n    "net/http"\n`;
 
     if (method === 'POST') {
-      code += `    "net/url"\n    "strings"\n`
+      code += `    "net/url"\n    "strings"\n`;
     }
 
-    code += `)\n\nfunc main() {\n`
+    code += `)\n\nfunc main() {\n`;
 
     if (
       method === 'GET' ||
       (method === 'POST' && bodyParams.length > 0 && queryParams.length > 0)
     ) {
       const qParams =
-        method === 'GET' ? [...queryParams, ...bodyParams] : queryParams
+        method === 'GET' ? [...queryParams, ...bodyParams] : queryParams;
       if (qParams.length > 0) {
-        const queryStr = buildExampleQueryString(qParams)
-        finalUrl += (url.includes('?') ? '&' : '?') + queryStr
+        const queryStr = buildExampleQueryString(qParams);
+        finalUrl += (url.includes('?') ? '&' : '?') + queryStr;
       }
     }
 
-    code += `    url := "${finalUrl}"\n\n`
+    code += `    url := "${finalUrl}"\n\n`;
 
     if (method === 'POST') {
-      code += `    data := url.Values{}\n`
-      const targetParams = bodyParams.length > 0 ? bodyParams : queryParams
+      code += `    data := url.Values{}\n`;
+      const targetParams = bodyParams.length > 0 ? bodyParams : queryParams;
       targetParams.forEach((p) => {
-        code += `    data.Set("${getExampleParamName(p)}", "${getExampleParamValue(p)}")\n`
-      })
-      code += `\n    req, _ := http.NewRequest("POST", url, strings.NewReader(data.Encode()))\n`
-      code += `    req.Header.Set("Content-Type", "application/x-www-form-urlencoded")\n`
+        code += `    data.Set("${getExampleParamName(p)}", "${getExampleParamValue(p)}")\n`;
+      });
+      code += `\n    req, _ := http.NewRequest("POST", url, strings.NewReader(data.Encode()))\n`;
+      code += `    req.Header.Set("Content-Type", "application/x-www-form-urlencoded")\n`;
     } else {
-      code += `    req, _ := http.NewRequest("GET", url, nil)\n`
+      code += `    req, _ := http.NewRequest("GET", url, nil)\n`;
     }
 
     if (hasKeyParam) {
-      code += `    req.Header.Set("Authorization", "Bearer YOUR_API_KEY")\n`
+      code += `    req.Header.Set("Authorization", "Bearer YOUR_API_KEY")\n`;
     }
     headerParams.forEach((p) => {
-      code += `    req.Header.Set("${getExampleParamName(p)}", "${getExampleParamValue(p)}")\n`
-    })
+      code += `    req.Header.Set("${getExampleParamName(p)}", "${getExampleParamValue(p)}")\n`;
+    });
 
-    code += `\n    client := &http.Client{}\n`
-    code += `    resp, err := client.Do(req)\n`
-    code += `    if err != nil {\n`
-    code += `        panic(err)\n`
-    code += `    }\n`
-    code += `    defer resp.Body.Close()\n\n`
-    code += `    body, _ := io.ReadAll(resp.Body)\n`
-    code += `    fmt.Println(string(body))\n`
-    code += `}`
+    code += `\n    client := &http.Client{}\n`;
+    code += `    resp, err := client.Do(req)\n`;
+    code += `    if err != nil {\n`;
+    code += `        panic(err)\n`;
+    code += `    }\n`;
+    code += `    defer resp.Body.Close()\n\n`;
+    code += `    body, _ := io.ReadAll(resp.Body)\n`;
+    code += `    fmt.Println(string(body))\n`;
+    code += `}`;
 
-    return code
-  }
+    return code;
+  };
 
   // 生成 C# 示例
   const generateCsharp = () => {
-    let finalUrl = url
-    let code = `using System;\nusing System.Net.Http;\nusing System.Collections.Generic;\nusing System.Threading.Tasks;\n\n`
-    code += `class Program\n{\n`
-    code += `    static async Task Main()\n    {\n`
-    code += `        using var client = new HttpClient();\n\n`
+    let finalUrl = url;
+    let code = `using System;\nusing System.Net.Http;\nusing System.Collections.Generic;\nusing System.Threading.Tasks;\n\n`;
+    code += `class Program\n{\n`;
+    code += `    static async Task Main()\n    {\n`;
+    code += `        using var client = new HttpClient();\n\n`;
 
     if (
       method === 'GET' ||
       (method === 'POST' && bodyParams.length > 0 && queryParams.length > 0)
     ) {
       const qParams =
-        method === 'GET' ? [...queryParams, ...bodyParams] : queryParams
+        method === 'GET' ? [...queryParams, ...bodyParams] : queryParams;
       if (qParams.length > 0) {
-        const queryStr = buildExampleQueryString(qParams)
-        finalUrl += (url.includes('?') ? '&' : '?') + queryStr
+        const queryStr = buildExampleQueryString(qParams);
+        finalUrl += (url.includes('?') ? '&' : '?') + queryStr;
       }
     }
 
-    code += `        var url = "${finalUrl}";\n\n`
+    code += `        var url = "${finalUrl}";\n\n`;
 
     if (hasKeyParam) {
-      code += `        client.DefaultRequestHeaders.Add("Authorization", "Bearer YOUR_API_KEY");\n`
+      code += `        client.DefaultRequestHeaders.Add("Authorization", "Bearer YOUR_API_KEY");\n`;
     }
     headerParams.forEach((p) => {
-      code += `        client.DefaultRequestHeaders.Add("${getExampleParamName(p)}", "${getExampleParamValue(p)}");\n`
-    })
+      code += `        client.DefaultRequestHeaders.Add("${getExampleParamName(p)}", "${getExampleParamValue(p)}");\n`;
+    });
 
     if (method === 'POST') {
-      code += `\n        var data = new Dictionary<string, string>\n        {\n`
-      const targetParams = bodyParams.length > 0 ? bodyParams : queryParams
+      code += `\n        var data = new Dictionary<string, string>\n        {\n`;
+      const targetParams = bodyParams.length > 0 ? bodyParams : queryParams;
       targetParams.forEach((p, i) => {
-        code += `            { "${getExampleParamName(p)}", "${getExampleParamValue(p)}" }${i < targetParams.length - 1 ? ',' : ''}\n`
-      })
-      code += `        };\n\n`
-      code += `        var content = new FormUrlEncodedContent(data);\n`
-      code += `        var response = await client.PostAsync(url, content);\n`
+        code += `            { "${getExampleParamName(p)}", "${getExampleParamValue(p)}" }${i < targetParams.length - 1 ? ',' : ''}\n`;
+      });
+      code += `        };\n\n`;
+      code += `        var content = new FormUrlEncodedContent(data);\n`;
+      code += `        var response = await client.PostAsync(url, content);\n`;
     } else {
-      code += `\n        var response = await client.GetAsync(url);\n`
+      code += `\n        var response = await client.GetAsync(url);\n`;
     }
 
-    code += `        var result = await response.Content.ReadAsStringAsync();\n`
-    code += `        Console.WriteLine(result);\n`
-    code += `    }\n`
-    code += `}`
+    code += `        var result = await response.Content.ReadAsStringAsync();\n`;
+    code += `        Console.WriteLine(result);\n`;
+    code += `    }\n`;
+    code += `}`;
 
-    return code
-  }
+    return code;
+  };
 
   // 生成 Ruby 示例
   const generateRuby = () => {
-    let finalUrl = url
-    let code = `require 'net/http'\nrequire 'uri'\n\n`
+    let finalUrl = url;
+    let code = `require 'net/http'\nrequire 'uri'\n\n`;
 
     if (
       method === 'GET' ||
       (method === 'POST' && bodyParams.length > 0 && queryParams.length > 0)
     ) {
       const qParams =
-        method === 'GET' ? [...queryParams, ...bodyParams] : queryParams
+        method === 'GET' ? [...queryParams, ...bodyParams] : queryParams;
       if (qParams.length > 0) {
-        const queryStr = buildExampleQueryString(qParams)
-        finalUrl += (url.includes('?') ? '&' : '?') + queryStr
+        const queryStr = buildExampleQueryString(qParams);
+        finalUrl += (url.includes('?') ? '&' : '?') + queryStr;
       }
     }
 
-    code += `uri = URI.parse('${finalUrl}')\n`
-    code += `http = Net::HTTP.new(uri.host, uri.port)\n`
+    code += `uri = URI.parse('${finalUrl}')\n`;
+    code += `http = Net::HTTP.new(uri.host, uri.port)\n`;
     if (url.startsWith('https')) {
-      code += `http.use_ssl = true\n`
+      code += `http.use_ssl = true\n`;
     }
-    code += `\n`
+    code += `\n`;
 
     if (method === 'POST') {
-      code += `request = Net::HTTP::Post.new(uri.request_uri)\n`
-      code += `request['Content-Type'] = 'application/x-www-form-urlencoded'\n`
+      code += `request = Net::HTTP::Post.new(uri.request_uri)\n`;
+      code += `request['Content-Type'] = 'application/x-www-form-urlencoded'\n`;
     } else {
-      code += `request = Net::HTTP::Get.new(uri.request_uri)\n`
+      code += `request = Net::HTTP::Get.new(uri.request_uri)\n`;
     }
 
     if (hasKeyParam) {
-      code += `request['Authorization'] = 'Bearer YOUR_API_KEY'\n`
+      code += `request['Authorization'] = 'Bearer YOUR_API_KEY'\n`;
     }
     headerParams.forEach((p) => {
-      code += `request['${getExampleParamName(p)}'] = '${getExampleParamValue(p)}'\n`
-    })
+      code += `request['${getExampleParamName(p)}'] = '${getExampleParamValue(p)}'\n`;
+    });
 
     if (method === 'POST') {
-      const targetParams = bodyParams.length > 0 ? bodyParams : queryParams
+      const targetParams = bodyParams.length > 0 ? bodyParams : queryParams;
       const formData = targetParams
-        .map((p) => `'${getExampleParamName(p)}' => '${getExampleParamValue(p)}'`)
-        .join(', ')
-      code += `\nrequest.set_form_data({ ${formData} })\n`
+        .map(
+          (p) => `'${getExampleParamName(p)}' => '${getExampleParamValue(p)}'`,
+        )
+        .join(', ');
+      code += `\nrequest.set_form_data({ ${formData} })\n`;
     }
 
-    code += `\nresponse = http.request(request)\n`
-    code += `puts response.body`
+    code += `\nresponse = http.request(request)\n`;
+    code += `puts response.body`;
 
-    return code
-  }
+    return code;
+  };
 
   // 生成 Node.js 示例
   const generateNodejs = () => {
-    let finalUrl = url
-    let code = `const https = require('https');\nconst querystring = require('querystring');\n\n`
+    let finalUrl = url;
+    let code = `const https = require('https');\nconst querystring = require('querystring');\n\n`;
 
     if (
       method === 'GET' ||
       (method === 'POST' && bodyParams.length > 0 && queryParams.length > 0)
     ) {
       const qParams =
-        method === 'GET' ? [...queryParams, ...bodyParams] : queryParams
+        method === 'GET' ? [...queryParams, ...bodyParams] : queryParams;
       if (qParams.length > 0) {
-        const queryStr = buildExampleQueryString(qParams)
-        finalUrl += (url.includes('?') ? '&' : '?') + queryStr
+        const queryStr = buildExampleQueryString(qParams);
+        finalUrl += (url.includes('?') ? '&' : '?') + queryStr;
       }
     }
 
     if (method === 'POST') {
-      code += `const postData = querystring.stringify({\n`
-      const targetParams = bodyParams.length > 0 ? bodyParams : queryParams
+      code += `const postData = querystring.stringify({\n`;
+      const targetParams = bodyParams.length > 0 ? bodyParams : queryParams;
       targetParams.forEach((p, i) => {
-        code += `  '${getExampleParamName(p)}': '${getExampleParamValue(p)}'${i < targetParams.length - 1 ? ',' : ''}\n`
-      })
-      code += `});\n\n`
+        code += `  '${getExampleParamName(p)}': '${getExampleParamValue(p)}'${i < targetParams.length - 1 ? ',' : ''}\n`;
+      });
+      code += `});\n\n`;
     }
 
-    code += `const options = {\n`
-    code += `  method: '${method}',\n`
-    code += `  headers: {\n`
+    code += `const options = {\n`;
+    code += `  method: '${method}',\n`;
+    code += `  headers: {\n`;
 
     if (hasKeyParam) {
-      code += `    'Authorization': 'Bearer YOUR_API_KEY',\n`
+      code += `    'Authorization': 'Bearer YOUR_API_KEY',\n`;
     }
     headerParams.forEach((p) => {
-      code += `    '${getExampleParamName(p)}': '${getExampleParamValue(p)}',\n`
-    })
+      code += `    '${getExampleParamName(p)}': '${getExampleParamValue(p)}',\n`;
+    });
 
     if (method === 'POST') {
-      code += `    'Content-Type': 'application/x-www-form-urlencoded',\n`
-      code += `    'Content-Length': Buffer.byteLength(postData)\n`
+      code += `    'Content-Type': 'application/x-www-form-urlencoded',\n`;
+      code += `    'Content-Length': Buffer.byteLength(postData)\n`;
     }
 
-    code += `  }\n`
-    code += `};\n\n`
+    code += `  }\n`;
+    code += `};\n\n`;
 
-    code += `const req = https.request('${finalUrl}', options, (res) => {\n`
-    code += `  let data = '';\n`
-    code += `  res.on('data', (chunk) => { data += chunk; });\n`
-    code += `  res.on('end', () => { console.log(JSON.parse(data)); });\n`
-    code += `});\n\n`
+    code += `const req = https.request('${finalUrl}', options, (res) => {\n`;
+    code += `  let data = '';\n`;
+    code += `  res.on('data', (chunk) => { data += chunk; });\n`;
+    code += `  res.on('end', () => { console.log(JSON.parse(data)); });\n`;
+    code += `});\n\n`;
 
-    code += `req.on('error', (error) => { console.error(error); });\n`
+    code += `req.on('error', (error) => { console.error(error); });\n`;
 
     if (method === 'POST') {
-      code += `req.write(postData);\n`
+      code += `req.write(postData);\n`;
     }
 
-    code += `req.end();`
+    code += `req.end();`;
 
-    return code
-  }
+    return code;
+  };
 
   return {
     axios: generateAxios(),
@@ -1062,8 +1087,8 @@ const generateExamples = () => {
     csharp: generateCsharp(),
     ruby: generateRuby(),
     nodejs: generateNodejs(),
-  }
-}
+  };
+};
 
 // 生成的示例代码
 const generatedExamples = computed(() => {
@@ -1081,10 +1106,10 @@ const generatedExamples = computed(() => {
       csharp: '',
       ruby: '',
       nodejs: '',
-    }
+    };
   }
-  return generateExamples()
-})
+  return generateExamples();
+});
 </script>
 
 <template>
@@ -1340,11 +1365,32 @@ const generatedExamples = computed(() => {
                   <span v-else>{{ scope.row.points }}次</span>
                 </template>
               </el-table-column>
-              <el-table-column label="使用范围" width="110" align="center">
+              <el-table-column
+                v-if="hasSharedPackage"
+                label="使用范围"
+                width="130"
+                align="center"
+              >
                 <template #default="scope">
                   <el-tag :type="getPackageSharedTag(scope.row)" size="small">
                     {{ getPackageSharedText(scope.row) }}
                   </el-tag>
+                  <div
+                    v-if="
+                      Number(scope.row.shared) === 1 &&
+                      getPackageApiNames(scope.row).length
+                    "
+                    class="package-api-names-action"
+                  >
+                    <el-button
+                      type="primary"
+                      link
+                      size="small"
+                      @click="openApiNamesDialog(scope.row)"
+                    >
+                      查看接口（{{ getPackageApiNames(scope.row).length }}）
+                    </el-button>
+                  </div>
                 </template>
               </el-table-column>
               <el-table-column label="有效期" width="100" align="center">
@@ -1387,6 +1433,35 @@ const generatedExamples = computed(() => {
               </el-table-column>
             </el-table>
           </div>
+
+          <el-dialog
+            v-model="apiNamesDialogVisible"
+            :title="`${apiNamesDialogPackage?.name || ''} - 共享接口`"
+            :width="isMobile ? '90%' : '480px'"
+            append-to-body
+            class="package-api-names-dialog"
+          >
+            <p class="package-api-names-dialog__desc">
+              购买一次该共享套餐，可用于以下
+              <strong>{{ apiNamesDialogList.length }}</strong>
+              个接口：
+            </p>
+            <ul class="package-api-names-dialog__list">
+              <li v-for="(apiName, idx) in apiNamesDialogList" :key="idx">
+                <span class="package-api-names-dialog__index">{{
+                  idx + 1
+                }}</span>
+                <span class="package-api-names-dialog__name">{{
+                  apiName
+                }}</span>
+              </li>
+            </ul>
+            <template #footer>
+              <el-button @click="apiNamesDialogVisible = false">
+                关闭
+              </el-button>
+            </template>
+          </el-dialog>
         </div>
 
         <div v-if="bottomStats.length" class="box api-stats-box" id="api-stats">
@@ -2085,6 +2160,67 @@ const generatedExamples = computed(() => {
   z-index: 9999 !important;
 }
 
+.package-api-names-dialog {
+  .package-api-names-dialog__desc {
+    margin: 0 0 16px;
+    font-size: 14px;
+    color: #475569;
+
+    strong {
+      color: #2563eb;
+      font-weight: 600;
+      margin: 0 2px;
+    }
+  }
+
+  .package-api-names-dialog__list {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    max-height: 360px;
+    overflow-y: auto;
+    border: 1px solid #e2e8f0;
+    border-radius: 6px;
+
+    li {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 10px 14px;
+      font-size: 14px;
+      color: #1f2937;
+      border-bottom: 1px solid #f1f5f9;
+
+      &:last-child {
+        border-bottom: none;
+      }
+
+      &:hover {
+        background: #f8fafc;
+      }
+    }
+  }
+
+  .package-api-names-dialog__index {
+    flex-shrink: 0;
+    width: 22px;
+    height: 22px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    background: #eff6ff;
+    color: #2563eb;
+    font-size: 12px;
+    font-weight: 600;
+  }
+
+  .package-api-names-dialog__name {
+    flex: 1;
+    word-break: break-all;
+  }
+}
+
 .doc-container {
   width: 100%;
   min-height: 100vh;
@@ -2328,6 +2464,16 @@ const generatedExamples = computed(() => {
         .example-empty {
           color: #cbd5e1;
           font-size: 14px;
+        }
+
+        .package-api-names-action {
+          margin-top: 4px;
+
+          :deep(.el-button) {
+            font-size: 12px;
+            padding: 0;
+            height: auto;
+          }
         }
       }
 
@@ -2979,11 +3125,11 @@ const generatedExamples = computed(() => {
         font-size: 13px;
         line-height: 1.4;
       }
-      }
     }
+  }
 
-    @media screen and (max-width: 768px) {
-      .apiinfo-container {
+  @media screen and (max-width: 768px) {
+    .apiinfo-container {
       width: 92%;
       padding: 20px 0;
 
