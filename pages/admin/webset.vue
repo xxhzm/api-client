@@ -37,6 +37,7 @@ const websetInfo = ref({
   website_name: '',
   recommend: 'true',
   notice: '',
+  admin_popup: '',
   feedback: '',
   css: '',
   js: '',
@@ -498,6 +499,7 @@ const websetInfoSubmit = async () => {
   bodyValue.append('websiteName', websetInfo.value.website_name)
   bodyValue.append('recommend', websetInfo.value.recommend)
   bodyValue.append('notice', websetInfo.value.notice)
+  bodyValue.append('adminPopup', websetInfo.value.admin_popup)
   bodyValue.append('feedback', websetInfo.value.feedback)
   bodyValue.append('css', websetInfo.value.css)
   bodyValue.append('js', websetInfo.value.js)
@@ -1337,6 +1339,17 @@ useHead({
                       :rows="3"
                       placeholder="请输入通知信息"
                     />
+                  </el-form-item>
+                  <el-form-item label="后台首页弹窗">
+                    <el-input
+                      v-model="websetInfo.admin_popup"
+                      type="textarea"
+                      :rows="3"
+                      placeholder="请输入后台首页登录弹窗内容"
+                    />
+                    <div class="form-help">
+                      仅在用户刚登录后进入后台首页时弹出，首页刷新不会再次显示
+                    </div>
                   </el-form-item>
                   <el-form-item label="问题反馈链接">
                     <el-input

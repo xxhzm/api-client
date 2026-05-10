@@ -38,10 +38,47 @@ definePageMeta({
 
 const { $myFetch, $msg } = useNuxtApp()
 const username = useCookie('username')
+const options = useState('options')
 const { userAccessKey } = useUserKey()
 const { isAdmin, hasRoute } = useRouteAccess()
 
 const { onlyPhoneBind } = usePhoneBind()
+
+const adminPopupDialogVisible = ref(false)
+const ADMIN_HOME_POPUP_PENDING_KEY = 'admin_home_popup_pending'
+const ADMIN_HOME_POPUP_CLOSED_DATE_KEY = 'admin_home_popup_closed_date'
+const adminHomePopupContent = computed(() =>
+  String(options.value?.admin_popup || '').trim(),
+)
+
+const getTodayDate = () => {
+  const now = new Date()
+  const year = now.getFullYear()
+  const month = String(now.getMonth() + 1).padStart(2, '0')
+  const day = String(now.getDate()).padStart(2, '0')
+  return `${year}-${month}-${day}`
+}
+
+const shouldShowAdminHomePopup = () => {
+  if (!process.client) return false
+
+  const isPending = sessionStorage.getItem(ADMIN_HOME_POPUP_PENDING_KEY) === '1'
+  sessionStorage.removeItem(ADMIN_HOME_POPUP_PENDING_KEY)
+
+  if (!isPending || !adminHomePopupContent.value) return false
+
+  return (
+    localStorage.getItem(ADMIN_HOME_POPUP_CLOSED_DATE_KEY) !== getTodayDate()
+  )
+}
+
+const closeAdminHomePopupToday = () => {
+  adminPopupDialogVisible.value = false
+
+  if (process.client) {
+    localStorage.setItem(ADMIN_HOME_POPUP_CLOSED_DATE_KEY, getTodayDate())
+  }
+}
 
 // User Info State
 const userInfo = reactive({
@@ -446,6 +483,10 @@ onMounted(() => {
     fetchProfile() // 包含用户信息、套餐统计、管理员统计数据
     fetchBalance() // 获取账户余额
   }
+
+  if (shouldShowAdminHomePopup()) {
+    adminPopupDialogVisible.value = true
+  }
 })
 
 useHead({
@@ -457,6 +498,27 @@ useHead({
 
 <template>
   <div class="dashboard-page">
+    <client-only>
+      <el-dialog
+        v-model="adminPopupDialogVisible"
+        title="系统公告"
+        width="520px"
+        append-to-body
+        align-center
+        class="admin-home-popup-dialog"
+      >
+        <div class="admin-home-popup-content" v-html="adminHomePopupContent" />
+        <template #footer>
+          <el-button @click="adminPopupDialogVisible = false">
+            我知道了
+          </el-button>
+          <el-button type="primary" @click="closeAdminHomePopupToday">
+            今日关闭
+          </el-button>
+        </template>
+      </el-dialog>
+    </client-only>
+
     <!-- 仅有绑定手机号权限时，只显示提示 -->
     <div v-if="onlyPhoneBind" class="phone-bind-page">
       <!-- 政策提示横幅 -->
@@ -1018,6 +1080,39 @@ useHead({
   display: flex;
   gap: 20px;
   width: 100%;
+}
+
+:global(.admin-home-popup-dialog) {
+  .el-dialog__body {
+    padding-top: 12px;
+  }
+
+  .admin-home-popup-content {
+    max-height: 50vh;
+    overflow-y: auto;
+    color: #303133;
+    font-size: 14px;
+    line-height: 1.8;
+    white-space: pre-wrap;
+    word-break: break-word;
+
+    p {
+      margin: 0 0 10px;
+
+      &:last-child {
+        margin-bottom: 0;
+      }
+    }
+
+    a {
+      color: #409eff;
+      text-decoration: none;
+
+      &:hover {
+        color: #66b1ff;
+      }
+    }
+  }
 }
 
 .main-content {

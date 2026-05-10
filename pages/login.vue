@@ -45,6 +45,12 @@ const goBack = () => {
   navigateTo('/')
 }
 
+const markAdminHomePopupPending = () => {
+  if (process.client) {
+    sessionStorage.setItem('admin_home_popup_pending', '1')
+  }
+}
+
 const routeInfo = useCookie('routeInfo')
 
 const login = async () => {
@@ -81,6 +87,7 @@ const login = async () => {
     $msg('登录成功', 'success')
 
     routeInfo.value = res.data.routeInfo
+    markAdminHomePopupPending()
     navigateTo('/admin')
     return false
   }
@@ -586,6 +593,7 @@ const mailLogin = async () => {
       $msg('登录成功', 'success')
 
       routeInfo.value = res.data.routeInfo
+      markAdminHomePopupPending()
       navigateTo('/admin')
     } else {
       $msg(res.msg, 'error')
@@ -646,6 +654,7 @@ const handleGithubCallback = async (code, state) => {
       $msg('GitHub 登录成功', 'success')
 
       routeInfo.value = res.data.routeInfo
+      markAdminHomePopupPending()
       navigateTo('/admin')
     } else {
       $msg(res.msg || 'GitHub 登录失败', 'error')
