@@ -35,6 +35,7 @@ const editForm = ref({
   id: '',
   amount: '',
   status: '',
+  isInvoiced: '',
 });
 
 const rechargeStatusOptions = [
@@ -142,6 +143,7 @@ const showEdit = (row) => {
     amount:
       row.amount == null || row.amount === '' ? undefined : Number(row.amount),
     status: String(row.status) === '2' ? '2' : '1',
+    isInvoiced: isInvoiced(row.is_invoiced) ? '1' : '0',
   };
   editDialogVisible.value = true;
 };
@@ -167,6 +169,10 @@ const submitEdit = async () => {
 
   if (editForm.value.status !== '') {
     body.append('status', editForm.value.status);
+  }
+
+  if (editForm.value.isInvoiced !== '') {
+    body.append('isInvoiced', editForm.value.isInvoiced);
   }
 
   editLoading.value = true;
@@ -501,6 +507,21 @@ useHead({
           >
             <el-option
               v-for="item in rechargeStatusOptions"
+              :key="item.value"
+              :label="item.label"
+              :value="item.value"
+            />
+          </el-select>
+        </el-form-item>
+        <el-form-item label="发票状态">
+          <el-select
+            v-model="editForm.isInvoiced"
+            clearable
+            placeholder="不修改可留空"
+            style="width: 100%"
+          >
+            <el-option
+              v-for="item in invoiceStatusOptions"
               :key="item.value"
               :label="item.label"
               :value="item.value"
