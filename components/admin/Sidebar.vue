@@ -54,6 +54,33 @@ const routeShowArr = (arr) => {
   return false
 }
 
+const financeUserRoutes = [
+  '/admin/pay',
+  '/admin/buy',
+  '/admin/mypackage',
+  '/admin/useRechargeCard',
+]
+
+const financeRecordRoutes = [
+  '/admin/rechargerecord',
+  '/admin/buypackagerecord',
+  '/admin/rechargeCardHistory',
+]
+
+const financeAdminRoutes = [
+  '/admin/package',
+  '/admin/userPackageManagement',
+  '/admin/createRechargeCard',
+]
+
+const financeRoutes = [
+  ...financeUserRoutes,
+  ...financeRecordRoutes,
+  ...financeAdminRoutes,
+]
+
+const invoiceRoutes = ['/admin/invoice', '/admin/invoice-audit']
+
 const handleOpen = (key, keyPath) => {
   // console.log(key, keyPath)
 }
@@ -99,8 +126,6 @@ const pathMap = {
   statistics: '3',
 
   // 4: Finance Management (Moved from 3)
-  invoice: '4',
-  'invoice-audit': '4',
   package: '4',
   userPackageManagement: '4',
   rechargerecord: '4',
@@ -111,6 +136,11 @@ const pathMap = {
   buy: '4',
   mypackage: '4',
   useRechargeCard: '4',
+
+  // 9: Invoice Management
+  invoice: '9',
+  'invoice-audit': '9',
+  invoicedetail: '9',
 
   // 5: User & Merchant (Moved from 4)
   userlist: '5',
@@ -177,18 +207,16 @@ const pathIndexMap = {
   '/admin/statistics': '3-7',
 
   // Finance Management (4)
-  '/admin/invoice-audit': '4-12',
-  '/admin/invoice': '4-11',
   '/admin/pay': '4-1',
   '/admin/buy': '4-2',
   '/admin/mypackage': '4-3',
   '/admin/useRechargeCard': '4-4',
   '/admin/rechargerecord': '4-5',
   '/admin/buypackagerecord': '4-6',
-  '/admin/package': '4-7',
-  '/admin/userPackageManagement': '4-8',
-  '/admin/createRechargeCard': '4-9',
-  '/admin/rechargeCardHistory': '4-10',
+  '/admin/rechargeCardHistory': '4-7',
+  '/admin/package': '4-8',
+  '/admin/userPackageManagement': '4-9',
+  '/admin/createRechargeCard': '4-10',
 
   // User & Merchant (5)
   '/admin/userlist': '5-1',
@@ -219,6 +247,11 @@ const pathIndexMap = {
   '/admin/workorder': '8-1',
   '/admin/createworkorder': '8-2',
   '/admin/myworkorder': '8-3',
+
+  // Invoice Management (9)
+  '/admin/invoice': '9-1',
+  '/admin/invoice-audit': '9-2',
+  '/admin/invoicedetail': '9-1',
 }
 
 const getActiveIndex = (targetPath) => {
@@ -424,22 +457,7 @@ watch(
         <!-- 4. 财务管理 -->
         <el-sub-menu
           index="4"
-          v-if="
-            routeShowArr([
-              '/admin/invoice-audit',
-              '/admin/invoice',
-              '/admin/package',
-              '/admin/userPackageManagement',
-              '/admin/rechargerecord',
-              '/admin/buypackagerecord',
-              '/admin/createRechargeCard',
-              '/admin/rechargeCardHistory',
-              '/admin/pay',
-              '/admin/buy',
-              '/admin/mypackage',
-              '/admin/useRechargeCard',
-            ])
-          "
+          v-if="routeShowArr(financeRoutes)"
         >
           <template #title>
             <el-icon>
@@ -447,19 +465,10 @@ watch(
             </el-icon>
             <span>财务管理</span>
           </template>
-          <el-menu-item-group title="财务管理">
-            <el-menu-item
-              index="4-12"
-              @click="navigateTo('/admin/invoice-audit')"
-              v-if="routeShow('/admin/invoice-audit')"
-              >发票管理</el-menu-item
-            >
-            <el-menu-item
-              index="4-11"
-              @click="navigateTo('/admin/invoice')"
-              v-if="routeShow('/admin/invoice')"
-              >发票申请</el-menu-item
-            >
+          <el-menu-item-group
+            title="我的财务"
+            v-if="routeShowArr(financeUserRoutes)"
+          >
             <el-menu-item
               index="4-1"
               @click="navigateTo('/admin/pay')"
@@ -484,6 +493,11 @@ watch(
               v-if="routeShow('/admin/useRechargeCard')"
               >使用充值卡</el-menu-item
             >
+          </el-menu-item-group>
+          <el-menu-item-group
+            title="交易记录"
+            v-if="routeShowArr(financeRecordRoutes)"
+          >
             <el-menu-item
               index="4-5"
               @click="navigateTo('/admin/rechargerecord')"
@@ -498,27 +512,56 @@ watch(
             >
             <el-menu-item
               index="4-7"
+              @click="navigateTo('/admin/rechargeCardHistory')"
+              v-if="routeShow('/admin/rechargeCardHistory')"
+              >充值卡记录</el-menu-item
+            >
+          </el-menu-item-group>
+          <el-menu-item-group
+            title="财务后台"
+            v-if="routeShowArr(financeAdminRoutes)"
+          >
+            <el-menu-item
+              index="4-8"
               @click="navigateTo('/admin/package')"
               v-if="routeShow('/admin/package')"
               >套餐管理</el-menu-item
             >
             <el-menu-item
-              index="4-8"
+              index="4-9"
               @click="navigateTo('/admin/userPackageManagement')"
               v-if="routeShow('/admin/userPackageManagement')"
               >用户套餐</el-menu-item
             >
             <el-menu-item
-              index="4-9"
+              index="4-10"
               @click="navigateTo('/admin/createRechargeCard')"
               v-if="routeShow('/admin/createRechargeCard')"
               >生成充值卡</el-menu-item
             >
+          </el-menu-item-group>
+        </el-sub-menu>
+
+        <!-- 9. 发票管理 -->
+        <el-sub-menu index="9" v-if="routeShowArr(invoiceRoutes)">
+          <template #title>
+            <el-icon>
+              <Document />
+            </el-icon>
+            <span>发票管理</span>
+          </template>
+          <el-menu-item-group title="发票管理">
             <el-menu-item
-              index="4-10"
-              @click="navigateTo('/admin/rechargeCardHistory')"
-              v-if="routeShow('/admin/rechargeCardHistory')"
-              >充值卡记录</el-menu-item
+              index="9-1"
+              @click="navigateTo('/admin/invoice')"
+              v-if="routeShow('/admin/invoice')"
+              >发票申请</el-menu-item
+            >
+            <el-menu-item
+              index="9-2"
+              @click="navigateTo('/admin/invoice-audit')"
+              v-if="routeShow('/admin/invoice-audit')"
+              >发票审核</el-menu-item
             >
           </el-menu-item-group>
         </el-sub-menu>
@@ -737,8 +780,8 @@ watch(
           </el-menu-item-group>
         </el-sub-menu>
 
-        <!-- 9. 访问前台 -->
-        <el-menu-item index="9" @click="navigateTo('/')">
+        <!-- 10. 访问前台 -->
+        <el-menu-item index="10" @click="navigateTo('/')">
           <el-icon>
             <Promotion />
           </el-icon>
