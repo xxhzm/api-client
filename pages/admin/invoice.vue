@@ -1741,6 +1741,7 @@ useHead({
   font-size: 14px;
   font-weight: 600;
   color: #303133;
+  line-height: 1.3;
 }
 
 .header-meta {

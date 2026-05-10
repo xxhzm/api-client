@@ -528,7 +528,7 @@ useHead({
 
 .manage-card {
   width: 100%;
-  padding: 18px 20px 22px;
+  padding: 16px 20px 22px;
   margin: 0 auto;
   background: #fff;
   border: 1px solid #ebeef5;
@@ -552,8 +552,9 @@ useHead({
 
 .title {
   color: #303133;
-  font-size: 18px;
+  font-size: 14px;
   font-weight: 600;
+  line-height: 1.3;
   white-space: nowrap;
 }
 

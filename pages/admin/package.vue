@@ -445,20 +445,29 @@ useHead({
 <template>
   <div class="package-container" v-loading="loading">
     <div class="package-card">
+      <!-- 标题区域 -->
+      <div class="card-header">
+        <div class="header-left">
+          <span class="title">{{
+            activeTab === 'groups' ? '套餐组' : '套餐管理'
+          }}</span>
+        </div>
+        <div class="header-right">
+          <el-button
+            v-if="activeTab === 'packages'"
+            type="primary"
+            @click="dialogStatus = true"
+          >
+            <span>新增套餐</span>
+          </el-button>
+          <el-button v-else type="primary" @click="groupDialogStatus = true">
+            <span>新增套餐组</span>
+          </el-button>
+        </div>
+      </div>
+
       <el-tabs v-model="activeTab">
         <el-tab-pane label="套餐管理" name="packages">
-          <!-- 标题区域 -->
-          <div class="card-header">
-            <div class="header-left">
-              <span class="title">套餐管理</span>
-            </div>
-            <div class="header-right">
-              <el-button type="primary" @click="dialogStatus = true">
-                <span>新增套餐</span>
-              </el-button>
-            </div>
-          </div>
-
           <!-- 表格区域 -->
           <div class="table-container">
             <client-only>
@@ -558,17 +567,6 @@ useHead({
         </el-tab-pane>
 
         <el-tab-pane label="套餐组" name="groups">
-          <div class="card-header">
-            <div class="header-left">
-              <span class="title">套餐组</span>
-            </div>
-            <div class="header-right">
-              <el-button type="primary" @click="groupDialogStatus = true">
-                <span>新增套餐组</span>
-              </el-button>
-            </div>
-          </div>
-
           <div class="table-container">
             <client-only>
               <el-table :data="filterGroupData" style="width: 100%">
