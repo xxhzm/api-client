@@ -7,9 +7,9 @@ import {
   Message,
   Phone,
   Location,
-} from '@element-plus/icons-vue'
+} from '@element-plus/icons-vue';
 
-const options = useState('options')
+const options = useState('options');
 
 useHead({
   title: '服务条款' + ' - ' + options.value.title,
@@ -31,113 +31,128 @@ useHead({
       children: options.value.css,
     },
   ],
-})
+});
+
+const platformName =
+  options.value?.website_name || options.value?.title || '本平台';
 
 const termsData = ref([
   {
-    id: 'service-description',
-    title: '服务说明',
+    id: 'agreement-effect',
+    title: '协议的生效',
     color: '#3b82f6',
     content: `
-      <p>本平台是一个专业的API服务平台，致力于为开发者提供高质量、稳定可靠的API接口服务。我们提供的服务包括但不限于：</p>
-      <ul class="bullet-list">
-        <li>免费和付费API接口服务</li>
-        <li>API文档和技术支持</li>
-        <li>开发者工具和SDK</li>
-        <li>数据分析和统计服务</li>
-        <li>技术咨询和定制开发</li>
-      </ul>
-      <p>通过使用我们的服务，您同意遵守本服务条款的所有规定。</p>
-    `,
-  },
-  {
-    id: 'user-agreement',
-    title: '用户协议',
-    color: '#10b981',
-    content: `
-      <p>在使用本平台服务前，请仔细阅读并理解以下用户协议：</p>
+      <p>欢迎您使用${platformName}提供的API服务。本服务条款（以下简称"本协议"）是您（"用户"）与${platformName}（"服务商"）之间，就服务商为您提供的API接口服务（"本服务"）所达成的合法协议。</p>
       <ol class="numbered-list">
-        <li><span class="highlight">账户注册</span>：用户需提供真实、准确的注册信息，并对账户安全负责。</li>
-        <li><span class="highlight">使用规范</span>：用户应合法、合理地使用API服务，不得进行恶意攻击或滥用。</li>
-        <li><span class="highlight">内容责任</span>：用户对通过API获取或提交的数据内容承担全部责任。</li>
-        <li><span class="highlight">知识产权</span>：尊重平台及第三方的知识产权，不得侵犯相关权益。</li>
-        <li><span class="highlight">禁止行为</span>：禁止进行任何可能损害平台或其他用户利益的行为。</li>
+        <li><span class="highlight">用户确认而生效</span>：本协议由服务商以在线方式提供。用户在购买、订阅或开通本服务时，应认真阅读本协议，并在保持本协议勾选/同意状态下进入下一步流程。一经用户确认，本协议即具有合同效力，对用户及服务商双方均具有法律约束力。</li>
+        <li><span class="highlight">用户使用而生效</span>：用户通过注册账号、调用接口、下载SDK、在线访问等任一方式使用本服务，即表示用户已阅读、理解并同意接受本协议项下的全部条款。如您不接受本协议任一条款，请立即停止使用本服务。</li>
+        <li><span class="highlight">未成年人使用</span>：若您为未满十八周岁的未成年人，请在法定监护人陪同下阅读并同意本协议后使用本服务。</li>
       </ol>
     `,
   },
   {
-    id: 'api-usage',
-    title: 'API使用条款',
+    id: 'definitions',
+    title: '服务说明与定义',
+    color: '#10b981',
+    content: `
+      <p>除本协议另有约定外，本协议下列术语具有以下含义：</p>
+      <ul class="bullet-list">
+        <li><span class="highlight">本服务 / API服务</span>：指服务商通过${platformName}面向用户提供的应用程序编程接口（API）及相关技术支持、文档、SDK等配套服务。</li>
+        <li><span class="highlight">用户 / 您</span>：指阅读并同意本协议、合法注册账户、购买或调用本服务的个人或企业。</li>
+        <li><span class="highlight">服务商 / 我们</span>：指${platformName}的运营主体及其关联方。</li>
+        <li><span class="highlight">账户</span>：指用户在平台完成注册后获得的、用于访问本服务的唯一身份凭证，包括账号、密码、AppKey、AppSecret等认证信息。</li>
+        <li><span class="highlight">调用数据</span>：指用户在使用本服务过程中通过API提交或从API返回的全部信息。</li>
+      </ul>
+    `,
+  },
+  {
+    id: 'license',
+    title: '使用许可',
     color: '#8b5cf6',
     content: `
-      <p>使用我们的API服务时，您需要遵守以下条款：</p>
-      <div class="terms-subsection">
-        <h4>调用限制</h4>
-        <ul class="bullet-list">
-          <li>免费用户每日调用次数有限制，具体限制请查看相关API文档</li>
-          <li>付费用户根据套餐享有不同的调用额度</li>
-          <li>超出限制的调用可能被暂停或收取额外费用</li>
-        </ul>
-      </div>
+      <p>本服务受《中华人民共和国网络安全法》《个人信息保护法》《数据安全法》《中华人民共和国电信条例》《互联网信息服务管理办法》以及其他相关知识产权法律、法规和条约的保护。本服务为授权用户使用许可，而非出售。</p>
+      <ol class="numbered-list">
+        <li><span class="highlight">权利归属</span>：本服务的全部版权、商标、专利及其他知识产权均归服务商或其合法权利人所有。</li>
+        <li><span class="highlight">授权范围</span>：在用户遵守本协议的前提下，服务商授予用户一项<strong>非排他的、不可转让、不可分许可</strong>的使用权，用户仅可在所购买的套餐额度和期限内调用本服务。</li>
+        <li><span class="highlight">权利限制</span>：用户不得转售、出租、出借、分许可或以其他方式将本服务的使用权转让给第三方以牟取商业利益；未经服务商书面同意，不得将API接口集成或嵌入到与服务商具有竞争关系的产品中。</li>
+        <li><span class="highlight">逆向禁止</span>：除法律明确允许的情形外，用户不得对本服务进行逆向工程、反编译、反汇编，或以任何方式尝试获取本服务的源代码及底层实现。</li>
+      </ol>
+    `,
+  },
+  {
+    id: 'fees',
+    title: '费用与支付',
+    color: '#f59e0b',
+    content: `
+      <p>用户使用本服务须按照本服务的价格体系支付相应费用。</p>
+      <ol class="numbered-list">
+        <li><span class="highlight">计费方式</span>：本服务按照调用次数、数据量、并发量或订阅周期等方式进行计费，具体以用户所购买套餐及平台公示的价格为准。</li>
+        <li><span class="highlight">付款义务</span>：服务商保留在用户未按约定支付全部费用前不予提供服务和/或技术支持，或者终止服务和/或技术支持的权利。</li>
+        <li><span class="highlight">续费规则</span>：用户如对本服务进行续费时，若本服务的名称、规格或价格已调整，用户同意按照届时有效的新名称、规格或价格履行；用户不同意的，可选择不续费，本服务到期后自动终止。</li>
+        <li><span class="highlight">退款政策</span>：用户一经同意本协议并完成支付，因本服务的特殊性（虚拟产品、按量消耗），<strong>原则上不支持退款</strong>；如确因服务商原因无法继续提供服务的，将按实际未使用额度退还相应费用。</li>
+        <li><span class="highlight">发票服务</span>：用户可在平台申请开具合规发票，具体流程及税率以平台公示为准。</li>
+      </ol>
+      <p class="notice">注意：付费服务一旦开通，费用将根据实际调用量扣除，请合理规划使用并及时关注额度消耗情况。</p>
+    `,
+  },
+  {
+    id: 'user-obligations',
+    title: '用户的权利义务',
+    color: '#3b82f6',
+    content: `
+      <p>用户在使用本服务过程中，应遵守以下权利与义务：</p>
+      <ol class="numbered-list">
+        <li><span class="highlight">合法合规</span>：用户保证其使用本服务的各项行为均符合国家法律法规的规定，合法真实且不侵害任何第三方的合法权益。</li>
+        <li><span class="highlight">按时付费</span>：用户应按时足额支付本服务的费用，否则服务商保留随时终止用户使用本服务的权利，用户应自行承担因此造成的全部损害。</li>
+        <li><span class="highlight">账户安全</span>：用户应妥善保管账号、密码、AppKey、AppSecret等认证信息，因泄露、转借、出售导致的一切后果由用户自行承担。</li>
+        <li><span class="highlight">授权前提</span>：用户在使用涉及个人信息、企业信息或第三方数据的接口时，应事先获得被核验信息主体的充分、明确授权，方可进行信息查询或核验，并承担相应的合规责任。</li>
+        <li><span class="highlight">禁止行为</span>：用户不得利用本服务从事任何违法、违规、攻击性或滥用行为，包括但不限于：恶意刷量、压力测试、绕过限流、抓取/转售数据、传播恶意程序、侵犯他人隐私或知识产权等。</li>
+        <li><span class="highlight">风险自担</span>：因现有技术限制，服务商提供的服务可能存在瑕疵，并不能保证在任何情况下都能正常执行或达到用户所期望的结果，用户应自行评估并承担使用风险。</li>
+      </ol>
+      <p class="notice"><strong>严禁一切违法行为。</strong>用户在使用本服务过程中，不得从事任何违反中华人民共和国法律、法规、规章及政策的活动；一经发现，服务商有权立即中止或终止服务，冻结相关账户，配合有权机关进行调查，并保留追究用户法律责任的权利，由此造成的全部后果及损失由用户自行承担。</p>
+    `,
+  },
+  {
+    id: 'provider-obligations',
+    title: '服务商的权利义务',
+    color: '#10b981',
+    content: `
+      <p>服务商在提供本服务过程中，享有以下权利并承担以下义务：</p>
+      <ol class="numbered-list">
+        <li><span class="highlight">合法提供</span>：服务商保证其有合法权利向用户提供本服务的使用许可，并保证其版权的合法性。</li>
+        <li><span class="highlight">运维支持</span>：服务商负责及时对本服务进行升级、维护和管理，并通过在线客服、工单、邮件等方式向用户提供咨询及技术支持。</li>
+        <li><span class="highlight">稳定性承诺</span>：服务商承诺保证本服务的稳定性和延续性。如因服务商原因导致用户对本服务的使用许可需提前终止的，服务商应向用户履行相应的退款义务（如有）。</li>
+        <li><span class="highlight">安全承诺</span>：服务商承诺其向用户提供的服务中不含有：(1) 蓄意毁坏、恶意干扰、秘密截取或侵占任何系统、数据或个人资料的病毒、木马、蠕虫、逻辑炸弹或其他恶意程序；(2) 任何已知的后门、漏洞；(3) 其他可能对用户系统安全造成损害的不安全内容。</li>
+        <li><span class="highlight">监督权利</span>：服务商有权对用户的使用行为进行合理监督，若发现用户存在违法或违反本协议的行为，有权立即暂停或终止服务，并保留追究法律责任的权利。</li>
+        <li><span class="highlight">责任限制</span>：在适用法律所允许的最大范围内，服务商不会对因使用或不能使用本服务所引起的或有关的任何间接的、意外的、直接的、特殊的、惩罚性的或其他任何损害（包括但不限于人身伤害、财产损坏、利润损失、数据损失、营业中断、计算机瘫痪或故障、商业信息遗失、隐私泄露、因疏忽造成的损害或任何其他金钱损失）承担赔偿责任，即使服务商事先被告知该损害发生的可能性。服务商对用户的最大赔偿责任，累计不超过用户就引起赔偿责任事项已向服务商支付的服务费用。</li>
+      </ol>
+    `,
+  },
+  {
+    id: 'data-privacy',
+    title: '用户数据的使用和披露',
+    color: '#8b5cf6',
+    content: `
+      <p>服务商高度重视用户数据和隐私保护，在数据的收集、存储、使用及披露过程中严格遵守法律法规：</p>
       <div class="terms-subsection">
         <h4>数据使用</h4>
         <ul class="bullet-list">
-          <li>API返回的数据仅供合法用途使用</li>
-          <li>不得将数据用于违法、有害或侵犯他人权益的活动</li>
-          <li>商业使用需遵守相应的商业许可条款</li>
+          <li>为向用户提供服务，服务商可能使用用户数据，包括但不限于向用户发送产品和服务信息、统计分析、服务改进等。</li>
+          <li>服务商采用HTTPS加密传输、访问控制、身份鉴权等措施保护用户数据安全。</li>
+          <li>遵循数据最小化原则，仅收集为提供本服务所必需的信息。</li>
         </ul>
       </div>
       <div class="terms-subsection">
-        <h4>技术要求</h4>
-        <ul class="bullet-list">
-          <li>使用标准的HTTP/HTTPS协议进行API调用</li>
-          <li>正确处理API返回的错误码和异常情况</li>
-          <li>实施适当的缓存策略以减少不必要的API调用</li>
-        </ul>
+        <h4>数据披露</h4>
+        <p>未经用户许可，服务商不会擅自披露用户数据。但在下述情况下，用户数据将部分或全部被披露：</p>
+        <ol class="numbered-list">
+          <li>经用户同意，向第三方披露；</li>
+          <li>根据法律法规的规定，或者行政、司法机构的要求，向第三方或者行政、司法机构披露；</li>
+          <li>用户出现违反中国有关法律法规的情况，需要向第三方披露；</li>
+          <li>为提供用户所要求的软件或服务，而必须和第三方（如支付机构、物流、上游数据方等）分享用户数据。</li>
+        </ol>
       </div>
-    `,
-  },
-  {
-    id: 'payment-terms',
-    title: '付费条款',
-    color: '#f59e0b',
-    content: `
-      <p>对于付费API服务，以下条款适用：</p>
-      <ol class="numbered-list">
-        <li><span class="highlight">计费方式</span>：根据API调用次数、数据量或订阅周期进行计费。</li>
-        <li><span class="highlight">支付方式</span>：支持多种支付方式，包括在线支付、银行转账等。</li>
-        <li><span class="highlight">退款政策</span>：在特定条件下提供退款服务，具体政策请查看退款说明。</li>
-        <li><span class="highlight">发票服务</span>：可根据用户需求提供正规发票。</li>
-        <li><span class="highlight">价格调整</span>：我们保留调整服务价格的权利，但会提前通知用户。</li>
-      </ol>
-      <p class="notice">注意：付费服务一旦开通，费用将根据实际使用情况扣除，请合理规划使用。</p>
-    `,
-  },
-  {
-    id: 'data-security',
-    title: '数据安全',
-    color: '#10b981',
-    content: `
-      <p>我们高度重视数据安全，采取以下措施保护用户数据：</p>
-      <div class="terms-subsection">
-        <h4>技术保障</h4>
-        <ul class="bullet-list">
-          <li>采用HTTPS加密传输，确保数据传输安全</li>
-          <li>实施严格的访问控制和身份验证机制</li>
-          <li>定期进行安全审计和漏洞扫描</li>
-          <li>建立完善的数据备份和恢复机制</li>
-        </ul>
-      </div>
-      <div class="terms-subsection">
-        <h4>隐私保护</h4>
-        <ul class="bullet-list">
-          <li>严格遵守相关隐私法律法规</li>
-          <li>不会未经授权访问或使用用户数据</li>
-          <li>实施数据最小化原则，只收集必要的数据</li>
-          <li>提供数据删除和修改的权利</li>
-        </ul>
-      </div>
-      <p class="highlight">我们承诺不会将用户数据出售给第三方，仅在法律要求或用户授权的情况下共享数据。</p>
+      <p class="highlight">服务商承诺不会将用户数据出售给任何第三方。</p>
     `,
   },
   {
@@ -145,55 +160,103 @@ const termsData = ref([
     title: '服务可用性',
     color: '#3b82f6',
     content: `
-      <p>我们致力于提供稳定可靠的服务，但需要说明以下情况：</p>
+      <p>服务商致力于提供稳定可靠的服务，但需特别说明以下情形：</p>
       <ol class="numbered-list">
-        <li><span class="highlight">服务时间</span>：我们努力提供7×24小时不间断服务。</li>
-        <li><span class="highlight">维护时间</span>：定期维护可能导致短暂的服务中断，我们会提前通知。</li>
-        <li><span class="highlight">不可抗力</span>：因自然灾害、网络故障等不可抗力因素导致的服务中断，我们不承担责任。</li>
-        <li><span class="highlight">服务升级</span>：为提升服务质量，我们可能对API进行升级，会提前通知并提供迁移指导。</li>
+        <li><span class="highlight">服务时间</span>：服务商努力提供7×24小时不间断服务，目标可用性为99.9%。</li>
+        <li><span class="highlight">计划维护</span>：定期维护可能导致短暂的服务中断，服务商将尽可能提前通过站内消息、邮件或公告通知。</li>
+        <li><span class="highlight">不可抗力</span>：因自然灾害、战争、疫情、政府行为、网络攻击、电信故障或其他不可抗力因素导致的服务中断，服务商不承担责任。</li>
+        <li><span class="highlight">服务升级</span>：为提升服务质量，服务商可能对API进行升级、变更或下线，将按合理期限提前通知，并在可行时提供迁移指导。</li>
       </ol>
-      <p>我们的目标是保持99.9%的服务可用性，如遇到服务问题，请及时联系我们的技术支持团队。</p>
     `,
   },
   {
-    id: 'liability-limitation',
-    title: '责任限制',
+    id: 'term-termination',
+    title: '期限与终止',
     color: '#ef4444',
     content: `
-      <p>在法律允许的最大范围内，我们的责任限制如下：</p>
+      <p>本协议的期限及终止条件如下：</p>
       <ol class="numbered-list">
-        <li><span class="highlight">服务质量</span>：我们尽力提供高质量服务，但不保证服务完全无错误或中断。</li>
-        <li><span class="highlight">数据准确性</span>：API返回的数据可能存在延迟或错误，用户应自行验证数据的准确性。</li>
-        <li><span class="highlight">间接损失</span>：我们不对因使用服务而产生的间接损失承担责任。</li>
-        <li><span class="highlight">第三方服务</span>：对于集成的第三方服务，我们不对其可用性和准确性承担责任。</li>
-        <li><span class="highlight">赔偿限额</span>：我们的最大赔偿责任不超过用户支付的服务费用。</li>
+        <li><span class="highlight">协议期限</span>：本协议自用户同意之日起生效，持续至本服务终止或用户注销账户之日止。</li>
+        <li><span class="highlight">服务商终止</span>：出现下列情况之一的，服务商有权终止继续提供本服务，而无需承担任何责任：
+          <ul class="bullet-list" style="margin-top:8px">
+            <li>用户购买的服务已到期且未续费的；</li>
+            <li>用户严重违反本协议项下条款的约定，且自服务商通知其纠正后仍未纠正的；</li>
+            <li>用户被有权机关认定存在违法违规行为的；</li>
+            <li>法律法规规定的其他情形。</li>
+          </ul>
+        </li>
+        <li><span class="highlight">用户终止</span>：用户可随时停止使用本服务，但已产生的费用不予退还（法律另有规定或本协议另有约定的除外）。</li>
+        <li><span class="highlight">条款存续</span>：本协议因任何原因终止后，关于知识产权、责任限制、保密、法律适用与争议解决等条款在其性质允许的范围内继续有效。</li>
       </ol>
-      <p class="notice">用户在使用服务时应充分了解相关风险，并采取适当的预防措施。</p>
     `,
   },
   {
     id: 'terms-modification',
-    title: '条款修改',
+    title: '协议修改',
     color: '#8b5cf6',
     content: `
-      <p>我们保留修改本服务条款的权利，修改时将遵循以下原则：</p>
+      <p>服务商保留修改本协议的权利，修改时将遵循以下原则：</p>
       <ul class="bullet-list">
-        <li>重大修改将提前30天通过邮件、网站公告等方式通知用户</li>
-        <li>轻微修改将在网站上公布，用户继续使用服务即视为同意修改</li>
-        <li>用户如不同意修改，可以停止使用服务并注销账户</li>
-        <li>修改后的条款将在公布后生效，不具有追溯力</li>
+        <li>如本协议的任何内容发生变动，服务商将通过站内公告、邮件或其他适当方式向用户提示修改内容；</li>
+        <li>如用户不同意服务商对本协议相关条款所做的修改，用户有权停止使用本服务。此等情况下，服务商应向用户退回剩余费用（如有），并在终止服务前给予用户一定的合理期限，进行数据备份、下载、保存、迁移及其他必要工作；</li>
+        <li>如用户在修改通知后继续使用本服务，则视为用户接受服务商对本协议相关条款所做的修改；</li>
+        <li>修改后的条款将在公布后生效，不具有追溯力。</li>
       </ul>
-      <p>建议用户定期查看本服务条款，以了解最新的规定和要求。</p>
+      <p>建议用户定期查看本协议，以了解最新的规定和要求。</p>
     `,
   },
-])
+  {
+    id: 'law-dispute',
+    title: '法律及争议解决',
+    color: '#10b981',
+    content: `
+      <p>本协议的法律适用与争议解决条款如下：</p>
+      <ol class="numbered-list">
+        <li><span class="highlight">法律适用</span>：本协议的订立、执行和解释及争议的解决均适用<strong>中华人民共和国法律</strong>（不包括冲突法规则）。</li>
+        <li><span class="highlight">争议解决</span>：因双方就本协议的签订、履行或解释发生争议，双方应努力友好协商解决。如协商不成，任何一方均应向<strong>本公司所在地人民法院</strong>提起诉讼。</li>
+        <li><span class="highlight">条款独立</span>：如本协议的任何条款被视作无效或无法执行，则上述条款可被分离，其余部分仍具有法律效力。</li>
+        <li><span class="highlight">标题说明</span>：本协议的标题仅为方便阅读所设，非对条款的定义、限制、解释或描述其范围或界限。</li>
+      </ol>
+    `,
+  },
+  {
+    id: 'compliance-commitment',
+    title: '业务合规承诺',
+    color: '#f59e0b',
+    content: `
+      <p>为保障合法、合规的信息服务，用户在使用本服务（含但不限于短信、语音、AI内容生成、数据核验等接口）过程中，应严格遵守国家相关法律、法规，并承诺遵守以下条款：</p>
+      <ol class="numbered-list">
+        <li>建立健全的信息安全责任制度和信息发布审批制度、信息安全保密制度，严格审查所发布的信息。</li>
+        <li>严格遵守国家、地方关于信息安全管理的各项规定和知识产权的有关规定，不侵犯其他任何个人和单位的知识产权利益。</li>
+        <li>严格遵守《互联网信息服务管理办法》对使用本服务发送的通信内容进行把关，并保证严格按照业务规范执行。</li>
+        <li>保证发布的信息来源可靠、真实，信息内容健康、合法，不制作、复制、发布、传播《中华人民共和国电信条例》禁止的有害信息。</li>
+      </ol>
+      <div class="terms-subsection">
+        <h4>禁止传播的信息</h4>
+        <p>用户不得利用本服务或通信通道发布、传播含有下列内容的信息：</p>
+        <ul class="bullet-list">
+          <li>反对宪法所确定的基本原则的；危害国家安全、泄露国家秘密、颠覆国家政权、破坏国家统一的；</li>
+          <li>损害国家荣誉和利益的；煽动民族仇恨、民族歧视、破坏民族团结的；</li>
+          <li>破坏国家宗教政策，宣扬邪教和封建迷信的；</li>
+          <li>散布谣言、淫秽、色情、赌博、暴力、诈骗、凶杀、恐怖或者教唆犯罪的；</li>
+          <li>侮辱或者诽谤他人，有损社会公德和侵犯他人合法权益的；扰乱社会秩序、破坏社会稳定的；</li>
+          <li>含有诈骗信息（包括"套路贷"等司法解释明令禁止的内容）的；</li>
+          <li>含有恶意软件、病毒、木马或非法产品/服务的；</li>
+          <li>含有虚假、欺诈、诱导性内容的；</li>
+          <li>法律、行政法规禁止的其他内容。</li>
+        </ul>
+      </div>
+      <p class="notice">一旦发现上述违法犯罪活动和有害信息，用户应立即采取措施制止并及时向有关主管部门报告。服务商有权立即暂停或终止服务，并保留追究法律责任的权利。</p>
+    `,
+  },
+]);
 
 const contactInfo = ref({
   email: options.value?.contact_email || '',
   phone: options.value?.contact_phone || '',
   address: options.value?.contact_address || '',
   workTime: options.value?.working_hours || '',
-})
+});
 </script>
 
 <template>
@@ -233,7 +296,9 @@ const contactInfo = ref({
                 :href="`#${term.id}`"
                 class="nav-item"
               >
-                <span class="nav-num">{{ String(index + 1).padStart(2, '0') }}</span>
+                <span class="nav-num">{{
+                  String(index + 1).padStart(2, '0')
+                }}</span>
                 <span class="nav-text">{{ term.title }}</span>
               </a>
             </div>
@@ -248,10 +313,15 @@ const contactInfo = ref({
               class="terms-block"
             >
               <div class="block-header">
-                <div class="block-num">{{ String(index + 1).padStart(2, '0') }}</div>
+                <div class="block-num">
+                  {{ String(index + 1).padStart(2, '0') }}
+                </div>
                 <div class="block-meta">
                   <h2>{{ term.title }}</h2>
-                  <div class="block-divider" :style="{ backgroundColor: term.color }"></div>
+                  <div
+                    class="block-divider"
+                    :style="{ backgroundColor: term.color }"
+                  ></div>
                 </div>
               </div>
               <div class="block-body" v-html="term.content"></div>
@@ -270,21 +340,30 @@ const contactInfo = ref({
         </div>
         <div class="notice-grid">
           <div class="notice-card">
-            <div class="icon-box" style="background-color: #fef3c715; color: #f59e0b;">
+            <div
+              class="icon-box"
+              style="background-color: #fef3c715; color: #f59e0b"
+            >
               <el-icon><Document /></el-icon>
             </div>
             <h3>法律效力</h3>
             <p>本服务条款具有法律约束力，请在使用服务前仔细阅读。</p>
           </div>
           <div class="notice-card">
-            <div class="icon-box" style="background-color: #fef3c715; color: #f59e0b;">
+            <div
+              class="icon-box"
+              style="background-color: #fef3c715; color: #f59e0b"
+            >
               <el-icon><User /></el-icon>
             </div>
             <h3>用户责任</h3>
             <p>用户应对自己的行为负责，遵守相关法律法规。</p>
           </div>
           <div class="notice-card">
-            <div class="icon-box" style="background-color: #fef3c715; color: #f59e0b;">
+            <div
+              class="icon-box"
+              style="background-color: #fef3c715; color: #f59e0b"
+            >
               <el-icon><Service /></el-icon>
             </div>
             <h3>服务变更</h3>
@@ -300,14 +379,18 @@ const contactInfo = ref({
         <div class="contact-bar">
           <div class="contact-left">
             <h3>对条款有疑问？</h3>
-            <p>如果您对服务条款有任何疑问，请通过以下方式联系我们，我们将尽快为您解答。</p>
+            <p>
+              如果您对服务条款有任何疑问，请通过以下方式联系我们，我们将尽快为您解答。
+            </p>
           </div>
           <div class="contact-right">
             <div class="contact-item" v-if="contactInfo.email">
               <el-icon><Message /></el-icon>
               <div>
                 <span class="label">邮箱</span>
-                <a :href="`mailto:${contactInfo.email}`">{{ contactInfo.email }}</a>
+                <a :href="`mailto:${contactInfo.email}`">{{
+                  contactInfo.email
+                }}</a>
               </div>
             </div>
             <div class="contact-item" v-if="contactInfo.phone">
@@ -342,7 +425,12 @@ const contactInfo = ref({
 
 <style lang="less" scoped>
 .terms-page {
-  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto,
+  font-family:
+    'Inter',
+    -apple-system,
+    BlinkMacSystemFont,
+    'Segoe UI',
+    Roboto,
     sans-serif;
   color: #1e293b;
   background-color: #ffffff;
@@ -559,7 +647,7 @@ const contactInfo = ref({
       display: flex;
       align-items: flex-start;
       gap: 20px;
-      padding: 32px 36px 24px;
+      padding: 32px 40px 20px;
 
       .block-num {
         font-size: 48px;
@@ -569,6 +657,7 @@ const contactInfo = ref({
         letter-spacing: -0.04em;
         flex-shrink: 0;
         user-select: none;
+        width: 56px;
       }
 
       .block-meta {
@@ -579,7 +668,8 @@ const contactInfo = ref({
         font-size: 22px;
         font-weight: 700;
         color: #0f172a;
-        margin: 0 0 8px;
+        margin: 0 0 10px;
+        letter-spacing: -0.01em;
       }
 
       .block-divider {
@@ -591,78 +681,100 @@ const contactInfo = ref({
     }
 
     .block-body {
-      padding: 0 36px 32px 36px;
+      padding: 4px 40px 36px 116px;
 
       :deep(p) {
         color: #475569;
         font-size: 15px;
-        line-height: 1.8;
-        margin: 0 0 16px;
+        line-height: 1.85;
+        margin: 0 0 18px;
 
         &:last-child {
           margin-bottom: 0;
         }
 
         &.notice {
+          position: relative;
           background: #fffbeb;
           border: 1px solid #fde68a;
+          border-left: 3px solid #f59e0b;
           border-radius: 10px;
           padding: 14px 18px;
           color: #92400e;
           font-size: 14px;
+          line-height: 1.75;
+          margin-top: 22px;
+
+          strong {
+            color: #b45309;
+            font-weight: 700;
+          }
         }
+      }
+
+      :deep(strong) {
+        color: #0f172a;
+        font-weight: 700;
       }
 
       :deep(.highlight) {
         color: #2563eb;
         font-weight: 600;
+        white-space: nowrap;
       }
 
       :deep(.numbered-list) {
-        margin: 0 0 16px;
+        margin: 0 0 20px;
         padding-left: 0;
         counter-reset: item;
         list-style: none;
 
         li {
+          position: relative;
+          padding-left: 40px;
           margin-bottom: 14px;
-          line-height: 1.8;
+          line-height: 1.85;
           color: #475569;
           font-size: 15px;
-          display: flex;
-          gap: 10px;
 
           &::before {
             content: counter(item);
             counter-increment: item;
+            position: absolute;
+            left: 0;
+            top: 3px;
             display: flex;
             align-items: center;
             justify-content: center;
-            width: 24px;
-            height: 24px;
+            width: 26px;
+            height: 26px;
             background: #eff6ff;
             color: #2563eb;
             border-radius: 6px;
             font-size: 13px;
             font-weight: 700;
-            flex-shrink: 0;
-            margin-top: 3px;
           }
 
           &:last-child {
+            margin-bottom: 0;
+          }
+
+          .bullet-list,
+          .numbered-list {
+            margin-top: 10px;
             margin-bottom: 0;
           }
         }
       }
 
       :deep(.bullet-list) {
-        margin: 0 0 16px;
+        margin: 0 0 20px;
         padding-left: 0;
         list-style: none;
 
         li {
           margin-bottom: 10px;
-          line-height: 1.8;
+          line-height: 1.85;
           color: #475569;
           font-size: 15px;
           padding-left: 22px;
@@ -671,8 +783,8 @@ const contactInfo = ref({
           &::before {
             content: '';
             position: absolute;
-            left: 0;
-            top: 10px;
+            left: 4px;
+            top: 12px;
             width: 6px;
             height: 6px;
             border-radius: 50%;
@@ -686,20 +798,49 @@ const contactInfo = ref({
       }
 
       :deep(.terms-subsection) {
-        margin: 20px 0;
-        padding: 24px;
+        margin: 22px 0;
+        padding: 24px 26px;
         background: #f8fafc;
         border-radius: 12px;
-        border: 1px solid #f1f5f9;
+        border: 1px solid #eef2f7;
 
-        h4 {
-          color: #0f172a;
-          font-size: 16px;
-          margin: 0 0 14px;
-          font-weight: 700;
+        &:first-child {
+          margin-top: 6px;
         }
 
-        .bullet-list {
+        &:last-child {
+          margin-bottom: 0;
+        }
+
+        h4 {
+          display: flex;
+          align-items: center;
+          gap: 10px;
+          color: #0f172a;
+          font-size: 15px;
+          margin: 0 0 14px;
+          font-weight: 700;
+          letter-spacing: 0.2px;
+
+          &::before {
+            content: '';
+            width: 3px;
+            height: 14px;
+            background: #2563eb;
+            border-radius: 2px;
+          }
+        }
+
+        p {
+          margin-bottom: 12px;
+
+          &:last-child {
+            margin-bottom: 0;
+          }
+        }
+
+        .bullet-list,
+        .numbered-list {
           margin-bottom: 0;
         }
       }
@@ -928,6 +1069,7 @@ const contactInfo = ref({
 
         .block-num {
           font-size: 36px;
+          width: 42px;
         }
 
         h2 {
@@ -942,25 +1084,43 @@ const contactInfo = ref({
       }
 
       .block-body {
-        padding: 0 24px 24px;
+        padding: 4px 24px 24px 24px;
 
         :deep(p) {
           font-size: 14px;
+          margin-bottom: 14px;
         }
 
-        :deep(.numbered-list li) {
-          font-size: 14px;
+        :deep(.numbered-list) {
+          margin-bottom: 16px;
+
+          li {
+            font-size: 14px;
+            padding-left: 34px;
+            margin-bottom: 12px;
+
+            &::before {
+              width: 22px;
+              height: 22px;
+              font-size: 12px;
+              top: 2px;
+            }
+          }
         }
 
-        :deep(.bullet-list li) {
-          font-size: 14px;
+        :deep(.bullet-list) {
+          margin-bottom: 16px;
+
+          li {
+            font-size: 14px;
+          }
         }
 
         :deep(.terms-subsection) {
-          padding: 18px;
+          padding: 18px 20px;
 
           h4 {
-            font-size: 15px;
+            font-size: 14px;
           }
         }
       }
@@ -1081,6 +1241,7 @@ const contactInfo = ref({
 
         .block-num {
           font-size: 28px;
+          width: 34px;
         }
 
         .block-meta {
@@ -1099,7 +1260,7 @@ const contactInfo = ref({
       }
 
       .block-body {
-        padding: 0 20px 20px;
+        padding: 4px 20px 20px 20px;
 
         :deep(p) {
           font-size: 13px;
@@ -1107,12 +1268,14 @@ const contactInfo = ref({
 
         :deep(.numbered-list li) {
           font-size: 13px;
-          gap: 8px;
+          padding-left: 30px;
+          margin-bottom: 10px;
 
           &::before {
             width: 20px;
             height: 20px;
             font-size: 11px;
+            top: 2px;
           }
         }
 
