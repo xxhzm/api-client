@@ -43,22 +43,10 @@ useHead({
 </script>
 
 <template>
-  <el-config-provider :locale="zhCn">
+  <el-config-provider :locale="zhCn" :z-index="3000">
     <NuxtLayout>
       <NuxtPage :options="options"></NuxtPage>
     </NuxtLayout>
   </el-config-provider>
   <el-backtop :right="100" :bottom="100" />
 </template>
-
-<style>
-/* 全局消息提示样式 */
-.el-message,
-.el-overlay {
-  z-index: 999999999999999999999999 !important;
-}
-
-.el-popper {
-  z-index: 9999999999999999999999999 !important;
-}
-</style>

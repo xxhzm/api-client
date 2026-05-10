@@ -41,9 +41,12 @@
 }
 
 /* 全局消息提示样式 */
-.el-message,
-.el-overlay {
-  z-index: 999999999999999999999999999999 !important;
+.el-message {
+  z-index: 2147483647 !important;
+}
+
+.el-select__popper.el-popper {
+  z-index: 2147483646 !important;
 }
 
 /* 全局弹窗样式 */

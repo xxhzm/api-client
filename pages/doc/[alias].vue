@@ -2156,10 +2156,6 @@ const generatedExamples = computed(() => {
 </style>
 
 <style lang="less">
-.el-message {
-  z-index: 9999 !important;
-}
-
 .package-api-names-dialog {
   .package-api-names-dialog__desc {
     margin: 0 0 16px;
