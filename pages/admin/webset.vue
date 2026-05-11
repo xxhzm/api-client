@@ -96,6 +96,8 @@ const loginInfo = ref({
   templateCode: '',
   githubClientId: '',
   githubClientSecret: '',
+  qjqqAppId: '',
+  qjqqAppKey: '',
 })
 
 // 验证码配置相关
@@ -708,6 +710,8 @@ const loginInfoSubmit = async () => {
     'gitHubClientSecret',
     loginInfo.value.githubClientSecret || '',
   )
+  bodyValue.append('qjqqAppId', loginInfo.value.qjqqAppId || '')
+  bodyValue.append('qjqqAppKey', loginInfo.value.qjqqAppKey || '')
 
   const res = await $myFetch('UpdateLoginMethodInfo', {
     method: 'POST',
@@ -2644,13 +2648,15 @@ useHead({
                       <el-checkbox label="email">邮箱验证码登录</el-checkbox>
                       <el-checkbox label="sms">手机号验证码登录</el-checkbox>
                       <el-checkbox label="github">GitHub 快捷登录</el-checkbox>
+                      <el-checkbox label="qjqq">彩虹聚合登录</el-checkbox>
                     </el-checkbox-group>
                   </el-form-item>
 
                   <el-tabs
                     v-if="
                       loginInfo.method.includes('sms') ||
-                      loginInfo.method.includes('github')
+                      loginInfo.method.includes('github') ||
+                      loginInfo.method.includes('qjqq')
                     "
                     class="sub-tabs"
                     style="margin-bottom: 20px"
@@ -2817,6 +2823,41 @@ useHead({
                           OAuth App 的密钥，请妥善保管，不要泄露
                         </div>
                       </el-form-item>
+                    </el-tab-pane>
+
+                    <!-- 彩虹聚合登录配置 -->
+                    <el-tab-pane
+                      v-if="loginInfo.method.includes('qjqq')"
+                      label="彩虹聚合登录配置"
+                    >
+                      <el-form-item label="AppID">
+                        <el-input
+                          v-model="loginInfo.qjqqAppId"
+                          placeholder="请输入彩虹聚合登录 AppID"
+                        />
+                        <div class="form-help">
+                          在彩虹聚合登录用户中心创建应用后获取
+                        </div>
+                      </el-form-item>
+
+                      <el-form-item label="AppKey">
+                        <el-input
+                          v-model="loginInfo.qjqqAppKey"
+                          type="password"
+                          show-password
+                          placeholder="请输入彩虹聚合登录 AppKey"
+                        />
+                        <div class="form-help">
+                          AppKey 仅保存到后端配置，用于服务端换取用户信息
+                        </div>
+                      </el-form-item>
+
+                      <el-alert
+                        title="当前按彩虹文档接入 QQ 登录，回调地址使用站点 pageurl 下的 /login。"
+                        type="info"
+                        :closable="false"
+                        show-icon
+                      />
                     </el-tab-pane>
                   </el-tabs>
 

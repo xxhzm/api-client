@@ -36,10 +36,12 @@ const info = reactive({
 const LoginIsRegister = ref(true)
 const isForgotPassword = ref(false)
 const isEmailLogin = ref(false)
+const isOAuthBindEmail = ref(false)
 const loginAndRegisterButtonStatus = ref(false)
 const availableLoginMethods = ref([]) // 可用的登录方式数组
 const currentLoginMethod = ref('email') // 当前选择的登录方式
 const isLoginDisabled = ref(false) // 是否禁用所有登录方式
+const oauthBindToken = ref('')
 
 const goBack = () => {
   navigateTo('/')
@@ -52,6 +54,22 @@ const markAdminHomePopupPending = () => {
 }
 
 const routeInfo = useCookie('routeInfo')
+
+const firstQueryValue = (value) => (Array.isArray(value) ? value[0] : value)
+
+const applyLoginSuccess = (data, successMessage) => {
+  username.value = data.username
+  token.value = data.token
+
+  const authorization = useState('Authorization')
+  authorization.value = data.token
+
+  $msg(successMessage, 'success')
+
+  routeInfo.value = data.routeInfo
+  markAdminHomePopupPending()
+  navigateTo('/admin')
+}
 
 const login = async () => {
   if (!isPolicyAgreed.value) {
@@ -76,19 +94,7 @@ const login = async () => {
   })
 
   if (res.code === 200) {
-    // 设置cookie
-    username.value = res.data.username
-    token.value = res.data.token
-
-    // 将 token 同时保存到 usestate
-    const authorization = useState('Authorization')
-    authorization.value = res.data.token
-
-    $msg('登录成功', 'success')
-
-    routeInfo.value = res.data.routeInfo
-    markAdminHomePopupPending()
-    navigateTo('/admin')
+    applyLoginSuccess(res.data, '登录成功')
     return false
   }
 
@@ -102,6 +108,7 @@ const login = async () => {
 const LoginIsRegisterChange = () => {
   LoginIsRegister.value = !LoginIsRegister.value
   // 切换时重置其他登录状态
+  isOAuthBindEmail.value = false
   isEmailLogin.value = false
   isForgotPassword.value = false
   // 切换到注册时获取登录方式配置
@@ -122,6 +129,10 @@ let smsCountdownTimer = null
 // 登录验证码倒计时
 const smsLoginCountdown = ref(0)
 let smsLoginCountdownTimer = null
+// 第三方绑定邮箱验证码按钮状态
+const getOAuthBindVerifyCodeButtonState = ref(false)
+const oauthBindCountdown = ref(0)
+let oauthBindCountdownTimer = null
 
 const startSmsCountdown = () => {
   smsCountdown.value = 60
@@ -141,6 +152,17 @@ const startSmsLoginCountdown = () => {
     smsLoginCountdown.value--
     if (smsLoginCountdown.value <= 0) {
       clearInterval(smsLoginCountdownTimer)
+    }
+  }, 1000)
+}
+
+const startOAuthBindCountdown = () => {
+  oauthBindCountdown.value = 60
+  clearInterval(oauthBindCountdownTimer)
+  oauthBindCountdownTimer = setInterval(() => {
+    oauthBindCountdown.value--
+    if (oauthBindCountdown.value <= 0) {
+      clearInterval(oauthBindCountdownTimer)
     }
   }, 1000)
 }
@@ -296,6 +318,7 @@ const register = async () => {
 const toggleForgotPassword = () => {
   isForgotPassword.value = !isForgotPassword.value
   LoginIsRegister.value = true
+  isOAuthBindEmail.value = false
   isEmailLogin.value = false
   info.captcha = ''
   getCaptchaInfo()
@@ -378,6 +401,7 @@ const toggleEmailLogin = (targetMethod = false) => {
   } else {
     // 从账号登录切换到验证码登录模式
     isEmailLogin.value = true
+    isOAuthBindEmail.value = false
     LoginIsRegister.value = true
     isForgotPassword.value = false
     info.captcha = ''
@@ -444,6 +468,7 @@ const resetPassword = async () => {
 // 监听忘记密码状态变化
 watch(isForgotPassword, (newValue) => {
   if (newValue) {
+    isOAuthBindEmail.value = false
     info.username = ''
     info.password = ''
     info.mail = ''
@@ -455,6 +480,7 @@ watch(isForgotPassword, (newValue) => {
 // 监听邮箱登录状态变化
 watch(isEmailLogin, (newValue) => {
   if (newValue) {
+    isOAuthBindEmail.value = false
     info.username = ''
     info.password = ''
     info.mail = ''
@@ -610,6 +636,7 @@ const options = useState('options')
 
 // GitHub 登录
 const githubLoginLoading = ref(false)
+const qjqqLoginLoading = ref(false)
 
 const githubLogin = async () => {
   if (!isPolicyAgreed.value) {
@@ -630,6 +657,32 @@ const githubLogin = async () => {
     $msg('获取 GitHub 授权地址失败', 'error')
   } finally {
     githubLoginLoading.value = false
+  }
+}
+
+// 彩虹聚合登录
+const qjqqLogin = async () => {
+  if (!isPolicyAgreed.value) {
+    $msg('请阅读并同意隐私政策和用户协议', 'error')
+    return
+  }
+  qjqqLoginLoading.value = true
+  try {
+    const res = await $myFetch('QjqqLogin', {
+      method: 'GET',
+    })
+    if (res.code === 200 && res.data && res.data.url) {
+      if (process.client) {
+        sessionStorage.setItem('qjqq_login_pending', '1')
+      }
+      window.location.href = res.data.url
+    } else {
+      $msg(res.msg || '彩虹聚合登录暂不可用', 'error')
+    }
+  } catch (error) {
+    $msg('获取彩虹聚合登录地址失败', 'error')
+  } finally {
+    qjqqLoginLoading.value = false
   }
 }
 
@@ -666,19 +719,154 @@ const handleGithubCallback = async (code, state) => {
   }
 }
 
+// 处理彩虹聚合登录回调
+const handleQjqqCallback = async (code, type) => {
+  qjqqLoginLoading.value = true
+  try {
+    if (
+      process.client &&
+      sessionStorage.getItem('qjqq_login_pending') !== '1'
+    ) {
+      $msg('彩虹聚合登录请求已过期，请重新登录', 'error')
+      return
+    }
+    if (process.client) {
+      sessionStorage.removeItem('qjqq_login_pending')
+    }
+
+    const body = new URLSearchParams()
+    body.append('code', code)
+    body.append('type', type)
+    const res = await $myFetch('QjqqCallback', {
+      method: 'POST',
+      body,
+    })
+    if (res.code === 200 && res.data?.needBindEmail && res.data?.bindToken) {
+      oauthBindToken.value = res.data.bindToken
+      isOAuthBindEmail.value = true
+      LoginIsRegister.value = true
+      isEmailLogin.value = false
+      isForgotPassword.value = false
+      info.mail = ''
+      info.mailCode = ''
+      $msg('请先绑定邮箱后继续登录', 'warning')
+      return
+    }
+    if (res.code === 200 && res.data.username) {
+      applyLoginSuccess(res.data, '彩虹聚合登录成功')
+    } else {
+      $msg(res.msg || '彩虹聚合登录失败', 'error')
+    }
+  } catch (error) {
+    $msg('彩虹聚合登录失败，请稍后重试', 'error')
+  } finally {
+    qjqqLoginLoading.value = false
+  }
+}
+
+const resetOAuthBindEmail = () => {
+  isOAuthBindEmail.value = false
+  oauthBindToken.value = ''
+  info.mail = ''
+  info.mailCode = ''
+  LoginIsRegister.value = true
+}
+
+const getOAuthBindMailCode = async () => {
+  if (!oauthBindToken.value) {
+    $msg('绑定会话已过期，请重新登录', 'error')
+    resetOAuthBindEmail()
+    return
+  }
+  if (rule.test(info.mail) === false) {
+    $msg('请填写正确的邮箱地址', 'error')
+    return
+  }
+
+  getOAuthBindVerifyCodeButtonState.value = true
+  try {
+    const body = new URLSearchParams()
+    body.append('bindToken', oauthBindToken.value)
+    body.append('mail', info.mail)
+    const res = await $myFetch('OAuthBindMailCode', {
+      method: 'POST',
+      body,
+    })
+
+    if (res.code === 200) {
+      $msg(res.data || res.msg || '验证码已发送，请查收邮箱', 'success')
+      startOAuthBindCountdown()
+    } else {
+      $msg(res.msg || '验证码发送失败', 'error')
+    }
+  } catch (error) {
+    $msg('验证码发送失败，请稍后重试', 'error')
+  } finally {
+    getOAuthBindVerifyCodeButtonState.value = false
+  }
+}
+
+const oauthBindMail = async () => {
+  if (!isPolicyAgreed.value) {
+    $msg('请阅读并同意隐私政策和用户协议', 'error')
+    return
+  }
+  if (!oauthBindToken.value) {
+    $msg('绑定会话已过期，请重新登录', 'error')
+    resetOAuthBindEmail()
+    return
+  }
+  if (rule.test(info.mail) === false) {
+    $msg('请填写正确的邮箱地址', 'error')
+    return
+  }
+  if (info.mailCode === '') {
+    $msg('请填写邮箱验证码', 'error')
+    return
+  }
+
+  loginAndRegisterButtonStatus.value = true
+  try {
+    const body = new URLSearchParams()
+    body.append('bindToken', oauthBindToken.value)
+    body.append('mail', info.mail)
+    body.append('code', info.mailCode)
+    const res = await $myFetch('OAuthBindMail', {
+      method: 'POST',
+      body,
+    })
+
+    if (res.code === 200 && res.data.username) {
+      resetOAuthBindEmail()
+      applyLoginSuccess(res.data, '邮箱绑定成功')
+    } else {
+      $msg(res.msg || '邮箱绑定失败', 'error')
+    }
+  } catch (error) {
+    $msg('邮箱绑定失败，请稍后重试', 'error')
+  } finally {
+    loginAndRegisterButtonStatus.value = false
+  }
+}
+
 // 组件挂载时获取登录方式配置
 onMounted(() => {
   getLoginMethodConfig()
 
-  // 检测 GitHub OAuth 回调
+  // 检测第三方登录回调
   const route = useRoute()
-  const code = route.query.code
-  const state = route.query.state
+  const code = firstQueryValue(route.query.code)
+  const state = firstQueryValue(route.query.state)
+  const type = firstQueryValue(route.query.type)
   if (code && state) {
     // 清除 URL 中的 code 和 state 参数
     const cleanUrl = window.location.pathname
     window.history.replaceState({}, '', cleanUrl)
     handleGithubCallback(code, state)
+  } else if (code && type) {
+    const cleanUrl = window.location.pathname
+    window.history.replaceState({}, '', cleanUrl)
+    handleQjqqCallback(code, type)
   }
 })
 
@@ -703,13 +891,16 @@ useHead({
         'is-register': !LoginIsRegister && !isForgotPassword && !isEmailLogin,
         'is-forgot': isForgotPassword,
         'is-email': isEmailLogin,
+        'is-oauth-bind': isOAuthBindEmail,
       }"
     >
       <div class="card-header">
         <span
           class="back-btn"
           @click="
-            isForgotPassword
+            isOAuthBindEmail
+              ? resetOAuthBindEmail()
+              : isForgotPassword
               ? toggleForgotPassword()
               : isEmailLogin
                 ? toggleEmailLogin()
@@ -718,7 +909,9 @@ useHead({
         >
           <img src="@/assets/images/goback.svg" alt="返回" />
           {{
-            isForgotPassword
+            isOAuthBindEmail
+              ? '返回登录'
+              : isForgotPassword
               ? '返回登录'
               : isEmailLogin
                 ? '返回登录'
@@ -728,7 +921,9 @@ useHead({
         <div class="header-content">
           <h2 class="title">
             {{
-              isForgotPassword
+              isOAuthBindEmail
+                ? '绑定邮箱'
+                : isForgotPassword
                 ? '找回密码'
                 : isEmailLogin
                   ? currentLoginMethod === 'sms'
@@ -741,7 +936,9 @@ useHead({
           </h2>
           <p class="subtitle">
             {{
-              isForgotPassword
+              isOAuthBindEmail
+                ? '第三方登录需要先绑定邮箱'
+                : isForgotPassword
                 ? '输入您的用户名和邮箱找回密码'
                 : isEmailLogin
                   ? currentLoginMethod === 'sms'
@@ -755,8 +952,66 @@ useHead({
         </div>
       </div>
 
+      <div v-if="isOAuthBindEmail" class="form-container">
+        <el-form :model="info" size="large">
+          <div class="register-notice">
+            <el-alert
+              title="请输入邮箱并完成验证"
+              description="如果邮箱已在平台注册，验证后会直接绑定该平台账号；如果未注册，将自动创建账号并绑定。"
+              type="info"
+              :closable="false"
+            />
+          </div>
+          <el-form-item>
+            <el-input
+              v-model="info.mail"
+              placeholder="请输入电子邮箱"
+              prefix-icon="el-icon-message"
+              @keyup.enter="oauthBindMail"
+            />
+          </el-form-item>
+          <el-form-item>
+            <div class="verify-code-container">
+              <el-input
+                v-model="info.mailCode"
+                placeholder="邮件验证码"
+                prefix-icon="el-icon-key"
+                @keyup.enter="oauthBindMail"
+              />
+              <el-button
+                @click="getOAuthBindMailCode"
+                :loading="getOAuthBindVerifyCodeButtonState"
+                :disabled="oauthBindCountdown > 0"
+                class="verify-code-btn"
+              >
+                {{
+                  oauthBindCountdown > 0
+                    ? oauthBindCountdown + 's 后重新获取'
+                    : '获取验证码'
+                }}
+              </el-button>
+            </div>
+          </el-form-item>
+          <el-form-item>
+            <el-checkbox v-model="isPolicyAgreed">
+              我已阅读并同意
+              <a href="/privacy" target="_blank">隐私政策</a>
+              和
+              <a href="/terms" target="_blank">用户协议</a>
+            </el-checkbox>
+          </el-form-item>
+          <el-button
+            type="primary"
+            class="submit-btn"
+            @click="oauthBindMail"
+            :loading="loginAndRegisterButtonStatus"
+          >
+            绑定并登录
+          </el-button>
+        </el-form>
+      </div>
       <div
-        v-if="LoginIsRegister && !isForgotPassword && !isEmailLogin"
+        v-else-if="LoginIsRegister && !isForgotPassword && !isEmailLogin"
         class="form-container"
       >
         <el-form :model="info" size="large">
@@ -812,13 +1067,26 @@ useHead({
           </el-button>
         </el-form>
         <div
-          v-if="availableLoginMethods.includes('github')"
+          v-if="
+            availableLoginMethods.includes('github') ||
+            availableLoginMethods.includes('qjqq')
+          "
           class="third-party-login"
         >
           <div class="divider">
             <span>或使用第三方登录</span>
           </div>
           <el-button
+            v-if="availableLoginMethods.includes('qjqq')"
+            class="qjqq-btn"
+            @click="qjqqLogin"
+            :loading="qjqqLoginLoading"
+          >
+            <span class="qjqq-icon">QQ</span>
+            QQ 登录
+          </el-button>
+          <el-button
+            v-if="availableLoginMethods.includes('github')"
             class="github-btn"
             @click="githubLogin"
             :loading="githubLoginLoading"
@@ -1166,6 +1434,10 @@ useHead({
       height: 600px;
     }
 
+    &.is-oauth-bind {
+      height: 470px;
+    }
+
     .card-header {
       padding: 32px 32px 24px;
       position: relative;
@@ -1310,12 +1582,12 @@ useHead({
         }
       }
 
+      .qjqq-btn,
       .github-btn {
         width: 100%;
         height: 40px;
         font-size: 14px;
-        color: #fff;
-        background-color: #24292e;
+        margin-left: 0;
         border: none;
         border-radius: 6px;
         display: flex;
@@ -1323,6 +1595,43 @@ useHead({
         justify-content: center;
         gap: 8px;
         transition: background-color 0.3s;
+      }
+
+      .el-button + .el-button {
+        margin-top: 10px;
+      }
+
+      .qjqq-btn {
+        color: #fff;
+        background-color: #12b7f5;
+
+        &:hover,
+        &:focus {
+          background-color: #36c6ff;
+          color: #fff;
+        }
+
+        &:active {
+          background-color: #0a9bd8;
+        }
+
+        .qjqq-icon {
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          width: 24px;
+          height: 24px;
+          border-radius: 50%;
+          background: rgba(255, 255, 255, 0.2);
+          font-size: 11px;
+          font-weight: 700;
+          letter-spacing: -0.5px;
+        }
+      }
+
+      .github-btn {
+        color: #fff;
+        background-color: #24292e;
 
         &:hover,
         &:focus {
@@ -1390,6 +1699,10 @@ useHead({
 
       &.is-email {
         height: 530px;
+      }
+
+      &.is-oauth-bind {
+        height: 500px;
       }
 
       .card-header {
