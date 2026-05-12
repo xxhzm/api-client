@@ -151,7 +151,7 @@ const preferredMethod = computed(() =>
 const options = useState('options');
 
 useHead({
-  title: apiInfo.value.name + ' - 免费API',
+  title: apiInfo.value.name + ' - ' + options.value.title,
   viewport:
     'width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0',
   charset: 'utf-8',
