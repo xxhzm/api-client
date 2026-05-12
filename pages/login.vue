@@ -1138,6 +1138,7 @@ useHead({
               enabledChjhProviders.length > 0
             "
             class="chjh-provider-grid"
+            :class="{ 'is-single': enabledChjhProviders.length === 1 }"
           >
             <el-button
               v-for="provider in enabledChjhProviders"
@@ -1670,6 +1671,15 @@ useHead({
         grid-template-columns: repeat(3, minmax(0, 1fr));
         gap: 10px;
         margin-bottom: 12px;
+
+        &.is-single {
+          grid-template-columns: minmax(0, 1fr);
+
+          .chjh-provider-btn,
+          .chjh-provider-btn :deep(> span) {
+            justify-content: center;
+          }
+        }
       }
 
       .chjh-provider-btn {
@@ -1861,6 +1871,10 @@ useHead({
 
         .chjh-provider-grid {
           grid-template-columns: repeat(2, minmax(0, 1fr));
+
+          &.is-single {
+            grid-template-columns: minmax(0, 1fr);
+          }
         }
       }
     }
