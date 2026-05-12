@@ -656,25 +656,139 @@ const options = useState('options');
 const githubLoginLoading = ref(false);
 const chjhLoginLoading = ref('');
 const chjhLoginProviders = [
-  { type: 'qq', label: 'QQ', short: 'QQ', color: '#12b7f5' },
-  { type: 'wx', label: '微信', short: '微', color: '#07c160' },
-  { type: 'wxmp', label: '公众号', short: '公', color: '#1aad19' },
-  { type: 'alipay', label: '支付宝', short: '支', color: '#1677ff' },
-  { type: 'sina', label: '微博', short: '微', color: '#e6162d' },
-  { type: 'baidu', label: '百度', short: '百', color: '#2932e1' },
-  { type: 'douyin', label: '抖音', short: '抖', color: '#111827' },
-  { type: 'huawei', label: '华为', short: '华', color: '#cf0a2c' },
-  { type: 'xiaomi', label: '小米', short: '米', color: '#ff6900' },
-  { type: 'google', label: '谷歌', short: 'G', color: '#4285f4' },
-  { type: 'microsoft', label: '微软', short: 'M', color: '#00a4ef' },
-  { type: 'wework', label: '企业微信', short: '企', color: '#2f86f6' },
-  { type: 'dingtalk', label: '钉钉', short: '钉', color: '#1677ff' },
-  { type: 'gitee', label: 'Gitee', short: 'G', color: '#c71d23' },
-  { type: 'github', label: 'GitHub', short: 'GH', color: '#24292f' },
-  { type: 'appleid', label: 'Apple', short: 'A', color: '#111827' },
-  { type: 'bilibili', label: '哔哩哔哩', short: 'B', color: '#00aeec' },
-  { type: 'gitlab', label: 'Gitlab', short: 'GL', color: '#fc6d26' },
-  { type: 'kuaishou', label: '快手', short: '快', color: '#ff4906' },
+  {
+    type: 'qq',
+    label: 'QQ',
+    short: 'QQ',
+    color: '#12b7f5',
+    icon: '/icons/chjh/qq.svg',
+  },
+  {
+    type: 'wx',
+    label: '微信',
+    short: '微',
+    color: '#07c160',
+    icon: '/icons/chjh/wx.svg',
+  },
+  {
+    type: 'wxmp',
+    label: '公众号',
+    short: '公',
+    color: '#1aad19',
+    icon: '/icons/chjh/wxmp.svg',
+  },
+  {
+    type: 'alipay',
+    label: '支付宝',
+    short: '支',
+    color: '#1677ff',
+    icon: '/icons/chjh/alipay.svg',
+  },
+  {
+    type: 'sina',
+    label: '微博',
+    short: '微',
+    color: '#e6162d',
+    icon: '/icons/chjh/sina.svg',
+  },
+  {
+    type: 'baidu',
+    label: '百度',
+    short: '百',
+    color: '#2932e1',
+    icon: '/icons/chjh/baidu.svg',
+  },
+  {
+    type: 'douyin',
+    label: '抖音',
+    short: '抖',
+    color: '#111827',
+    icon: '/icons/chjh/douyin.png',
+  },
+  {
+    type: 'huawei',
+    label: '华为',
+    short: '华',
+    color: '#cf0a2c',
+    icon: '/icons/chjh/huawei.svg',
+  },
+  {
+    type: 'xiaomi',
+    label: '小米',
+    short: '米',
+    color: '#ff6900',
+    icon: '/icons/chjh/xiaomi.svg',
+  },
+  {
+    type: 'google',
+    label: '谷歌',
+    short: 'G',
+    color: '#4285f4',
+    icon: '/icons/chjh/google.svg',
+  },
+  {
+    type: 'microsoft',
+    label: '微软',
+    short: 'M',
+    color: '#00a4ef',
+    icon: '/icons/chjh/microsoft.svg',
+  },
+  {
+    type: 'wework',
+    label: '企业微信',
+    short: '企',
+    color: '#2f86f6',
+    icon: '/icons/chjh/wework.svg',
+  },
+  {
+    type: 'dingtalk',
+    label: '钉钉',
+    short: '钉',
+    color: '#1677ff',
+    icon: '/icons/chjh/dingtalk.png',
+  },
+  {
+    type: 'gitee',
+    label: 'Gitee',
+    short: 'G',
+    color: '#c71d23',
+    icon: '/icons/chjh/gitee.svg',
+  },
+  {
+    type: 'github',
+    label: 'GitHub',
+    short: 'GH',
+    color: '#24292f',
+    icon: '/icons/chjh/github.svg',
+  },
+  {
+    type: 'appleid',
+    label: 'Apple',
+    short: 'A',
+    color: '#111827',
+    icon: '/icons/chjh/appleid.svg',
+  },
+  {
+    type: 'bilibili',
+    label: '哔哩哔哩',
+    short: 'B',
+    color: '#00aeec',
+    icon: '/icons/chjh/bilibili.svg',
+  },
+  {
+    type: 'gitlab',
+    label: 'Gitlab',
+    short: 'GL',
+    color: '#fc6d26',
+    icon: '/icons/chjh/gitlab.svg',
+  },
+  {
+    type: 'kuaishou',
+    label: '快手',
+    short: '快',
+    color: '#ff4906',
+    icon: '/icons/chjh/kuaishou.svg',
+  },
 ];
 
 const enabledChjhProviders = computed(() => {
@@ -1151,7 +1265,17 @@ useHead({
                 chjhLoginLoading !== '' && chjhLoginLoading !== provider.type
               "
             >
-              <span class="chjh-icon">{{ provider.short }}</span>
+              <span class="chjh-icon">
+                <img
+                  v-if="provider.icon"
+                  :src="provider.icon"
+                  :alt="provider.label"
+                  @error="
+                    $event.target.parentElement.classList.add('is-fallback')
+                  "
+                />
+                <span class="chjh-icon-fallback">{{ provider.short }}</span>
+              </span>
               <span class="chjh-label">{{ provider.label }}</span>
             </el-button>
           </div>
@@ -1744,12 +1868,32 @@ useHead({
           height: 24px;
           border-radius: 50%;
           color: #fff;
-          background: var(--chjh-color);
+          background: #fff;
           font-size: 10px;
           font-weight: 700;
           line-height: 1;
-          box-shadow: 0 4px 10px
-            color-mix(in srgb, var(--chjh-color) 28%, transparent);
+
+          img {
+            display: block;
+            width: 16px;
+            height: 16px;
+          }
+
+          .chjh-icon-fallback {
+            display: none;
+          }
+
+          &.is-fallback {
+            background: var(--chjh-color);
+
+            img {
+              display: none;
+            }
+
+            .chjh-icon-fallback {
+              display: inline;
+            }
+          }
         }
 
         .chjh-label {
