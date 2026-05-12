@@ -25,7 +25,7 @@ export default defineNuxtPlugin((/* nuxtApp */) => {
           },
         };
 
-        const authorization = useState('Authorization');
+        const authorization = useCookie('token');
         if (authorization.value !== undefined) {
           obj.headers.Authorization = authorization.value;
         }

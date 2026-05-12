@@ -1,22 +1,22 @@
 <script setup>
-const { $myFetch } = useNuxtApp()
+const { $myFetch } = useNuxtApp();
 
-import zhCn from 'element-plus/dist/locale/zh-cn.mjs'
+import zhCn from 'element-plus/dist/locale/zh-cn.mjs';
 
-const token = useTokenCookie()
+const token = useTokenCookie();
 
-const authorization = useState('Authorization')
+const authorization = useCookie('token');
 if (token.value !== '') {
-  authorization.value = token.value
+  authorization.value = token.value;
 }
 
-const options = useState('options')
+const options = useState('options');
 
 const {
   data: { value: res },
-} = await useAsyncData('Options', () => $myFetch('Options'))
+} = await useAsyncData('Options', () => $myFetch('Options'));
 
-options.value = res.data
+options.value = res.data;
 
 useHead({
   link: [
@@ -39,7 +39,7 @@ useHead({
       children: options.value.css,
     },
   ],
-})
+});
 </script>
 
 <template>

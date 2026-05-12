@@ -1,27 +1,27 @@
 <script setup>
 // 引入加密算法
-const { $enCode, $msg, $myFetch } = useNuxtApp()
+const { $enCode, $msg, $myFetch } = useNuxtApp();
 
-const router = useRouter()
+const router = useRouter();
 
-const username = useCookie('username')
-const token = useTokenCookie()
+const username = useCookie('username');
+const token = useTokenCookie();
 const policyConsent = useCookie('policyConsent', {
   default: () => 'false',
   maxAge: 60 * 60 * 24 * 365,
-})
+});
 const isPolicyAgreed = computed({
   get: () => String(policyConsent.value).toLowerCase() === 'true',
   set: (v) => {
-    policyConsent.value = v ? 'true' : 'false'
+    policyConsent.value = v ? 'true' : 'false';
   },
-})
+});
 
 if (username.value != undefined && token.value != undefined) {
-  navigateTo('/admin')
+  navigateTo('/admin');
 } else {
-  username.value = undefined
-  token.value = undefined
+  username.value = undefined;
+  token.value = undefined;
 }
 
 const info = reactive({
@@ -31,241 +31,241 @@ const info = reactive({
   captcha: '',
   mailCode: '',
   sign: '',
-})
+});
 
-const LoginIsRegister = ref(true)
-const isForgotPassword = ref(false)
-const isEmailLogin = ref(false)
-const isOAuthBindEmail = ref(false)
-const loginAndRegisterButtonStatus = ref(false)
-const availableLoginMethods = ref([]) // 可用的登录方式数组
-const currentLoginMethod = ref('email') // 当前选择的登录方式
-const isLoginDisabled = ref(false) // 是否禁用所有登录方式
-const oauthBindToken = ref('')
+const LoginIsRegister = ref(true);
+const isForgotPassword = ref(false);
+const isEmailLogin = ref(false);
+const isOAuthBindEmail = ref(false);
+const loginAndRegisterButtonStatus = ref(false);
+const availableLoginMethods = ref([]); // 可用的登录方式数组
+const currentLoginMethod = ref('email'); // 当前选择的登录方式
+const isLoginDisabled = ref(false); // 是否禁用所有登录方式
+const oauthBindToken = ref('');
 
 const goBack = () => {
-  navigateTo('/')
-}
+  navigateTo('/');
+};
 
 const markAdminHomePopupPending = () => {
   if (process.client) {
-    sessionStorage.setItem('admin_home_popup_pending', '1')
+    sessionStorage.setItem('admin_home_popup_pending', '1');
   }
-}
+};
 
-const routeInfo = useCookie('routeInfo')
+const routeInfo = useCookie('routeInfo');
 
-const firstQueryValue = (value) => (Array.isArray(value) ? value[0] : value)
+const firstQueryValue = (value) => (Array.isArray(value) ? value[0] : value);
 
 const applyLoginSuccess = (data, successMessage) => {
-  username.value = data.username
-  token.value = data.token
+  username.value = data.username;
+  token.value = data.token;
 
-  const authorization = useState('Authorization')
-  authorization.value = data.token
+  const authorization = useCookie('token');
+  authorization.value = data.token;
 
-  $msg(successMessage, 'success')
+  $msg(successMessage, 'success');
 
-  routeInfo.value = data.routeInfo
-  markAdminHomePopupPending()
-  navigateTo('/admin')
-}
+  routeInfo.value = data.routeInfo;
+  markAdminHomePopupPending();
+  navigateTo('/admin');
+};
 
 const login = async () => {
   if (!isPolicyAgreed.value) {
-    $msg('请阅读并同意隐私政策和用户协议', 'error')
-    return false
+    $msg('请阅读并同意隐私政策和用户协议', 'error');
+    return false;
   }
   if (info.username === '' || info.password === '' || info.captcha === '') {
-    $msg('请填写完整的登录信息', 'error')
-    return false
+    $msg('请填写完整的登录信息', 'error');
+    return false;
   }
 
-  const bodyValue = new URLSearchParams()
-  bodyValue.append('username', info.username)
-  bodyValue.append('id', captchaInfo.value.id)
-  bodyValue.append('key', info.captcha)
+  const bodyValue = new URLSearchParams();
+  bodyValue.append('username', info.username);
+  bodyValue.append('id', captchaInfo.value.id);
+  bodyValue.append('key', info.captcha);
 
   // 使用加密算法对数据进行加密
-  bodyValue.append('password', $enCode(info.password))
+  bodyValue.append('password', $enCode(info.password));
   const res = await $myFetch('Login', {
     method: 'POST',
     body: bodyValue,
-  })
+  });
 
   if (res.code === 200) {
-    applyLoginSuccess(res.data, '登录成功')
-    return false
+    applyLoginSuccess(res.data, '登录成功');
+    return false;
   }
 
-  $msg(res.msg, 'error')
+  $msg(res.msg, 'error');
   // 验证码错误时重新获取验证码
-  getCaptchaInfo()
-  info.captcha = ''
-}
+  getCaptchaInfo();
+  info.captcha = '';
+};
 
 // 登录注册切换
 const LoginIsRegisterChange = () => {
-  LoginIsRegister.value = !LoginIsRegister.value
+  LoginIsRegister.value = !LoginIsRegister.value;
   // 切换时重置其他登录状态
-  isOAuthBindEmail.value = false
-  isEmailLogin.value = false
-  isForgotPassword.value = false
+  isOAuthBindEmail.value = false;
+  isEmailLogin.value = false;
+  isForgotPassword.value = false;
   // 切换到注册时获取登录方式配置
   if (!LoginIsRegister.value) {
-    getLoginMethodConfig()
+    getLoginMethodConfig();
   }
-}
+};
 
 // 以下全部为注册
 
 // 获取验证码按钮的状态
-const getVerifyCodeButtonState = ref(false)
+const getVerifyCodeButtonState = ref(false);
 // 邮箱登录验证码按钮状态
-const getEmailVerifyCodeButtonState = ref(false)
+const getEmailVerifyCodeButtonState = ref(false);
 // 注册验证码倒计时
-const smsCountdown = ref(0)
-let smsCountdownTimer = null
+const smsCountdown = ref(0);
+let smsCountdownTimer = null;
 // 登录验证码倒计时
-const smsLoginCountdown = ref(0)
-let smsLoginCountdownTimer = null
+const smsLoginCountdown = ref(0);
+let smsLoginCountdownTimer = null;
 // 第三方绑定邮箱验证码按钮状态
-const getOAuthBindVerifyCodeButtonState = ref(false)
-const oauthBindCountdown = ref(0)
-let oauthBindCountdownTimer = null
+const getOAuthBindVerifyCodeButtonState = ref(false);
+const oauthBindCountdown = ref(0);
+let oauthBindCountdownTimer = null;
 
 const startSmsCountdown = () => {
-  smsCountdown.value = 60
-  clearInterval(smsCountdownTimer)
+  smsCountdown.value = 60;
+  clearInterval(smsCountdownTimer);
   smsCountdownTimer = setInterval(() => {
-    smsCountdown.value--
+    smsCountdown.value--;
     if (smsCountdown.value <= 0) {
-      clearInterval(smsCountdownTimer)
+      clearInterval(smsCountdownTimer);
     }
-  }, 1000)
-}
+  }, 1000);
+};
 
 const startSmsLoginCountdown = () => {
-  smsLoginCountdown.value = 60
-  clearInterval(smsLoginCountdownTimer)
+  smsLoginCountdown.value = 60;
+  clearInterval(smsLoginCountdownTimer);
   smsLoginCountdownTimer = setInterval(() => {
-    smsLoginCountdown.value--
+    smsLoginCountdown.value--;
     if (smsLoginCountdown.value <= 0) {
-      clearInterval(smsLoginCountdownTimer)
+      clearInterval(smsLoginCountdownTimer);
     }
-  }, 1000)
-}
+  }, 1000);
+};
 
 const startOAuthBindCountdown = () => {
-  oauthBindCountdown.value = 60
-  clearInterval(oauthBindCountdownTimer)
+  oauthBindCountdown.value = 60;
+  clearInterval(oauthBindCountdownTimer);
   oauthBindCountdownTimer = setInterval(() => {
-    oauthBindCountdown.value--
+    oauthBindCountdown.value--;
     if (oauthBindCountdown.value <= 0) {
-      clearInterval(oauthBindCountdownTimer)
+      clearInterval(oauthBindCountdownTimer);
     }
-  }, 1000)
-}
+  }, 1000);
+};
 
 // 图片验证码信息
 const captchaInfo = ref({
   id: '',
   url: '',
-})
+});
 
 // 获取图片验证码
 const getCaptchaInfo = async () => {
   const res = await $myFetch('Captcha', {
     method: 'GET',
-  })
-  captchaInfo.value = res.data
-}
+  });
+  captchaInfo.value = res.data;
+};
 
 // 监听用户是否切换了显示
 watch(
   LoginIsRegister,
   (newValue) => {
-    info.captcha = ''
-    getCaptchaInfo()
+    info.captcha = '';
+    getCaptchaInfo();
   },
   {
     immediate: true,
   },
-)
+);
 
 // 获取邮箱验证码
 const rule =
-  /^[A-Za-z\d]+[A-Za-z\d\-_\.]*@([A-Za-z\d]+[A-Za-z\d\-]*\.)+[A-Za-z]{2,4}$/
+  /^[A-Za-z\d]+[A-Za-z\d\-_\.]*@([A-Za-z\d]+[A-Za-z\d\-]*\.)+[A-Za-z]{2,4}$/;
 
 const getMailCode = async () => {
-  getVerifyCodeButtonState.value = true
+  getVerifyCodeButtonState.value = true;
 
   // 注册模式始终使用邮箱，登录模式根据配置判断
   const isRegisterMode =
-    !LoginIsRegister.value && !isForgotPassword.value && !isEmailLogin.value
-  const useEmail = isRegisterMode || currentLoginMethod.value === 'email'
+    !LoginIsRegister.value && !isForgotPassword.value && !isEmailLogin.value;
+  const useEmail = isRegisterMode || currentLoginMethod.value === 'email';
 
   // 根据使用的方式验证输入格式
   if (useEmail) {
     // 邮箱格式验证
     if (rule.test(info.mail) === false) {
-      $msg('请填写正确的邮箱地址', 'error')
-      getVerifyCodeButtonState.value = false
-      return false
+      $msg('请填写正确的邮箱地址', 'error');
+      getVerifyCodeButtonState.value = false;
+      return false;
     }
   } else {
     // 手机号格式验证
-    const phoneRule = /^1[3-9]\d{9}$/
+    const phoneRule = /^1[3-9]\d{9}$/;
     if (!phoneRule.test(info.mail)) {
-      $msg('请填写正确的手机号', 'error')
-      getVerifyCodeButtonState.value = false
-      return false
+      $msg('请填写正确的手机号', 'error');
+      getVerifyCodeButtonState.value = false;
+      return false;
     }
   }
 
-  let body, apiEndpoint
+  let body, apiEndpoint;
 
   if (useEmail) {
     // 邮箱验证码
-    apiEndpoint = 'MailCode'
-    body = new URLSearchParams()
-    body.append('id', captchaInfo.value.id)
-    body.append('key', info.captcha)
-    body.append('mail', info.mail)
+    apiEndpoint = 'MailCode';
+    body = new URLSearchParams();
+    body.append('id', captchaInfo.value.id);
+    body.append('key', info.captcha);
+    body.append('mail', info.mail);
   } else {
     // 短信验证码
-    apiEndpoint = 'SendLoginSMS'
-    body = new URLSearchParams()
-    body.append('phone', info.mail) // 手机号存储在mail字段中
-    body.append('id', captchaInfo.value.id) // 验证码ID
-    body.append('key', info.captcha) // 验证码key
+    apiEndpoint = 'SendLoginSMS';
+    body = new URLSearchParams();
+    body.append('phone', info.mail); // 手机号存储在mail字段中
+    body.append('id', captchaInfo.value.id); // 验证码ID
+    body.append('key', info.captcha); // 验证码key
   }
 
   const res = await $myFetch(apiEndpoint, {
     method: 'POST',
     body,
-  })
+  });
 
   if (res.code != 200) {
-    $msg(res.msg, 'error')
-    getCaptchaInfo()
+    $msg(res.msg, 'error');
+    getCaptchaInfo();
 
-    getVerifyCodeButtonState.value = false
-    return false
+    getVerifyCodeButtonState.value = false;
+    return false;
   }
 
-  const message = useEmail ? '邮件验证码已发送' : '短信验证码已发送'
-  $msg(message, 'success')
+  const message = useEmail ? '邮件验证码已发送' : '短信验证码已发送';
+  $msg(message, 'success');
 
-  info.sign = res.data
-  getVerifyCodeButtonState.value = false
-  startSmsCountdown()
-}
+  info.sign = res.data;
+  getVerifyCodeButtonState.value = false;
+  startSmsCountdown();
+};
 
 const register = async () => {
   if (!isPolicyAgreed.value) {
-    $msg('请阅读并同意隐私政策和用户协议', 'error')
-    return false
+    $msg('请阅读并同意隐私政策和用户协议', 'error');
+    return false;
   }
   if (
     info.username === '' ||
@@ -273,121 +273,121 @@ const register = async () => {
     info.mail === '' ||
     info.mailCode === ''
   ) {
-    $msg('请正确填写账号信息', 'error')
-    return false
+    $msg('请正确填写账号信息', 'error');
+    return false;
   }
 
   if (info.username.length <= 6 || info.password.length <= 6) {
-    $msg('用户名或密码不能小于6位', 'error')
-    return false
+    $msg('用户名或密码不能小于6位', 'error');
+    return false;
   }
   if (info.username.length >= 32 || info.password.length >= 32) {
-    $msg('用户名或密码不能大于6位', 'error')
-    return false
+    $msg('用户名或密码不能大于6位', 'error');
+    return false;
   }
 
   // 注册始终使用邮箱验证
   if (rule.test(info.mail) === false) {
-    $msg('请填写正确的邮箱地址', 'error')
-    return false
+    $msg('请填写正确的邮箱地址', 'error');
+    return false;
   }
 
-  const body = new URLSearchParams()
-  body.append('username', info.username)
-  body.append('password', $enCode(info.password))
-  body.append('mail', info.mail)
-  body.append('mailCode', info.mailCode)
-  body.append('sign', info.sign)
+  const body = new URLSearchParams();
+  body.append('username', info.username);
+  body.append('password', $enCode(info.password));
+  body.append('mail', info.mail);
+  body.append('mailCode', info.mailCode);
+  body.append('sign', info.sign);
 
   const res = await $myFetch('Register', {
     method: 'POST',
     body,
-  })
+  });
 
   if (res.code === 200) {
-    $msg('注册成功，请登录', 'success')
+    $msg('注册成功，请登录', 'success');
     setTimeout(() => {
-      router.go(0)
-    }, 500)
+      router.go(0);
+    }, 500);
   } else {
-    $msg(res.msg, 'error')
+    $msg(res.msg, 'error');
   }
-}
+};
 
 // 切换到忘记密码卡片
 const toggleForgotPassword = () => {
-  isForgotPassword.value = !isForgotPassword.value
-  LoginIsRegister.value = true
-  isOAuthBindEmail.value = false
-  isEmailLogin.value = false
-  info.captcha = ''
-  getCaptchaInfo()
-}
+  isForgotPassword.value = !isForgotPassword.value;
+  LoginIsRegister.value = true;
+  isOAuthBindEmail.value = false;
+  isEmailLogin.value = false;
+  info.captcha = '';
+  getCaptchaInfo();
+};
 
 // 获取登录方式配置
 const getLoginMethodConfig = async () => {
   try {
     const res = await $myFetch('LoginMethodInfo', {
       method: 'GET',
-    })
+    });
 
     if (res.code === 200 && res.data) {
-      let methods = []
+      let methods = [];
 
       const loginMethodData =
         typeof res.data === 'object' && !Array.isArray(res.data)
           ? res.data.method
-          : res.data
+          : res.data;
       const qjqqProviders =
         typeof res.data === 'object' && !Array.isArray(res.data)
           ? res.data.qjqqProviders
-          : ''
+          : '';
 
       if (!options.value) {
-        options.value = {}
+        options.value = {};
       }
 
       if (typeof loginMethodData === 'string') {
-        methods = loginMethodData.split('|').filter((method) => method.trim())
+        methods = loginMethodData.split('|').filter((method) => method.trim());
       } else if (Array.isArray(loginMethodData)) {
-        methods = loginMethodData.filter((method) => method && method.trim())
+        methods = loginMethodData.filter((method) => method && method.trim());
       }
 
       if (typeof qjqqProviders === 'string') {
         options.value.qjqqProviders = qjqqProviders
           ? qjqqProviders.split('|').filter((provider) => provider.trim())
-          : []
+          : [];
       } else if (Array.isArray(qjqqProviders)) {
         options.value.qjqqProviders = qjqqProviders.filter(
           (provider) => provider && provider.trim(),
-        )
+        );
       }
 
       // 设置登录方式配置
       if (methods.length > 0) {
-        availableLoginMethods.value = methods
-        currentLoginMethod.value = methods[0]
-        isLoginDisabled.value = false
+        availableLoginMethods.value = methods;
+        currentLoginMethod.value = methods[0];
+        isLoginDisabled.value = false;
       } else {
         // 没有可用的登录方式
-        availableLoginMethods.value = []
-        currentLoginMethod.value = ''
-        isLoginDisabled.value = true
+        availableLoginMethods.value = [];
+        currentLoginMethod.value = '';
+        isLoginDisabled.value = true;
       }
     } else {
       // 接口返回失败或数据为空，禁用登录
-      availableLoginMethods.value = []
-      currentLoginMethod.value = ''
-      isLoginDisabled.value = true
+      availableLoginMethods.value = [];
+      currentLoginMethod.value = '';
+      isLoginDisabled.value = true;
     }
   } catch (error) {
-    console.error('获取登录方式配置失败:', error)
+    console.error('获取登录方式配置失败:', error);
     // 发生错误时，设置默认的登录方式以确保功能可用
-    availableLoginMethods.value = ['email']
-    currentLoginMethod.value = 'email'
-    isLoginDisabled.value = false
+    availableLoginMethods.value = ['email'];
+    currentLoginMethod.value = 'email';
+    isLoginDisabled.value = false;
   }
-}
+};
 
 // 切换登录方式
 const toggleEmailLogin = (targetMethod = false) => {
@@ -398,34 +398,34 @@ const toggleEmailLogin = (targetMethod = false) => {
       availableLoginMethods.value.includes(targetMethod)
     ) {
       // 切换到指定的登录方式
-      currentLoginMethod.value = targetMethod
+      currentLoginMethod.value = targetMethod;
     } else if (targetMethod && availableLoginMethods.value.length > 1) {
       // 在可用的登录方式之间切换
       const currentIndex = availableLoginMethods.value.indexOf(
         currentLoginMethod.value,
-      )
-      const nextIndex = (currentIndex + 1) % availableLoginMethods.value.length
-      currentLoginMethod.value = availableLoginMethods.value[nextIndex]
+      );
+      const nextIndex = (currentIndex + 1) % availableLoginMethods.value.length;
+      currentLoginMethod.value = availableLoginMethods.value[nextIndex];
     } else {
       // 返回账号登录
-      isEmailLogin.value = false
-      LoginIsRegister.value = true
-      isForgotPassword.value = false
-      info.captcha = ''
-      info.mail = ''
-      info.mailCode = ''
-      getCaptchaInfo()
+      isEmailLogin.value = false;
+      LoginIsRegister.value = true;
+      isForgotPassword.value = false;
+      info.captcha = '';
+      info.mail = '';
+      info.mailCode = '';
+      getCaptchaInfo();
     }
   } else {
     // 从账号登录切换到验证码登录模式
-    isEmailLogin.value = true
-    isOAuthBindEmail.value = false
-    LoginIsRegister.value = true
-    isForgotPassword.value = false
-    info.captcha = ''
-    info.mail = ''
-    info.mailCode = ''
-    getCaptchaInfo()
+    isEmailLogin.value = true;
+    isOAuthBindEmail.value = false;
+    LoginIsRegister.value = true;
+    isForgotPassword.value = false;
+    info.captcha = '';
+    info.mail = '';
+    info.mailCode = '';
+    getCaptchaInfo();
 
     // 设置登录方式
     if (
@@ -434,227 +434,227 @@ const toggleEmailLogin = (targetMethod = false) => {
       availableLoginMethods.value.includes(targetMethod)
     ) {
       // 使用指定的登录方式
-      currentLoginMethod.value = targetMethod
+      currentLoginMethod.value = targetMethod;
     } else if (availableLoginMethods.value.length > 0) {
       // 设置默认的登录方式为第一个可用方式
-      currentLoginMethod.value = availableLoginMethods.value[0]
+      currentLoginMethod.value = availableLoginMethods.value[0];
     }
   }
-}
+};
 
 // 发送重置密码邮件
 const resetPassword = async () => {
   if (info.username === '' || info.mail === '' || info.captcha === '') {
-    $msg('请填写完整信息', 'error')
-    return false
+    $msg('请填写完整信息', 'error');
+    return false;
   }
 
   if (rule.test(info.mail) === false) {
-    $msg('请填写正确的邮箱地址', 'error')
-    return false
+    $msg('请填写正确的邮箱地址', 'error');
+    return false;
   }
 
-  loginAndRegisterButtonStatus.value = true
+  loginAndRegisterButtonStatus.value = true;
 
-  const body = new URLSearchParams()
-  body.append('username', info.username)
-  body.append('mail', info.mail)
-  body.append('id', captchaInfo.value.id)
-  body.append('key', info.captcha)
+  const body = new URLSearchParams();
+  body.append('username', info.username);
+  body.append('mail', info.mail);
+  body.append('id', captchaInfo.value.id);
+  body.append('key', info.captcha);
 
   try {
     const res = await $myFetch('ResetPassword', {
       method: 'POST',
       body,
-    })
+    });
 
     if (res.code === 200) {
-      $msg('重置密码邮件已发送，请查收邮件', 'success')
-      toggleForgotPassword()
+      $msg('重置密码邮件已发送，请查收邮件', 'success');
+      toggleForgotPassword();
     } else {
-      $msg(res.msg, 'error')
-      getCaptchaInfo()
-      info.captcha = ''
+      $msg(res.msg, 'error');
+      getCaptchaInfo();
+      info.captcha = '';
     }
   } catch (error) {
-    $msg('请求失败，请稍后重试', 'error')
+    $msg('请求失败，请稍后重试', 'error');
   } finally {
-    loginAndRegisterButtonStatus.value = false
+    loginAndRegisterButtonStatus.value = false;
   }
-}
+};
 
 // 监听忘记密码状态变化
 watch(isForgotPassword, (newValue) => {
   if (newValue) {
-    isOAuthBindEmail.value = false
-    info.username = ''
-    info.password = ''
-    info.mail = ''
-    info.captcha = ''
-    getCaptchaInfo()
+    isOAuthBindEmail.value = false;
+    info.username = '';
+    info.password = '';
+    info.mail = '';
+    info.captcha = '';
+    getCaptchaInfo();
   }
-})
+});
 
 // 监听邮箱登录状态变化
 watch(isEmailLogin, (newValue) => {
   if (newValue) {
-    isOAuthBindEmail.value = false
-    info.username = ''
-    info.password = ''
-    info.mail = ''
-    info.captcha = ''
-    info.mailCode = ''
-    getCaptchaInfo()
+    isOAuthBindEmail.value = false;
+    info.username = '';
+    info.password = '';
+    info.mail = '';
+    info.captcha = '';
+    info.mailCode = '';
+    getCaptchaInfo();
   }
-})
+});
 
 // 获取邮箱登录验证码
 const getMailLoginCode = async () => {
-  getEmailVerifyCodeButtonState.value = true
+  getEmailVerifyCodeButtonState.value = true;
 
   // 根据登录方式验证输入格式
   if (currentLoginMethod.value === 'sms') {
     // 手机号格式验证
-    const phoneRule = /^1[3-9]\d{9}$/
+    const phoneRule = /^1[3-9]\d{9}$/;
     if (!phoneRule.test(info.mail)) {
-      $msg('请填写正确的手机号', 'error')
-      getEmailVerifyCodeButtonState.value = false
-      return false
+      $msg('请填写正确的手机号', 'error');
+      getEmailVerifyCodeButtonState.value = false;
+      return false;
     }
   } else {
     // 邮箱格式验证
     if (rule.test(info.mail) === false) {
-      $msg('请填写正确的邮箱地址', 'error')
-      getEmailVerifyCodeButtonState.value = false
-      return false
+      $msg('请填写正确的邮箱地址', 'error');
+      getEmailVerifyCodeButtonState.value = false;
+      return false;
     }
   }
 
   if (info.captcha === '') {
-    $msg('请填写图片验证码', 'error')
-    getEmailVerifyCodeButtonState.value = false
-    return false
+    $msg('请填写图片验证码', 'error');
+    getEmailVerifyCodeButtonState.value = false;
+    return false;
   }
 
   try {
-    let body, apiEndpoint
+    let body, apiEndpoint;
 
     if (currentLoginMethod.value === 'email') {
       // 邮箱登录验证码
-      apiEndpoint = 'MailLoginCode'
-      body = new URLSearchParams()
-      body.append('id', captchaInfo.value.id)
-      body.append('key', info.captcha)
-      body.append('mail', info.mail)
+      apiEndpoint = 'MailLoginCode';
+      body = new URLSearchParams();
+      body.append('id', captchaInfo.value.id);
+      body.append('key', info.captcha);
+      body.append('mail', info.mail);
     } else {
       // 短信验证码
-      apiEndpoint = 'SendLoginSMS'
-      body = new URLSearchParams()
-      body.append('phone', info.mail) // 手机号存储在mail字段中
-      body.append('id', captchaInfo.value.id) // 验证码ID
-      body.append('key', info.captcha) // 验证码key
+      apiEndpoint = 'SendLoginSMS';
+      body = new URLSearchParams();
+      body.append('phone', info.mail); // 手机号存储在mail字段中
+      body.append('id', captchaInfo.value.id); // 验证码ID
+      body.append('key', info.captcha); // 验证码key
     }
 
     const res = await $myFetch(apiEndpoint, {
       method: 'POST',
       body,
-    })
+    });
 
     if (res.code === 200) {
-      $msg(res.data, 'success')
-      info.sign = res.data
-      startSmsLoginCountdown()
+      $msg(res.data, 'success');
+      info.sign = res.data;
+      startSmsLoginCountdown();
     } else {
-      $msg(res.msg, 'error')
-      getCaptchaInfo()
-      info.captcha = ''
+      $msg(res.msg, 'error');
+      getCaptchaInfo();
+      info.captcha = '';
     }
   } catch (error) {
-    $msg('发送验证码失败，请稍后重试', 'error')
+    $msg('发送验证码失败，请稍后重试', 'error');
   } finally {
-    getEmailVerifyCodeButtonState.value = false
+    getEmailVerifyCodeButtonState.value = false;
   }
-}
+};
 
 // 邮箱登录
 const mailLogin = async () => {
   if (!isPolicyAgreed.value) {
-    $msg('请阅读并同意隐私政策和用户协议', 'error')
-    return false
+    $msg('请阅读并同意隐私政策和用户协议', 'error');
+    return false;
   }
   if (info.mail === '' || info.mailCode === '') {
-    $msg('请填写完整的登录信息', 'error')
-    return false
+    $msg('请填写完整的登录信息', 'error');
+    return false;
   }
 
   // 根据登录方式验证输入格式
   if (currentLoginMethod.value === 'sms') {
     // 手机号格式验证
-    const phoneRule = /^1[3-9]\d{9}$/
+    const phoneRule = /^1[3-9]\d{9}$/;
     if (!phoneRule.test(info.mail)) {
-      $msg('请填写正确的手机号', 'error')
-      return false
+      $msg('请填写正确的手机号', 'error');
+      return false;
     }
   } else {
     // 邮箱格式验证
     if (rule.test(info.mail) === false) {
-      $msg('请填写正确的邮箱地址', 'error')
-      return false
+      $msg('请填写正确的邮箱地址', 'error');
+      return false;
     }
   }
 
-  loginAndRegisterButtonStatus.value = true
+  loginAndRegisterButtonStatus.value = true;
 
   try {
-    const body = new URLSearchParams()
+    const body = new URLSearchParams();
 
     // 根据配置选择不同的登录接口和参数
-    let apiEndpoint
+    let apiEndpoint;
     if (currentLoginMethod.value === 'email') {
-      apiEndpoint = 'MailLogin'
-      body.append('mail', info.mail)
-      body.append('code', info.mailCode)
+      apiEndpoint = 'MailLogin';
+      body.append('mail', info.mail);
+      body.append('code', info.mailCode);
     } else {
-      apiEndpoint = 'SmsLogin'
-      body.append('phone', info.mail) // 手机号存储在mail字段中
-      body.append('code', info.mailCode)
+      apiEndpoint = 'SmsLogin';
+      body.append('phone', info.mail); // 手机号存储在mail字段中
+      body.append('code', info.mailCode);
     }
 
     const res = await $myFetch(apiEndpoint, {
       method: 'POST',
       body,
-    })
+    });
 
     if (res.code === 200 && res.data.username) {
       // 设置cookie
-      username.value = res.data.username
-      token.value = res.data.token
+      username.value = res.data.username;
+      token.value = res.data.token;
 
       // 将 token 同时保存到 usestate
-      const authorization = useState('Authorization')
-      authorization.value = res.data.token
+      const authorization = useCookie('token');
+      authorization.value = res.data.token;
 
-      $msg('登录成功', 'success')
+      $msg('登录成功', 'success');
 
-      routeInfo.value = res.data.routeInfo
-      markAdminHomePopupPending()
-      navigateTo('/admin')
+      routeInfo.value = res.data.routeInfo;
+      markAdminHomePopupPending();
+      navigateTo('/admin');
     } else {
-      $msg(res.msg, 'error')
+      $msg(res.msg, 'error');
     }
   } catch (error) {
-    $msg('登录失败，请稍后重试', 'error')
+    $msg('登录失败，请稍后重试', 'error');
   } finally {
-    loginAndRegisterButtonStatus.value = false
+    loginAndRegisterButtonStatus.value = false;
   }
-}
+};
 
 // 获取配置信息
-const options = useState('options')
+const options = useState('options');
 
 // GitHub 登录
-const githubLoginLoading = ref(false)
-const qjqqLoginLoading = ref('')
+const githubLoginLoading = ref(false);
+const qjqqLoginLoading = ref('');
 const qjqqLoginProviders = [
   { type: 'qq', label: 'QQ', short: 'QQ', color: '#12b7f5' },
   { type: 'wx', label: '微信', short: '微', color: '#07c160' },
@@ -675,256 +675,255 @@ const qjqqLoginProviders = [
   { type: 'bilibili', label: '哔哩哔哩', short: 'B', color: '#00aeec' },
   { type: 'gitlab', label: 'Gitlab', short: 'GL', color: '#fc6d26' },
   { type: 'kuaishou', label: '快手', short: '快', color: '#ff4906' },
-]
+];
 
 const enabledQjqqProviders = computed(() => {
-  const configuredProviders = options.value?.qjqqProviders
-  if (
-    !Array.isArray(configuredProviders) ||
-    configuredProviders.length === 0
-  ) {
-    return qjqqLoginProviders
+  const configuredProviders = options.value?.qjqqProviders;
+  if (!Array.isArray(configuredProviders) || configuredProviders.length === 0) {
+    return qjqqLoginProviders;
   }
 
-  const enabledTypes = new Set(configuredProviders)
-  return qjqqLoginProviders.filter((provider) => enabledTypes.has(provider.type))
-})
+  const enabledTypes = new Set(configuredProviders);
+  return qjqqLoginProviders.filter((provider) =>
+    enabledTypes.has(provider.type),
+  );
+});
 
 const githubLogin = async () => {
   if (!isPolicyAgreed.value) {
-    $msg('请阅读并同意隐私政策和用户协议', 'error')
-    return
+    $msg('请阅读并同意隐私政策和用户协议', 'error');
+    return;
   }
-  githubLoginLoading.value = true
+  githubLoginLoading.value = true;
   try {
     const res = await $myFetch('GitHubLogin', {
       method: 'GET',
-    })
+    });
     if (res.code === 200 && res.data && res.data.url) {
-      window.location.href = res.data.url
+      window.location.href = res.data.url;
     } else {
-      $msg(res.msg || 'GitHub 登录暂不可用', 'error')
+      $msg(res.msg || 'GitHub 登录暂不可用', 'error');
     }
   } catch (error) {
-    $msg('获取 GitHub 授权地址失败', 'error')
+    $msg('获取 GitHub 授权地址失败', 'error');
   } finally {
-    githubLoginLoading.value = false
+    githubLoginLoading.value = false;
   }
-}
+};
 
 // 彩虹聚合登录
 const qjqqLogin = async (providerType = 'qq') => {
   if (!isPolicyAgreed.value) {
-    $msg('请阅读并同意隐私政策和用户协议', 'error')
-    return
+    $msg('请阅读并同意隐私政策和用户协议', 'error');
+    return;
   }
-  qjqqLoginLoading.value = providerType
+  qjqqLoginLoading.value = providerType;
   try {
     const res = await $myFetch(
       `QjqqLogin?type=${encodeURIComponent(providerType)}`,
       {
         method: 'GET',
       },
-    )
+    );
     if (res.code === 200 && res.data && res.data.url) {
       if (process.client) {
-        sessionStorage.setItem('qjqq_login_pending', providerType)
+        sessionStorage.setItem('qjqq_login_pending', providerType);
       }
-      window.location.href = res.data.url
+      window.location.href = res.data.url;
     } else {
-      $msg(res.msg || '彩虹聚合登录暂不可用', 'error')
+      $msg(res.msg || '彩虹聚合登录暂不可用', 'error');
     }
   } catch (error) {
-    $msg('获取彩虹聚合登录地址失败', 'error')
+    $msg('获取彩虹聚合登录地址失败', 'error');
   } finally {
-    qjqqLoginLoading.value = ''
+    qjqqLoginLoading.value = '';
   }
-}
+};
 
 // 处理 GitHub OAuth 回调
 const handleGithubCallback = async (code, state) => {
-  githubLoginLoading.value = true
+  githubLoginLoading.value = true;
   try {
-    const body = new URLSearchParams()
-    body.append('code', code)
-    body.append('state', state)
+    const body = new URLSearchParams();
+    body.append('code', code);
+    body.append('state', state);
     const res = await $myFetch('GitHubCallback', {
       method: 'POST',
       body,
-    })
+    });
     if (res.code === 200 && res.data.username) {
-      username.value = res.data.username
-      token.value = res.data.token
+      username.value = res.data.username;
+      token.value = res.data.token;
 
-      const authorization = useState('Authorization')
-      authorization.value = res.data.token
+      const authorization = useCookie('token');
+      authorization.value = res.data.token;
 
-      $msg('GitHub 登录成功', 'success')
+      $msg('GitHub 登录成功', 'success');
 
-      routeInfo.value = res.data.routeInfo
-      markAdminHomePopupPending()
-      navigateTo('/admin')
+      routeInfo.value = res.data.routeInfo;
+      markAdminHomePopupPending();
+      navigateTo('/admin');
     } else {
-      $msg(res.msg || 'GitHub 登录失败', 'error')
+      $msg(res.msg || 'GitHub 登录失败', 'error');
     }
   } catch (error) {
-    $msg('GitHub 登录失败，请稍后重试', 'error')
+    $msg('GitHub 登录失败，请稍后重试', 'error');
   } finally {
-    githubLoginLoading.value = false
+    githubLoginLoading.value = false;
   }
-}
+};
 
 // 处理彩虹聚合登录回调
 const handleQjqqCallback = async (code, type) => {
-  const providerType = String(type || '').toLowerCase()
-  qjqqLoginLoading.value = providerType
+  const providerType = String(type || '').toLowerCase();
+  qjqqLoginLoading.value = providerType;
   try {
     if (
       process.client &&
       sessionStorage.getItem('qjqq_login_pending') !== providerType
     ) {
-      $msg('彩虹聚合登录请求已过期，请重新登录', 'error')
-      return
+      $msg('彩虹聚合登录请求已过期，请重新登录', 'error');
+      return;
     }
     if (process.client) {
-      sessionStorage.removeItem('qjqq_login_pending')
+      sessionStorage.removeItem('qjqq_login_pending');
     }
 
-    const body = new URLSearchParams()
-    body.append('code', code)
-    body.append('type', providerType)
+    const body = new URLSearchParams();
+    body.append('code', code);
+    body.append('type', providerType);
     const res = await $myFetch('QjqqCallback', {
       method: 'POST',
       body,
-    })
+    });
     if (res.code === 200 && res.data?.needBindEmail && res.data?.bindToken) {
-      oauthBindToken.value = res.data.bindToken
-      isOAuthBindEmail.value = true
-      LoginIsRegister.value = true
-      isEmailLogin.value = false
-      isForgotPassword.value = false
-      info.mail = ''
-      info.mailCode = ''
-      $msg('请先绑定邮箱后继续登录', 'warning')
-      return
+      oauthBindToken.value = res.data.bindToken;
+      isOAuthBindEmail.value = true;
+      LoginIsRegister.value = true;
+      isEmailLogin.value = false;
+      isForgotPassword.value = false;
+      info.mail = '';
+      info.mailCode = '';
+      $msg('请先绑定邮箱后继续登录', 'warning');
+      return;
     }
     if (res.code === 200 && res.data.username) {
-      applyLoginSuccess(res.data, '彩虹聚合登录成功')
+      applyLoginSuccess(res.data, '彩虹聚合登录成功');
     } else {
-      $msg(res.msg || '彩虹聚合登录失败', 'error')
+      $msg(res.msg || '彩虹聚合登录失败', 'error');
     }
   } catch (error) {
-    $msg('彩虹聚合登录失败，请稍后重试', 'error')
+    $msg('彩虹聚合登录失败，请稍后重试', 'error');
   } finally {
-    qjqqLoginLoading.value = ''
+    qjqqLoginLoading.value = '';
   }
-}
+};
 
 const resetOAuthBindEmail = () => {
-  isOAuthBindEmail.value = false
-  oauthBindToken.value = ''
-  info.mail = ''
-  info.mailCode = ''
-  LoginIsRegister.value = true
-}
+  isOAuthBindEmail.value = false;
+  oauthBindToken.value = '';
+  info.mail = '';
+  info.mailCode = '';
+  LoginIsRegister.value = true;
+};
 
 const getOAuthBindMailCode = async () => {
   if (!oauthBindToken.value) {
-    $msg('绑定会话已过期，请重新登录', 'error')
-    resetOAuthBindEmail()
-    return
+    $msg('绑定会话已过期，请重新登录', 'error');
+    resetOAuthBindEmail();
+    return;
   }
   if (rule.test(info.mail) === false) {
-    $msg('请填写正确的邮箱地址', 'error')
-    return
+    $msg('请填写正确的邮箱地址', 'error');
+    return;
   }
 
-  getOAuthBindVerifyCodeButtonState.value = true
+  getOAuthBindVerifyCodeButtonState.value = true;
   try {
-    const body = new URLSearchParams()
-    body.append('bindToken', oauthBindToken.value)
-    body.append('mail', info.mail)
+    const body = new URLSearchParams();
+    body.append('bindToken', oauthBindToken.value);
+    body.append('mail', info.mail);
     const res = await $myFetch('OAuthBindMailCode', {
       method: 'POST',
       body,
-    })
+    });
 
     if (res.code === 200) {
-      $msg(res.data || res.msg || '验证码已发送，请查收邮箱', 'success')
-      startOAuthBindCountdown()
+      $msg(res.data || res.msg || '验证码已发送，请查收邮箱', 'success');
+      startOAuthBindCountdown();
     } else {
-      $msg(res.msg || '验证码发送失败', 'error')
+      $msg(res.msg || '验证码发送失败', 'error');
     }
   } catch (error) {
-    $msg('验证码发送失败，请稍后重试', 'error')
+    $msg('验证码发送失败，请稍后重试', 'error');
   } finally {
-    getOAuthBindVerifyCodeButtonState.value = false
+    getOAuthBindVerifyCodeButtonState.value = false;
   }
-}
+};
 
 const oauthBindMail = async () => {
   if (!isPolicyAgreed.value) {
-    $msg('请阅读并同意隐私政策和用户协议', 'error')
-    return
+    $msg('请阅读并同意隐私政策和用户协议', 'error');
+    return;
   }
   if (!oauthBindToken.value) {
-    $msg('绑定会话已过期，请重新登录', 'error')
-    resetOAuthBindEmail()
-    return
+    $msg('绑定会话已过期，请重新登录', 'error');
+    resetOAuthBindEmail();
+    return;
   }
   if (rule.test(info.mail) === false) {
-    $msg('请填写正确的邮箱地址', 'error')
-    return
+    $msg('请填写正确的邮箱地址', 'error');
+    return;
   }
   if (info.mailCode === '') {
-    $msg('请填写邮箱验证码', 'error')
-    return
+    $msg('请填写邮箱验证码', 'error');
+    return;
   }
 
-  loginAndRegisterButtonStatus.value = true
+  loginAndRegisterButtonStatus.value = true;
   try {
-    const body = new URLSearchParams()
-    body.append('bindToken', oauthBindToken.value)
-    body.append('mail', info.mail)
-    body.append('code', info.mailCode)
+    const body = new URLSearchParams();
+    body.append('bindToken', oauthBindToken.value);
+    body.append('mail', info.mail);
+    body.append('code', info.mailCode);
     const res = await $myFetch('OAuthBindMail', {
       method: 'POST',
       body,
-    })
+    });
 
     if (res.code === 200 && res.data.username) {
-      resetOAuthBindEmail()
-      applyLoginSuccess(res.data, '邮箱绑定成功')
+      resetOAuthBindEmail();
+      applyLoginSuccess(res.data, '邮箱绑定成功');
     } else {
-      $msg(res.msg || '邮箱绑定失败', 'error')
+      $msg(res.msg || '邮箱绑定失败', 'error');
     }
   } catch (error) {
-    $msg('邮箱绑定失败，请稍后重试', 'error')
+    $msg('邮箱绑定失败，请稍后重试', 'error');
   } finally {
-    loginAndRegisterButtonStatus.value = false
+    loginAndRegisterButtonStatus.value = false;
   }
-}
+};
 
 // 组件挂载时获取登录方式配置
 onMounted(() => {
-  getLoginMethodConfig()
+  getLoginMethodConfig();
 
   // 检测第三方登录回调
-  const route = useRoute()
-  const code = firstQueryValue(route.query.code)
-  const state = firstQueryValue(route.query.state)
-  const type = firstQueryValue(route.query.type)
+  const route = useRoute();
+  const code = firstQueryValue(route.query.code);
+  const state = firstQueryValue(route.query.state);
+  const type = firstQueryValue(route.query.type);
   if (code && type) {
-    const cleanUrl = window.location.pathname
-    window.history.replaceState({}, '', cleanUrl)
-    handleQjqqCallback(code, type)
+    const cleanUrl = window.location.pathname;
+    window.history.replaceState({}, '', cleanUrl);
+    handleQjqqCallback(code, type);
   } else if (code && state) {
     // 清除 URL 中的 code 和 state 参数
-    const cleanUrl = window.location.pathname
-    window.history.replaceState({}, '', cleanUrl)
-    handleGithubCallback(code, state)
+    const cleanUrl = window.location.pathname;
+    window.history.replaceState({}, '', cleanUrl);
+    handleGithubCallback(code, state);
   }
-})
+});
 
 useHead({
   title: '用户登录',
@@ -936,7 +935,7 @@ useHead({
       children: options.value.css,
     },
   ],
-})
+});
 </script>
 
 <template>
@@ -957,10 +956,10 @@ useHead({
             isOAuthBindEmail
               ? resetOAuthBindEmail()
               : isForgotPassword
-              ? toggleForgotPassword()
-              : isEmailLogin
-                ? toggleEmailLogin()
-                : goBack()
+                ? toggleForgotPassword()
+                : isEmailLogin
+                  ? toggleEmailLogin()
+                  : goBack()
           "
         >
           <img src="@/assets/images/goback.svg" alt="返回" />
@@ -968,10 +967,10 @@ useHead({
             isOAuthBindEmail
               ? '返回登录'
               : isForgotPassword
-              ? '返回登录'
-              : isEmailLogin
                 ? '返回登录'
-                : '返回首页'
+                : isEmailLogin
+                  ? '返回登录'
+                  : '返回首页'
           }}
         </span>
         <div class="header-content">
@@ -980,14 +979,14 @@ useHead({
               isOAuthBindEmail
                 ? '绑定邮箱'
                 : isForgotPassword
-                ? '找回密码'
-                : isEmailLogin
-                  ? currentLoginMethod === 'sms'
-                    ? '手机号登录'
-                    : '邮箱登录'
-                  : LoginIsRegister
-                    ? '账号登录'
-                    : '注册账号'
+                  ? '找回密码'
+                  : isEmailLogin
+                    ? currentLoginMethod === 'sms'
+                      ? '手机号登录'
+                      : '邮箱登录'
+                    : LoginIsRegister
+                      ? '账号登录'
+                      : '注册账号'
             }}
           </h2>
           <p class="subtitle">
@@ -995,14 +994,14 @@ useHead({
               isOAuthBindEmail
                 ? '第三方登录需要先绑定邮箱'
                 : isForgotPassword
-                ? '输入您的用户名和邮箱找回密码'
-                : isEmailLogin
-                  ? currentLoginMethod === 'sms'
-                    ? '使用手机号验证码快速登录'
-                    : '使用邮箱验证码快速登录'
-                  : LoginIsRegister
-                    ? '欢迎使用' + options.website_name + '，请登录您的账号'
-                    : '欢迎加入' + options.website_name + '，请完成注册'
+                  ? '输入您的用户名和邮箱找回密码'
+                  : isEmailLogin
+                    ? currentLoginMethod === 'sms'
+                      ? '使用手机号验证码快速登录'
+                      : '使用邮箱验证码快速登录'
+                    : LoginIsRegister
+                      ? '欢迎使用' + options.website_name + '，请登录您的账号'
+                      : '欢迎加入' + options.website_name + '，请完成注册'
             }}
           </p>
         </div>
