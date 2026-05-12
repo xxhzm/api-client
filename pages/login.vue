@@ -656,25 +656,25 @@ const options = useState('options')
 const githubLoginLoading = ref(false)
 const qjqqLoginLoading = ref('')
 const qjqqLoginProviders = [
-  { type: 'qq', label: 'QQ', short: 'QQ' },
-  { type: 'wx', label: '微信', short: '微' },
-  { type: 'wxmp', label: '公众号', short: '公' },
-  { type: 'alipay', label: '支付宝', short: '支' },
-  { type: 'sina', label: '微博', short: '微' },
-  { type: 'baidu', label: '百度', short: '百' },
-  { type: 'douyin', label: '抖音', short: '抖' },
-  { type: 'huawei', label: '华为', short: '华' },
-  { type: 'xiaomi', label: '小米', short: '米' },
-  { type: 'google', label: '谷歌', short: 'G' },
-  { type: 'microsoft', label: '微软', short: 'M' },
-  { type: 'wework', label: '企业微信', short: '企' },
-  { type: 'dingtalk', label: '钉钉', short: '钉' },
-  { type: 'gitee', label: 'Gitee', short: 'G' },
-  { type: 'github', label: 'GitHub', short: 'GH' },
-  { type: 'appleid', label: 'Apple', short: 'A' },
-  { type: 'bilibili', label: '哔哩哔哩', short: 'B' },
-  { type: 'gitlab', label: 'Gitlab', short: 'GL' },
-  { type: 'kuaishou', label: '快手', short: '快' },
+  { type: 'qq', label: 'QQ', short: 'QQ', color: '#12b7f5' },
+  { type: 'wx', label: '微信', short: '微', color: '#07c160' },
+  { type: 'wxmp', label: '公众号', short: '公', color: '#1aad19' },
+  { type: 'alipay', label: '支付宝', short: '支', color: '#1677ff' },
+  { type: 'sina', label: '微博', short: '微', color: '#e6162d' },
+  { type: 'baidu', label: '百度', short: '百', color: '#2932e1' },
+  { type: 'douyin', label: '抖音', short: '抖', color: '#111827' },
+  { type: 'huawei', label: '华为', short: '华', color: '#cf0a2c' },
+  { type: 'xiaomi', label: '小米', short: '米', color: '#ff6900' },
+  { type: 'google', label: '谷歌', short: 'G', color: '#4285f4' },
+  { type: 'microsoft', label: '微软', short: 'M', color: '#00a4ef' },
+  { type: 'wework', label: '企业微信', short: '企', color: '#2f86f6' },
+  { type: 'dingtalk', label: '钉钉', short: '钉', color: '#1677ff' },
+  { type: 'gitee', label: 'Gitee', short: 'G', color: '#c71d23' },
+  { type: 'github', label: 'GitHub', short: 'GH', color: '#24292f' },
+  { type: 'appleid', label: 'Apple', short: 'A', color: '#111827' },
+  { type: 'bilibili', label: '哔哩哔哩', short: 'B', color: '#00aeec' },
+  { type: 'gitlab', label: 'Gitlab', short: 'GL', color: '#fc6d26' },
+  { type: 'kuaishou', label: '快手', short: '快', color: '#ff4906' },
 ]
 
 const enabledQjqqProviders = computed(() => {
@@ -1144,6 +1144,7 @@ useHead({
               v-for="provider in enabledQjqqProviders"
               :key="provider.type"
               class="qjqq-provider-btn"
+              :style="{ '--qjqq-color': provider.color }"
               @click="qjqqLogin(provider.type)"
               :loading="qjqqLoginLoading === provider.type"
               :disabled="
@@ -1151,7 +1152,7 @@ useHead({
               "
             >
               <span class="qjqq-icon">{{ provider.short }}</span>
-              {{ provider.label }}
+              <span class="qjqq-label">{{ provider.label }}</span>
             </el-button>
           </div>
           <el-button
@@ -1668,36 +1669,39 @@ useHead({
       .qjqq-provider-grid {
         display: grid;
         grid-template-columns: repeat(3, minmax(0, 1fr));
-        gap: 8px;
-        margin-bottom: 10px;
+        gap: 10px;
+        margin-bottom: 12px;
       }
 
       .qjqq-provider-btn {
+        --qjqq-color: #409eff;
         width: 100%;
-        height: 38px;
+        height: 44px;
         margin-left: 0;
-        padding: 0 8px;
-        color: #176b85;
-        background: linear-gradient(135deg, #eefbff 0%, #dff7ff 100%);
-        border: 1px solid #b8ecfb;
-        border-radius: 9px;
+        padding: 0 10px;
+        color: #303133;
+        background: #fff;
+        border: 1px solid #e7edf3;
+        border-radius: 8px;
         font-size: 13px;
         font-weight: 600;
         display: inline-flex;
         align-items: center;
-        justify-content: center;
-        gap: 6px;
+        justify-content: flex-start;
+        gap: 8px;
+        box-shadow: 0 4px 12px rgba(28, 35, 49, 0.04);
         transition:
           transform 0.2s ease,
+          box-shadow 0.2s ease,
           border-color 0.2s ease,
-          background-color 0.2s ease;
+          color 0.2s ease;
 
         &:hover,
         &:focus {
-          transform: translateY(-1px);
-          border-color: #55cdec;
-          background: linear-gradient(135deg, #e2f9ff 0%, #c9f1fb 100%);
-          color: #0f6078;
+          transform: translateY(-2px);
+          border-color: var(--qjqq-color);
+          color: var(--qjqq-color);
+          box-shadow: 0 8px 18px rgba(28, 35, 49, 0.1);
         }
 
         &:active {
@@ -1706,24 +1710,44 @@ useHead({
 
         &.is-disabled {
           transform: none;
+          box-shadow: none;
         }
 
         :deep(.el-loading-spinner .path) {
-          stroke: #176b85;
+          stroke: var(--qjqq-color);
+        }
+
+        :deep(> span) {
+          width: 100%;
+          min-width: 0;
+          display: inline-flex;
+          align-items: center;
+          justify-content: flex-start;
+          gap: 8px;
         }
 
         .qjqq-icon {
+          flex: 0 0 24px;
           display: inline-flex;
           align-items: center;
           justify-content: center;
-          width: 22px;
-          height: 22px;
+          width: 24px;
+          height: 24px;
           border-radius: 50%;
           color: #fff;
-          background: #12b7f5;
+          background: var(--qjqq-color);
           font-size: 10px;
           font-weight: 700;
-          letter-spacing: -0.5px;
+          line-height: 1;
+          box-shadow: 0 4px 10px
+            color-mix(in srgb, var(--qjqq-color) 28%, transparent);
+        }
+
+        .qjqq-label {
+          min-width: 0;
+          overflow: hidden;
+          text-overflow: ellipsis;
+          white-space: nowrap;
         }
       }
 
