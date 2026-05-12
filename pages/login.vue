@@ -334,15 +334,33 @@ const getLoginMethodConfig = async () => {
     if (res.code === 200 && res.data) {
       let methods = []
 
-      // 处理不同格式的登录方式数据
-      if (res.data) {
-        if (typeof res.data === 'string') {
-          // 字符串格式：可能是 "sms|email" 或单个方式 "email"
-          methods = res.data.split('|').filter((method) => method.trim())
-        } else if (Array.isArray(res.data)) {
-          // 数组格式：["sms", "email"]
-          methods = res.data.filter((method) => method && method.trim())
-        }
+      const loginMethodData =
+        typeof res.data === 'object' && !Array.isArray(res.data)
+          ? res.data.method
+          : res.data
+      const qjqqProviders =
+        typeof res.data === 'object' && !Array.isArray(res.data)
+          ? res.data.qjqqProviders
+          : ''
+
+      if (!options.value) {
+        options.value = {}
+      }
+
+      if (typeof loginMethodData === 'string') {
+        methods = loginMethodData.split('|').filter((method) => method.trim())
+      } else if (Array.isArray(loginMethodData)) {
+        methods = loginMethodData.filter((method) => method && method.trim())
+      }
+
+      if (typeof qjqqProviders === 'string') {
+        options.value.qjqqProviders = qjqqProviders
+          ? qjqqProviders.split('|').filter((provider) => provider.trim())
+          : []
+      } else if (Array.isArray(qjqqProviders)) {
+        options.value.qjqqProviders = qjqqProviders.filter(
+          (provider) => provider && provider.trim(),
+        )
       }
 
       // 设置登录方式配置
@@ -636,7 +654,41 @@ const options = useState('options')
 
 // GitHub 登录
 const githubLoginLoading = ref(false)
-const qjqqLoginLoading = ref(false)
+const qjqqLoginLoading = ref('')
+const qjqqLoginProviders = [
+  { type: 'qq', label: 'QQ', short: 'QQ' },
+  { type: 'wx', label: '微信', short: '微' },
+  { type: 'wxmp', label: '公众号', short: '公' },
+  { type: 'alipay', label: '支付宝', short: '支' },
+  { type: 'sina', label: '微博', short: '微' },
+  { type: 'baidu', label: '百度', short: '百' },
+  { type: 'douyin', label: '抖音', short: '抖' },
+  { type: 'huawei', label: '华为', short: '华' },
+  { type: 'xiaomi', label: '小米', short: '米' },
+  { type: 'google', label: '谷歌', short: 'G' },
+  { type: 'microsoft', label: '微软', short: 'M' },
+  { type: 'wework', label: '企业微信', short: '企' },
+  { type: 'dingtalk', label: '钉钉', short: '钉' },
+  { type: 'gitee', label: 'Gitee', short: 'G' },
+  { type: 'github', label: 'GitHub', short: 'GH' },
+  { type: 'appleid', label: 'Apple', short: 'A' },
+  { type: 'bilibili', label: '哔哩哔哩', short: 'B' },
+  { type: 'gitlab', label: 'Gitlab', short: 'GL' },
+  { type: 'kuaishou', label: '快手', short: '快' },
+]
+
+const enabledQjqqProviders = computed(() => {
+  const configuredProviders = options.value?.qjqqProviders
+  if (
+    !Array.isArray(configuredProviders) ||
+    configuredProviders.length === 0
+  ) {
+    return qjqqLoginProviders
+  }
+
+  const enabledTypes = new Set(configuredProviders)
+  return qjqqLoginProviders.filter((provider) => enabledTypes.has(provider.type))
+})
 
 const githubLogin = async () => {
   if (!isPolicyAgreed.value) {
@@ -661,19 +713,22 @@ const githubLogin = async () => {
 }
 
 // 彩虹聚合登录
-const qjqqLogin = async () => {
+const qjqqLogin = async (providerType = 'qq') => {
   if (!isPolicyAgreed.value) {
     $msg('请阅读并同意隐私政策和用户协议', 'error')
     return
   }
-  qjqqLoginLoading.value = true
+  qjqqLoginLoading.value = providerType
   try {
-    const res = await $myFetch('QjqqLogin', {
-      method: 'GET',
-    })
+    const res = await $myFetch(
+      `QjqqLogin?type=${encodeURIComponent(providerType)}`,
+      {
+        method: 'GET',
+      },
+    )
     if (res.code === 200 && res.data && res.data.url) {
       if (process.client) {
-        sessionStorage.setItem('qjqq_login_pending', '1')
+        sessionStorage.setItem('qjqq_login_pending', providerType)
       }
       window.location.href = res.data.url
     } else {
@@ -682,7 +737,7 @@ const qjqqLogin = async () => {
   } catch (error) {
     $msg('获取彩虹聚合登录地址失败', 'error')
   } finally {
-    qjqqLoginLoading.value = false
+    qjqqLoginLoading.value = ''
   }
 }
 
@@ -721,11 +776,12 @@ const handleGithubCallback = async (code, state) => {
 
 // 处理彩虹聚合登录回调
 const handleQjqqCallback = async (code, type) => {
-  qjqqLoginLoading.value = true
+  const providerType = String(type || '').toLowerCase()
+  qjqqLoginLoading.value = providerType
   try {
     if (
       process.client &&
-      sessionStorage.getItem('qjqq_login_pending') !== '1'
+      sessionStorage.getItem('qjqq_login_pending') !== providerType
     ) {
       $msg('彩虹聚合登录请求已过期，请重新登录', 'error')
       return
@@ -736,7 +792,7 @@ const handleQjqqCallback = async (code, type) => {
 
     const body = new URLSearchParams()
     body.append('code', code)
-    body.append('type', type)
+    body.append('type', providerType)
     const res = await $myFetch('QjqqCallback', {
       method: 'POST',
       body,
@@ -760,7 +816,7 @@ const handleQjqqCallback = async (code, type) => {
   } catch (error) {
     $msg('彩虹聚合登录失败，请稍后重试', 'error')
   } finally {
-    qjqqLoginLoading.value = false
+    qjqqLoginLoading.value = ''
   }
 }
 
@@ -858,15 +914,15 @@ onMounted(() => {
   const code = firstQueryValue(route.query.code)
   const state = firstQueryValue(route.query.state)
   const type = firstQueryValue(route.query.type)
-  if (code && state) {
+  if (code && type) {
+    const cleanUrl = window.location.pathname
+    window.history.replaceState({}, '', cleanUrl)
+    handleQjqqCallback(code, type)
+  } else if (code && state) {
     // 清除 URL 中的 code 和 state 参数
     const cleanUrl = window.location.pathname
     window.history.replaceState({}, '', cleanUrl)
     handleGithubCallback(code, state)
-  } else if (code && type) {
-    const cleanUrl = window.location.pathname
-    window.history.replaceState({}, '', cleanUrl)
-    handleQjqqCallback(code, type)
   }
 })
 
@@ -1069,22 +1125,35 @@ useHead({
         <div
           v-if="
             availableLoginMethods.includes('github') ||
-            availableLoginMethods.includes('qjqq')
+            (availableLoginMethods.includes('qjqq') &&
+              enabledQjqqProviders.length > 0)
           "
           class="third-party-login"
         >
           <div class="divider">
             <span>或使用第三方登录</span>
           </div>
-          <el-button
-            v-if="availableLoginMethods.includes('qjqq')"
-            class="qjqq-btn"
-            @click="qjqqLogin"
-            :loading="qjqqLoginLoading"
+          <div
+            v-if="
+              availableLoginMethods.includes('qjqq') &&
+              enabledQjqqProviders.length > 0
+            "
+            class="qjqq-provider-grid"
           >
-            <span class="qjqq-icon">QQ</span>
-            QQ 登录
-          </el-button>
+            <el-button
+              v-for="provider in enabledQjqqProviders"
+              :key="provider.type"
+              class="qjqq-provider-btn"
+              @click="qjqqLogin(provider.type)"
+              :loading="qjqqLoginLoading === provider.type"
+              :disabled="
+                qjqqLoginLoading !== '' && qjqqLoginLoading !== provider.type
+              "
+            >
+              <span class="qjqq-icon">{{ provider.short }}</span>
+              {{ provider.label }}
+            </el-button>
+          </div>
           <el-button
             v-if="availableLoginMethods.includes('github')"
             class="github-btn"
@@ -1582,7 +1651,6 @@ useHead({
         }
       }
 
-      .qjqq-btn,
       .github-btn {
         width: 100%;
         height: 40px;
@@ -1597,33 +1665,63 @@ useHead({
         transition: background-color 0.3s;
       }
 
-      .el-button + .el-button {
-        margin-top: 10px;
+      .qjqq-provider-grid {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 8px;
+        margin-bottom: 10px;
       }
 
-      .qjqq-btn {
-        color: #fff;
-        background-color: #12b7f5;
+      .qjqq-provider-btn {
+        width: 100%;
+        height: 38px;
+        margin-left: 0;
+        padding: 0 8px;
+        color: #176b85;
+        background: linear-gradient(135deg, #eefbff 0%, #dff7ff 100%);
+        border: 1px solid #b8ecfb;
+        border-radius: 9px;
+        font-size: 13px;
+        font-weight: 600;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+        transition:
+          transform 0.2s ease,
+          border-color 0.2s ease,
+          background-color 0.2s ease;
 
         &:hover,
         &:focus {
-          background-color: #36c6ff;
-          color: #fff;
+          transform: translateY(-1px);
+          border-color: #55cdec;
+          background: linear-gradient(135deg, #e2f9ff 0%, #c9f1fb 100%);
+          color: #0f6078;
         }
 
         &:active {
-          background-color: #0a9bd8;
+          transform: translateY(0);
+        }
+
+        &.is-disabled {
+          transform: none;
+        }
+
+        :deep(.el-loading-spinner .path) {
+          stroke: #176b85;
         }
 
         .qjqq-icon {
           display: inline-flex;
           align-items: center;
           justify-content: center;
-          width: 24px;
-          height: 24px;
+          width: 22px;
+          height: 22px;
           border-radius: 50%;
-          background: rgba(255, 255, 255, 0.2);
-          font-size: 11px;
+          color: #fff;
+          background: #12b7f5;
+          font-size: 10px;
           font-weight: 700;
           letter-spacing: -0.5px;
         }
@@ -1646,6 +1744,10 @@ useHead({
         .github-icon {
           flex-shrink: 0;
         }
+      }
+
+      .qjqq-provider-grid + .github-btn {
+        margin-top: 10px;
       }
     }
 
@@ -1691,7 +1793,8 @@ useHead({
     padding: 16px;
 
     .login-card {
-      height: 560px;
+      height: auto;
+      min-height: 560px;
 
       &.is-register {
         height: 580px;
@@ -1727,6 +1830,14 @@ useHead({
 
         .el-form-item {
           margin-bottom: 16px;
+        }
+      }
+
+      .third-party-login {
+        padding: 0 24px 24px;
+
+        .qjqq-provider-grid {
+          grid-template-columns: repeat(2, minmax(0, 1fr));
         }
       }
     }

@@ -98,7 +98,30 @@ const loginInfo = ref({
   githubClientSecret: '',
   qjqqAppId: '',
   qjqqAppKey: '',
+  qjqqProviders: [],
 })
+
+const qjqqProviderOptions = [
+  { value: 'qq', label: 'QQ' },
+  { value: 'wx', label: '微信' },
+  { value: 'wxmp', label: '公众号' },
+  { value: 'alipay', label: '支付宝' },
+  { value: 'sina', label: '微博' },
+  { value: 'baidu', label: '百度' },
+  { value: 'douyin', label: '抖音' },
+  { value: 'huawei', label: '华为' },
+  { value: 'xiaomi', label: '小米' },
+  { value: 'google', label: '谷歌' },
+  { value: 'microsoft', label: '微软' },
+  { value: 'wework', label: '企业微信' },
+  { value: 'dingtalk', label: '钉钉' },
+  { value: 'gitee', label: 'Gitee' },
+  { value: 'github', label: 'GitHub' },
+  { value: 'appleid', label: 'Apple' },
+  { value: 'bilibili', label: '哔哩哔哩' },
+  { value: 'gitlab', label: 'Gitlab' },
+  { value: 'kuaishou', label: '快手' },
+]
 
 // 验证码配置相关
 const captchaInfo = ref({
@@ -247,6 +270,14 @@ const getLoginInfo = async () => {
     } else if (!loginInfo.value.method) {
       // 如果method字段不存在，设置为空数组
       loginInfo.value.method = []
+    }
+
+    if (typeof loginInfo.value.qjqqProviders === 'string') {
+      loginInfo.value.qjqqProviders = loginInfo.value.qjqqProviders
+        ? loginInfo.value.qjqqProviders.split('|')
+        : []
+    } else if (!Array.isArray(loginInfo.value.qjqqProviders)) {
+      loginInfo.value.qjqqProviders = []
     }
   } else {
     // 如果接口返回失败或数据为空，重置为初始状态
@@ -712,6 +743,12 @@ const loginInfoSubmit = async () => {
   )
   bodyValue.append('qjqqAppId', loginInfo.value.qjqqAppId || '')
   bodyValue.append('qjqqAppKey', loginInfo.value.qjqqAppKey || '')
+  bodyValue.append(
+    'qjqqProviders',
+    Array.isArray(loginInfo.value.qjqqProviders)
+      ? loginInfo.value.qjqqProviders.join('|')
+      : '',
+  )
 
   const res = await $myFetch('UpdateLoginMethodInfo', {
     method: 'POST',
@@ -2852,8 +2889,26 @@ useHead({
                         </div>
                       </el-form-item>
 
+                      <el-form-item label="启用平台">
+                        <el-checkbox-group
+                          v-model="loginInfo.qjqqProviders"
+                          class="qjqq-provider-options"
+                        >
+                          <el-checkbox
+                            v-for="provider in qjqqProviderOptions"
+                            :key="provider.value"
+                            :label="provider.value"
+                          >
+                            {{ provider.label }}
+                          </el-checkbox>
+                        </el-checkbox-group>
+                        <div class="form-help">
+                          不选择时默认启用全部彩虹聚合登录平台
+                        </div>
+                      </el-form-item>
+
                       <el-alert
-                        title="当前按彩虹文档接入 QQ 登录，回调地址使用站点 pageurl 下的 /login。"
+                        title="当前按彩虹文档接入多平台聚合登录，回调地址使用站点 pageurl 下的 /login。"
                         type="info"
                         :closable="false"
                         show-icon
@@ -3198,6 +3253,12 @@ useHead({
         margin-left: 12px;
         font-size: 13px;
         color: #909399;
+      }
+
+      .qjqq-provider-options {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
+        gap: 8px 12px;
       }
 
       // 验证码配置样式
