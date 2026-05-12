@@ -1,5 +1,5 @@
 <script setup>
-import { ElMessageBox } from 'element-plus'
+import { ElMessageBox } from 'element-plus';
 import {
   Message,
   Wallet,
@@ -12,15 +12,15 @@ import {
   Link,
   CircleCheck,
   Connection,
-} from '@element-plus/icons-vue'
+} from '@element-plus/icons-vue';
 
-const emit = defineEmits(['loaded'])
+const emit = defineEmits(['loaded']);
 
-const { $myFetch, $msg } = useNuxtApp()
-const { userAccessKey } = useUserKey()
-const username = useCookie('username')
-const route = useRoute()
-const router = useRouter()
+const { $myFetch, $msg } = useNuxtApp();
+const { userAccessKey } = useUserKey();
+const username = useCookie('username');
+const route = useRoute();
+const router = useRouter();
 
 // User Info State
 const userInfo = reactive({
@@ -32,21 +32,21 @@ const userInfo = reactive({
   ip: '',
   login_time: '',
   create_time: '',
-})
+});
 
-const total24h = ref(0)
-const balance = ref(0)
-const currentMonthTopUp = ref(0)
-const totalTopUp = ref(0)
-const oauthBindings = ref([])
-const oauthLoading = ref(false)
-const qjqqBindLoading = ref('')
-const oauthUnbindLoading = ref('')
-const availableLoginMethods = ref([])
-const qjqqProviders = ref([])
-const activeTab = ref('details')
+const total24h = ref(0);
+const balance = ref(0);
+const currentMonthTopUp = ref(0);
+const totalTopUp = ref(0);
+const oauthBindings = ref([]);
+const oauthLoading = ref(false);
+const chjhBindLoading = ref('');
+const oauthUnbindLoading = ref('');
+const availableLoginMethods = ref([]);
+const chjhProviders = ref([]);
+const activeTab = ref('details');
 
-const qjqqLoginProviders = [
+const chjhLoginProviders = [
   { type: 'qq', label: 'QQ', short: 'QQ', color: '#12b7f5' },
   { type: 'wx', label: '微信', short: 'WX', color: '#07c160' },
   { type: 'alipay', label: '支付宝', short: 'Ali', color: '#1677ff' },
@@ -59,68 +59,72 @@ const qjqqLoginProviders = [
   { type: 'gitee', label: 'Gitee', short: 'GE', color: '#c71d23' },
   { type: 'dingtalk', label: '钉钉', short: 'DD', color: '#1677ff' },
   { type: 'github', label: 'GitHub', short: 'GH', color: '#24292f' },
-]
+];
 
-const enabledQjqqProviders = computed(() => {
-  if (!availableLoginMethods.value.includes('qjqq')) {
-    return []
+const enabledChjhProviders = computed(() => {
+  if (!availableLoginMethods.value.includes('chjh')) {
+    return [];
   }
 
   const enabledTypes = new Set(
-    qjqqProviders.value.map((provider) => String(provider).trim()).filter(Boolean),
-  )
+    chjhProviders.value
+      .map((provider) => String(provider).trim())
+      .filter(Boolean),
+  );
   if (enabledTypes.size === 0) {
-    return qjqqLoginProviders
+    return chjhLoginProviders;
   }
 
-  return qjqqLoginProviders.filter((provider) => enabledTypes.has(provider.type))
-})
+  return chjhLoginProviders.filter((provider) =>
+    enabledTypes.has(provider.type),
+  );
+});
 
 const oauthBindingMap = computed(() => {
   return oauthBindings.value.reduce((map, binding) => {
-    map[binding.provider] = binding
-    return map
-  }, {})
-})
+    map[binding.provider] = binding;
+    return map;
+  }, {});
+});
 
 // Fetch Profile
 const fetchProfile = async () => {
   try {
-    const res = await $myFetch('Profile')
+    const res = await $myFetch('Profile');
     if (res.code === 200) {
-      const data = res.data
-      userInfo.id = data.id
-      userInfo.username = username.value || '用户'
-      userInfo.mail = data.mail
-      userInfo.ip = data.ip
+      const data = res.data;
+      userInfo.id = data.id;
+      userInfo.username = username.value || '用户';
+      userInfo.mail = data.mail;
+      userInfo.ip = data.ip;
       // Handle timestamps
       userInfo.create_time = data.create_time
         ? new Date(data.create_time).toLocaleString()
-        : '-'
+        : '-';
       userInfo.login_time = data.login_time
         ? new Date(data.login_time).toLocaleString()
-        : '-'
-      userInfo.key = userAccessKey.value
+        : '-';
+      userInfo.key = userAccessKey.value;
       // Assuming phone might be in data, or leave empty if not provided
-      userInfo.phone = data.phone || ''
+      userInfo.phone = data.phone || '';
 
       // Calculate 24h total
-      let total = 0
-      ;(data.recent_request || []).forEach((element) => {
-        total += Number(element?.number || 0)
-      })
-      total24h.value = total
+      let total = 0;
+      (data.recent_request || []).forEach((element) => {
+        total += Number(element?.number || 0);
+      });
+      total24h.value = total;
 
       // Emit data for parent charts
       emit('loaded', {
         recent_request: data.recent_request || [],
         today_request: data.today_request || [],
-      })
+      });
     }
   } catch (error) {
-    console.error('Failed to fetch profile:', error)
+    console.error('Failed to fetch profile:', error);
   }
-}
+};
 
 // Fetch Balance
 const fetchBalance = async (showTip = false) => {
@@ -129,244 +133,249 @@ const fetchBalance = async (showTip = false) => {
       params: {
         username: username.value,
       },
-    })
+    });
     if (res.code === 200) {
-      const data = res.data || {}
-      balance.value = Number(data.AccountBalance || 0)
-      currentMonthTopUp.value = Number(data.CurrentMonthTopUp || 0)
-      totalTopUp.value = Number(data.TotalTopUp || 0)
-      if (showTip) $msg('余额刷新成功', 'success')
+      const data = res.data || {};
+      balance.value = Number(data.AccountBalance || 0);
+      currentMonthTopUp.value = Number(data.CurrentMonthTopUp || 0);
+      totalTopUp.value = Number(data.TotalTopUp || 0);
+      if (showTip) $msg('余额刷新成功', 'success');
     } else {
-      if (showTip) $msg(res.msg || '获取余额失败', 'error')
+      if (showTip) $msg(res.msg || '获取余额失败', 'error');
     }
   } catch (error) {
-    if (showTip) $msg('获取余额失败', 'error')
+    if (showTip) $msg('获取余额失败', 'error');
   }
-}
+};
 
 const fetchLoginMethodConfig = async () => {
   try {
     const res = await $myFetch('LoginMethodInfo', {
       method: 'GET',
-    })
+    });
     if (res.code !== 200) {
-      return
+      return;
     }
 
     const methods = String(res.data?.method || '')
       .split('|')
       .map((method) => method.trim())
-      .filter(Boolean)
-    availableLoginMethods.value = methods
+      .filter(Boolean);
+    availableLoginMethods.value = methods;
 
-    const providers = res.data?.qjqqProviders
+    const providers = res.data?.chjhProviders;
     if (typeof providers === 'string') {
-      qjqqProviders.value = providers
-        ? providers.split('|').map((provider) => provider.trim()).filter(Boolean)
-        : []
+      chjhProviders.value = providers
+        ? providers
+            .split('|')
+            .map((provider) => provider.trim())
+            .filter(Boolean)
+        : [];
     } else if (Array.isArray(providers)) {
-      qjqqProviders.value = providers.map((provider) => String(provider).trim()).filter(Boolean)
+      chjhProviders.value = providers
+        .map((provider) => String(provider).trim())
+        .filter(Boolean);
     } else {
-      qjqqProviders.value = []
+      chjhProviders.value = [];
     }
   } catch (error) {
-    availableLoginMethods.value = []
-    qjqqProviders.value = []
+    availableLoginMethods.value = [];
+    chjhProviders.value = [];
   }
-}
+};
 
 const fetchOAuthBindings = async () => {
-  oauthLoading.value = true
+  oauthLoading.value = true;
   try {
     const res = await $myFetch('OAuthBindingList', {
       method: 'GET',
-    })
+    });
     if (res.code === 200) {
       oauthBindings.value = Array.isArray(res.data?.bindings)
         ? res.data.bindings
-        : []
+        : [];
     } else {
-      $msg(res.msg || '获取第三方账号绑定失败', 'error')
+      $msg(res.msg || '获取第三方账号绑定失败', 'error');
     }
   } catch (error) {
-    $msg('获取第三方账号绑定失败', 'error')
+    $msg('获取第三方账号绑定失败', 'error');
   } finally {
-    oauthLoading.value = false
+    oauthLoading.value = false;
   }
-}
+};
 
 // Helper Methods
 const formatCNY = (n) => {
-  const num = Number(n || 0)
+  const num = Number(n || 0);
   return (
     '¥ ' +
     num.toLocaleString('zh-CN', {
       minimumFractionDigits: 5,
       maximumFractionDigits: 5,
     })
-  )
-}
+  );
+};
 
 const handleRefreshBalance = () => {
-  fetchBalance(true)
-}
+  fetchBalance(true);
+};
 
 const getOAuthBinding = (providerType) => {
-  return oauthBindingMap.value[`qjqq_${providerType}`]
-}
+  return oauthBindingMap.value[`chjh_${providerType}`];
+};
 
 const formatBindTime = (time) => {
-  return time ? new Date(time).toLocaleString() : ''
-}
+  return time ? new Date(time).toLocaleString() : '';
+};
 
-const qjqqBind = async (providerType) => {
-  qjqqBindLoading.value = providerType
+const chjhBind = async (providerType) => {
+  chjhBindLoading.value = providerType;
   try {
     const res = await $myFetch(
-      `QjqqBindLogin?type=${encodeURIComponent(providerType)}`,
+      `ChjhBindLogin?type=${encodeURIComponent(providerType)}`,
       {
         method: 'GET',
       },
-    )
+    );
     if (res.code === 200 && res.data?.url) {
       if (process.client) {
-        sessionStorage.setItem('qjqq_bind_pending', providerType)
+        sessionStorage.setItem('chjh_bind_pending', providerType);
       }
-      window.location.href = res.data.url
+      window.location.href = res.data.url;
     } else {
-      $msg(res.msg || '获取第三方授权地址失败', 'error')
+      $msg(res.msg || '获取第三方授权地址失败', 'error');
     }
   } catch (error) {
-    $msg('获取第三方授权地址失败', 'error')
+    $msg('获取第三方授权地址失败', 'error');
   } finally {
-    qjqqBindLoading.value = ''
+    chjhBindLoading.value = '';
   }
-}
+};
 
-const qjqqUnbind = async (provider) => {
+const chjhUnbind = async (provider) => {
   try {
     await ElMessageBox.confirm('确定要解绑该第三方账号吗？', '确认解绑', {
       confirmButtonText: '解绑',
       cancelButtonText: '取消',
       type: 'warning',
-    })
+    });
   } catch (error) {
-    return
+    return;
   }
 
-  oauthUnbindLoading.value = provider
+  oauthUnbindLoading.value = provider;
   try {
-    const body = new URLSearchParams()
-    body.append('provider', provider)
+    const body = new URLSearchParams();
+    body.append('provider', provider);
     const res = await $myFetch('OAuthUnbind', {
       method: 'POST',
       body,
-    })
+    });
     if (res.code === 200) {
-      $msg(res.data || '解绑成功', 'success')
-      await fetchOAuthBindings()
+      $msg(res.data || '解绑成功', 'success');
+      await fetchOAuthBindings();
     } else {
-      $msg(res.msg || '解绑失败', 'error')
+      $msg(res.msg || '解绑失败', 'error');
     }
   } catch (error) {
-    $msg('解绑失败，请稍后重试', 'error')
+    $msg('解绑失败，请稍后重试', 'error');
   } finally {
-    oauthUnbindLoading.value = ''
+    oauthUnbindLoading.value = '';
   }
-}
+};
 
-const handleQjqqBindRedirect = async () => {
-  const firstQueryValue = (value) => (Array.isArray(value) ? value[0] : value)
-  const code = firstQueryValue(route.query.code)
-  const type = firstQueryValue(route.query.type)
+const handleChjhBindRedirect = async () => {
+  const firstQueryValue = (value) => (Array.isArray(value) ? value[0] : value);
+  const code = firstQueryValue(route.query.code);
+  const type = firstQueryValue(route.query.type);
   if (!code || !type) {
-    return
+    return;
   }
 
-  const providerType = String(type).toLowerCase()
-  activeTab.value = 'security'
-  await router.replace({ path: route.path })
+  const providerType = String(type).toLowerCase();
+  activeTab.value = 'security';
+  await router.replace({ path: route.path });
 
   if (
     process.client &&
-    sessionStorage.getItem('qjqq_bind_pending') &&
-    sessionStorage.getItem('qjqq_bind_pending') !== providerType
+    sessionStorage.getItem('chjh_bind_pending') &&
+    sessionStorage.getItem('chjh_bind_pending') !== providerType
   ) {
-    sessionStorage.removeItem('qjqq_bind_pending')
-    $msg('第三方绑定请求已过期，请重新发起绑定', 'error')
-    return
+    sessionStorage.removeItem('chjh_bind_pending');
+    $msg('第三方绑定请求已过期，请重新发起绑定', 'error');
+    return;
   }
   if (process.client) {
-    sessionStorage.removeItem('qjqq_bind_pending')
+    sessionStorage.removeItem('chjh_bind_pending');
   }
 
-  qjqqBindLoading.value = providerType
+  chjhBindLoading.value = providerType;
   try {
-    const body = new URLSearchParams()
-    body.append('code', code)
-    body.append('type', providerType)
-    const res = await $myFetch('QjqqBindCallback', {
+    const body = new URLSearchParams();
+    body.append('code', code);
+    body.append('type', providerType);
+    const res = await $myFetch('ChjhBindCallback', {
       method: 'POST',
       body,
-    })
+    });
     if (res.code === 200) {
-      $msg('第三方账号绑定成功', 'success')
-      await fetchOAuthBindings()
+      $msg('第三方账号绑定成功', 'success');
+      await fetchOAuthBindings();
     } else {
-      $msg(res.msg || '第三方账号绑定失败', 'error')
+      $msg(res.msg || '第三方账号绑定失败', 'error');
     }
   } catch (error) {
-    $msg('第三方账号绑定失败，请稍后重试', 'error')
+    $msg('第三方账号绑定失败，请稍后重试', 'error');
   } finally {
-    qjqqBindLoading.value = ''
+    chjhBindLoading.value = '';
   }
-}
+};
 
 const copyKey = async () => {
-  const key = userInfo.key || userAccessKey.value
+  const key = userInfo.key || userAccessKey.value;
   if (!key) {
-    $msg('暂无可复制的秘钥', 'warning')
-    return
+    $msg('暂无可复制的秘钥', 'warning');
+    return;
   }
 
   try {
     // 优先使用 Clipboard API
     if (navigator.clipboard && window.isSecureContext) {
-      await navigator.clipboard.writeText(key)
-      $msg('秘钥已复制', 'success')
-      return
+      await navigator.clipboard.writeText(key);
+      $msg('秘钥已复制', 'success');
+      return;
     }
 
     // Fallback: 使用传统方式
-    const textArea = document.createElement('textarea')
-    textArea.value = key
-    textArea.style.position = 'fixed'
-    textArea.style.left = '-9999px'
-    textArea.style.top = '-9999px'
-    document.body.appendChild(textArea)
-    textArea.focus()
-    textArea.select()
+    const textArea = document.createElement('textarea');
+    textArea.value = key;
+    textArea.style.position = 'fixed';
+    textArea.style.left = '-9999px';
+    textArea.style.top = '-9999px';
+    document.body.appendChild(textArea);
+    textArea.focus();
+    textArea.select();
 
-    const successful = document.execCommand('copy')
-    document.body.removeChild(textArea)
+    const successful = document.execCommand('copy');
+    document.body.removeChild(textArea);
 
     if (successful) {
-      $msg('秘钥已复制', 'success')
+      $msg('秘钥已复制', 'success');
     } else {
-      $msg('复制失败，请手动复制', 'error')
+      $msg('复制失败，请手动复制', 'error');
     }
   } catch (error) {
-    $msg('复制失败，请手动复制', 'error')
+    $msg('复制失败，请手动复制', 'error');
   }
-}
+};
 
 onMounted(() => {
-  fetchProfile()
-  fetchBalance()
-  fetchLoginMethodConfig()
-  fetchOAuthBindings()
-  handleQjqqBindRedirect()
-})
+  fetchProfile();
+  fetchBalance();
+  fetchLoginMethodConfig();
+  fetchOAuthBindings();
+  handleChjhBindRedirect();
+});
 </script>
 
 <template>
@@ -378,7 +387,9 @@ onMounted(() => {
         <div class="header-content">
           <div class="avatar-wrapper">
             <div class="avatar">
-              <span>{{ String(userInfo.username)?.charAt(0)?.toUpperCase() || 'U' }}</span>
+              <span>{{
+                String(userInfo.username)?.charAt(0)?.toUpperCase() || 'U'
+              }}</span>
             </div>
             <div class="status-indicator"></div>
           </div>
@@ -405,7 +416,12 @@ onMounted(() => {
         </div>
         <div class="balance-amount">
           <span class="currency">¥</span>
-          <span class="amount">{{ balance.toLocaleString('zh-CN', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) }}</span>
+          <span class="amount">{{
+            balance.toLocaleString('zh-CN', {
+              minimumFractionDigits: 2,
+              maximumFractionDigits: 2,
+            })
+          }}</span>
         </div>
         <div class="balance-stats">
           <div class="stat-item">
@@ -418,11 +434,14 @@ onMounted(() => {
             <span class="stat-value">{{ formatCNY(totalTopUp) }}</span>
           </div>
         </div>
-        <el-button type="primary" class="recharge-action" @click="navigateTo('/admin/pay')">
+        <el-button
+          type="primary"
+          class="recharge-action"
+          @click="navigateTo('/admin/pay')"
+        >
           立即充值
         </el-button>
       </div>
-
     </div>
 
     <!-- Right Panel: Details -->
@@ -438,11 +457,15 @@ onMounted(() => {
               <div class="info-row">
                 <div class="info-cell">
                   <span class="cell-label">手机号码</span>
-                  <span class="cell-value">{{ userInfo.phone || '未绑定' }}</span>
+                  <span class="cell-value">{{
+                    userInfo.phone || '未绑定'
+                  }}</span>
                 </div>
                 <div class="info-cell">
                   <span class="cell-label">邮箱地址</span>
-                  <span class="cell-value">{{ userInfo.mail || '未绑定' }}</span>
+                  <span class="cell-value">{{
+                    userInfo.mail || '未绑定'
+                  }}</span>
                 </div>
               </div>
               <div class="info-row">
@@ -452,13 +475,17 @@ onMounted(() => {
                 </div>
                 <div class="info-cell">
                   <span class="cell-label">最近登录</span>
-                  <span class="cell-value">{{ userInfo.login_time || '-' }}</span>
+                  <span class="cell-value">{{
+                    userInfo.login_time || '-'
+                  }}</span>
                 </div>
               </div>
               <div class="info-row">
                 <div class="info-cell">
                   <span class="cell-label">注册时间</span>
-                  <span class="cell-value">{{ userInfo.create_time || '-' }}</span>
+                  <span class="cell-value">{{
+                    userInfo.create_time || '-'
+                  }}</span>
                 </div>
                 <div class="info-cell">
                   <span class="cell-label">今日调用</span>
@@ -483,7 +510,6 @@ onMounted(() => {
             </div>
             <p class="key-hint">请妥善保管您的 API 密钥，不要泄露给他人</p>
           </div>
-
         </el-tab-pane>
 
         <el-tab-pane label="安全中心" name="security">
@@ -497,7 +523,10 @@ onMounted(() => {
             </div>
 
             <div class="security-options">
-              <div class="security-option" @click="navigateTo('/admin/password')">
+              <div
+                class="security-option"
+                @click="navigateTo('/admin/password')"
+              >
                 <div class="option-icon blue">
                   <el-icon><Lock /></el-icon>
                 </div>
@@ -517,10 +546,18 @@ onMounted(() => {
                 </div>
                 <div class="option-content">
                   <h4>手机绑定</h4>
-                  <p>{{ userInfo.phone ? '已绑定：' + userInfo.phone : '未绑定手机号码' }}</p>
+                  <p>
+                    {{
+                      userInfo.phone
+                        ? '已绑定：' + userInfo.phone
+                        : '未绑定手机号码'
+                    }}
+                  </p>
                 </div>
                 <div class="option-action">
-                  <span class="action-text">{{ userInfo.phone ? '更换' : '绑定' }}</span>
+                  <span class="action-text">{{
+                    userInfo.phone ? '更换' : '绑定'
+                  }}</span>
                   <el-icon><ArrowRight /></el-icon>
                 </div>
               </div>
@@ -531,10 +568,18 @@ onMounted(() => {
                 </div>
                 <div class="option-content">
                   <h4>邮箱绑定</h4>
-                  <p>{{ userInfo.mail ? '已绑定：' + userInfo.mail : '未绑定邮箱地址' }}</p>
+                  <p>
+                    {{
+                      userInfo.mail
+                        ? '已绑定：' + userInfo.mail
+                        : '未绑定邮箱地址'
+                    }}
+                  </p>
                 </div>
                 <div class="option-action">
-                  <span class="action-text">{{ userInfo.mail ? '更换' : '绑定' }}</span>
+                  <span class="action-text">{{
+                    userInfo.mail ? '更换' : '绑定'
+                  }}</span>
                   <el-icon><ArrowRight /></el-icon>
                 </div>
               </div>
@@ -552,13 +597,13 @@ onMounted(() => {
               </div>
 
               <el-empty
-                v-if="enabledQjqqProviders.length === 0"
+                v-if="enabledChjhProviders.length === 0"
                 description="未启用第三方登录"
                 :image-size="72"
               />
               <div v-else class="oauth-provider-list">
                 <div
-                  v-for="provider in enabledQjqqProviders"
+                  v-for="provider in enabledChjhProviders"
                   :key="provider.type"
                   class="oauth-provider-item"
                 >
@@ -582,9 +627,22 @@ onMounted(() => {
                       </el-tag>
                     </div>
                     <p v-if="getOAuthBinding(provider.type)">
-                      {{ getOAuthBinding(provider.type).username || '已绑定账号' }}
-                      <span v-if="formatBindTime(getOAuthBinding(provider.type).create_time)">
-                        · {{ formatBindTime(getOAuthBinding(provider.type).create_time) }}
+                      {{
+                        getOAuthBinding(provider.type).username || '已绑定账号'
+                      }}
+                      <span
+                        v-if="
+                          formatBindTime(
+                            getOAuthBinding(provider.type).create_time,
+                          )
+                        "
+                      >
+                        ·
+                        {{
+                          formatBindTime(
+                            getOAuthBinding(provider.type).create_time,
+                          )
+                        }}
                       </span>
                     </p>
                     <p v-else>未绑定</p>
@@ -594,9 +652,9 @@ onMounted(() => {
                       v-if="getOAuthBinding(provider.type)"
                       size="small"
                       plain
-                      :loading="qjqqBindLoading === provider.type"
+                      :loading="chjhBindLoading === provider.type"
                       :disabled="Boolean(oauthUnbindLoading)"
-                      @click="qjqqBind(provider.type)"
+                      @click="chjhBind(provider.type)"
                     >
                       换绑
                     </el-button>
@@ -605,9 +663,9 @@ onMounted(() => {
                       size="small"
                       type="danger"
                       plain
-                      :loading="oauthUnbindLoading === `qjqq_${provider.type}`"
-                      :disabled="Boolean(qjqqBindLoading)"
-                      @click="qjqqUnbind(`qjqq_${provider.type}`)"
+                      :loading="oauthUnbindLoading === `chjh_${provider.type}`"
+                      :disabled="Boolean(chjhBindLoading)"
+                      @click="chjhUnbind(`chjh_${provider.type}`)"
                     >
                       解绑
                     </el-button>
@@ -615,9 +673,9 @@ onMounted(() => {
                       v-else
                       size="small"
                       type="primary"
-                      :loading="qjqqBindLoading === provider.type"
+                      :loading="chjhBindLoading === provider.type"
                       :disabled="Boolean(oauthUnbindLoading)"
-                      @click="qjqqBind(provider.type)"
+                      @click="chjhBind(provider.type)"
                     >
                       <el-icon><Link /></el-icon>
                       绑定

@@ -1,15 +1,15 @@
 <script setup>
-import { Search, Refresh } from '@element-plus/icons-vue'
-import { ElMessageBox } from 'element-plus'
-import { watch } from 'vue'
+import { Search, Refresh } from '@element-plus/icons-vue';
+import { ElMessageBox } from 'element-plus';
+import { watch } from 'vue';
 
 definePageMeta({
   layout: 'admin',
-})
+});
 
-const { $msg, $myFetch } = useNuxtApp()
-const activeTab = ref('basic')
-const activeSubTab = ref('website')
+const { $msg, $myFetch } = useNuxtApp();
+const activeTab = ref('basic');
+const activeSubTab = ref('website');
 
 // 数据加载状态追踪
 const loadedData = ref({
@@ -23,7 +23,7 @@ const loadedData = ref({
   login: false,
   captcha: false,
   responseParams: false,
-})
+});
 
 // 网站设置相关
 const websetInfo = ref({
@@ -50,7 +50,7 @@ const websetInfo = ref({
   working_hours: '',
   ico: '',
   logo: '',
-})
+});
 
 // 邮件设置相关
 const mailInfo = ref({
@@ -61,7 +61,7 @@ const mailInfo = ref({
   port: '',
   name: '',
   template: '',
-})
+});
 
 // AI配置相关
 const aiInfo = ref({
@@ -69,7 +69,7 @@ const aiInfo = ref({
   model: '',
   system_message: '',
   url: '',
-})
+});
 
 // 高级设置相关
 const advancedInfo = ref({
@@ -81,9 +81,9 @@ const advancedInfo = ref({
   cdn_header: '',
   wechat_webhook_url: '',
   force_bind_phone: 'false',
-})
+});
 
-const refreshKeysLoading = ref(false)
+const refreshKeysLoading = ref(false);
 
 // 登录设置相关
 const loginInfo = ref({
@@ -96,12 +96,13 @@ const loginInfo = ref({
   templateCode: '',
   githubClientId: '',
   githubClientSecret: '',
-  qjqqAppId: '',
-  qjqqAppKey: '',
-  qjqqProviders: [],
-})
+  chjhLoginUrl: '',
+  chjhAppId: '',
+  chjhAppKey: '',
+  chjhProviders: [],
+});
 
-const qjqqProviderOptions = [
+const chjhProviderOptions = [
   { value: 'qq', label: 'QQ' },
   { value: 'wx', label: '微信' },
   { value: 'wxmp', label: '公众号' },
@@ -121,7 +122,7 @@ const qjqqProviderOptions = [
   { value: 'bilibili', label: '哔哩哔哩' },
   { value: 'gitlab', label: 'Gitlab' },
   { value: 'kuaishou', label: '快手' },
-]
+];
 
 // 验证码配置相关
 const captchaInfo = ref({
@@ -129,7 +130,7 @@ const captchaInfo = ref({
   expire_time: 60,
   length: 4,
   type: 'math',
-})
+});
 
 // 新增：关于我们页面信息相关
 const aboutInfo = ref({
@@ -190,19 +191,19 @@ const aboutInfo = ref({
     { quote: '', author: { name: '', company: '' }, rating: '', date: '' },
     { quote: '', author: { name: '', company: '' }, rating: '', date: '' },
   ],
-})
+});
 
-const testMail = ref('')
+const testMail = ref('');
 
 // 接口置顶相关
-const searchApiKeyword = ref('')
-const topApiList = ref([])
-const topApiLoading = ref(false)
-const searchLoading = ref(false)
-const searchData = ref([])
-const searchOldValue = ref('')
-const selectedApi = ref(null)
-const addLoading = ref(false)
+const searchApiKeyword = ref('');
+const topApiList = ref([]);
+const topApiLoading = ref(false);
+const searchLoading = ref(false);
+const searchData = ref([]);
+const searchOldValue = ref('');
+const selectedApi = ref(null);
+const addLoading = ref(false);
 
 // 合作伙伴相关
 const partnerForm = ref({
@@ -211,103 +212,103 @@ const partnerForm = ref({
   description: '',
   website: '',
   category: '',
-})
-const partnerList = ref([])
-const partnerLoading = ref(false)
-const partnerDialogVisible = ref(false)
-const partnerEditMode = ref(false)
-const partnerCurrentId = ref(null)
+});
+const partnerList = ref([]);
+const partnerLoading = ref(false);
+const partnerDialogVisible = ref(false);
+const partnerEditMode = ref(false);
+const partnerCurrentId = ref(null);
 
 // 获取网站设置
 const getWebsetInfo = async () => {
-  const res = await $myFetch('Options')
-  websetInfo.value = res.data
-}
+  const res = await $myFetch('Options');
+  websetInfo.value = res.data;
+};
 
 // 获取邮件设置
 const getMailInfo = async () => {
-  const res = await $myFetch('MailInfo')
-  mailInfo.value = res.data
+  const res = await $myFetch('MailInfo');
+  mailInfo.value = res.data;
   // 解码base64模板（支持中文）
   if (mailInfo.value.template) {
     try {
       mailInfo.value.template = decodeURIComponent(
         escape(atob(mailInfo.value.template)),
-      )
+      );
     } catch (e) {
-      console.error('模板解码失败:', e)
-      mailInfo.value.template = ''
+      console.error('模板解码失败:', e);
+      mailInfo.value.template = '';
     }
   }
-}
+};
 
 // 获取AI配置
 const getAIInfo = async () => {
-  const res = await $myFetch('AIInfo')
+  const res = await $myFetch('AIInfo');
   if (res.code === 200) {
-    aiInfo.value = res.data
+    aiInfo.value = res.data;
   }
-}
+};
 
 // 获取高级设置
 const getAdvancedInfo = async () => {
-  const res = await $myFetch('AdvancedSetting')
+  const res = await $myFetch('AdvancedSetting');
   if (res.code === 200) {
-    advancedInfo.value = res.data
+    advancedInfo.value = res.data;
   }
-}
+};
 
 // 获取登录设置
 const getLoginInfo = async () => {
-  const res = await $myFetch('LoginMethodInfo')
+  const res = await $myFetch('LoginMethodInfo');
   if (res.code === 200 && res.data) {
-    loginInfo.value = res.data
+    loginInfo.value = res.data;
     // 将method字符串转换为数组
     if (typeof loginInfo.value.method === 'string') {
       loginInfo.value.method = loginInfo.value.method
         ? loginInfo.value.method.split('|')
-        : []
+        : [];
     } else if (!loginInfo.value.method) {
       // 如果method字段不存在，设置为空数组
-      loginInfo.value.method = []
+      loginInfo.value.method = [];
     }
 
-    if (typeof loginInfo.value.qjqqProviders === 'string') {
-      loginInfo.value.qjqqProviders = loginInfo.value.qjqqProviders
-        ? loginInfo.value.qjqqProviders.split('|')
-        : []
-    } else if (!Array.isArray(loginInfo.value.qjqqProviders)) {
-      loginInfo.value.qjqqProviders = []
+    if (typeof loginInfo.value.chjhProviders === 'string') {
+      loginInfo.value.chjhProviders = loginInfo.value.chjhProviders
+        ? loginInfo.value.chjhProviders.split('|')
+        : [];
+    } else if (!Array.isArray(loginInfo.value.chjhProviders)) {
+      loginInfo.value.chjhProviders = [];
     }
   } else {
     // 如果接口返回失败或数据为空，重置为初始状态
-    loginInfo.value.method = []
+    loginInfo.value.method = [];
   }
-}
+};
 
 // 获取验证码配置
 const getCaptchaInfo = async () => {
-  const res = await $myFetch('GetCaptchaConfig')
+  const res = await $myFetch('GetCaptchaConfig');
   if (res.code === 200 && res.data) {
-    captchaInfo.value = res.data
+    captchaInfo.value = res.data;
   }
-}
+};
 
 // 新增：获取关于我们页面信息
 const getAboutInfo = async () => {
-  const res = await $myFetch('AboutInfo')
+  const res = await $myFetch('AboutInfo');
   if (res.code === 200) {
-    aboutInfo.value = res.data
+    aboutInfo.value = res.data;
 
     // 确保功能特色固定为4个
     if (aboutInfo.value.features) {
       // 如果不足4个，补齐空项
       while (aboutInfo.value.features.length < 4) {
-        aboutInfo.value.features.push({ title: '', description: '' })
+        aboutInfo.value.features.push({ title: '', description: '' });
       }
       // 如果超过4个，截取前4个
       if (aboutInfo.value.features.length > 4) {
-        aboutInfo.value.features = aboutInfo.value.features.slice(0, 4)
+        aboutInfo.value.features = aboutInfo.value.features.slice(0, 4);
       }
     }
 
@@ -315,11 +316,11 @@ const getAboutInfo = async () => {
     if (aboutInfo.value.techStack) {
       // 如果不足4个，补齐空项
       while (aboutInfo.value.techStack.length < 4) {
-        aboutInfo.value.techStack.push({ title: '', items: [''] })
+        aboutInfo.value.techStack.push({ title: '', items: [''] });
       }
       // 如果超过4个，截取前4个
       if (aboutInfo.value.techStack.length > 4) {
-        aboutInfo.value.techStack = aboutInfo.value.techStack.slice(0, 4)
+        aboutInfo.value.techStack = aboutInfo.value.techStack.slice(0, 4);
       }
     }
 
@@ -331,11 +332,11 @@ const getAboutInfo = async () => {
           title: '',
           description: '',
           features: '',
-        })
+        });
       }
       // 如果超过3个，截取前3个
       if (aboutInfo.value.apiTypes.length > 3) {
-        aboutInfo.value.apiTypes = aboutInfo.value.apiTypes.slice(0, 3)
+        aboutInfo.value.apiTypes = aboutInfo.value.apiTypes.slice(0, 3);
       }
     }
 
@@ -343,11 +344,11 @@ const getAboutInfo = async () => {
     if (aboutInfo.value.devSupport) {
       // 如果不足4个，补齐空项
       while (aboutInfo.value.devSupport.length < 4) {
-        aboutInfo.value.devSupport.push({ title: '', description: '' })
+        aboutInfo.value.devSupport.push({ title: '', description: '' });
       }
       // 如果超过4个，截取前4个
       if (aboutInfo.value.devSupport.length > 4) {
-        aboutInfo.value.devSupport = aboutInfo.value.devSupport.slice(0, 4)
+        aboutInfo.value.devSupport = aboutInfo.value.devSupport.slice(0, 4);
       }
     }
 
@@ -355,11 +356,11 @@ const getAboutInfo = async () => {
     if (aboutInfo.value.statistics) {
       // 如果不足3个，补齐空项
       while (aboutInfo.value.statistics.length < 3) {
-        aboutInfo.value.statistics.push({ number: '', label: '' })
+        aboutInfo.value.statistics.push({ number: '', label: '' });
       }
       // 如果超过3个，截取前3个
       if (aboutInfo.value.statistics.length > 3) {
-        aboutInfo.value.statistics = aboutInfo.value.statistics.slice(0, 3)
+        aboutInfo.value.statistics = aboutInfo.value.statistics.slice(0, 3);
       }
     }
 
@@ -372,141 +373,143 @@ const getAboutInfo = async () => {
           author: { name: '', company: '' },
           rating: '',
           date: '',
-        })
+        });
       }
       // 如果超过6个，截取前6个
       if (aboutInfo.value.testimonials.length > 6) {
-        aboutInfo.value.testimonials = aboutInfo.value.testimonials.slice(0, 6)
+        aboutInfo.value.testimonials = aboutInfo.value.testimonials.slice(0, 6);
       }
     }
   }
-}
+};
 
 // 接口搜索
 const querySearchAsync = async (queryString, cb) => {
   if (queryString === '') {
-    searchApiKeyword.value = ''
-    selectedApi.value = null
-    cb([])
-    return false
+    searchApiKeyword.value = '';
+    selectedApi.value = null;
+    cb([]);
+    return false;
   }
 
   if (queryString === searchOldValue.value) {
-    cb(searchData.value)
-    return false
+    cb(searchData.value);
+    return false;
   }
 
-  searchLoading.value = true
+  searchLoading.value = true;
   try {
     const res = await $myFetch('ApiSearch', {
       params: {
         keyword: queryString,
       },
-    })
+    });
 
     if (res.code !== 200) {
-      $msg(res.msg, 'error')
-      cb([])
-      return false
+      $msg(res.msg, 'error');
+      cb([]);
+      return false;
     }
 
     // 遍历数据，将 name 改为 value
     res.data = res.data.map((item) => {
-      item.value = item.name
-      return item
-    })
+      item.value = item.name;
+      return item;
+    });
 
-    searchOldValue.value = queryString
-    searchData.value = res.data
-    cb(searchData.value)
+    searchOldValue.value = queryString;
+    searchData.value = res.data;
+    cb(searchData.value);
   } catch (error) {
-    cb([])
+    cb([]);
   } finally {
-    searchLoading.value = false
+    searchLoading.value = false;
   }
-}
+};
 
 // 选择接口
 const handleApiSelect = (item) => {
-  selectedApi.value = item
-}
+  selectedApi.value = item;
+};
 
 // 获取置顶列表
 const getTopApiList = async () => {
-  topApiLoading.value = true
+  topApiLoading.value = true;
   try {
-    const res = await $myFetch('ApiTopList')
+    const res = await $myFetch('ApiTopList');
     if (res.code === 200) {
-      topApiList.value = res.data || []
+      topApiList.value = res.data || [];
     }
   } catch (error) {
-    $msg('获取置顶列表失败', 'error')
+    $msg('获取置顶列表失败', 'error');
   }
-  topApiLoading.value = false
-}
+  topApiLoading.value = false;
+};
 
 // 取消置顶
 const removeTopApi = async (index, row) => {
-  topApiLoading.value = true
+  topApiLoading.value = true;
   try {
     const res = await $myFetch('RemoveTopApi', {
       method: 'GET',
       params: {
         id: row.id,
       },
-    })
+    });
 
     if (res.code === 200) {
-      $msg('取消置顶成功', 'success')
-      await getTopApiList()
+      $msg('取消置顶成功', 'success');
+      await getTopApiList();
     } else {
-      $msg(res.msg, 'error')
+      $msg(res.msg, 'error');
     }
   } catch (error) {
-    $msg('操作失败，请重试', 'error')
+    $msg('操作失败，请重试', 'error');
   }
-  topApiLoading.value = false
-}
+  topApiLoading.value = false;
+};
 
 // 添加置顶接口
 const handleAddTopApi = async () => {
   if (!selectedApi.value) {
-    $msg('请先选择接口', 'warning')
-    return
+    $msg('请先选择接口', 'warning');
+    return;
   }
 
   // 检查是否已经在置顶列表中
-  const exists = topApiList.value.some((api) => api.id === selectedApi.value.id)
+  const exists = topApiList.value.some(
+    (api) => api.id === selectedApi.value.id,
+  );
   if (exists) {
-    $msg('该接口已在置顶列表中', 'warning')
-    searchApiKeyword.value = ''
-    selectedApi.value = null
-    return
+    $msg('该接口已在置顶列表中', 'warning');
+    searchApiKeyword.value = '';
+    selectedApi.value = null;
+    return;
   }
 
-  addLoading.value = true
+  addLoading.value = true;
   try {
     const res = await $myFetch('ApiTopAdd', {
       method: 'GET',
       params: {
         id: selectedApi.value.id,
       },
-    })
+    });
 
     if (res.code === 200) {
-      $msg('添加置顶成功', 'success')
-      await getTopApiList()
-      searchApiKeyword.value = ''
-      selectedApi.value = null
+      $msg('添加置顶成功', 'success');
+      await getTopApiList();
+      searchApiKeyword.value = '';
+      selectedApi.value = null;
     } else {
-      $msg(res.msg, 'error')
+      $msg(res.msg, 'error');
     }
   } catch (error) {
-    $msg('添加失败，请重试', 'error')
+    $msg('添加失败，请重试', 'error');
   } finally {
-    addLoading.value = false
+    addLoading.value = false;
   }
-}
+};
 
 // 提交网站设置
 const websetInfoSubmit = async () => {
@@ -517,51 +520,51 @@ const websetInfoSubmit = async () => {
     !websetInfo.value.description ||
     !websetInfo.value.create_time
   ) {
-    $msg('请填写内容', 'error')
-    return false
+    $msg('请填写内容', 'error');
+    return false;
   }
 
-  const bodyValue = new URLSearchParams()
-  bodyValue.append('title', websetInfo.value.title)
-  bodyValue.append('subheading', websetInfo.value.subheading)
-  bodyValue.append('keywords', websetInfo.value.keywords)
-  bodyValue.append('description', websetInfo.value.description)
-  bodyValue.append('createTime', websetInfo.value.create_time)
-  bodyValue.append('icp', websetInfo.value.icp)
-  bodyValue.append('gongan', websetInfo.value.gongan)
-  bodyValue.append('websiteName', websetInfo.value.website_name)
-  bodyValue.append('recommend', websetInfo.value.recommend)
-  bodyValue.append('notice', websetInfo.value.notice)
-  bodyValue.append('adminPopup', websetInfo.value.admin_popup)
-  bodyValue.append('feedback', websetInfo.value.feedback)
-  bodyValue.append('css', websetInfo.value.css)
-  bodyValue.append('js', websetInfo.value.js)
-  bodyValue.append('companyName', websetInfo.value.company_name)
-  bodyValue.append('slogan', websetInfo.value.slogan)
-  bodyValue.append('contactEmail', websetInfo.value.contact_email)
-  bodyValue.append('contactPhone', websetInfo.value.contact_phone)
-  bodyValue.append('contactAddress', websetInfo.value.contact_address)
-  bodyValue.append('workingHours', websetInfo.value.working_hours)
-  bodyValue.append('ico', websetInfo.value.ico)
-  bodyValue.append('logo', websetInfo.value.logo)
+  const bodyValue = new URLSearchParams();
+  bodyValue.append('title', websetInfo.value.title);
+  bodyValue.append('subheading', websetInfo.value.subheading);
+  bodyValue.append('keywords', websetInfo.value.keywords);
+  bodyValue.append('description', websetInfo.value.description);
+  bodyValue.append('createTime', websetInfo.value.create_time);
+  bodyValue.append('icp', websetInfo.value.icp);
+  bodyValue.append('gongan', websetInfo.value.gongan);
+  bodyValue.append('websiteName', websetInfo.value.website_name);
+  bodyValue.append('recommend', websetInfo.value.recommend);
+  bodyValue.append('notice', websetInfo.value.notice);
+  bodyValue.append('adminPopup', websetInfo.value.admin_popup);
+  bodyValue.append('feedback', websetInfo.value.feedback);
+  bodyValue.append('css', websetInfo.value.css);
+  bodyValue.append('js', websetInfo.value.js);
+  bodyValue.append('companyName', websetInfo.value.company_name);
+  bodyValue.append('slogan', websetInfo.value.slogan);
+  bodyValue.append('contactEmail', websetInfo.value.contact_email);
+  bodyValue.append('contactPhone', websetInfo.value.contact_phone);
+  bodyValue.append('contactAddress', websetInfo.value.contact_address);
+  bodyValue.append('workingHours', websetInfo.value.working_hours);
+  bodyValue.append('ico', websetInfo.value.ico);
+  bodyValue.append('logo', websetInfo.value.logo);
   bodyValue.append(
     'valueAddedTelecomLicense',
     websetInfo.value.valueAddedTelecomLicense,
-  )
+  );
 
   const res = await $myFetch('OptionsUpdate', {
     method: 'POST',
     body: bodyValue,
-  })
+  });
 
   if (res.code === 200) {
-    $msg(res.msg, 'success')
-    getWebsetInfo()
-    return
+    $msg(res.msg, 'success');
+    getWebsetInfo();
+    return;
   }
 
-  $msg(res.msg, 'error')
-}
+  $msg(res.msg, 'error');
+};
 
 // 提交邮件设置
 const mailInfoSubmit = async () => {
@@ -573,8 +576,8 @@ const mailInfoSubmit = async () => {
     !mailInfo.value.port ||
     !mailInfo.value.name
   ) {
-    $msg('请填写内容', 'error')
-    return false
+    $msg('请填写内容', 'error');
+    return false;
   }
 
   // 验证模板必须包含占位符
@@ -583,113 +586,113 @@ const mailInfoSubmit = async () => {
       !mailInfo.value.template.includes('{{title}}') ||
       !mailInfo.value.template.includes('{{content}}')
     ) {
-      $msg('邮件模板必须包含 {{title}} 和 {{content}} 占位符', 'error')
-      return false
+      $msg('邮件模板必须包含 {{title}} 和 {{content}} 占位符', 'error');
+      return false;
     }
   }
 
-  const bodyValue = new URLSearchParams()
-  bodyValue.append('smtp', mailInfo.value.smtp)
-  bodyValue.append('user', mailInfo.value.user)
-  bodyValue.append('password', mailInfo.value.password)
-  bodyValue.append('setfrom', mailInfo.value.setfrom)
-  bodyValue.append('port', mailInfo.value.port)
-  bodyValue.append('name', mailInfo.value.name)
+  const bodyValue = new URLSearchParams();
+  bodyValue.append('smtp', mailInfo.value.smtp);
+  bodyValue.append('user', mailInfo.value.user);
+  bodyValue.append('password', mailInfo.value.password);
+  bodyValue.append('setfrom', mailInfo.value.setfrom);
+  bodyValue.append('port', mailInfo.value.port);
+  bodyValue.append('name', mailInfo.value.name);
   // 编码模板为base64（支持中文）
   if (mailInfo.value.template) {
     bodyValue.append(
       'template',
       btoa(unescape(encodeURIComponent(mailInfo.value.template))),
-    )
+    );
   } else {
-    bodyValue.append('template', '')
+    bodyValue.append('template', '');
   }
 
   const res = await $myFetch('MailInfoUpdate', {
     method: 'POST',
     body: bodyValue,
-  })
+  });
 
   if (res.code === 200) {
-    $msg(res.msg, 'success')
-    getMailInfo()
+    $msg(res.msg, 'success');
+    getMailInfo();
   }
-}
+};
 
 // 提交AI配置
 const aiInfoSubmit = async () => {
-  const bodyValue = new URLSearchParams()
-  bodyValue.append('key', aiInfo.value.key || '')
-  bodyValue.append('model', aiInfo.value.model || '')
-  bodyValue.append('systemMessage', aiInfo.value.system_message || '')
-  bodyValue.append('url', aiInfo.value.url || '')
+  const bodyValue = new URLSearchParams();
+  bodyValue.append('key', aiInfo.value.key || '');
+  bodyValue.append('model', aiInfo.value.model || '');
+  bodyValue.append('systemMessage', aiInfo.value.system_message || '');
+  bodyValue.append('url', aiInfo.value.url || '');
 
   const res = await $myFetch('AIOptionUpdate', {
     method: 'POST',
     body: bodyValue,
-  })
+  });
 
   if (res.code === 200) {
-    $msg(res.msg, 'success')
-    getAIInfo()
+    $msg(res.msg, 'success');
+    getAIInfo();
   } else {
-    $msg(res.msg, 'error')
+    $msg(res.msg, 'error');
   }
-}
+};
 
 const aboutInfoSubmit = async () => {
-  const bodyValue = new URLSearchParams()
-  bodyValue.append('data', JSON.stringify(aboutInfo.value))
+  const bodyValue = new URLSearchParams();
+  bodyValue.append('data', JSON.stringify(aboutInfo.value));
 
   const res = await $myFetch('AboutInfoUpdate', {
     method: 'POST',
     body: bodyValue,
-  })
+  });
 
   if (res.code === 200) {
-    $msg(res.msg, 'success')
-    getAboutInfo()
+    $msg(res.msg, 'success');
+    getAboutInfo();
   } else {
-    $msg(res.msg, 'error')
+    $msg(res.msg, 'error');
   }
-}
+};
 
 // 提交高级设置
 const advancedInfoSubmit = async () => {
-  const bodyValue = new URLSearchParams()
-  bodyValue.append('requestId', advancedInfo.value.request_id)
-  bodyValue.append('clickhouse', advancedInfo.value.clickhouse)
-  bodyValue.append('serverIp', advancedInfo.value.server_ip || '')
+  const bodyValue = new URLSearchParams();
+  bodyValue.append('requestId', advancedInfo.value.request_id);
+  bodyValue.append('clickhouse', advancedInfo.value.clickhouse);
+  bodyValue.append('serverIp', advancedInfo.value.server_ip || '');
   bodyValue.append(
     'clickhouseRetentionDays',
     advancedInfo.value.clickhouse_retention_days || '',
-  )
+  );
   bodyValue.append(
     'apiLogsMapVirtual',
     advancedInfo.value.api_logs_map_virtual || 'false',
-  )
-  bodyValue.append('cdnHeader', advancedInfo.value.cdn_header || '')
+  );
+  bodyValue.append('cdnHeader', advancedInfo.value.cdn_header || '');
   bodyValue.append(
     'wechatWebhookUrl',
     advancedInfo.value.wechat_webhook_url || '',
-  )
+  );
   bodyValue.append(
     'forceBindPhone',
     advancedInfo.value.force_bind_phone || 'false',
-  )
+  );
 
   const res = await $myFetch('UpdateAdvancedSetting', {
     method: 'POST',
     body: bodyValue,
-  })
+  });
 
   if (res.code === 200) {
-    $msg(res.msg, 'success')
-    getAdvancedInfo()
+    $msg(res.msg, 'success');
+    getAdvancedInfo();
   } else {
-    $msg(res.msg, 'error')
+    $msg(res.msg, 'error');
   }
-}
+};
 
 // 刷新加密密钥
 const refreshEncryptionKeys = async () => {
@@ -704,105 +707,106 @@ const refreshEncryptionKeys = async () => {
         dangerouslyUseHTMLString: true,
         confirmButtonClass: 'el-button--danger',
       },
-    )
+    );
 
-    refreshKeysLoading.value = true
+    refreshKeysLoading.value = true;
     const res = await $myFetch('RefreshEncryptionKeys', {
       method: 'POST',
-    })
+    });
 
     if (res.code === 200) {
-      $msg('密钥刷新成功', 'success')
+      $msg('密钥刷新成功', 'success');
     } else {
-      $msg(res.msg || '密钥刷新失败', 'error')
+      $msg(res.msg || '密钥刷新失败', 'error');
     }
   } catch (error) {
     if (error !== 'cancel') {
-      $msg('操作失败，请重试', 'error')
+      $msg('操作失败，请重试', 'error');
     }
   } finally {
-    refreshKeysLoading.value = false
+    refreshKeysLoading.value = false;
   }
-}
+};
 
 // 提交登录设置
 const loginInfoSubmit = async () => {
-  const bodyValue = new URLSearchParams()
+  const bodyValue = new URLSearchParams();
   // 将method数组用|分隔转换为字符串
-  bodyValue.append('method', loginInfo.value.method.join('|'))
-  bodyValue.append('provider', loginInfo.value.provider || '')
-  bodyValue.append('sdkAppId', loginInfo.value.sdkAppId || '')
-  bodyValue.append('secretId', loginInfo.value.secretId || '')
-  bodyValue.append('secretKey', loginInfo.value.secretKey || '')
-  bodyValue.append('signName', loginInfo.value.signName || '')
-  bodyValue.append('templateCode', loginInfo.value.templateCode || '')
-  bodyValue.append('gitHubClientId', loginInfo.value.githubClientId || '')
+  bodyValue.append('method', loginInfo.value.method.join('|'));
+  bodyValue.append('provider', loginInfo.value.provider || '');
+  bodyValue.append('sdkAppId', loginInfo.value.sdkAppId || '');
+  bodyValue.append('secretId', loginInfo.value.secretId || '');
+  bodyValue.append('secretKey', loginInfo.value.secretKey || '');
+  bodyValue.append('signName', loginInfo.value.signName || '');
+  bodyValue.append('templateCode', loginInfo.value.templateCode || '');
+  bodyValue.append('gitHubClientId', loginInfo.value.githubClientId || '');
   bodyValue.append(
     'gitHubClientSecret',
     loginInfo.value.githubClientSecret || '',
-  )
-  bodyValue.append('qjqqAppId', loginInfo.value.qjqqAppId || '')
-  bodyValue.append('qjqqAppKey', loginInfo.value.qjqqAppKey || '')
+  );
+  bodyValue.append('chjhAppId', loginInfo.value.chjhAppId || '');
+  bodyValue.append('chjhAppKey', loginInfo.value.chjhAppKey || '');
+  bodyValue.append('chjhLoginUrl', loginInfo.value.chjhLoginUrl || '');
   bodyValue.append(
-    'qjqqProviders',
-    Array.isArray(loginInfo.value.qjqqProviders)
-      ? loginInfo.value.qjqqProviders.join('|')
+    'chjhProviders',
+    Array.isArray(loginInfo.value.chjhProviders)
+      ? loginInfo.value.chjhProviders.join('|')
       : '',
-  )
+  );
 
   const res = await $myFetch('UpdateLoginMethodInfo', {
     method: 'POST',
     body: bodyValue,
-  })
+  });
 
   if (res.code === 200) {
-    $msg(res.msg, 'success')
-    getLoginInfo()
+    $msg(res.msg, 'success');
+    getLoginInfo();
   } else {
-    $msg(res.msg, 'error')
+    $msg(res.msg, 'error');
   }
-}
+};
 
 // 提交验证码配置
 const captchaInfoSubmit = async () => {
-  const bodyValue = new URLSearchParams()
-  bodyValue.append('difficulty', captchaInfo.value.difficulty || 'medium')
-  bodyValue.append('expireTime', captchaInfo.value.expire_time || 60)
-  bodyValue.append('length', captchaInfo.value.length || 4)
-  bodyValue.append('type', captchaInfo.value.type || 'math')
+  const bodyValue = new URLSearchParams();
+  bodyValue.append('difficulty', captchaInfo.value.difficulty || 'medium');
+  bodyValue.append('expireTime', captchaInfo.value.expire_time || 60);
+  bodyValue.append('length', captchaInfo.value.length || 4);
+  bodyValue.append('type', captchaInfo.value.type || 'math');
 
   const res = await $myFetch('UpdateCaptchaConfig', {
     method: 'POST',
     body: bodyValue,
-  })
+  });
 
   if (res.code === 200) {
-    $msg(res.msg, 'success')
-    getCaptchaInfo()
+    $msg(res.msg, 'success');
+    getCaptchaInfo();
   } else {
-    $msg(res.msg, 'error')
+    $msg(res.msg, 'error');
   }
-}
+};
 
 // 合作伙伴相关API函数
 
 // 获取合作伙伴列表
 const getPartners = async () => {
-  partnerLoading.value = true
+  partnerLoading.value = true;
   try {
-    const res = await $myFetch('GetPartnersInfo')
+    const res = await $myFetch('GetPartnersInfo');
 
     if (res.code === 200) {
-      partnerList.value = res.data || []
+      partnerList.value = res.data || [];
     } else {
-      $msg(res.msg, 'error')
+      $msg(res.msg, 'error');
     }
   } catch (error) {
-    $msg('获取合作伙伴列表失败', 'error')
+    $msg('获取合作伙伴列表失败', 'error');
   } finally {
-    partnerLoading.value = false
+    partnerLoading.value = false;
   }
-}
+};
 
 // 创建合作伙伴
 const createPartner = async () => {
@@ -813,38 +817,38 @@ const createPartner = async () => {
     !partnerForm.value.website ||
     !partnerForm.value.category
   ) {
-    $msg('请填写所有必填字段', 'error')
-    return false
+    $msg('请填写所有必填字段', 'error');
+    return false;
   }
 
-  partnerLoading.value = true
+  partnerLoading.value = true;
   try {
-    const bodyValue = new URLSearchParams()
-    bodyValue.append('name', partnerForm.value.name)
-    bodyValue.append('logo', partnerForm.value.logo)
-    bodyValue.append('description', partnerForm.value.description)
-    bodyValue.append('website', partnerForm.value.website)
-    bodyValue.append('category', partnerForm.value.category)
+    const bodyValue = new URLSearchParams();
+    bodyValue.append('name', partnerForm.value.name);
+    bodyValue.append('logo', partnerForm.value.logo);
+    bodyValue.append('description', partnerForm.value.description);
+    bodyValue.append('website', partnerForm.value.website);
+    bodyValue.append('category', partnerForm.value.category);
 
     const res = await $myFetch('CreatePartner', {
       method: 'POST',
       body: bodyValue,
-    })
+    });
 
     if (res.code === 200) {
-      $msg('创建合作伙伴成功', 'success')
-      partnerDialogVisible.value = false
-      resetPartnerForm()
-      await getPartners()
+      $msg('创建合作伙伴成功', 'success');
+      partnerDialogVisible.value = false;
+      resetPartnerForm();
+      await getPartners();
     } else {
-      $msg(res.msg, 'error')
+      $msg(res.msg, 'error');
     }
   } catch (error) {
-    $msg('创建合作伙伴失败', 'error')
+    $msg('创建合作伙伴失败', 'error');
   } finally {
-    partnerLoading.value = false
+    partnerLoading.value = false;
   }
-}
+};
 
 // 更新合作伙伴
 const updatePartner = async () => {
@@ -855,39 +859,39 @@ const updatePartner = async () => {
     !partnerForm.value.website ||
     !partnerForm.value.category
   ) {
-    $msg('请填写所有必填字段', 'error')
-    return false
+    $msg('请填写所有必填字段', 'error');
+    return false;
   }
 
-  partnerLoading.value = true
+  partnerLoading.value = true;
   try {
-    const bodyValue = new URLSearchParams()
-    bodyValue.append('id', partnerCurrentId.value)
-    bodyValue.append('name', partnerForm.value.name)
-    bodyValue.append('logo', partnerForm.value.logo)
-    bodyValue.append('description', partnerForm.value.description)
-    bodyValue.append('website', partnerForm.value.website)
-    bodyValue.append('category', partnerForm.value.category)
+    const bodyValue = new URLSearchParams();
+    bodyValue.append('id', partnerCurrentId.value);
+    bodyValue.append('name', partnerForm.value.name);
+    bodyValue.append('logo', partnerForm.value.logo);
+    bodyValue.append('description', partnerForm.value.description);
+    bodyValue.append('website', partnerForm.value.website);
+    bodyValue.append('category', partnerForm.value.category);
 
     const res = await $myFetch('UpdatePartner', {
       method: 'POST',
       body: bodyValue,
-    })
+    });
 
     if (res.code === 200) {
-      $msg('更新合作伙伴成功', 'success')
-      partnerDialogVisible.value = false
-      resetPartnerForm()
-      await getPartners()
+      $msg('更新合作伙伴成功', 'success');
+      partnerDialogVisible.value = false;
+      resetPartnerForm();
+      await getPartners();
     } else {
-      $msg(res.msg, 'error')
+      $msg(res.msg, 'error');
     }
   } catch (error) {
-    $msg('更新合作伙伴失败', 'error')
+    $msg('更新合作伙伴失败', 'error');
   } finally {
-    partnerLoading.value = false
+    partnerLoading.value = false;
   }
-}
+};
 
 // 删除合作伙伴
 const deletePartner = async (id) => {
@@ -896,29 +900,29 @@ const deletePartner = async (id) => {
       confirmButtonText: '确定',
       cancelButtonText: '取消',
       type: 'warning',
-    })
+    });
 
-    partnerLoading.value = true
+    partnerLoading.value = true;
     const res = await $myFetch('DeletePartner', {
       params: {
         id: id,
       },
-    })
+    });
 
     if (res.code === 200) {
-      $msg('删除合作伙伴成功', 'success')
-      await getPartners()
+      $msg('删除合作伙伴成功', 'success');
+      await getPartners();
     } else {
-      $msg(res.msg, 'error')
+      $msg(res.msg, 'error');
     }
   } catch (error) {
     if (error !== 'cancel') {
-      $msg('删除合作伙伴失败', 'error')
+      $msg('删除合作伙伴失败', 'error');
     }
   } finally {
-    partnerLoading.value = false
+    partnerLoading.value = false;
   }
-}
+};
 
 // 重置合作伙伴表单
 const resetPartnerForm = () => {
@@ -928,106 +932,106 @@ const resetPartnerForm = () => {
     description: '',
     website: '',
     category: '',
-  }
-  partnerEditMode.value = false
-  partnerCurrentId.value = null
-}
+  };
+  partnerEditMode.value = false;
+  partnerCurrentId.value = null;
+};
 
 // 打开新增合作伙伴对话框
 const openAddPartnerDialog = () => {
-  resetPartnerForm()
-  partnerDialogVisible.value = true
-}
+  resetPartnerForm();
+  partnerDialogVisible.value = true;
+};
 
 // 打开编辑合作伙伴对话框
 const openEditPartnerDialog = (partner) => {
-  partnerForm.value = { ...partner }
-  partnerEditMode.value = true
-  partnerCurrentId.value = partner.id
-  partnerDialogVisible.value = true
-}
+  partnerForm.value = { ...partner };
+  partnerEditMode.value = true;
+  partnerCurrentId.value = partner.id;
+  partnerDialogVisible.value = true;
+};
 
 // 提交合作伙伴表单
 const submitPartnerForm = async () => {
   if (partnerEditMode.value) {
-    await updatePartner()
+    await updatePartner();
   } else {
-    await createPartner()
+    await createPartner();
   }
-}
+};
 
 // 数组操作辅助函数
 
 const addTimelineYear = () => {
-  aboutInfo.value.timeline.push({ year: '', events: [''] })
-}
+  aboutInfo.value.timeline.push({ year: '', events: [''] });
+};
 
 const removeTimelineYear = (index) => {
-  aboutInfo.value.timeline.splice(index, 1)
-}
+  aboutInfo.value.timeline.splice(index, 1);
+};
 
 const addTimelineEvent = (yearIndex) => {
-  aboutInfo.value.timeline[yearIndex].events.push('')
-}
+  aboutInfo.value.timeline[yearIndex].events.push('');
+};
 
 const removeTimelineEvent = (yearIndex, eventIndex) => {
-  aboutInfo.value.timeline[yearIndex].events.splice(eventIndex, 1)
-}
+  aboutInfo.value.timeline[yearIndex].events.splice(eventIndex, 1);
+};
 
 const addTechStackItem = (stackIndex) => {
-  aboutInfo.value.techStack[stackIndex].items.push('')
-}
+  aboutInfo.value.techStack[stackIndex].items.push('');
+};
 
 const removeTechStackItem = (stackIndex, itemIndex) => {
-  aboutInfo.value.techStack[stackIndex].items.splice(itemIndex, 1)
-}
+  aboutInfo.value.techStack[stackIndex].items.splice(itemIndex, 1);
+};
 
 // 发送测试邮件
 const sendTestMail = async () => {
   if (!testMail.value) {
-    $msg('请输入测试邮箱', 'error')
-    return false
+    $msg('请输入测试邮箱', 'error');
+    return false;
   }
 
   const res = await $myFetch('SendTestMail', {
     params: {
       mail: testMail.value,
     },
-  })
+  });
 
   if (res.code === 200) {
-    $msg(res.msg, 'success')
-    testMail.value = ''
+    $msg(res.msg, 'success');
+    testMail.value = '';
   } else {
-    $msg(res.msg, 'error')
+    $msg(res.msg, 'error');
   }
-}
+};
 
 // IPv4格式验证函数
 const validateIPv4 = (rule, value, callback) => {
   if (!value) {
-    callback() // 允许为空
-    return
+    callback(); // 允许为空
+    return;
   }
 
   const ipv4Regex =
-    /^((25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$/
+    /^((25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$/;
 
   if (!ipv4Regex.test(value)) {
-    callback(new Error('请输入有效的IPv4地址格式（如：192.168.1.1）'))
+    callback(new Error('请输入有效的IPv4地址格式（如：192.168.1.1）'));
   } else {
-    callback()
+    callback();
   }
-}
+};
 
 // 禁用未来日期
 const disabledDate = (time) => {
-  return time.getTime() > Date.now()
-}
+  return time.getTime() > Date.now();
+};
 
 // 全局返回参数（aid=0）
-const GLOBAL_RESPONSE_AID = 0
-const globalResponseParamsArr = ref([])
+const GLOBAL_RESPONSE_AID = 0;
+const globalResponseParamsArr = ref([]);
 const mapResponseParamNode = (node) => {
   const row = {
     id: node.id,
@@ -1040,101 +1044,101 @@ const mapResponseParamNode = (node) => {
     create_time: node.create_time
       ? new Date(Number(node.create_time)).toLocaleString()
       : '',
-  }
+  };
   if (node.children && node.children.length > 0) {
-    row.children = node.children.map(mapResponseParamNode)
+    row.children = node.children.map(mapResponseParamNode);
   }
-  return row
-}
+  return row;
+};
 const getGlobalResponseParams = async () => {
   try {
     const res = await $myFetch('ResponseParamList', {
       params: { aid: GLOBAL_RESPONSE_AID },
-    })
-    const rawList = res?.data?.response_params ?? res?.data
+    });
+    const rawList = res?.data?.response_params ?? res?.data;
     if (Array.isArray(rawList)) {
-      globalResponseParamsArr.value = rawList.map(mapResponseParamNode)
+      globalResponseParamsArr.value = rawList.map(mapResponseParamNode);
     } else {
-      globalResponseParamsArr.value = []
+      globalResponseParamsArr.value = [];
     }
   } catch (e) {
-    globalResponseParamsArr.value = []
+    globalResponseParamsArr.value = [];
   }
-}
+};
 
-const globalAddResponseParamDialogStatus = ref(false)
+const globalAddResponseParamDialogStatus = ref(false);
 const globalAddResponseParamInfo = ref({
   name: '',
   param: 'string',
   docs: '',
   example: '',
   parentId: 0,
-})
+});
 const globalResponseParamTypeOptions = [
   { value: 'string', label: 'string' },
   { value: 'int', label: 'int' },
   { value: 'object', label: 'object' },
   { value: 'array', label: 'array' },
-]
+];
 const globalResponseParamParentOptions = computed(() => {
-  const list = [{ value: 0, label: '顶级参数' }]
+  const list = [{ value: 0, label: '顶级参数' }];
   const flatten = (nodes, depth = 0) => {
-    if (!nodes || !nodes.length) return
+    if (!nodes || !nodes.length) return;
     nodes.forEach((n) => {
       list.push({
         value: n.id,
         label:
           (depth ? '　'.repeat(depth) + '└ ' : '') + `${n.name} (ID: ${n.id})`,
-      })
-      if (n.children?.length) flatten(n.children, depth + 1)
-    })
-  }
-  flatten(globalResponseParamsArr.value)
-  return list
-})
+      });
+      if (n.children?.length) flatten(n.children, depth + 1);
+    });
+  };
+  flatten(globalResponseParamsArr.value);
+  return list;
+});
 const handleGlobalAddResponseParam = (row = null) => {
-  globalAddResponseParamDialogStatus.value = true
+  globalAddResponseParamDialogStatus.value = true;
   globalAddResponseParamInfo.value = {
     name: '',
     param: 'string',
     docs: '',
     example: '',
     parentId: row ? row.id : 0,
-  }
-}
+  };
+};
 const globalAddResponseParam = async () => {
   if (
     !globalAddResponseParamInfo.value.name ||
     !globalAddResponseParamInfo.value.param ||
     !globalAddResponseParamInfo.value.docs
   ) {
-    $msg('请填写参数名称、类型和说明', 'error')
-    return
+    $msg('请填写参数名称、类型和说明', 'error');
+    return;
   }
-  const bodyValue = new URLSearchParams()
-  bodyValue.append('aid', String(GLOBAL_RESPONSE_AID))
+  const bodyValue = new URLSearchParams();
+  bodyValue.append('aid', String(GLOBAL_RESPONSE_AID));
   bodyValue.append(
     'parentId',
     String(globalAddResponseParamInfo.value.parentId ?? 0),
-  )
-  bodyValue.append('name', globalAddResponseParamInfo.value.name)
-  bodyValue.append('param', globalAddResponseParamInfo.value.param)
-  bodyValue.append('docs', globalAddResponseParamInfo.value.docs)
+  );
+  bodyValue.append('name', globalAddResponseParamInfo.value.name);
+  bodyValue.append('param', globalAddResponseParamInfo.value.param);
+  bodyValue.append('docs', globalAddResponseParamInfo.value.docs);
   if (globalAddResponseParamInfo.value.example) {
-    bodyValue.append('example', globalAddResponseParamInfo.value.example)
+    bodyValue.append('example', globalAddResponseParamInfo.value.example);
   }
   const res = await $myFetch('ResponseParamCreate', {
     method: 'POST',
     body: bodyValue,
-  })
+  });
   if (res.code === 200) {
-    $msg(res.msg, 'success')
-    globalAddResponseParamDialogStatus.value = false
-    await getGlobalResponseParams()
+    $msg(res.msg, 'success');
+    globalAddResponseParamDialogStatus.value = false;
+    await getGlobalResponseParams();
   } else {
-    $msg(res.msg, 'error')
+    $msg(res.msg, 'error');
   }
-}
+};
 watch(globalAddResponseParamDialogStatus, (newVal) => {
   if (!newVal) {
     globalAddResponseParamInfo.value = {
@@ -1143,11 +1147,11 @@ watch(globalAddResponseParamDialogStatus, (newVal) => {
       docs: '',
       example: '',
       parentId: 0,
-    }
+    };
   }
-})
+});
 
-const globalEditResponseParamDialogStatus = ref(false)
+const globalEditResponseParamDialogStatus = ref(false);
 const globalEditResponseParamInfo = ref({
   id: '',
   aid: '',
@@ -1156,16 +1160,16 @@ const globalEditResponseParamInfo = ref({
   param: 'string',
   docs: '',
   example: '',
-})
+});
 const globalEditResponseParamParentOptions = computed(() => {
-  const id = globalEditResponseParamInfo.value.id
-  if (!id) return globalResponseParamParentOptions.value
+  const id = globalEditResponseParamInfo.value.id;
+  if (!id) return globalResponseParamParentOptions.value;
   return globalResponseParamParentOptions.value.filter(
     (opt) => opt.value !== id,
-  )
-})
+  );
+});
 const handleGlobalEditResponseParam = (row) => {
-  globalEditResponseParamDialogStatus.value = true
+  globalEditResponseParamDialogStatus.value = true;
   globalEditResponseParamInfo.value = {
     id: row.id,
     aid: row.aid,
@@ -1174,45 +1178,45 @@ const handleGlobalEditResponseParam = (row) => {
     param: row.param,
     docs: row.docs,
     example: row.example ?? '',
-  }
-}
+  };
+};
 const globalUpdateResponseParam = async () => {
   if (
     !globalEditResponseParamInfo.value.name ||
     !globalEditResponseParamInfo.value.param ||
     !globalEditResponseParamInfo.value.docs
   ) {
-    $msg('请填写参数名称、类型和说明', 'error')
-    return
+    $msg('请填写参数名称、类型和说明', 'error');
+    return;
   }
-  const bodyValue = new URLSearchParams()
-  bodyValue.append('id', globalEditResponseParamInfo.value.id)
+  const bodyValue = new URLSearchParams();
+  bodyValue.append('id', globalEditResponseParamInfo.value.id);
   bodyValue.append(
     'aid',
     String(globalEditResponseParamInfo.value.aid ?? GLOBAL_RESPONSE_AID),
-  )
+  );
   bodyValue.append(
     'parentId',
     String(globalEditResponseParamInfo.value.parentId ?? 0),
-  )
-  bodyValue.append('name', globalEditResponseParamInfo.value.name)
-  bodyValue.append('param', globalEditResponseParamInfo.value.param)
-  bodyValue.append('docs', globalEditResponseParamInfo.value.docs)
+  );
+  bodyValue.append('name', globalEditResponseParamInfo.value.name);
+  bodyValue.append('param', globalEditResponseParamInfo.value.param);
+  bodyValue.append('docs', globalEditResponseParamInfo.value.docs);
   if (globalEditResponseParamInfo.value.example) {
-    bodyValue.append('example', globalEditResponseParamInfo.value.example)
+    bodyValue.append('example', globalEditResponseParamInfo.value.example);
   }
   const res = await $myFetch('ResponseParamUpdate', {
     method: 'POST',
     body: bodyValue,
-  })
+  });
   if (res.code === 200) {
-    $msg(res.msg, 'success')
-    globalEditResponseParamDialogStatus.value = false
-    await getGlobalResponseParams()
+    $msg(res.msg, 'success');
+    globalEditResponseParamDialogStatus.value = false;
+    await getGlobalResponseParams();
   } else {
-    $msg(res.msg, 'error')
+    $msg(res.msg, 'error');
   }
-}
+};
 watch(globalEditResponseParamDialogStatus, (newVal) => {
   if (!newVal) {
     globalEditResponseParamInfo.value = {
@@ -1223,28 +1227,30 @@ watch(globalEditResponseParamDialogStatus, (newVal) => {
       param: 'string',
       docs: '',
       example: '',
-    }
+    };
   }
-})
+});
 
 const handleGlobalDeleteResponseParam = async (row) => {
-  const res = await $myFetch('ResponseParamDelete', { params: { pid: row.id } })
+  const res = await $myFetch('ResponseParamDelete', {
+    params: { pid: row.id },
+  });
   if (res.code === 200) {
-    $msg(res.msg, 'success')
-    await getGlobalResponseParams()
+    $msg(res.msg, 'success');
+    await getGlobalResponseParams();
   } else {
-    $msg(res.msg, 'error')
+    $msg(res.msg, 'error');
   }
-}
+};
 
 // 监听主选项卡变化，设置对应的子选项卡默认值
 watch(activeTab, (newTab) => {
   if (newTab === 'basic') {
-    activeSubTab.value = 'website'
+    activeSubTab.value = 'website';
   } else if (newTab === 'system') {
-    activeSubTab.value = 'ai'
+    activeSubTab.value = 'ai';
   }
-})
+});
 
 // 监听子选项卡变化，按需加载数据
 watch(
@@ -1252,52 +1258,52 @@ watch(
   async (newSubTab) => {
     // 基本设置相关
     if (newSubTab === 'website' && !loadedData.value.website) {
-      await getWebsetInfo()
-      loadedData.value.website = true
+      await getWebsetInfo();
+      loadedData.value.website = true;
     } else if (newSubTab === 'mail' && !loadedData.value.mail) {
-      await getMailInfo()
-      loadedData.value.mail = true
+      await getMailInfo();
+      loadedData.value.mail = true;
     } else if (newSubTab === 'topApi' && !loadedData.value.topApi) {
-      await getTopApiList()
-      loadedData.value.topApi = true
+      await getTopApiList();
+      loadedData.value.topApi = true;
     } else if (newSubTab === 'partners' && !loadedData.value.partners) {
-      await getPartners()
-      loadedData.value.partners = true
+      await getPartners();
+      loadedData.value.partners = true;
     }
     // 高级设置相关
     else if (newSubTab === 'ai' && !loadedData.value.ai) {
-      await getAIInfo()
-      loadedData.value.ai = true
+      await getAIInfo();
+      loadedData.value.ai = true;
     } else if (newSubTab === 'about' && !loadedData.value.about) {
-      await getAboutInfo()
-      loadedData.value.about = true
+      await getAboutInfo();
+      loadedData.value.about = true;
     } else if (newSubTab === 'advanced' && !loadedData.value.advanced) {
-      await getAdvancedInfo()
-      loadedData.value.advanced = true
+      await getAdvancedInfo();
+      loadedData.value.advanced = true;
     } else if (newSubTab === 'login' && !loadedData.value.login) {
-      await getLoginInfo()
-      loadedData.value.login = true
+      await getLoginInfo();
+      loadedData.value.login = true;
     } else if (newSubTab === 'captcha' && !loadedData.value.captcha) {
-      await getCaptchaInfo()
-      loadedData.value.captcha = true
+      await getCaptchaInfo();
+      loadedData.value.captcha = true;
     } else if (
       newSubTab === 'responseParams' &&
       !loadedData.value.responseParams
     ) {
-      await getGlobalResponseParams()
-      loadedData.value.responseParams = true
+      await getGlobalResponseParams();
+      loadedData.value.responseParams = true;
     }
     // 'test' 和 'security' 标签页不需要加载额外数据
   },
   { immediate: true },
-)
+);
 
 useHead({
   title: '系统设置',
   viewport:
     'width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0',
   charset: 'utf-8',
-})
+});
 </script>
 
 <template>
@@ -2685,7 +2691,7 @@ useHead({
                       <el-checkbox label="email">邮箱验证码登录</el-checkbox>
                       <el-checkbox label="sms">手机号验证码登录</el-checkbox>
                       <el-checkbox label="github">GitHub 快捷登录</el-checkbox>
-                      <el-checkbox label="qjqq">彩虹聚合登录</el-checkbox>
+                      <el-checkbox label="chjh">彩虹聚合登录</el-checkbox>
                     </el-checkbox-group>
                   </el-form-item>
 
@@ -2693,7 +2699,7 @@ useHead({
                     v-if="
                       loginInfo.method.includes('sms') ||
                       loginInfo.method.includes('github') ||
-                      loginInfo.method.includes('qjqq')
+                      loginInfo.method.includes('chjh')
                     "
                     class="sub-tabs"
                     style="margin-bottom: 20px"
@@ -2864,12 +2870,20 @@ useHead({
 
                     <!-- 彩虹聚合登录配置 -->
                     <el-tab-pane
-                      v-if="loginInfo.method.includes('qjqq')"
+                      v-if="loginInfo.method.includes('chjh')"
                       label="彩虹聚合登录配置"
                     >
+                      <el-form-item label="平台地址">
+                        <el-input
+                          v-model="loginInfo.chjhLoginUrl"
+                          placeholder="请输入彩虹登录平台的地址"
+                        />
+                        <div class="form-help">彩虹聚合登录平台的地址</div>
+                      </el-form-item>
+
                       <el-form-item label="AppID">
                         <el-input
-                          v-model="loginInfo.qjqqAppId"
+                          v-model="loginInfo.chjhAppId"
                           placeholder="请输入彩虹聚合登录 AppID"
                         />
                         <div class="form-help">
@@ -2879,7 +2893,7 @@ useHead({
 
                       <el-form-item label="AppKey">
                         <el-input
-                          v-model="loginInfo.qjqqAppKey"
+                          v-model="loginInfo.chjhAppKey"
                           type="password"
                           show-password
                           placeholder="请输入彩虹聚合登录 AppKey"
@@ -2891,11 +2905,11 @@ useHead({
 
                       <el-form-item label="启用平台">
                         <el-checkbox-group
-                          v-model="loginInfo.qjqqProviders"
-                          class="qjqq-provider-options"
+                          v-model="loginInfo.chjhProviders"
+                          class="chjh-provider-options"
                         >
                           <el-checkbox
-                            v-for="provider in qjqqProviderOptions"
+                            v-for="provider in chjhProviderOptions"
                             :key="provider.value"
                             :label="provider.value"
                           >
@@ -3255,7 +3269,7 @@ useHead({
         color: #909399;
       }
 
-      .qjqq-provider-options {
+      .chjh-provider-options {
         display: grid;
         grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
         gap: 8px 12px;

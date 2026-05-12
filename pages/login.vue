@@ -338,9 +338,9 @@ const getLoginMethodConfig = async () => {
         typeof res.data === 'object' && !Array.isArray(res.data)
           ? res.data.method
           : res.data;
-      const qjqqProviders =
+      const chjhProviders =
         typeof res.data === 'object' && !Array.isArray(res.data)
-          ? res.data.qjqqProviders
+          ? res.data.chjhProviders
           : '';
 
       if (!options.value) {
@@ -353,12 +353,12 @@ const getLoginMethodConfig = async () => {
         methods = loginMethodData.filter((method) => method && method.trim());
       }
 
-      if (typeof qjqqProviders === 'string') {
-        options.value.qjqqProviders = qjqqProviders
-          ? qjqqProviders.split('|').filter((provider) => provider.trim())
+      if (typeof chjhProviders === 'string') {
+        options.value.chjhProviders = chjhProviders
+          ? chjhProviders.split('|').filter((provider) => provider.trim())
           : [];
-      } else if (Array.isArray(qjqqProviders)) {
-        options.value.qjqqProviders = qjqqProviders.filter(
+      } else if (Array.isArray(chjhProviders)) {
+        options.value.chjhProviders = chjhProviders.filter(
           (provider) => provider && provider.trim(),
         );
       }
@@ -654,8 +654,8 @@ const options = useState('options');
 
 // GitHub 登录
 const githubLoginLoading = ref(false);
-const qjqqLoginLoading = ref('');
-const qjqqLoginProviders = [
+const chjhLoginLoading = ref('');
+const chjhLoginProviders = [
   { type: 'qq', label: 'QQ', short: 'QQ', color: '#12b7f5' },
   { type: 'wx', label: '微信', short: '微', color: '#07c160' },
   { type: 'wxmp', label: '公众号', short: '公', color: '#1aad19' },
@@ -677,14 +677,14 @@ const qjqqLoginProviders = [
   { type: 'kuaishou', label: '快手', short: '快', color: '#ff4906' },
 ];
 
-const enabledQjqqProviders = computed(() => {
-  const configuredProviders = options.value?.qjqqProviders;
+const enabledChjhProviders = computed(() => {
+  const configuredProviders = options.value?.chjhProviders;
   if (!Array.isArray(configuredProviders) || configuredProviders.length === 0) {
-    return qjqqLoginProviders;
+    return chjhLoginProviders;
   }
 
   const enabledTypes = new Set(configuredProviders);
-  return qjqqLoginProviders.filter((provider) =>
+  return chjhLoginProviders.filter((provider) =>
     enabledTypes.has(provider.type),
   );
 });
@@ -712,22 +712,22 @@ const githubLogin = async () => {
 };
 
 // 彩虹聚合登录
-const qjqqLogin = async (providerType = 'qq') => {
+const chjhLogin = async (providerType = 'qq') => {
   if (!isPolicyAgreed.value) {
     $msg('请阅读并同意隐私政策和用户协议', 'error');
     return;
   }
-  qjqqLoginLoading.value = providerType;
+  chjhLoginLoading.value = providerType;
   try {
     const res = await $myFetch(
-      `QjqqLogin?type=${encodeURIComponent(providerType)}`,
+      `ChjhLogin?type=${encodeURIComponent(providerType)}`,
       {
         method: 'GET',
       },
     );
     if (res.code === 200 && res.data && res.data.url) {
       if (process.client) {
-        sessionStorage.setItem('qjqq_login_pending', providerType);
+        sessionStorage.setItem('chjh_login_pending', providerType);
       }
       window.location.href = res.data.url;
     } else {
@@ -736,7 +736,7 @@ const qjqqLogin = async (providerType = 'qq') => {
   } catch (error) {
     $msg('获取彩虹聚合登录地址失败', 'error');
   } finally {
-    qjqqLoginLoading.value = '';
+    chjhLoginLoading.value = '';
   }
 };
 
@@ -774,25 +774,25 @@ const handleGithubCallback = async (code, state) => {
 };
 
 // 处理彩虹聚合登录回调
-const handleQjqqCallback = async (code, type) => {
+const handleChjhCallback = async (code, type) => {
   const providerType = String(type || '').toLowerCase();
-  qjqqLoginLoading.value = providerType;
+  chjhLoginLoading.value = providerType;
   try {
     if (
       process.client &&
-      sessionStorage.getItem('qjqq_login_pending') !== providerType
+      sessionStorage.getItem('chjh_login_pending') !== providerType
     ) {
       $msg('彩虹聚合登录请求已过期，请重新登录', 'error');
       return;
     }
     if (process.client) {
-      sessionStorage.removeItem('qjqq_login_pending');
+      sessionStorage.removeItem('chjh_login_pending');
     }
 
     const body = new URLSearchParams();
     body.append('code', code);
     body.append('type', providerType);
-    const res = await $myFetch('QjqqCallback', {
+    const res = await $myFetch('ChjhCallback', {
       method: 'POST',
       body,
     });
@@ -815,7 +815,7 @@ const handleQjqqCallback = async (code, type) => {
   } catch (error) {
     $msg('彩虹聚合登录失败，请稍后重试', 'error');
   } finally {
-    qjqqLoginLoading.value = '';
+    chjhLoginLoading.value = '';
   }
 };
 
@@ -916,7 +916,7 @@ onMounted(() => {
   if (code && type) {
     const cleanUrl = window.location.pathname;
     window.history.replaceState({}, '', cleanUrl);
-    handleQjqqCallback(code, type);
+    handleChjhCallback(code, type);
   } else if (code && state) {
     // 清除 URL 中的 code 和 state 参数
     const cleanUrl = window.location.pathname;
@@ -1124,8 +1124,8 @@ useHead({
         <div
           v-if="
             availableLoginMethods.includes('github') ||
-            (availableLoginMethods.includes('qjqq') &&
-              enabledQjqqProviders.length > 0)
+            (availableLoginMethods.includes('chjh') &&
+              enabledChjhProviders.length > 0)
           "
           class="third-party-login"
         >
@@ -1134,24 +1134,24 @@ useHead({
           </div>
           <div
             v-if="
-              availableLoginMethods.includes('qjqq') &&
-              enabledQjqqProviders.length > 0
+              availableLoginMethods.includes('chjh') &&
+              enabledChjhProviders.length > 0
             "
-            class="qjqq-provider-grid"
+            class="chjh-provider-grid"
           >
             <el-button
-              v-for="provider in enabledQjqqProviders"
+              v-for="provider in enabledChjhProviders"
               :key="provider.type"
-              class="qjqq-provider-btn"
-              :style="{ '--qjqq-color': provider.color }"
-              @click="qjqqLogin(provider.type)"
-              :loading="qjqqLoginLoading === provider.type"
+              class="chjh-provider-btn"
+              :style="{ '--chjh-color': provider.color }"
+              @click="chjhLogin(provider.type)"
+              :loading="chjhLoginLoading === provider.type"
               :disabled="
-                qjqqLoginLoading !== '' && qjqqLoginLoading !== provider.type
+                chjhLoginLoading !== '' && chjhLoginLoading !== provider.type
               "
             >
-              <span class="qjqq-icon">{{ provider.short }}</span>
-              <span class="qjqq-label">{{ provider.label }}</span>
+              <span class="chjh-icon">{{ provider.short }}</span>
+              <span class="chjh-label">{{ provider.label }}</span>
             </el-button>
           </div>
           <el-button
@@ -1665,15 +1665,15 @@ useHead({
         transition: background-color 0.3s;
       }
 
-      .qjqq-provider-grid {
+      .chjh-provider-grid {
         display: grid;
         grid-template-columns: repeat(3, minmax(0, 1fr));
         gap: 10px;
         margin-bottom: 12px;
       }
 
-      .qjqq-provider-btn {
-        --qjqq-color: #409eff;
+      .chjh-provider-btn {
+        --chjh-color: #409eff;
         width: 100%;
         height: 44px;
         margin-left: 0;
@@ -1698,8 +1698,8 @@ useHead({
         &:hover,
         &:focus {
           transform: translateY(-2px);
-          border-color: var(--qjqq-color);
-          color: var(--qjqq-color);
+          border-color: var(--chjh-color);
+          color: var(--chjh-color);
           box-shadow: 0 8px 18px rgba(28, 35, 49, 0.1);
         }
 
@@ -1713,7 +1713,7 @@ useHead({
         }
 
         :deep(.el-loading-spinner .path) {
-          stroke: var(--qjqq-color);
+          stroke: var(--chjh-color);
         }
 
         :deep(> span) {
@@ -1725,7 +1725,7 @@ useHead({
           gap: 8px;
         }
 
-        .qjqq-icon {
+        .chjh-icon {
           flex: 0 0 24px;
           display: inline-flex;
           align-items: center;
@@ -1734,15 +1734,15 @@ useHead({
           height: 24px;
           border-radius: 50%;
           color: #fff;
-          background: var(--qjqq-color);
+          background: var(--chjh-color);
           font-size: 10px;
           font-weight: 700;
           line-height: 1;
           box-shadow: 0 4px 10px
-            color-mix(in srgb, var(--qjqq-color) 28%, transparent);
+            color-mix(in srgb, var(--chjh-color) 28%, transparent);
         }
 
-        .qjqq-label {
+        .chjh-label {
           min-width: 0;
           overflow: hidden;
           text-overflow: ellipsis;
@@ -1769,7 +1769,7 @@ useHead({
         }
       }
 
-      .qjqq-provider-grid + .github-btn {
+      .chjh-provider-grid + .github-btn {
         margin-top: 10px;
       }
     }
@@ -1859,7 +1859,7 @@ useHead({
       .third-party-login {
         padding: 0 24px 24px;
 
-        .qjqq-provider-grid {
+        .chjh-provider-grid {
           grid-template-columns: repeat(2, minmax(0, 1fr));
         }
       }
