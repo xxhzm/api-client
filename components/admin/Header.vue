@@ -15,6 +15,7 @@ const route = useRoute()
 
 const username = useCookie('username')
 const { onlyPhoneBind } = usePhoneBind()
+const HOME_PATH = '/admin'
 
 // 路由路径与名称映射
 const routeNameMap = {
@@ -198,11 +199,17 @@ const breadcrumbs = computed(() => {
 
 // --- Visited Views Logic ---
 const visitedViews = useState('visitedViews', () => [])
+const contextMenu = reactive({
+  visible: false,
+  left: 0,
+  top: 0,
+  tag: null,
+})
 
 const visibleViews = computed(() => {
   if (!onlyPhoneBind.value) return visitedViews.value
   return visitedViews.value.filter(
-    (v) => v.path === '/admin' || v.path === '/admin/phone',
+    (v) => v.path === HOME_PATH || v.path === '/admin/phone',
   )
 })
 
@@ -277,9 +284,11 @@ const addVisitedView = () => {
 }
 
 const isActive = (view) => {
-  const currentPath = route.path.replace(/\/$/, '') || '/admin'
+  const currentPath = route.path.replace(/\/$/, '') || HOME_PATH
   return view.path === currentPath
 }
+
+const getCurrentPath = () => route.path.replace(/\/$/, '') || HOME_PATH
 
 const closeTag = (view) => {
   const index = visitedViews.value.findIndex((v) => v.path === view.path)
@@ -289,6 +298,139 @@ const closeTag = (view) => {
       toLastView(visitedViews.value, view)
     }
   }
+}
+
+const getHomeView = () => {
+  return (
+    visitedViews.value.find((v) => v.path === HOME_PATH) || {
+      path: HOME_PATH,
+      title: '控制台',
+      name: 'admin',
+    }
+  )
+}
+
+const updateVisitedViews = (views, fallbackPath = HOME_PATH) => {
+  const currentPath = getCurrentPath()
+  const nextViews = views.length ? views : [getHomeView()]
+  const shouldRedirect = !nextViews.some((v) => v.path === currentPath)
+
+  visitedViews.value = nextViews
+
+  if (shouldRedirect) {
+    navigateTo(fallbackPath)
+  }
+}
+
+const closeOtherTags = (view) => {
+  if (!view || !canCloseOtherTags(view)) return
+
+  const nextViews = visitedViews.value.filter(
+    (v) => v.path === HOME_PATH || v.path === view.path,
+  )
+  updateVisitedViews(nextViews, view.path)
+}
+
+const closeRightTags = (view) => {
+  if (!view || !canCloseRightTags(view)) return
+
+  const targetIndex = visitedViews.value.findIndex((v) => v.path === view.path)
+  if (targetIndex === -1) return
+
+  const nextViews = visitedViews.value.filter(
+    (v, index) => v.path === HOME_PATH || index <= targetIndex,
+  )
+  updateVisitedViews(nextViews, view.path)
+}
+
+const closeLeftTags = (view) => {
+  if (!view || !canCloseLeftTags(view)) return
+
+  const targetIndex = visitedViews.value.findIndex((v) => v.path === view.path)
+  if (targetIndex === -1) return
+
+  const nextViews = visitedViews.value.filter(
+    (v, index) => v.path === HOME_PATH || index >= targetIndex,
+  )
+  updateVisitedViews(nextViews, view.path)
+}
+
+const closeAllTags = () => {
+  if (!canCloseAllTags()) return
+
+  updateVisitedViews([getHomeView()], HOME_PATH)
+}
+
+const canCloseOtherTags = (view) => {
+  if (!view) return false
+  return visitedViews.value.some(
+    (v) => v.path !== HOME_PATH && v.path !== view.path,
+  )
+}
+
+const canCloseRightTags = (view) => {
+  if (!view) return false
+
+  const targetIndex = visitedViews.value.findIndex((v) => v.path === view.path)
+  if (targetIndex === -1) return false
+
+  return visitedViews.value.some(
+    (v, index) => index > targetIndex && v.path !== HOME_PATH,
+  )
+}
+
+const canCloseLeftTags = (view) => {
+  if (!view) return false
+
+  const targetIndex = visitedViews.value.findIndex((v) => v.path === view.path)
+  if (targetIndex === -1) return false
+
+  return visitedViews.value.some(
+    (v, index) => index < targetIndex && v.path !== HOME_PATH,
+  )
+}
+
+const canCloseAllTags = () => {
+  return visitedViews.value.some((v) => v.path !== HOME_PATH)
+}
+
+const closeContextMenu = () => {
+  contextMenu.visible = false
+  contextMenu.tag = null
+}
+
+const openTagContextMenu = (event, tag) => {
+  const menuWidth = 118
+  const menuHeight = 136
+  const viewportWidth = window.innerWidth
+  const viewportHeight = window.innerHeight
+
+  contextMenu.left = Math.max(
+    8,
+    Math.min(event.clientX, viewportWidth - menuWidth - 8),
+  )
+  contextMenu.top = Math.max(
+    8,
+    Math.min(event.clientY, viewportHeight - menuHeight - 8),
+  )
+  contextMenu.tag = tag
+  contextMenu.visible = true
+}
+
+const handleContextMenuCommand = (command) => {
+  const tag = contextMenu.tag
+
+  if (command === 'others') {
+    closeOtherTags(tag)
+  } else if (command === 'right') {
+    closeRightTags(tag)
+  } else if (command === 'left') {
+    closeLeftTags(tag)
+  } else if (command === 'all') {
+    closeAllTags()
+  }
+
+  closeContextMenu()
 }
 
 const toLastView = (visitedViews, view) => {
@@ -339,6 +481,7 @@ const checkTagsWidth = async () => {
 watch(
   route,
   () => {
+    closeContextMenu()
     addVisitedView()
   },
   { immediate: true },
@@ -356,6 +499,15 @@ onMounted(() => {
     }
     // Add current view after loading
     addVisitedView()
+    document.addEventListener('click', closeContextMenu)
+    window.addEventListener('resize', closeContextMenu)
+  }
+})
+
+onUnmounted(() => {
+  if (process.client) {
+    document.removeEventListener('click', closeContextMenu)
+    window.removeEventListener('resize', closeContextMenu)
   }
 })
 
@@ -450,6 +602,7 @@ const handleSelect = (key) => {
           :class="isActive(tag) ? 'active' : ''"
           :to="{ path: tag.path }"
           class="tags-view-item"
+          @contextmenu.prevent="openTagContextMenu($event, tag)"
         >
           <span class="tag-title">{{ tag.title }}</span>
           <el-icon
@@ -460,6 +613,39 @@ const handleSelect = (key) => {
           /></el-icon>
         </router-link>
       </div>
+
+      <ul
+        v-if="contextMenu.visible"
+        class="tags-context-menu"
+        :style="{ left: `${contextMenu.left}px`, top: `${contextMenu.top}px` }"
+        @click.stop
+        @contextmenu.prevent
+      >
+        <li
+          :class="{ disabled: !canCloseOtherTags(contextMenu.tag) }"
+          @click="handleContextMenuCommand('others')"
+        >
+          关闭其他
+        </li>
+        <li
+          :class="{ disabled: !canCloseRightTags(contextMenu.tag) }"
+          @click="handleContextMenuCommand('right')"
+        >
+          关闭右侧
+        </li>
+        <li
+          :class="{ disabled: !canCloseLeftTags(contextMenu.tag) }"
+          @click="handleContextMenuCommand('left')"
+        >
+          关闭左侧
+        </li>
+        <li
+          :class="{ disabled: !canCloseAllTags() }"
+          @click="handleContextMenuCommand('all')"
+        >
+          关闭全部
+        </li>
+      </ul>
     </div>
   </div>
 </template>
@@ -622,6 +808,44 @@ const handleSelect = (key) => {
           background-color: #c0c4cc;
           color: #fff;
           opacity: 1;
+        }
+      }
+    }
+  }
+
+  .tags-context-menu {
+    position: fixed;
+    z-index: 2000;
+    width: 118px;
+    padding: 4px 0;
+    margin: 0;
+    list-style: none;
+    background: #fff;
+    border: 1px solid #ebeef5;
+    border-radius: 4px;
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.12);
+    color: #606266;
+    font-size: 12px;
+
+    li {
+      height: 30px;
+      line-height: 30px;
+      padding: 0 14px;
+      cursor: pointer;
+      user-select: none;
+
+      &:hover {
+        background: #ecf5ff;
+        color: #409eff;
+      }
+
+      &.disabled {
+        color: #c0c4cc;
+        cursor: not-allowed;
+
+        &:hover {
+          background: transparent;
+          color: #c0c4cc;
         }
       }
     }
