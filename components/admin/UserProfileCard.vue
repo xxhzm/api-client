@@ -1,25 +1,26 @@
 <script setup>
+import { ElMessageBox } from 'element-plus'
 import {
   Message,
-  Timer,
   Wallet,
-  Location,
   Lock,
   Phone,
   Key,
   ArrowRight,
   Refresh,
-  CreditCard,
   User,
+  Link,
+  CircleCheck,
+  Connection,
 } from '@element-plus/icons-vue'
-
-const props = defineProps({})
 
 const emit = defineEmits(['loaded'])
 
 const { $myFetch, $msg } = useNuxtApp()
 const { userAccessKey } = useUserKey()
 const username = useCookie('username')
+const route = useRoute()
+const router = useRouter()
 
 // User Info State
 const userInfo = reactive({
@@ -37,6 +38,50 @@ const total24h = ref(0)
 const balance = ref(0)
 const currentMonthTopUp = ref(0)
 const totalTopUp = ref(0)
+const oauthBindings = ref([])
+const oauthLoading = ref(false)
+const qjqqBindLoading = ref('')
+const oauthUnbindLoading = ref('')
+const availableLoginMethods = ref([])
+const qjqqProviders = ref([])
+const activeTab = ref('details')
+
+const qjqqLoginProviders = [
+  { type: 'qq', label: 'QQ', short: 'QQ', color: '#12b7f5' },
+  { type: 'wx', label: '微信', short: 'WX', color: '#07c160' },
+  { type: 'alipay', label: '支付宝', short: 'Ali', color: '#1677ff' },
+  { type: 'weibo', label: '微博', short: 'WB', color: '#e6162d' },
+  { type: 'baidu', label: '百度', short: 'BD', color: '#2932e1' },
+  { type: 'csdn', label: 'CSDN', short: 'C', color: '#fc5531' },
+  { type: 'douyin', label: '抖音', short: 'DY', color: '#111827' },
+  { type: 'google', label: '谷歌', short: 'G', color: '#4285f4' },
+  { type: 'microsoft', label: '微软', short: 'MS', color: '#00a4ef' },
+  { type: 'gitee', label: 'Gitee', short: 'GE', color: '#c71d23' },
+  { type: 'dingtalk', label: '钉钉', short: 'DD', color: '#1677ff' },
+  { type: 'github', label: 'GitHub', short: 'GH', color: '#24292f' },
+]
+
+const enabledQjqqProviders = computed(() => {
+  if (!availableLoginMethods.value.includes('qjqq')) {
+    return []
+  }
+
+  const enabledTypes = new Set(
+    qjqqProviders.value.map((provider) => String(provider).trim()).filter(Boolean),
+  )
+  if (enabledTypes.size === 0) {
+    return qjqqLoginProviders
+  }
+
+  return qjqqLoginProviders.filter((provider) => enabledTypes.has(provider.type))
+})
+
+const oauthBindingMap = computed(() => {
+  return oauthBindings.value.reduce((map, binding) => {
+    map[binding.provider] = binding
+    return map
+  }, {})
+})
 
 // Fetch Profile
 const fetchProfile = async () => {
@@ -99,13 +144,56 @@ const fetchBalance = async (showTip = false) => {
   }
 }
 
-onMounted(() => {
-  fetchProfile()
-  fetchBalance()
-})
+const fetchLoginMethodConfig = async () => {
+  try {
+    const res = await $myFetch('LoginMethodInfo', {
+      method: 'GET',
+    })
+    if (res.code !== 200) {
+      return
+    }
 
-// UI State
-const activeTab = ref('details')
+    const methods = String(res.data?.method || '')
+      .split('|')
+      .map((method) => method.trim())
+      .filter(Boolean)
+    availableLoginMethods.value = methods
+
+    const providers = res.data?.qjqqProviders
+    if (typeof providers === 'string') {
+      qjqqProviders.value = providers
+        ? providers.split('|').map((provider) => provider.trim()).filter(Boolean)
+        : []
+    } else if (Array.isArray(providers)) {
+      qjqqProviders.value = providers.map((provider) => String(provider).trim()).filter(Boolean)
+    } else {
+      qjqqProviders.value = []
+    }
+  } catch (error) {
+    availableLoginMethods.value = []
+    qjqqProviders.value = []
+  }
+}
+
+const fetchOAuthBindings = async () => {
+  oauthLoading.value = true
+  try {
+    const res = await $myFetch('OAuthBindingList', {
+      method: 'GET',
+    })
+    if (res.code === 200) {
+      oauthBindings.value = Array.isArray(res.data?.bindings)
+        ? res.data.bindings
+        : []
+    } else {
+      $msg(res.msg || '获取第三方账号绑定失败', 'error')
+    }
+  } catch (error) {
+    $msg('获取第三方账号绑定失败', 'error')
+  } finally {
+    oauthLoading.value = false
+  }
+}
 
 // Helper Methods
 const formatCNY = (n) => {
@@ -121,6 +209,117 @@ const formatCNY = (n) => {
 
 const handleRefreshBalance = () => {
   fetchBalance(true)
+}
+
+const getOAuthBinding = (providerType) => {
+  return oauthBindingMap.value[`qjqq_${providerType}`]
+}
+
+const formatBindTime = (time) => {
+  return time ? new Date(time).toLocaleString() : ''
+}
+
+const qjqqBind = async (providerType) => {
+  qjqqBindLoading.value = providerType
+  try {
+    const res = await $myFetch(
+      `QjqqBindLogin?type=${encodeURIComponent(providerType)}`,
+      {
+        method: 'GET',
+      },
+    )
+    if (res.code === 200 && res.data?.url) {
+      if (process.client) {
+        sessionStorage.setItem('qjqq_bind_pending', providerType)
+      }
+      window.location.href = res.data.url
+    } else {
+      $msg(res.msg || '获取第三方授权地址失败', 'error')
+    }
+  } catch (error) {
+    $msg('获取第三方授权地址失败', 'error')
+  } finally {
+    qjqqBindLoading.value = ''
+  }
+}
+
+const qjqqUnbind = async (provider) => {
+  try {
+    await ElMessageBox.confirm('确定要解绑该第三方账号吗？', '确认解绑', {
+      confirmButtonText: '解绑',
+      cancelButtonText: '取消',
+      type: 'warning',
+    })
+  } catch (error) {
+    return
+  }
+
+  oauthUnbindLoading.value = provider
+  try {
+    const body = new URLSearchParams()
+    body.append('provider', provider)
+    const res = await $myFetch('OAuthUnbind', {
+      method: 'POST',
+      body,
+    })
+    if (res.code === 200) {
+      $msg(res.data || '解绑成功', 'success')
+      await fetchOAuthBindings()
+    } else {
+      $msg(res.msg || '解绑失败', 'error')
+    }
+  } catch (error) {
+    $msg('解绑失败，请稍后重试', 'error')
+  } finally {
+    oauthUnbindLoading.value = ''
+  }
+}
+
+const handleQjqqBindRedirect = async () => {
+  const firstQueryValue = (value) => (Array.isArray(value) ? value[0] : value)
+  const code = firstQueryValue(route.query.code)
+  const type = firstQueryValue(route.query.type)
+  if (!code || !type) {
+    return
+  }
+
+  const providerType = String(type).toLowerCase()
+  activeTab.value = 'security'
+  await router.replace({ path: route.path })
+
+  if (
+    process.client &&
+    sessionStorage.getItem('qjqq_bind_pending') &&
+    sessionStorage.getItem('qjqq_bind_pending') !== providerType
+  ) {
+    sessionStorage.removeItem('qjqq_bind_pending')
+    $msg('第三方绑定请求已过期，请重新发起绑定', 'error')
+    return
+  }
+  if (process.client) {
+    sessionStorage.removeItem('qjqq_bind_pending')
+  }
+
+  qjqqBindLoading.value = providerType
+  try {
+    const body = new URLSearchParams()
+    body.append('code', code)
+    body.append('type', providerType)
+    const res = await $myFetch('QjqqBindCallback', {
+      method: 'POST',
+      body,
+    })
+    if (res.code === 200) {
+      $msg('第三方账号绑定成功', 'success')
+      await fetchOAuthBindings()
+    } else {
+      $msg(res.msg || '第三方账号绑定失败', 'error')
+    }
+  } catch (error) {
+    $msg('第三方账号绑定失败，请稍后重试', 'error')
+  } finally {
+    qjqqBindLoading.value = ''
+  }
 }
 
 const copyKey = async () => {
@@ -160,6 +359,14 @@ const copyKey = async () => {
     $msg('复制失败，请手动复制', 'error')
   }
 }
+
+onMounted(() => {
+  fetchProfile()
+  fetchBalance()
+  fetchLoginMethodConfig()
+  fetchOAuthBindings()
+  handleQjqqBindRedirect()
+})
 </script>
 
 <template>
@@ -329,6 +536,93 @@ const copyKey = async () => {
                 <div class="option-action">
                   <span class="action-text">{{ userInfo.mail ? '更换' : '绑定' }}</span>
                   <el-icon><ArrowRight /></el-icon>
+                </div>
+              </div>
+            </div>
+
+            <div class="oauth-bind-panel" v-loading="oauthLoading">
+              <div class="oauth-header">
+                <div class="oauth-title">
+                  <el-icon><Connection /></el-icon>
+                  <div>
+                    <h4>第三方账号</h4>
+                    <p>绑定后可使用第三方账号快捷登录当前平台账号</p>
+                  </div>
+                </div>
+              </div>
+
+              <el-empty
+                v-if="enabledQjqqProviders.length === 0"
+                description="未启用第三方登录"
+                :image-size="72"
+              />
+              <div v-else class="oauth-provider-list">
+                <div
+                  v-for="provider in enabledQjqqProviders"
+                  :key="provider.type"
+                  class="oauth-provider-item"
+                >
+                  <div
+                    class="oauth-provider-icon"
+                    :style="{ '--provider-color': provider.color }"
+                  >
+                    {{ provider.short }}
+                  </div>
+                  <div class="oauth-provider-info">
+                    <div class="provider-name">
+                      <span>{{ provider.label }}</span>
+                      <el-tag
+                        v-if="getOAuthBinding(provider.type)"
+                        type="success"
+                        effect="light"
+                        size="small"
+                      >
+                        <el-icon><CircleCheck /></el-icon>
+                        已绑定
+                      </el-tag>
+                    </div>
+                    <p v-if="getOAuthBinding(provider.type)">
+                      {{ getOAuthBinding(provider.type).username || '已绑定账号' }}
+                      <span v-if="formatBindTime(getOAuthBinding(provider.type).create_time)">
+                        · {{ formatBindTime(getOAuthBinding(provider.type).create_time) }}
+                      </span>
+                    </p>
+                    <p v-else>未绑定</p>
+                  </div>
+                  <div class="oauth-provider-actions">
+                    <el-button
+                      v-if="getOAuthBinding(provider.type)"
+                      size="small"
+                      plain
+                      :loading="qjqqBindLoading === provider.type"
+                      :disabled="Boolean(oauthUnbindLoading)"
+                      @click="qjqqBind(provider.type)"
+                    >
+                      换绑
+                    </el-button>
+                    <el-button
+                      v-if="getOAuthBinding(provider.type)"
+                      size="small"
+                      type="danger"
+                      plain
+                      :loading="oauthUnbindLoading === `qjqq_${provider.type}`"
+                      :disabled="Boolean(qjqqBindLoading)"
+                      @click="qjqqUnbind(`qjqq_${provider.type}`)"
+                    >
+                      解绑
+                    </el-button>
+                    <el-button
+                      v-else
+                      size="small"
+                      type="primary"
+                      :loading="qjqqBindLoading === provider.type"
+                      :disabled="Boolean(oauthUnbindLoading)"
+                      @click="qjqqBind(provider.type)"
+                    >
+                      <el-icon><Link /></el-icon>
+                      绑定
+                    </el-button>
+                  </div>
                 </div>
               </div>
             </div>
@@ -856,6 +1150,118 @@ const copyKey = async () => {
   }
 }
 
+.oauth-bind-panel {
+  margin-top: 24px;
+  padding-top: 24px;
+  border-top: 1px solid #f3f4f6;
+
+  .oauth-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 16px;
+  }
+
+  .oauth-title {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+
+    > .el-icon {
+      width: 40px;
+      height: 40px;
+      border-radius: 10px;
+      background: #eff6ff;
+      color: #2563eb;
+      font-size: 20px;
+      flex-shrink: 0;
+    }
+
+    h4 {
+      margin: 0 0 4px;
+      font-size: 15px;
+      font-weight: 600;
+      color: #111827;
+    }
+
+    p {
+      margin: 0;
+      font-size: 13px;
+      color: #6b7280;
+    }
+  }
+
+  .oauth-provider-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .oauth-provider-item {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 14px 16px;
+    border: 1px solid #e5e7eb;
+    border-radius: 10px;
+    background: #fff;
+  }
+
+  .oauth-provider-icon {
+    --provider-color: #2563eb;
+    width: 38px;
+    height: 38px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    background: color-mix(in srgb, var(--provider-color) 12%, #fff);
+    color: var(--provider-color);
+    border: 1px solid color-mix(in srgb, var(--provider-color) 28%, #fff);
+    font-size: 12px;
+    font-weight: 700;
+  }
+
+  .oauth-provider-info {
+    flex: 1;
+    min-width: 0;
+
+    .provider-name {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 4px;
+
+      span {
+        font-size: 14px;
+        font-weight: 600;
+        color: #111827;
+      }
+
+      :deep(.el-tag) {
+        gap: 4px;
+      }
+    }
+
+    p {
+      margin: 0;
+      color: #6b7280;
+      font-size: 13px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+  }
+
+  .oauth-provider-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-shrink: 0;
+  }
+}
+
 // Responsive Styles
 @media screen and (max-width: 1200px) {
   .enterprise-profile-card {
@@ -905,6 +1311,18 @@ const copyKey = async () => {
   .info-table .info-row {
     flex-direction: column;
     gap: 12px;
+  }
+
+  .oauth-bind-panel {
+    .oauth-provider-item {
+      align-items: flex-start;
+      flex-wrap: wrap;
+    }
+
+    .oauth-provider-actions {
+      width: 100%;
+      justify-content: flex-end;
+    }
   }
 }
 </style>
