@@ -115,6 +115,7 @@ useHead({
                 <el-option label="开启" value="1"></el-option>
                 <el-option label="关闭" value="2"></el-option>
                 <el-option label="草稿" value="3"></el-option>
+                <el-option label="待审核" value="4"></el-option>
               </el-select> </el-form-item
           ></el-col>
           <el-col :xs="24" :sm="24" :md="24" :lg="24" :xl="24">

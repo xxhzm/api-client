@@ -18,6 +18,7 @@ const loadedData = ref({
   topApi: false,
   partners: false,
   ai: false,
+  aiArticle: false,
   about: false,
   advanced: false,
   login: false,
@@ -63,8 +64,16 @@ const mailInfo = ref({
   template: '',
 });
 
-// AI配置相关
+// AI回复配置相关
 const aiInfo = ref({
+  key: '',
+  model: '',
+  system_message: '',
+  url: '',
+});
+
+// AI文章配置相关
+const aiArticleInfo = ref({
   key: '',
   model: '',
   system_message: '',
@@ -242,11 +251,19 @@ const getMailInfo = async () => {
   }
 };
 
-// 获取AI配置
+// 获取AI回复配置
 const getAIInfo = async () => {
   const res = await $myFetch('AIInfo');
   if (res.code === 200) {
     aiInfo.value = res.data;
+  }
+};
+
+// 获取AI文章配置
+const getAIArticleInfo = async () => {
+  const res = await $myFetch('AIArticleInfo');
+  if (res.code === 200) {
+    aiArticleInfo.value = res.data;
   }
 };
 
@@ -619,7 +636,7 @@ const mailInfoSubmit = async () => {
   }
 };
 
-// 提交AI配置
+// 提交AI回复配置
 const aiInfoSubmit = async () => {
   const bodyValue = new URLSearchParams();
   bodyValue.append('key', aiInfo.value.key || '');
@@ -635,6 +652,27 @@ const aiInfoSubmit = async () => {
   if (res.code === 200) {
     $msg(res.msg, 'success');
     getAIInfo();
+  } else {
+    $msg(res.msg, 'error');
+  }
+};
+
+// 提交AI文章配置
+const aiArticleInfoSubmit = async () => {
+  const bodyValue = new URLSearchParams();
+  bodyValue.append('key', aiArticleInfo.value.key || '');
+  bodyValue.append('model', aiArticleInfo.value.model || '');
+  bodyValue.append('systemMessage', aiArticleInfo.value.system_message || '');
+  bodyValue.append('url', aiArticleInfo.value.url || '');
+
+  const res = await $myFetch('AIArticleOptionUpdate', {
+    method: 'POST',
+    body: bodyValue,
+  });
+
+  if (res.code === 200) {
+    $msg(res.msg, 'success');
+    getAIArticleInfo();
   } else {
     $msg(res.msg, 'error');
   }
@@ -1274,6 +1312,9 @@ watch(
     else if (newSubTab === 'ai' && !loadedData.value.ai) {
       await getAIInfo();
       loadedData.value.ai = true;
+    } else if (newSubTab === 'aiArticle' && !loadedData.value.aiArticle) {
+      await getAIArticleInfo();
+      loadedData.value.aiArticle = true;
     } else if (newSubTab === 'about' && !loadedData.value.about) {
       await getAboutInfo();
       loadedData.value.about = true;
@@ -1740,7 +1781,7 @@ useHead({
         <!-- 高级设置 -->
         <el-tab-pane label="高级设置" name="system">
           <el-tabs v-model="activeSubTab" class="sub-tabs">
-            <el-tab-pane label="AI配置" name="ai">
+            <el-tab-pane label="AI回复配置" name="ai">
               <div class="form">
                 <el-form
                   :model="aiInfo"
@@ -1752,13 +1793,13 @@ useHead({
                       v-model="aiInfo.key"
                       type="password"
                       show-password
-                      placeholder="请输入AI服务API密钥"
+                      placeholder="请输入AI回复服务API密钥"
                     />
                   </el-form-item>
                   <el-form-item label="模型名称">
                     <el-input
                       v-model="aiInfo.model"
-                      placeholder="请输入AI模型名称（如：gpt-3.5-turbo）"
+                      placeholder="请输入AI回复模型名称（如：gpt-3.5-turbo）"
                     />
                   </el-form-item>
                   <el-form-item label="系统消息">
@@ -1766,17 +1807,61 @@ useHead({
                       v-model="aiInfo.system_message"
                       type="textarea"
                       :rows="4"
-                      placeholder="请输入系统提示消息，用于定义AI助手的行为和角色"
+                      placeholder="请输入系统提示消息，用于定义AI回复助手的行为和角色"
                     />
                   </el-form-item>
                   <el-form-item label="API地址">
                     <el-input
                       v-model="aiInfo.url"
-                      placeholder="请输入AI服务API地址（如：https://api.openai.com/v1）"
+                      placeholder="请输入AI回复服务API地址（如：https://api.openai.com/v1）"
                     />
                   </el-form-item>
                   <el-form-item>
                     <el-button type="primary" @click="aiInfoSubmit"
+                      >提交</el-button
+                    >
+                  </el-form-item>
+                </el-form>
+              </div>
+            </el-tab-pane>
+
+            <el-tab-pane label="AI文章设置" name="aiArticle">
+              <div class="form">
+                <el-form
+                  :model="aiArticleInfo"
+                  label-position="top"
+                  label-width="120px"
+                >
+                  <el-form-item label="API密钥">
+                    <el-input
+                      v-model="aiArticleInfo.key"
+                      type="password"
+                      show-password
+                      placeholder="请输入AI文章生成服务API密钥"
+                    />
+                  </el-form-item>
+                  <el-form-item label="文本模型">
+                    <el-input
+                      v-model="aiArticleInfo.model"
+                      placeholder="请输入AI文章文本模型名称（如：gpt-4o）"
+                    />
+                  </el-form-item>
+                  <el-form-item label="系统消息">
+                    <el-input
+                      v-model="aiArticleInfo.system_message"
+                      type="textarea"
+                      :rows="4"
+                      placeholder="请输入系统提示消息，用于定义AI文章生成的写作要求"
+                    />
+                  </el-form-item>
+                  <el-form-item label="API地址">
+                    <el-input
+                      v-model="aiArticleInfo.url"
+                      placeholder="请输入AI文章生成服务API地址（如：https://api.openai.com/v1）"
+                    />
+                  </el-form-item>
+                  <el-form-item>
+                    <el-button type="primary" @click="aiArticleInfoSubmit"
                       >提交</el-button
                     >
                   </el-form-item>

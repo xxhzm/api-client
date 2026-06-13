@@ -46,6 +46,8 @@ const getData = async () => {
       res.data.list[key].status = '开启'
     } else if (element.status === '2') {
       res.data.list[key].status = '关闭'
+    } else if (element.status === '4') {
+      res.data.list[key].status = '待审核'
     } else {
       res.data.list[key].status = '草稿'
     }
@@ -126,6 +128,8 @@ const getStatusType = (status) => {
       return 'success'
     case '关闭':
       return 'danger'
+    case '待审核':
+      return 'warning'
     default:
       return 'info'
   }
