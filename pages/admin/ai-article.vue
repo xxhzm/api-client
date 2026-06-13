@@ -106,7 +106,7 @@ const generate = async () => {
     return;
   }
 
-  if (Number(aiConfig.concurrency) >= Number(aiConfig.count)) {
+  if (Number(aiConfig.concurrency) > Number(aiConfig.count)) {
     $msg('并发数量必须小于生成数量', 'error');
     return;
   }
