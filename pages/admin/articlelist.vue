@@ -22,6 +22,8 @@ const page = ref(1)
 const totalPages = ref(1)
 // 总记录
 const totalRecords = ref(50)
+// 每页数量
+const pageSize = ref(25)
 // 页数loading
 const pageLoading = ref(false)
 
@@ -41,6 +43,7 @@ const getData = async () => {
   const res = await $myFetch('ArticleList', {
     params: {
       page: page.value,
+      limit: pageSize.value,
     },
   })
 
@@ -72,6 +75,16 @@ const getData = async () => {
   totalPages.value = res.data.totalPages
   totalRecords.value = res.data.totalRecords
 }
+
+// 监听每页数量变化
+watch(pageSize, async () => {
+  page.value = 1
+  pageLoading.value = true
+  await getData()
+  setTimeout(() => {
+    pageLoading.value = false
+  }, 300)
+})
 
 onMounted(() => {
   getData()
@@ -413,13 +426,14 @@ useHead({
 
           <div class="pagination">
             <el-pagination
-              :page-size="25"
+              v-model:page-size="pageSize"
+              :page-sizes="[10, 25, 50, 100]"
               :pager-count="5"
               :total="totalRecords"
               v-model:current-page="page"
               :disabled="pageLoading"
               background
-              layout="prev, pager, next"
+              layout="total, sizes, prev, pager, next, jumper"
             />
           </div>
         </client-only>
