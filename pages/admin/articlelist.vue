@@ -8,6 +8,13 @@ definePageMeta({
 
 const tableData = ref([])
 const search = ref('')
+const previewVisible = ref(false)
+const previewLoading = ref(false)
+const previewArticle = ref({})
+const tableRef = ref(null)
+const selectedRows = ref([])
+const batchStatus = ref('')
+const batchLoading = ref(false)
 
 // 当前页数
 const page = ref(1)
@@ -75,8 +82,8 @@ const filterTableData = computed(() =>
   tableData.value.filter(
     (data) =>
       !search.value ||
-      data.title.toLowerCase().includes(search.value.toLowerCase()) ||
-      data.content.toLowerCase().includes(search.value.toLowerCase()),
+      (data.title || '').toLowerCase().includes(search.value.toLowerCase()) ||
+      (data.content || '').toLowerCase().includes(search.value.toLowerCase()),
   ),
 )
 
@@ -84,6 +91,104 @@ const filterTableData = computed(() =>
 const handleEdit = async (index, row) => {
   navigateTo('/admin/articleset/' + row.id)
 }
+
+const handleSelectionChange = (rows) => {
+  selectedRows.value = rows
+}
+
+const batchUpdateStatus = async () => {
+  if (selectedRows.value.length === 0) {
+    $msg('请选择文章', 'error')
+    return
+  }
+  if (!batchStatus.value) {
+    $msg('请选择状态', 'error')
+    return
+  }
+
+  batchLoading.value = true
+
+  const body = new URLSearchParams()
+  body.append('ids', selectedRows.value.map((item) => item.id).join(','))
+  body.append('status', batchStatus.value)
+
+  const res = await $myFetch('BatchUpdateArticleStatus', {
+    method: 'POST',
+    body,
+  })
+
+  batchLoading.value = false
+
+  if (res.code !== 200) {
+    $msg(res.msg, 'error')
+    return
+  }
+
+  $msg(res.msg, 'success')
+  batchStatus.value = ''
+  selectedRows.value = []
+  tableRef.value?.clearSelection()
+  await getData()
+}
+
+// 预览
+const handlePreview = async (index, row) => {
+  previewVisible.value = true
+  previewLoading.value = true
+  previewArticle.value = {}
+
+  const res = await $myFetch('ArticleId', {
+    params: {
+      id: row.id,
+    },
+  })
+
+  previewLoading.value = false
+
+  if (res.code !== 200) {
+    previewVisible.value = false
+    $msg(res.msg, 'error')
+    return
+  }
+
+  previewArticle.value = res.data || {}
+}
+
+const previewHtml = computed(() => {
+  const article = previewArticle.value || {}
+  const content = article.content || ''
+
+  if (/<!doctype|<html[\s>]/i.test(content)) {
+    return content
+  }
+
+  return `<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>${article.title || '文章预览'}</title>
+  <style>
+    body {
+      margin: 0;
+      padding: 32px;
+      color: #1f2937;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      line-height: 1.75;
+      background: #fff;
+    }
+    img, video, iframe {
+      max-width: 100%;
+    }
+    table {
+      max-width: 100%;
+      border-collapse: collapse;
+    }
+  </style>
+</head>
+<body>${content}</body>
+</html>`
+})
 
 // 删除用户按钮
 const handleDelete = async (index, row) => {
@@ -133,6 +238,16 @@ const getStatusType = (status) => {
     default:
       return 'info'
   }
+}
+
+const getStatusLabel = (status) => {
+  const map = {
+    1: '开启',
+    2: '关闭',
+    3: '草稿',
+    4: '待审核',
+  }
+  return map[status] || status || '未知'
 }
 
 // 获取分类名称
@@ -185,13 +300,41 @@ useHead({
 
       <!-- 表格区域 -->
       <div class="table-container">
+        <div class="batch-toolbar">
+          <div class="batch-info">已选择 {{ selectedRows.length }} 篇文章</div>
+          <div class="batch-actions">
+            <el-select
+              v-model="batchStatus"
+              placeholder="批量设置状态"
+              clearable
+              :disabled="selectedRows.length === 0 || batchLoading"
+            >
+              <el-option label="开启" value="1" />
+              <el-option label="关闭" value="2" />
+              <el-option label="草稿" value="3" />
+              <el-option label="待审核" value="4" />
+            </el-select>
+            <el-button
+              type="primary"
+              :loading="batchLoading"
+              :disabled="selectedRows.length === 0 || !batchStatus"
+              @click="batchUpdateStatus"
+            >
+              批量修改
+            </el-button>
+          </div>
+        </div>
+
         <client-only>
           <el-table
+            ref="tableRef"
             :data="filterTableData"
             style="width: 100%"
             v-loading="pageLoading"
+            @selection-change="handleSelectionChange"
           >
-            <el-table-column width="160" fixed="right">
+            <el-table-column type="selection" width="48" />
+            <el-table-column width="210" fixed="right">
               <template #header>
                 <div class="search-wrapper">
                   <el-input v-model="search" placeholder="搜索" clearable>
@@ -211,6 +354,13 @@ useHead({
                     @click="handleEdit(scope.$index, scope.row)"
                   >
                     编辑
+                  </el-button>
+                  <el-button
+                    type="success"
+                    link
+                    @click="handlePreview(scope.$index, scope.row)"
+                  >
+                    预览
                   </el-button>
                   <el-popconfirm
                     confirm-button-text="确定"
@@ -294,6 +444,48 @@ useHead({
           </div>
         </template>
       </el-dialog>
+
+      <!-- 文章预览对话框 -->
+      <el-dialog
+        v-model="previewVisible"
+        title="文章预览"
+        width="80%"
+        top="5vh"
+        destroy-on-close
+        @closed="previewArticle = {}"
+      >
+        <div v-loading="previewLoading" class="article-preview">
+          <template v-if="!previewLoading && previewArticle.id">
+            <div class="preview-header">
+              <h2>{{ previewArticle.title }}</h2>
+              <div class="preview-meta">
+                <el-tag
+                  :type="getCategoryTagType(previewArticle.type)"
+                  size="small"
+                  effect="plain"
+                >
+                  {{ getCategoryName(previewArticle.type) }}
+                </el-tag>
+                <el-tag
+                  :type="getStatusType(getStatusLabel(previewArticle.status))"
+                  size="small"
+                >
+                  {{ getStatusLabel(previewArticle.status) }}
+                </el-tag>
+              </div>
+              <p v-if="previewArticle.description" class="preview-desc">
+                {{ previewArticle.description }}
+              </p>
+            </div>
+            <iframe
+              class="preview-frame"
+              :srcdoc="previewHtml"
+              sandbox=""
+              title="文章预览"
+            ></iframe>
+          </template>
+        </div>
+      </el-dialog>
     </div>
   </div>
 </template>
@@ -346,6 +538,34 @@ useHead({
     .table-container {
       padding: 8px 0 0;
 
+      .batch-toolbar {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        padding: 12px;
+        margin-bottom: 12px;
+        background: #f8fafc;
+        border: 1px solid #ebeef5;
+        border-radius: 6px;
+
+        .batch-info {
+          color: #606266;
+          font-size: 14px;
+          white-space: nowrap;
+        }
+
+        .batch-actions {
+          display: flex;
+          align-items: center;
+          gap: 10px;
+
+          .el-select {
+            width: 160px;
+          }
+        }
+      }
+
       :deep(.el-table) {
         border: none;
 
@@ -381,7 +601,66 @@ useHead({
         display: flex;
         justify-content: flex-end;
       }
+
+      @media screen and (max-width: 768px) {
+        .batch-toolbar {
+          align-items: stretch;
+          flex-direction: column;
+
+          .batch-actions {
+            align-items: stretch;
+            flex-direction: column;
+
+            .el-select {
+              width: 100%;
+            }
+          }
+        }
+
+        .table-actions {
+          flex-wrap: wrap;
+        }
+      }
     }
+  }
+}
+
+.article-preview {
+  min-height: 360px;
+
+  .preview-header {
+    padding-bottom: 16px;
+    margin-bottom: 16px;
+    border-bottom: 1px solid #ebeef5;
+
+    h2 {
+      margin: 0 0 12px;
+      font-size: 20px;
+      line-height: 1.4;
+      color: #1f2937;
+      font-weight: 600;
+    }
+
+    .preview-meta {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 12px;
+    }
+
+    .preview-desc {
+      margin: 0;
+      color: #606266;
+      line-height: 1.7;
+    }
+  }
+
+  .preview-frame {
+    display: block;
+    width: 100%;
+    height: 60vh;
+    border: 1px solid #ebeef5;
+    border-radius: 6px;
+    background: #fff;
   }
 }
 
